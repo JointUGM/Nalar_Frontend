@@ -1,0 +1,99 @@
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("./ui/assets/fonts/plus-jakarta-sans-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible Next";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("./ui/assets/fonts/atkinson-hyperlegible-next-latin.woff2") format("woff2");
+}
+:root {
+  --font-ui: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-reading: "Atkinson Hyperlegible Next", ui-sans-serif, system-ui, sans-serif;
+  --font-size-body: 1rem;
+  --font-size-student-body: 1.125rem;
+  --font-size-meta: .8125rem;
+  --font-size-panel: 1.375rem;
+  --color-ink: #15213B;
+  --color-primary: #2447D1;
+  --color-primary-hover: #1B38AB;
+  --color-accent: #F2B23A;
+  --color-paper: #F6F4EF;
+  --color-canvas: #FAFAF7;
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #EDEAE3;
+  --color-sidebar: #EFECE5;
+  --color-border: #E4E0D7;
+  --color-role-border: #ECEAE4;
+  --color-nav-hover: #F3F5FC;
+  --color-control-border: #818795;
+  --color-text-secondary: #4D5566;
+  --color-text-muted: #636978;
+  --color-info-bg: #E7ECFB;
+  --color-success-bg: #DFF1E9;
+  --color-success-text: #1F7A5C;
+  --color-success-strong: #185D46;
+  --color-warning-bg: #FCEFD2;
+  --color-warning-text: #7A5200;
+  --color-misconception-bg: #FBE6DC;
+  --color-misconception-text: #9A3510;
+  --color-verification-bg: #E8EAF0;
+  --color-danger-bg: #F9E3E8;
+  --color-danger-text: #A3304D;
+  --color-danger-hover: #84243D;
+  --color-backdrop: rgb(21 33 59 / 48%);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --radius-button: 10px;
+  --radius-input: 12px;
+  --radius-card: 14px;
+  --radius-student-input: 16px;
+  --radius-student-card: 24px;
+  --radius-pill: 999px;
+  --control-min-size: 44px;
+  --motion-fast: 160ms;
+  --shadow-card: 0 4px 20px rgb(21 33 59 / 4%);
+  --shadow-dialog: 0 24px 80px rgb(21 33 59 / 20%);
+  --shadow-student: 0 4px 0 var(--color-ink);
+  --ink: var(--color-ink);
+  --muted: var(--color-text-secondary);
+  --accent: var(--color-primary);
+  --border: var(--color-border);
+  font-family: var(--font-ui);
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+* { box-sizing: border-box; }
+html { scrollbar-gutter: stable; scroll-padding-block: var(--space-6); }
+body { margin: 0; min-inline-size: 0; font-size: var(--font-size-body); line-height: 1.5; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 28px 0; border-bottom: 1px solid var(--border); }
+.brand { font-size: 1.65rem; font-weight: 800; letter-spacing: -.05em; }
+.brand span { color: var(--accent); }
+.stack-label { color: var(--muted); font-size: .8rem; }
+h1 { margin: var(--space-3) 0 var(--space-4); font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.25; letter-spacing: -.035em; }
+p { color: var(--color-text-secondary); line-height: 1.6; }
+button, input { font: inherit; border-radius: var(--radius-button); }
+input { padding: var(--space-3) var(--space-4); border: 1px solid var(--color-control-border); color: var(--color-ink); background: var(--color-surface); }
+button { min-block-size: var(--control-min-size); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-primary); background: var(--color-primary); color: var(--color-surface); font-weight: 600; cursor: pointer; }
+button:hover:not(:disabled) { background: var(--color-primary-hover); }
+button:disabled { cursor: not-allowed; opacity: .65; }
+a { color: var(--color-primary); text-underline-offset: .2em; }
+:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
+code { color: var(--color-ink); font-size: .9em; overflow-wrap: anywhere; }
+::selection { color: var(--color-ink); background: var(--color-info-bg); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

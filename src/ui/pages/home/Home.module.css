@@ -1,0 +1,26 @@
+.shell { max-width: 1040px; margin: 0 auto; padding: 0 28px; }
+.main { max-width: 720px; margin: 64px auto 80px; }
+.eyebrow { color: var(--accent); font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.intro { max-width: 610px; font-size: 1.1rem; line-height: 1.75; }
+.layers { display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 38px; }
+.layers span { padding: 7px 13px; border: 1px solid var(--border); border-radius: 6px; background: white; color: var(--ink); font-size: .85rem; }
+.card { padding: 30px; border: 1px solid var(--border); border-radius: 14px; background: white; box-shadow: 0 8px 32px #17203306; }
+.card h2 { margin: 0; font-size: 1.3rem; }
+.card form { margin: 24px 0; }
+.card label { display: block; margin-bottom: 8px; font-size: .9rem; font-weight: 600; }
+.inputRow { display: flex; gap: 10px; }
+.inputRow input { flex: 1; min-width: 0; }
+.card ul { list-style: none; padding: 0; margin: 0; }
+.card li { display: flex; justify-content: space-between; gap: 16px; padding: 13px 0; border-top: 1px solid var(--border); }
+.card li span { overflow-wrap: anywhere; }
+.card time { flex-shrink: 0; color: var(--muted); font-size: .8rem; }
+.error { color: #b42318; }
+.note { margin-bottom: 0; font-size: .8rem; }
+.footer { margin-top: 24px; font-size: .85rem; }
+@media (max-width: 600px) {
+  .shell { padding: 0 18px; }
+  .main { margin-top: 40px; }
+  .card { padding: 22px; }
+  .inputRow { flex-direction: column; }
+  .card li { flex-direction: column; gap: 4px; }
+}

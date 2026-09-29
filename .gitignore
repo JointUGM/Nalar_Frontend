@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+*.local
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+.superpowers/
+.DS_Store
+
+# Local documentation and plans
+*.md

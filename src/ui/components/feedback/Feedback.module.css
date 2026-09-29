@@ -1,0 +1,13 @@
+.feedback { display: flex; align-items: start; gap: var(--space-3); padding: var(--space-4); border: 1px solid currentColor; border-radius: var(--radius-input); }
+.icon { display: grid; place-items: center; flex: 0 0 auto; inline-size: 22px; block-size: 22px; border: 1.5px solid currentColor; border-radius: 50%; font-weight: 700; font-size: var(--font-size-meta); }
+.content { min-inline-size: 0; overflow-wrap: anywhere; }
+.title { margin: 0; color: inherit; font-weight: 700; line-height: 1.5; }
+.description { margin-block-start: var(--space-1); font-size: var(--font-size-meta); line-height: 1.6; }
+.description p { margin: 0; color: inherit; }
+.info { color: var(--color-primary-hover); background: var(--color-info-bg); }
+.success { color: var(--color-success-strong); background: var(--color-success-bg); }
+.warning { color: var(--color-warning-text); background: var(--color-warning-bg); }
+.danger { color: var(--color-danger-text); background: var(--color-danger-bg); }
+.adult { font-family: var(--font-ui); }
+.student { border-width: 2px; border-radius: var(--radius-student-input); font-size: var(--font-size-student-body); }
+.student .description { font-family: var(--font-reading); font-size: var(--font-size-student-body); }

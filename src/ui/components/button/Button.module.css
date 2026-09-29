@@ -1,0 +1,46 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-block-size: var(--control-min-size);
+  min-inline-size: var(--control-min-size);
+  max-inline-size: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-button);
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: background-color var(--motion-fast), box-shadow var(--motion-fast), transform var(--motion-fast);
+}
+.primary { color: var(--color-surface); background: var(--color-primary); }
+.primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+.secondary { color: var(--color-ink); background: var(--color-surface); border-color: var(--color-control-border); }
+.secondary:hover:not(:disabled), .ghost:hover:not(:disabled) { background: var(--color-surface-muted); }
+.danger { color: var(--color-surface); background: var(--color-danger-text); }
+.danger:hover:not(:disabled) { background: var(--color-danger-hover); }
+.ghost { color: var(--color-ink); background: transparent; }
+.adult { font-size: var(--font-size-body); }
+.student {
+  min-block-size: 52px;
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-pill);
+  padding-inline: var(--space-6);
+  font-size: var(--font-size-student-body);
+  box-shadow: var(--shadow-student);
+}
+.button:active:not(:disabled) { transform: translateY(1px); }
+.student:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+.button:disabled { cursor: not-allowed; opacity: .65; box-shadow: none; }
+.button[aria-busy="true"] { cursor: progress; }
+.spinner { inline-size: 1em; block-size: 1em; flex: 0 0 auto; border: 2px solid currentColor; border-inline-end-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .button { transition: none; }
+  .button:active:not(:disabled) { transform: none; }
+  .spinner { animation: none; }
+}
