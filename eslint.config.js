@@ -8,7 +8,7 @@ const forbidImports = (layers) => ['error', {
   patterns: [
     { group: layers.flatMap((layer) => [`@/${layer}`, `@/${layer}/**`, `@/${layer}.*`]), message: 'Follow the layer boundaries in docs/project_structure.md.' },
     { group: ['../**'], message: 'Use @/ imports across folders so architecture rules can check them.' },
-    { group: ['react', 'react/**', 'react-dom', 'react-dom/**', 'react-router', 'react-router/**', 'vite', 'vitest'], message: 'Keep framework dependencies outside the core layers (tests are exempt).' },
+    { group: ['react', 'react/**', 'react-dom', 'react-dom/**', 'react-router', 'react-router/**', 'vite', 'vitest', '@supabase/*'], message: 'Keep framework and SDK dependencies outside the core layers (tests are exempt).' },
   ],
 }]
 
@@ -49,6 +49,6 @@ export default tseslint.config(
   {
     files: ['src/ui/**/*.{ts,tsx}'],
     ignores: ['**/*.test.ts', '**/*.test.tsx'],
-    rules: { 'no-restricted-imports': ['error', { patterns: ['@/infrastructure', '@/infrastructure/**', '@/di', '@/di.*', '@/review-di', '@/review-di.*', '../**'] }] },
+    rules: { 'no-restricted-imports': ['error', { patterns: ['@/infrastructure', '@/infrastructure/**', '@/di', '@/di.*', '@/review-di', '@/review-di.*', '../**', '@supabase/*'] }] },
   },
 )

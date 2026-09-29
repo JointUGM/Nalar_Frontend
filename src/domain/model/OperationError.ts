@@ -1,6 +1,7 @@
-export type OperationErrorCode = 'unauthenticated' | 'forbidden' | 'not_found' | 'rate_limited' | 'unavailable' | 'invalid_response'
+export type OperationErrorCode = 'invalid_credentials' | 'unauthenticated' | 'forbidden' | 'not_found' | 'rate_limited' | 'unavailable' | 'invalid_response'
 
 const messages: Record<OperationErrorCode, string> = {
+  invalid_credentials: 'Email atau kata sandi tidak dapat digunakan untuk masuk.',
   unauthenticated: 'Silakan masuk terlebih dahulu.',
   forbidden: 'Akses tidak tersedia untuk akun ini.',
   not_found: 'Data tidak tersedia.',

@@ -7,6 +7,8 @@ const forbiddenImports = [
   ['src/domain/model/Probe.ts', '@/infrastructure/services/InMemoryLoggerService'],
   ['src/domain/model/Probe.ts', 'react'],
   ['src/domain/model/Probe.ts', 'react-router'],
+  ['src/domain/model/Probe.ts', '@supabase/supabase-js'],
+  ['src/application/Probe.ts', '@supabase/auth-js'],
   ['src/application/Probe.ts', '@/review-di'],
   ['src/application/Probe.ts', '@/infrastructure/services/InMemoryLoggerService'],
   ['src/application/Probe.ts', '@/ui/pages/home/Home'],
@@ -16,6 +18,7 @@ const forbiddenImports = [
   ['src/ui/pages/home/Probe.tsx', '@/di.ts'],
   ['src/ui/pages/home/Probe.tsx', '@/review-di'],
   ['src/ui/pages/home/Probe.tsx', '@/review-di.ts'],
+  ['src/ui/pages/home/Probe.tsx', '@supabase/supabase-js'],
   ['src/infrastructure/services/Probe.ts', '@/ui/pages/home/Home'],
 ]
 
@@ -42,4 +45,10 @@ const [allowedImport] = await eslint.lintText(
 )
 assert.equal(allowedImport.errorCount, 0, 'Application must allow domain types')
 
-console.log('Architecture checks passed: forbidden imports/browser access rejected; domain types allowed.')
+const [allowedSdk] = await eslint.lintText(
+  'import type { SupabaseClient } from "@supabase/supabase-js"; export type { SupabaseClient };',
+  { filePath: 'src/infrastructure/services/Probe.ts' },
+)
+assert.equal(allowedSdk.errorCount, 0, 'Infrastructure must allow SDK types')
+
+console.log('Architecture checks passed: forbidden imports/browser access rejected; domain types and infrastructure SDK allowed.')
