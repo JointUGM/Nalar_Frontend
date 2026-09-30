@@ -1,5 +1,25 @@
 import { expect, test } from '@playwright/test'
 
+test('onboarding preview stays unavailable and supports mobile keyboard dismissal', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 800 })
+  await page.goto('/review/platform/schools')
+  const trigger = page.getByRole('button', { name: 'Daftarkan sekolah' })
+  await trigger.focus()
+  await page.keyboard.press('Enter')
+  const dialog = page.getByRole('dialog', { name: 'Daftarkan sekolah' })
+  for (const name of ['Nama sekolah', 'NPSN', 'Email admin sekolah pertama']) {
+    await expect(dialog.getByRole('textbox', { name, exact: true })).toBeDisabled()
+  }
+  await expect(dialog.getByRole('button', { name: 'Kirim undangan' })).toBeDisabled()
+  await expect(dialog).toContainText('tidak membuat sekolah atau mengirim undangan')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false)
+  expect(await dialog.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(false)
+  await page.screenshot({ path: testInfo.outputPath('onboarding-320.png'), fullPage: true })
+  await dialog.press('Escape')
+  await expect(dialog).not.toBeVisible()
+  await expect(trigger).toBeFocused()
+})
+
 test('review school pages retain cursor for detail and reset it on search', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 700 })
   await page.goto('/review/platform/schools')
