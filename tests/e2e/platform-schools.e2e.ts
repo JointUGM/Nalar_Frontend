@@ -40,3 +40,23 @@ test('school actions support the keyboard and long names reflow', async ({ page 
     expect(hasOverflow, `horizontal overflow at ${width}px`).toBe(false)
   }
 })
+
+test('access-change previews identify the selected school and stay read-only on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 })
+  await page.goto('/review/platform/schools')
+  await page.getByRole('button', { name: 'Tindakan SMPN 5 Yogyakarta' }).click()
+  await page.getByRole('button', { name: 'Ganti admin sekolah' }).click()
+  const replacement = page.getByRole('dialog', { name: 'Ganti admin SMPN 5 Yogyakarta' })
+  await expect(replacement).toContainText('Hendra Santoso')
+  await expect(replacement.getByRole('textbox', { name: 'Email admin baru' })).toBeDisabled()
+  await expect(replacement.getByRole('button', { name: 'Ganti admin' })).toBeDisabled()
+  await replacement.press('Escape')
+
+  await page.getByRole('button', { name: 'Tangguhkan' }).click()
+  const suspension = page.getByRole('dialog', { name: 'Tangguhkan SMPN 5 Yogyakarta?' })
+  await expect(suspension).toContainText('Status saat ini')
+  await expect(suspension.getByRole('textbox', { name: 'Alasan' })).toBeDisabled()
+  await expect(suspension.getByRole('button', { name: 'Konfirmasi' })).toBeDisabled()
+  const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)
+  expect(hasOverflow).toBe(false)
+})

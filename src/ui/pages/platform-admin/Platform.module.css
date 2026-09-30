@@ -38,6 +38,9 @@
 .form { display: grid; gap: 16px; margin-block-start: 20px; }
 .form label { font-size: 14px; }
 .form input { border-radius: 8px; padding: 12px 14px; }
+.dialogSummary { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 16px; margin: 0; padding: 16px; border-radius: 10px; background: var(--color-paper); font-size: 14px; }
+.dialogSummary dt { color: var(--color-text-secondary); }
+.dialogSummary dd { min-inline-size: 0; margin: 0; overflow-wrap: anywhere; font-weight: 600; }
 .dialogActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-block-start: 4px; }
 .details { display: grid; gap: 8px; }
 .details dt { font-size: 13px; color: var(--color-text-secondary); }
