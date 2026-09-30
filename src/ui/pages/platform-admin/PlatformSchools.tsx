@@ -30,8 +30,9 @@ export function PlatformSchools() {
 
   return <AdultShell search={query} onSearch={(value) => { const next = new URLSearchParams(params); if (value) next.set('q', value); else next.delete('q'); next.delete('cursor'); setParams(next, { replace: true }) }}>
     <div className={styles.content}>
-      <div className={styles.pageHeading}><h1>Sekolah</h1><Button className={styles.compactButton} onClick={() => setModal({ kind: 'onboard' })}><Icon name="plus" size={16} />Daftarkan sekolah</Button></div>
+      <div className={styles.pageHeading}><h1>Sekolah</h1>{view.status !== 'denied' && <Button className={styles.compactButton} onClick={() => setModal({ kind: 'onboard' })}><Icon name="plus" size={16} />Daftarkan sekolah</Button>}</div>
       {view.status === 'loading' && <p role="status" aria-busy="true" className={styles.readState}>Memuat data sekolah…</p>}
+      {view.status === 'denied' && <div className={styles.readState}><h2>Akses tidak tersedia</h2><p>Daftar sekolah tidak tersedia untuk akun ini.</p></div>}
       {view.status === 'error' && <div className={styles.readState}><Feedback tone="danger" title="Data sekolah belum dapat dimuat" announce>Periksa koneksi dan coba lagi.</Feedback><Button tone="secondary" onClick={view.retry}>Coba lagi</Button></div>}
       {view.status === 'ready' && view.data && <>
         <div className={styles.metrics}>
@@ -39,16 +40,16 @@ export function PlatformSchools() {
           <div><span>Pengguna</span><strong>{view.data.summary.users === null ? '—' : number.format(view.data.summary.users)}</strong></div>
           <div><span>Versi CP berlaku</span><strong>{view.data.summary.curriculum ?? '—'}</strong></div>
         </div>
-        <div className={styles.tableCard}><table className={styles.table}>
+        {schools.length > 0 ? <div className={styles.tableCard}><table className={styles.table}>
           <caption className={styles.visuallyHidden}>Metadata sekolah pada halaman ini</caption>
           <thead><tr><th scope="col">Sekolah</th><th scope="col">Admin sekolah</th><th scope="col">Pengguna</th><th scope="col">Status</th><th scope="col"><span className={styles.visuallyHidden}>Tindakan</span></th></tr></thead>
-          <tbody>{schools.map((school) => <Fragment key={school.id}><tr>
+          <tbody onKeyDown={(event) => { if (event.key === 'Escape' && menu) { event.currentTarget.querySelector<HTMLButtonElement>('[aria-expanded="true"]')?.focus(); setMenu(null) } }}>{schools.map((school) => <Fragment key={school.id}><tr>
             <td><Link className={styles.schoolName} to={`${base}/schools/${school.id}${location.search}`}>{school.name}</Link><span className={styles.city}>{school.city} · NPSN {school.npsn}</span></td>
             <td className={styles.admin}>{school.admin}</td><td className={styles.userCount}>{number.format(school.users)}</td>
             <td><span className={[styles.badge, styles[school.status]].join(' ')}>{statusLabels[school.status]}</span></td>
             <td><button className={styles.rowMenu} aria-label={`Tindakan ${school.name}`} aria-expanded={menu === school.id} onClick={() => setMenu(menu === school.id ? null : school.id)}><Icon name="more" /></button></td>
           </tr>{menu === school.id && <tr><td className={styles.rowActions} colSpan={5}><Button tone="secondary" className={styles.pillButton} onClick={() => { setModal({ kind: 'replace', school }) }}><Icon name="swap" size={14} />Ganti admin sekolah</Button><Button tone="secondary" className={styles.suspendButton} onClick={() => { setModal({ kind: 'suspend', school }) }}><Icon name="pause" size={14} />{school.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'}</Button></td></tr>}</Fragment>)}</tbody>
-        </table>{schools.length === 0 && <p className={styles.empty}>{query ? 'Tidak ada sekolah yang cocok dengan pencarian ini.' : 'Belum ada sekolah yang tersedia.'}</p>}</div>
+        </table></div> : <div className={styles.empty}><p>{query ? 'Tidak ada sekolah yang cocok dengan pencarian ini.' : 'Belum ada sekolah yang tersedia.'}</p>{query && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.delete('q'); next.delete('cursor'); setParams(next, { replace: true }) }}>Hapus pencarian</Button>}</div>}
         <nav className={styles.pagination} aria-label="Halaman sekolah">
           {cursor && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.delete('cursor'); setParams(next) }}>Kembali ke awal</Button>}
           {nextCursor && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.set('cursor', nextCursor); setParams(next) }}>Halaman berikutnya</Button>}
