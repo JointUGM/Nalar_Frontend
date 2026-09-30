@@ -1,20 +1,24 @@
 import { expect, test } from '@playwright/test'
 
-test('onboarding preview stays unavailable and supports mobile keyboard dismissal', async ({ page }, testInfo) => {
-  await page.setViewportSize({ width: 320, height: 800 })
+test('onboarding review validates, simulates confirmation and restores mobile keyboard focus', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 375, height: 800 })
   await page.goto('/review/platform/schools')
   const trigger = page.getByRole('button', { name: 'Daftarkan sekolah' })
   await trigger.focus()
   await page.keyboard.press('Enter')
   const dialog = page.getByRole('dialog', { name: 'Daftarkan sekolah' })
-  for (const name of ['Nama sekolah', 'NPSN', 'Email admin sekolah pertama']) {
-    await expect(dialog.getByRole('textbox', { name, exact: true })).toBeDisabled()
-  }
-  await expect(dialog.getByRole('button', { name: 'Kirim undangan' })).toBeDisabled()
-  await expect(dialog).toContainText('tidak membuat sekolah atau mengirim undangan')
+  await dialog.getByRole('button', { name: 'Simulasikan undangan' }).click()
+  await expect(dialog.getByRole('textbox', { name: 'Nama sekolah' })).toBeFocused()
+  await dialog.getByRole('textbox', { name: 'Nama sekolah' }).fill('Sekolah Contoh dengan Nama Panjang untuk Pratinjau Pendaftaran')
+  await dialog.getByRole('textbox', { name: 'NPSN' }).fill('00123456')
+  await dialog.getByRole('textbox', { name: 'Email admin sekolah pertama' }).fill('operator@example.test')
   expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false)
   expect(await dialog.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(false)
-  await page.screenshot({ path: testInfo.outputPath('onboarding-320.png'), fullPage: true })
+  await page.screenshot({ path: testInfo.outputPath('onboarding-375.png'), fullPage: true })
+  await dialog.getByRole('button', { name: 'Simulasikan undangan' }).click()
+  await expect(dialog.getByRole('button', { name: /Menyiapkan simulasi/ })).toBeDisabled()
+  await expect(dialog).toContainText('Simulasi pendaftaran selesai')
+  await expect(dialog).toContainText('00123456')
   await dialog.press('Escape')
   await expect(dialog).not.toBeVisible()
   await expect(trigger).toBeFocused()

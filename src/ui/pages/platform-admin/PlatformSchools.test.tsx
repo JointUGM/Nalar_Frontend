@@ -32,25 +32,72 @@ afterAll(() => {
   else Reflect.deleteProperty(HTMLDialogElement.prototype, 'close')
 })
 
-function Fixture({ listSchools }: { listSchools: PlatformDependencies['listSchools'] }) {
-  return <MemoryRouter><DependenciesProvider value={{ listSchools, listCurriculum: { execute: async () => ({ versions: [], reference: null }) } }}><PlatformSchools /></DependenciesProvider></MemoryRouter>
+function Fixture({ listSchools, entry = '/review/platform/schools' }: { listSchools: PlatformDependencies['listSchools']; entry?: string }) {
+  return <MemoryRouter initialEntries={[entry]}><DependenciesProvider value={{ listSchools, listCurriculum: { execute: async () => ({ versions: [], reference: null }) } }}><PlatformSchools /></DependenciesProvider></MemoryRouter>
 }
 
 describe('PlatformSchools', () => {
-  it('keeps onboarding inputs unavailable and returns focus after dismissal', async () => {
+  it('retains onboarding edits and focuses the first invalid field', async () => {
     const user = userEvent.setup()
     render(<Fixture listSchools={{ execute: async () => overview }} />)
-    await screen.findByText('Sekolah Yogyakarta')
+    await user.click(screen.getByRole('button', { name: 'Daftarkan sekolah' }))
+    const dialog = screen.getByRole('dialog', { name: 'Daftarkan sekolah' })
+    const name = within(dialog).getByRole('textbox', { name: 'Nama sekolah' })
+    await user.click(within(dialog).getByRole('button', { name: 'Simulasikan undangan' }))
+    expect(name).toHaveAttribute('aria-invalid', 'true')
+    expect(name).toHaveFocus()
+    await user.type(name, 'Sekolah Contoh')
+    await user.type(within(dialog).getByRole('textbox', { name: 'NPSN' }), '00123456')
+    const email = within(dialog).getByRole('textbox', { name: 'Email admin sekolah pertama' })
+    await user.type(email, 'invalid')
+    await user.click(within(dialog).getByRole('button', { name: 'Simulasikan undangan' }))
+    expect(email).toHaveAttribute('aria-invalid', 'true')
+    expect(email).toHaveFocus()
+    expect(name).toHaveValue('Sekolah Contoh')
+    expect(within(dialog).getByRole('textbox', { name: 'NPSN' })).toHaveValue('00123456')
+  })
+
+  it('blocks repeated confirmation while pending and shows a simulated summary', async () => {
+    const user = userEvent.setup()
+    render(<Fixture listSchools={{ execute: async () => overview }} />)
     const trigger = screen.getByRole('button', { name: 'Daftarkan sekolah' })
     await user.click(trigger)
     const dialog = screen.getByRole('dialog', { name: 'Daftarkan sekolah' })
+    await user.type(within(dialog).getByRole('textbox', { name: 'Nama sekolah' }), 'Sekolah Contoh')
+    await user.type(within(dialog).getByRole('textbox', { name: 'NPSN' }), '00123456')
+    await user.type(within(dialog).getByRole('textbox', { name: 'Email admin sekolah pertama' }), 'operator@example.test')
+    await user.dblClick(within(dialog).getByRole('button', { name: 'Simulasikan undangan' }))
+    expect(within(dialog).getByRole('button', { name: /Menyiapkan simulasi/ })).toBeDisabled()
     expect(within(dialog).getByRole('textbox', { name: 'Nama sekolah' })).toBeDisabled()
-    expect(within(dialog).getByRole('textbox', { name: 'NPSN' })).toBeDisabled()
-    expect(within(dialog).getByRole('textbox', { name: 'Email admin sekolah pertama' })).toBeDisabled()
-    expect(within(dialog).getByRole('button', { name: 'Kirim undangan' })).toBeDisabled()
-    expect(dialog).toHaveTextContent('tidak membuat sekolah atau mengirim undangan')
+    expect(await within(dialog).findByText('Simulasi pendaftaran selesai')).toBeInTheDocument()
+    expect(dialog).toHaveTextContent('Sekolah Contoh')
+    expect(dialog).toHaveTextContent('00123456')
+    expect(dialog).toHaveTextContent('operator@example.test')
+    await user.click(within(dialog).getByRole('button', { name: 'Selesai' }))
+    expect(trigger).toHaveFocus()
+    await user.click(trigger)
+    expect(screen.getByRole('textbox', { name: 'Nama sekolah' })).toHaveValue('')
+  })
+
+  it('retains inputs after simulated failure and supports cancellation during retry', async () => {
+    const user = userEvent.setup()
+    render(<Fixture entry='/review/platform/schools?onboarding=failure' listSchools={{ execute: async () => overview }} />)
+    const trigger = screen.getByRole('button', { name: 'Daftarkan sekolah' })
+    await user.click(trigger)
+    const dialog = screen.getByRole('dialog', { name: 'Daftarkan sekolah' })
+    await user.type(within(dialog).getByRole('textbox', { name: 'Nama sekolah' }), 'Sekolah Contoh')
+    await user.type(within(dialog).getByRole('textbox', { name: 'NPSN' }), '00123456')
+    await user.type(within(dialog).getByRole('textbox', { name: 'Email admin sekolah pertama' }), 'operator@example.test')
+    await user.click(within(dialog).getByRole('button', { name: 'Simulasikan undangan' }))
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Simulasi belum berhasil')
+    expect(within(dialog).getByRole('textbox', { name: 'Nama sekolah' })).toHaveValue('Sekolah Contoh')
+    expect(within(dialog).getByRole('textbox', { name: 'NPSN' })).toHaveValue('00123456')
+    expect(within(dialog).getByRole('textbox', { name: 'Email admin sekolah pertama' })).toHaveValue('operator@example.test')
+    await user.click(within(dialog).getByRole('button', { name: 'Coba lagi' }))
     await user.click(within(dialog).getByRole('button', { name: 'Batal' }))
     expect(trigger).toHaveFocus()
+    await user.click(trigger)
+    expect(screen.getByRole('textbox', { name: 'Nama sekolah' })).toHaveValue('')
   })
 
   it('opens the selected school action, blocks unavailable writes and restores focus to its menu action', async () => {
