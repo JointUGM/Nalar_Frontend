@@ -47,8 +47,7 @@ export function useAccountViewModel(dependencies: AccountDependencies | null) {
       if (checking) notification = value
       else showSession(value)
     })
-    // SDK initial null notifications may accompany an outage; the read error
-    // must remain visible instead of prompting an unnecessary new sign-in.
+    // A session-read outage must not prompt an unnecessary new sign-in.
     void dependencies.session.read().then((value) => {
       if (active) showSession(notification === undefined ? value : notification)
     }).catch((cause: unknown) => {
