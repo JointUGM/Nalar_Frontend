@@ -29,6 +29,7 @@
 .pillButton { border-radius: 999px; font-size: 15px; font-weight: 600; padding: 12px 20px; }
 .suspendButton { border: none; border-radius: 999px; font-size: 14px; color: var(--color-misconception-text); background: var(--color-misconception-bg); }
 .empty { padding: 24px 0; font-size: 15px; }
+.pagination { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-block-start: 16px; }
 .readState { display: grid; justify-items: start; gap: 16px; margin-block-start: 32px; }
 .platformDialog { inline-size: min(520px, calc(100% - 32px)); border-radius: 16px; }
 .platformDialog > div:first-child { padding: 24px 32px 0; border-block-end: none; }

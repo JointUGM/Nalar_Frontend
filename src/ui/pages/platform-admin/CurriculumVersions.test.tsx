@@ -10,7 +10,7 @@ describe('CurriculumVersions', () => {
     const user = userEvent.setup()
     let attempts = 0
     render(<MemoryRouter><DependenciesProvider value={{
-      listSchools: { execute: async () => ({ schools: [], summary: { users: null, activeSchools: null, curriculum: null } }) },
+      listSchools: { execute: async () => ({ schools: [], nextCursor: null, summary: { users: null, activeSchools: null, curriculum: null } }) },
       listCurriculum: { execute: async () => { if (++attempts === 1) throw new Error('private curriculum response'); return { versions: [], reference: null } } },
     }}><CurriculumVersions /></DependenciesProvider></MemoryRouter>)
     expect(await screen.findByRole('alert')).not.toHaveTextContent('private curriculum response')

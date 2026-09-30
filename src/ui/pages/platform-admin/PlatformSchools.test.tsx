@@ -13,6 +13,7 @@ const overview: PlatformOverview = {
     { id: 'b', name: 'Sekolah Sleman', city: 'Sleman', npsn: '87654321', admin: 'Admin B', users: 24, status: 'invited' },
   ],
   summary: { activeSchools: 14, users: 9900, curriculum: '046/2025' },
+  nextCursor: null,
 }
 
 const originalShowModal = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
@@ -47,14 +48,40 @@ describe('PlatformSchools', () => {
     await user.click(screen.getByRole('button', { name: 'Batal' }))
     expect(trigger).toHaveFocus()
   })
-  it('filters loaded school metadata without changing supplied platform totals', async () => {
+  it('sends search to the read and keeps supplied platform totals', async () => {
     const user = userEvent.setup()
-    render(<Fixture listSchools={{ execute: async () => overview }} />)
+    const calls: Array<[string, string | null]> = []
+    render(<Fixture listSchools={{ execute: async (query, cursor) => {
+      calls.push([query, cursor])
+      return { ...overview, schools: query ? [overview.schools[1]] : overview.schools }
+    } }} />)
     expect(await screen.findByText('Sekolah Yogyakarta')).toBeInTheDocument()
-    await user.type(screen.getByRole('textbox', { name: 'Cari sekolah pada halaman ini' }), 'Sleman')
+    await user.type(screen.getByRole('textbox', { name: 'Cari sekolah' }), 'Sleman')
+    expect(await screen.findByText('Sekolah Sleman')).toBeInTheDocument()
     expect(screen.queryByText('Sekolah Yogyakarta')).not.toBeInTheDocument()
-    expect(screen.getByText('Sekolah Sleman')).toBeInTheDocument()
     expect(screen.getByText('9.900')).toBeInTheDocument()
+    expect(calls.at(-1)).toEqual(['Sleman', null])
+  })
+
+  it('resets a stale cursor on search and discards the old page response', async () => {
+    const user = userEvent.setup()
+    let resolveOld!: (value: PlatformOverview) => void
+    const calls: Array<[string, string | null]> = []
+    render(<Fixture listSchools={{ execute: (query, cursor) => {
+      calls.push([query, cursor])
+      if (cursor) return new Promise<PlatformOverview>((resolve) => { resolveOld = resolve })
+      return Promise.resolve(query
+        ? { ...overview, schools: [overview.schools[1]] }
+        : { ...overview, schools: [overview.schools[0]], nextCursor: 'page-2' })
+    } }} />)
+    expect(await screen.findByText('Sekolah Yogyakarta')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Halaman berikutnya' }))
+    expect(calls.at(-1)).toEqual(['', 'page-2'])
+    await user.type(screen.getByRole('textbox', { name: 'Cari sekolah' }), 'Sleman')
+    expect(await screen.findByText('Sekolah Sleman')).toBeInTheDocument()
+    expect(calls.at(-1)).toEqual(['Sleman', null])
+    await act(async () => { resolveOld({ ...overview, schools: [overview.schools[0]], nextCursor: null }) })
+    expect(screen.queryByText('Sekolah Yogyakarta')).not.toBeInTheDocument()
   })
 
   it('ignores an old repository response when its dependency context changes', async () => {

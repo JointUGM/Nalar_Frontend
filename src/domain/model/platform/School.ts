@@ -10,5 +10,6 @@ export interface School {
 
 export interface PlatformOverview {
   schools: readonly School[]
+  nextCursor: string | null
   summary: { activeSchools: number | null; users: number | null; curriculum: string | null }
 }
