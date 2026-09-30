@@ -37,6 +37,22 @@ function Fixture({ listSchools }: { listSchools: PlatformDependencies['listSchoo
 }
 
 describe('PlatformSchools', () => {
+  it('keeps onboarding inputs unavailable and returns focus after dismissal', async () => {
+    const user = userEvent.setup()
+    render(<Fixture listSchools={{ execute: async () => overview }} />)
+    await screen.findByText('Sekolah Yogyakarta')
+    const trigger = screen.getByRole('button', { name: 'Daftarkan sekolah' })
+    await user.click(trigger)
+    const dialog = screen.getByRole('dialog', { name: 'Daftarkan sekolah' })
+    expect(within(dialog).getByRole('textbox', { name: 'Nama sekolah' })).toBeDisabled()
+    expect(within(dialog).getByRole('textbox', { name: 'NPSN' })).toBeDisabled()
+    expect(within(dialog).getByRole('textbox', { name: 'Email admin sekolah pertama' })).toBeDisabled()
+    expect(within(dialog).getByRole('button', { name: 'Kirim undangan' })).toBeDisabled()
+    expect(dialog).toHaveTextContent('tidak membuat sekolah atau mengirim undangan')
+    await user.click(within(dialog).getByRole('button', { name: 'Batal' }))
+    expect(trigger).toHaveFocus()
+  })
+
   it('opens the selected school action, blocks unavailable writes and restores focus to its menu action', async () => {
     const user = userEvent.setup()
     render(<Fixture listSchools={{ execute: async () => overview }} />)
