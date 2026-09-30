@@ -19,3 +19,24 @@ test('review school pages retain cursor for detail and reset it on search', asyn
   const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)
   expect(hasOverflow).toBe(false)
 })
+
+test('school actions support the keyboard and long names reflow', async ({ page }) => {
+  await page.goto('/review/platform/schools')
+  const school = page.getByRole('link', { name: 'SMPN 5 Yogyakarta' })
+  await school.focus()
+  await page.keyboard.press('Tab')
+  const menu = page.getByRole('button', { name: 'Tindakan SMPN 5 Yogyakarta' })
+  await expect(menu).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('button', { name: 'Ganti admin sekolah' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(menu).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Ganti admin sekolah' })).toHaveCount(0)
+
+  await school.evaluate((link) => { link.textContent = 'Sekolah Menengah Pertama dengan Nama Resmi Sangat Panjang TanpaSingkatanDanTanpaSpasiTambahan'.repeat(2) })
+  for (const width of [320, 768, 1440]) {
+    await page.setViewportSize({ width, height: 800 })
+    const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)
+    expect(hasOverflow, `horizontal overflow at ${width}px`).toBe(false)
+  }
+})

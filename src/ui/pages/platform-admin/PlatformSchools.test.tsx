@@ -2,6 +2,7 @@ import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { OperationError } from '@/domain/model/OperationError'
 import type { PlatformOverview } from '@/domain/model/platform/School'
 import type { PlatformDependencies } from '@/ui/components/dependencies/DependenciesContext'
 import { DependenciesProvider } from '@/ui/components/dependencies/DependenciesProvider'
@@ -47,6 +48,18 @@ describe('PlatformSchools', () => {
     expect(screen.getByRole('button', { name: 'Ganti admin' })).toBeDisabled()
     await user.click(screen.getByRole('button', { name: 'Batal' }))
     expect(trigger).toHaveFocus()
+  })
+
+  it('closes a school action menu with Escape while keeping keyboard focus', async () => {
+    const user = userEvent.setup()
+    render(<Fixture listSchools={{ execute: async () => overview }} />)
+    const menu = await screen.findByRole('button', { name: 'Tindakan Sekolah Sleman' })
+    menu.focus()
+    await user.keyboard('{Enter}')
+    expect(screen.getByRole('button', { name: 'Ganti admin sekolah' })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('button', { name: 'Ganti admin sekolah' })).not.toBeInTheDocument()
+    expect(menu).toHaveFocus()
   })
   it('sends search to the read and keeps supplied platform totals', async () => {
     const user = userEvent.setup()
@@ -101,6 +114,26 @@ describe('PlatformSchools', () => {
     expect(await screen.findByRole('alert')).not.toHaveTextContent('private response body')
     expect(screen.queryByText('Sekolah Yogyakarta')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Coba lagi' }))
+    expect(await screen.findByText('Sekolah Yogyakarta')).toBeInTheDocument()
+  })
+
+  it('hides school data and retry when the read is denied', async () => {
+    render(<Fixture listSchools={{ execute: async () => { throw new OperationError('forbidden', { requestId: 'req-denied' }) } }} />)
+    expect(await screen.findByRole('heading', { name: 'Akses tidak tersedia' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Coba lagi' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Daftarkan sekolah' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Sekolah aktif')).not.toBeInTheDocument()
+    expect(screen.queryByText('Sekolah Yogyakarta')).not.toBeInTheDocument()
+  })
+
+  it('lets an empty search return to the full school list', async () => {
+    const user = userEvent.setup()
+    render(<Fixture listSchools={{ execute: async (query) => query ? { ...overview, schools: [] } : overview }} />)
+    expect(await screen.findByText('Sekolah Yogyakarta')).toBeInTheDocument()
+    await user.type(screen.getByRole('textbox', { name: 'Cari sekolah' }), 'tidak-ada')
+    expect(await screen.findByText('Tidak ada sekolah yang cocok dengan pencarian ini.')).toBeInTheDocument()
+    expect(screen.queryByRole('table', { name: 'Metadata sekolah pada halaman ini' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Hapus pencarian' }))
     expect(await screen.findByText('Sekolah Yogyakarta')).toBeInTheDocument()
   })
 })
