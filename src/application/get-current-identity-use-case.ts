@@ -4,7 +4,7 @@ import type { IdentityRepository } from '@/domain/services/IdentityRepository'
 export class GetCurrentIdentityUseCase {
   constructor(private readonly repository: IdentityRepository) {}
 
-  execute(): Promise<Identity> {
-    return this.repository.getMe()
+  execute(signal?: AbortSignal): Promise<Identity> {
+    return this.repository.getMe(signal)
   }
 }
