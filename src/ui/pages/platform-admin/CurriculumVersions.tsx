@@ -11,8 +11,9 @@ import styles from './Platform.module.css'
 export function CurriculumVersions() {
   const view = useCurriculumVersionsViewModel()
   const [publishing, setPublishing] = useState(false)
+  if (view.status === 'denied' && publishing) setPublishing(false)
   return <AdultShell><div className={styles.content}>
-    <div className={styles.pageHeading}><div><h1>Capaian Pembelajaran nasional</h1><p>Versi baru tidak mengubah pemetaan CP pada unit yang sudah ada.</p></div><Button className={styles.compactButton} onClick={() => setPublishing(true)}><Icon name="upload" size={16} />Terbitkan versi baru</Button></div>
+    <div className={styles.pageHeading}><div><h1>Capaian Pembelajaran nasional</h1><p>Versi baru tidak mengubah pemetaan CP pada unit yang sudah ada.</p></div>{view.status !== 'denied' && <Button className={styles.compactButton} onClick={() => setPublishing(true)}><Icon name="upload" size={16} />Terbitkan versi baru</Button>}</div>
     {view.status === 'loading' && <p role="status" aria-busy="true" className={styles.readState}>Memuat Capaian Pembelajaran…</p>}
     {view.status === 'denied' && <div className={styles.readState}><Feedback tone="danger" title="Capaian Pembelajaran tidak tersedia" announce>Akses ke data ini tidak tersedia untuk akun ini.</Feedback></div>}
     {view.status === 'error' && <div className={styles.readState}><Feedback tone="danger" title="Capaian Pembelajaran belum dapat dimuat" announce>Periksa koneksi dan coba lagi.</Feedback><Button tone="secondary" onClick={view.retry}>Coba lagi</Button></div>}
