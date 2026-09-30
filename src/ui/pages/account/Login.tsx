@@ -6,6 +6,7 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import nalaAsk from '@/ui/assets/nala-ask.svg'
 import type { AccountDependencies } from './AccountDependencies'
 import { useAccountViewModel } from './useAccountViewModel'
+import { RoleSelection } from './RoleSelection'
 import styles from './Login.module.css'
 
 export function Login({ dependencies }: { dependencies: AccountDependencies | null }) {
@@ -21,7 +22,7 @@ export function Login({ dependencies }: { dependencies: AccountDependencies | nu
         <div className={styles.content} id="account-form" tabIndex={-1}>
           {view.phase === 'checking' && <><h1>Memeriksa sesi…</h1><p role="status">Tunggu sebentar.</p></>}
           {view.phase === 'check-failed' && <><h1>Sesi belum dapat diperiksa</h1><p>Coba lagi untuk memeriksa sesi masuk Anda.</p></>}
-          {view.phase === 'signed-in' && <><h1>Anda sudah masuk</h1><p role="status">Akses halaman akun belum tersedia. Anda dapat keluar untuk menggunakan akun lain.</p></>}
+          {view.phase === 'signed-in' && <><h1>Anda sudah masuk</h1>{dependencies?.identity ? <RoleSelection dependencies={dependencies} /> : <p role="status">Identitas akun belum tersedia. Anda dapat keluar untuk menggunakan akun lain.</p>}</>}
           {view.phase === 'signed-out' && <><h1>Selamat datang kembali</h1><p>Masuk dengan email akun Anda.</p></>}
 
           {view.error && <div className={styles.error} role="alert" tabIndex={-1} ref={errorSummary}>

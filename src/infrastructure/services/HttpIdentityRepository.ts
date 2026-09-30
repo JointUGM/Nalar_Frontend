@@ -41,7 +41,7 @@ const statusCodes: Partial<Record<number, OperationErrorCode>> = {
 export class HttpIdentityRepository implements IdentityRepository {
   constructor(private readonly options: HttpIdentityOptions) {}
 
-  async getMe(): Promise<Identity> {
+  async getMe(signal?: AbortSignal): Promise<Identity> {
     let token: string | null
     try { token = await this.options.getAccessToken() }
     catch { throw new OperationError('unavailable') }
@@ -51,7 +51,7 @@ export class HttpIdentityRepository implements IdentityRepository {
     try {
       response = await (this.options.fetch ?? globalThis.fetch)(`${this.options.apiBaseUrl.replace(/\/+$/, '')}/me`, {
         method: 'GET', headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-        cache: 'no-store', credentials: 'omit',
+        cache: 'no-store', credentials: 'omit', signal,
       })
     } catch { throw new OperationError('unavailable') }
 

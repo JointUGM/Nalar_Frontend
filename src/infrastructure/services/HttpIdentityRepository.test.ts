@@ -36,6 +36,14 @@ describe('Current identity HTTP boundary', () => {
     })
   })
 
+  it('passes an abort signal to the private identity read', async () => {
+    const controller = new AbortController()
+    await reader(async (_input, init) => {
+      expect(init?.signal).toBe(controller.signal)
+      return Response.json(me)
+    }).execute(controller.signal)
+  })
+
   it('supports parent/platform capabilities without inventing school membership', async () => {
     const identity = await reader(async () => Response.json({ ...me, roles: [], is_platform_admin: true })).execute()
     expect(identity.memberships).toEqual([])
