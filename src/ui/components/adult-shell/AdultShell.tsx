@@ -29,7 +29,7 @@ export function AdultShell({ children, search = '', onSearch }: { children: Reac
         <button className={styles.menuButton} aria-label="Buka navigasi" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Icon name="menu" /></button>
         <span className={styles.roleTitle}>Admin platform</span>
         <span className={styles.reviewLabel}>Pratinjau · data contoh</span>
-        <label className={styles.search}><Icon name="search" size={14} /><input aria-label="Cari sekolah pada halaman ini" placeholder="Cari…" value={search} onChange={(event) => onSearch?.(event.target.value)} disabled={!onSearch} /></label>
+        <label className={styles.search}><Icon name="search" size={14} /><input aria-label="Cari sekolah" placeholder="Cari…" value={search} onChange={(event) => onSearch?.(event.target.value)} disabled={!onSearch} /></label>
         <button className={styles.notifications} disabled aria-label="Notifikasi belum tersedia"><Icon name="bell" size={16} /></button>
       </header>
       <main className={styles.main} id="platform-content" tabIndex={-1}>{children}</main>

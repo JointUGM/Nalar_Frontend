@@ -3,5 +3,7 @@ import type { PlatformOverview } from '@/domain/model/platform/School'
 
 export class ListSchoolsUseCase {
   constructor(private readonly repository: PlatformRepository) {}
-  execute(): Promise<PlatformOverview> { return this.repository.getOverview() }
+  execute(query: string, cursor: string | null): Promise<PlatformOverview> {
+    return this.repository.getOverview(query.trim(), cursor)
+  }
 }
