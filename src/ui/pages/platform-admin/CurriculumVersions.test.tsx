@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { OperationError } from '@/domain/model/OperationError'
 import type { CurriculumCatalog } from '@/domain/model/platform/CurriculumVersion'
 import type { PlatformDependencies } from '@/ui/components/dependencies/DependenciesContext'
@@ -12,6 +12,21 @@ const catalog: CurriculumCatalog = {
   versions: [{ id: '2025', name: 'Versi contoh 2025', published: '2 Jan 2026', schools: 3, current: true }],
   reference: null,
 }
+
+const originalShowModal = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
+const originalClose = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close')
+beforeAll(() => {
+  Object.defineProperties(HTMLDialogElement.prototype, {
+    showModal: { configurable: true, value(this: HTMLDialogElement) { this.open = true } },
+    close: { configurable: true, value(this: HTMLDialogElement) { this.open = false } },
+  })
+})
+afterAll(() => {
+  if (originalShowModal) Object.defineProperty(HTMLDialogElement.prototype, 'showModal', originalShowModal)
+  else Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
+  if (originalClose) Object.defineProperty(HTMLDialogElement.prototype, 'close', originalClose)
+  else Reflect.deleteProperty(HTMLDialogElement.prototype, 'close')
+})
 
 function Fixture({ listCurriculum }: { listCurriculum: PlatformDependencies['listCurriculum'] }) {
   return <MemoryRouter><DependenciesProvider value={{
@@ -25,7 +40,29 @@ describe('CurriculumVersions', () => {
     render(<Fixture listCurriculum={{ execute: async () => { throw new OperationError(code) } }} />)
     expect(await screen.findByRole('alert')).toHaveTextContent('Capaian Pembelajaran tidak tersedia')
     expect(screen.queryByRole('button', { name: 'Coba lagi' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Terbitkan versi baru' })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Versi Capaian Pembelajaran' })).not.toBeInTheDocument()
+  })
+
+  it.each(['forbidden', 'not_found'] as const)('dismisses an open preview on %s and keeps it closed after recovery', async (code) => {
+    const user = userEvent.setup()
+    const { rerender } = render(<Fixture listCurriculum={{ execute: async () => catalog }} />)
+    await screen.findByRole('heading', { name: 'Versi contoh 2025' })
+    await user.click(screen.getByRole('button', { name: 'Terbitkan versi baru' }))
+    expect(screen.getByRole('dialog', { name: 'Terbitkan versi CP baru' })).toBeInTheDocument()
+
+    rerender(<Fixture listCurriculum={{ execute: async () => { throw new OperationError(code) } }} />)
+    expect(await screen.findByRole('alert')).toHaveTextContent('Capaian Pembelajaran tidak tersedia')
+    expect(screen.queryByRole('dialog', { name: 'Terbitkan versi CP baru' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Terbitkan versi baru' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Versi contoh 2025' })).not.toBeInTheDocument()
+
+    rerender(<Fixture listCurriculum={{ execute: async () => catalog }} />)
+    await screen.findByRole('heading', { name: 'Versi contoh 2025' })
+    expect(screen.getByRole('button', { name: 'Terbitkan versi baru' })).toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'Terbitkan versi CP baru' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Terbitkan versi baru' }))
+    expect(screen.getByRole('dialog', { name: 'Terbitkan versi CP baru' })).toBeInTheDocument()
   })
 
   it('keeps supplied versions visible when their CP content is unavailable', async () => {
