@@ -51,18 +51,21 @@ export function PlatformSchools() {
           </tr>{menu === school.id && <tr><td className={styles.rowActions} colSpan={5}><Button tone="secondary" className={styles.pillButton} onClick={() => { setModal({ kind: 'replace', school }) }}><Icon name="swap" size={14} />Ganti admin sekolah</Button><Button tone="secondary" className={styles.suspendButton} onClick={() => { setModal({ kind: 'suspend', school }) }}><Icon name="pause" size={14} />{school.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'}</Button></td></tr>}</Fragment>)}</tbody>
         </table></div> : <div className={styles.empty}><p>{query ? 'Tidak ada sekolah yang cocok dengan pencarian ini.' : 'Belum ada sekolah yang tersedia.'}</p>{query && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.delete('q'); next.delete('cursor'); setParams(next, { replace: true }) }}>Hapus pencarian</Button>}</div>}
         <nav className={styles.pagination} aria-label="Halaman sekolah">
-          {cursor && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.delete('cursor'); setParams(next) }}>Kembali ke awal</Button>}
-          {nextCursor && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.set('cursor', nextCursor); setParams(next) }}>Halaman berikutnya</Button>}
+          <span className={styles.paginationInfo}>Menampilkan {schools.length} sekolah pada halaman ini</span>
+          <div className={styles.paginationButtons}>
+            {cursor && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.delete('cursor'); setParams(next) }}>Kembali ke awal</Button>}
+            {nextCursor && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.set('cursor', nextCursor); setParams(next) }}>Halaman berikutnya</Button>}
+          </div>
         </nav>
       </>}
     </div>
-    <Dialog open={Boolean(modal)} onClose={() => setModal(null)} title={modal?.kind === 'replace' ? `Ganti admin ${modal.school?.name}` : modal?.kind === 'suspend' ? `${modal.school?.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'} ${modal.school?.name}?` : 'Daftarkan sekolah'} description={modal?.kind === 'replace' ? `${modal.school?.admin} akan kehilangan akses admin. Akun lainnya tidak berubah.` : modal?.kind === 'suspend' ? 'Penangguhan bersifat sementara. Data sekolah tetap tersimpan.' : 'Masukkan identitas sekolah dan email admin sekolah pertama.'} className={styles.platformDialog}>
+    <Dialog open={Boolean(modal)} onClose={() => setModal(null)} title={modal?.kind === 'replace' ? `Ganti admin ${modal.school?.name}` : modal?.kind === 'suspend' ? `${modal.school?.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'} ${modal.school?.name}?` : 'Daftarkan sekolah'} description={modal?.kind === 'replace' ? `${modal.school?.admin} akan kehilangan akses admin. Akun lainnya tidak berubah.` : modal?.kind === 'suspend' ? (modal.school?.status === 'suspended' ? 'Pengaktifan kembali memulihkan akses administrasi dan kelas sekolah.' : 'Penangguhan bersifat sementara. Data sekolah tetap tersimpan.') : 'Masukkan identitas sekolah dan email admin sekolah pertama.'} className={styles.platformDialog}>
       <form className={styles.form} onSubmit={(event) => event.preventDefault()}>
         {modal?.kind === 'onboard' && <><Field label="Nama sekolah" placeholder="Nama resmi sekolah" required /><Field label="NPSN" inputMode="numeric" maxLength={8} placeholder="Delapan digit" required /><Field label="Email admin sekolah pertama" type="email" placeholder="operator@sekolah.sch.id" required /></>}
-        {modal?.kind === 'replace' && <Field label="Email admin baru" type="email" required />}
+        {modal?.kind === 'replace' && <Field label="Email admin baru" type="email" placeholder="admin.baru@sekolah.sch.id" required />}
         {modal?.kind === 'suspend' && <Field label="Alasan" placeholder="Jelaskan alasan perubahan akses" required />}
         <Feedback title="Layanan administrasi belum tersedia">Isian tidak akan dikirim. Pengiriman undangan dan perubahan akses belum dapat dilakukan.</Feedback>
-        <div className={styles.dialogActions}><Button tone="ghost" className={styles.pillButton} onClick={() => setModal(null)}>Batal</Button><Button disabled className={styles.pillButton}>{modal?.kind === 'replace' ? 'Ganti admin' : modal?.kind === 'suspend' ? 'Konfirmasi' : 'Kirim undangan'}</Button></div>
+        <div className={styles.dialogActions}><Button tone="ghost" className={styles.pillButton} onClick={() => setModal(null)}>Batal</Button><Button disabled className={styles.pillButton}>{modal?.kind === 'replace' ? 'Ganti admin' : modal?.kind === 'suspend' ? (modal.school?.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan') : 'Kirim undangan'}</Button></div>
       </form>
     </Dialog>
     <Dialog open={Boolean(detail)} onClose={() => navigate(`${base}/schools${location.search}`)} title={detail?.name ?? 'Sekolah'} description="Identitas dan akses administrasi sekolah." className={styles.platformDialog}>
