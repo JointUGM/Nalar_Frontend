@@ -9,6 +9,7 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { usePlatformSchoolsViewModel } from './usePlatformSchoolsViewModel'
 import { SchoolOnboardingDialog } from './SchoolOnboardingDialog'
+import { SchoolAdminHandoffDialog } from './SchoolAdminHandoffDialog'
 import styles from './Platform.module.css'
 
 const number = new Intl.NumberFormat('id-ID')
@@ -58,12 +59,12 @@ export function PlatformSchools() {
       </>}
     </div>
     {modal?.kind === 'onboard' && <SchoolOnboardingDialog onClose={() => setModal(null)} outcome={params.get('onboarding') === 'failure' ? 'failure' : 'success'} />}
-    <Dialog open={Boolean(modal && modal.kind !== 'onboard')} onClose={() => setModal(null)} title={modal?.kind === 'replace' ? `Ganti admin ${modal.school?.name}` : modal?.kind === 'suspend' ? `${modal.school?.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'} ${modal.school?.name}?` : 'Daftarkan sekolah'} description={modal?.kind === 'replace' ? 'Pratinjau penggantian admin. Akses dan undangan tidak berubah.' : modal?.kind === 'suspend' ? 'Pratinjau perubahan status. Status, akses, dan sesi sekolah tidak berubah.' : 'Pratinjau pendaftaran sekolah. Pendaftaran dan undangan admin belum tersedia.'} className={styles.platformDialog}>
+    {modal?.kind === 'replace' && modal.school && <SchoolAdminHandoffDialog key={modal.school.id} school={modal.school} outcome={params.get('handoff') === 'failure' ? 'failure' : 'success'} onClose={() => setModal(null)} />}
+    <Dialog open={modal?.kind === 'suspend'} onClose={() => setModal(null)} title={`${modal?.school?.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'} ${modal?.school?.name}?`} description="Pratinjau perubahan status. Status, akses, dan sesi sekolah tidak berubah." className={styles.platformDialog}>
       <form className={styles.form} onSubmit={(event) => event.preventDefault()}>
-        {modal?.kind === 'replace' && <><dl className={styles.dialogSummary}><dt>Admin saat ini</dt><dd>{modal.school?.admin}</dd></dl><Field label="Email admin baru" type="email" disabled /></>}
         {modal?.kind === 'suspend' && <><dl className={styles.dialogSummary}><dt>Status saat ini</dt><dd>{modal.school ? statusLabels[modal.school.status] : '—'}</dd></dl><Field label="Alasan" placeholder="Jelaskan alasan perubahan akses" disabled /></>}
-        <Feedback title="Layanan administrasi belum tersedia">{modal?.kind === 'onboard' ? 'Pratinjau ini tidak membuat sekolah atau mengirim undangan.' : 'Pratinjau ini tidak mengirim undangan atau mengubah status dan akses sekolah.'}</Feedback>
-        <div className={styles.dialogActions}><Button tone="ghost" className={styles.pillButton} onClick={() => setModal(null)}>Batal</Button><Button disabled className={styles.pillButton}>{modal?.kind === 'replace' ? 'Ganti admin' : modal?.kind === 'suspend' ? 'Konfirmasi' : 'Kirim undangan'}</Button></div>
+        <Feedback title="Layanan administrasi belum tersedia">Pratinjau ini tidak mengirim undangan atau mengubah status dan akses sekolah.</Feedback>
+        <div className={styles.dialogActions}><Button tone="ghost" className={styles.pillButton} onClick={() => setModal(null)}>Batal</Button><Button disabled className={styles.pillButton}>Konfirmasi</Button></div>
       </form>
     </Dialog>
     <Dialog open={Boolean(detail)} onClose={() => navigate(`${base}/schools${location.search}`)} title={detail?.name ?? 'Sekolah'} description="Identitas dan akses administrasi sekolah." className={styles.platformDialog}>

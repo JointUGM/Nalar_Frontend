@@ -79,6 +79,9 @@
 }
 
 .pendingNote { margin: 0; font-size: 14px; color: var(--color-text-secondary); }
+.handoffForm { display: grid; gap: 16px; }
+.handoffHeading { margin: 0; font-size: 17px; line-height: 25px; overflow-wrap: anywhere; }
+.handoffNote { margin: 0; font-size: 15px; line-height: 24px; overflow-wrap: anywhere; }
 @media (max-width: 479px) {
   .dialogSummary { grid-template-columns: minmax(0, 1fr); }
   .dialogSummary dd + dt { margin-block-start: 8px; }
