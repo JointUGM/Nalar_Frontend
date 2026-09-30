@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -44,10 +44,40 @@ describe('PlatformSchools', () => {
     await user.click(screen.getByRole('button', { name: 'Tindakan Sekolah Sleman' }))
     const trigger = screen.getByRole('button', { name: 'Ganti admin sekolah' })
     await user.click(trigger)
-    expect(screen.getByRole('dialog', { name: 'Ganti admin Sekolah Sleman' })).toHaveTextContent('Admin B akan kehilangan akses admin')
+    const dialog = screen.getByRole('dialog', { name: 'Ganti admin Sekolah Sleman' })
+    expect(dialog).toHaveTextContent('Admin saat ini')
+    expect(dialog).toHaveTextContent('Admin B')
+    expect(dialog).not.toHaveTextContent('akan kehilangan akses admin')
+    expect(within(dialog).getByRole('textbox', { name: 'Email admin baru' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Ganti admin' })).toBeDisabled()
     await user.click(screen.getByRole('button', { name: 'Batal' }))
     expect(trigger).toHaveFocus()
+  })
+
+  it('shows the selected active school without offering a status change', async () => {
+    const user = userEvent.setup()
+    render(<Fixture listSchools={{ execute: async () => overview }} />)
+    await screen.findByText('Sekolah Yogyakarta')
+    await user.click(screen.getByRole('button', { name: 'Tindakan Sekolah Yogyakarta' }))
+    await user.click(screen.getByRole('button', { name: 'Tangguhkan' }))
+    const dialog = screen.getByRole('dialog', { name: 'Tangguhkan Sekolah Yogyakarta?' })
+    expect(dialog).toHaveTextContent('Status saat ini')
+    expect(dialog).toHaveTextContent('Aktif')
+    expect(within(dialog).getByRole('textbox', { name: 'Alasan' })).toBeDisabled()
+    expect(within(dialog).getByRole('button', { name: 'Konfirmasi' })).toBeDisabled()
+  })
+
+  it('shows the selected suspended school without offering reactivation', async () => {
+    const user = userEvent.setup()
+    const suspended = { ...overview.schools[0], status: 'suspended' as const }
+    render(<Fixture listSchools={{ execute: async () => ({ ...overview, schools: [suspended] }) }} />)
+    await screen.findByText('Sekolah Yogyakarta')
+    await user.click(screen.getByRole('button', { name: 'Tindakan Sekolah Yogyakarta' }))
+    await user.click(screen.getByRole('button', { name: 'Aktifkan kembali' }))
+    const dialog = screen.getByRole('dialog', { name: 'Aktifkan kembali Sekolah Yogyakarta?' })
+    expect(dialog).toHaveTextContent('Status saat ini')
+    expect(dialog).toHaveTextContent('Ditangguhkan')
+    expect(within(dialog).getByRole('button', { name: 'Konfirmasi' })).toBeDisabled()
   })
 
   it('closes a school action menu with Escape while keeping keyboard focus', async () => {
