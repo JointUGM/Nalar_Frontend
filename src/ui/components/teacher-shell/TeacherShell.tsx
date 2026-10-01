@@ -58,7 +58,7 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
       <div className={styles.user}>
         <span className={styles.avatar} aria-hidden="true">{initials}</span>
         <span className={[styles.who, styles.label].join(' ')}><strong>{user}</strong><small>{school}</small></span>
-        <Link to="/login" className={styles.exit} aria-label="Keluar dari pratinjau"><Icon name="logout" size={16} /></Link>
+        <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label="Keluar dari pratinjau"><Icon name="logout" size={16} /></Link>
       </div>
     </aside>
     <div className={styles.workspace}>

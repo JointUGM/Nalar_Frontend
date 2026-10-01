@@ -36,7 +36,7 @@ export function AdultShell({ children, search = '', onSearch, schoolContext }: {
       {navigation}
       <div className={styles.sidebarSpacer} />
       {!schoolContext && <p className={styles.scopeNote}>Anda hanya melihat data sekolah. Sesi, transkrip, dan hasil siswa tidak dapat diakses dari sini.</p>}
-      <Link to="/login" className={styles.exit} aria-label="Keluar dari pratinjau"><Icon name="logout" /><span>Keluar</span></Link>
+      <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label="Keluar dari pratinjau"><Icon name="logout" /><span>Keluar</span></Link>
       {schoolContext && <div className={styles.schoolContext}><span className={styles.avatar}>HS</span><span><strong>{schoolContext.admin}</strong><small>Operator sekolah · contoh</small></span></div>}
     </aside>
     <div className={styles.workspace}>

@@ -1,4 +1,5 @@
-import { Link, Navigate, useLocation } from 'react-router'
+import { useEffect, useRef } from 'react'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { getRoleChoices, resolveRoleDestination } from '@/domain/model/RoleContext'
 import { Button } from '@/ui/components/button/Button'
 import type { AccountDependencies } from './AccountDependencies'
@@ -8,7 +9,19 @@ import styles from './RoleSelection.module.css'
 export function RoleSelection({ dependencies }: { dependencies: AccountDependencies }) {
   const access = useIdentityAccessViewModel(dependencies)
   const location = useLocation()
-  const requested = (location.state as { from?: unknown } | null)?.from
+  const navigate = useNavigate()
+  const state = location.state as { from?: unknown; signOut?: unknown } | null
+  const requested = state?.from
+  const leaving = state?.signOut === true
+  const started = useRef(false)
+  // An exit link asks to leave: sign out (the account page then shows the form) rather than redirect back.
+  useEffect(() => {
+    if (!leaving || started.current) return
+    started.current = true
+    void dependencies.signOut.execute().catch(() => {}).finally(() => navigate('/login', { replace: true }))
+  }, [leaving, dependencies, navigate])
+
+  if (leaving) return <p role="status">Sedang keluar…</p>
 
   if (access.phase === 'checking') return <p role="status">Memeriksa akses akun…</p>
   if (access.phase === 'signed-out') return <p role="status">Sesi berakhir. Masuk kembali untuk melihat peran Anda.</p>
