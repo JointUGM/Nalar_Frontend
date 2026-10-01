@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -36,6 +36,36 @@ function Fixture({ listCurriculum }: { listCurriculum: PlatformDependencies['lis
 }
 
 describe('CurriculumVersions', () => {
+  it('validates publication selection, retains edits and simulates success without changing the catalog', async () => {
+    const user = userEvent.setup()
+    render(<Fixture listCurriculum={{ execute: async () => catalog }} />)
+    const trigger = screen.getByRole('button', { name: 'Terbitkan versi baru' })
+    await user.click(trigger)
+    const dialog = screen.getByRole('dialog', { name: 'Terbitkan versi CP baru' })
+    const decision = within(dialog).getByRole('textbox', { name: 'Nomor keputusan' })
+    await user.click(within(dialog).getByRole('button', { name: 'Tinjau publikasi' }))
+    expect(decision).toHaveFocus()
+    expect(decision).toHaveAttribute('aria-invalid', 'true')
+    await user.type(decision, 'BSKAP 012/2027')
+    const document = within(dialog).getByRole('checkbox')
+    await user.click(document)
+    await user.click(within(dialog).getByRole('button', { name: 'Tinjau publikasi' }))
+    expect(document).toHaveFocus()
+    expect(document).toHaveAttribute('aria-invalid', 'true')
+    await user.click(document)
+    await user.click(within(dialog).getByRole('button', { name: 'Tinjau publikasi' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Ubah isian' }))
+    expect(decision).toHaveValue('BSKAP 012/2027')
+    await user.click(within(dialog).getByRole('button', { name: 'Tinjau publikasi' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Simulasikan publikasi' }))
+    expect(within(dialog).getByRole('button', { name: 'Menyiapkan simulasi…' })).toBeDisabled()
+    await within(dialog).findByRole('heading', { name: 'Simulasi publikasi selesai' })
+    expect(dialog).toHaveTextContent('Katalog dan pemetaan CP sekolah tetap menggunakan data sebelumnya')
+    await user.click(within(dialog).getByRole('button', { name: 'Selesai' }))
+    expect(trigger).toHaveFocus()
+    expect(await screen.findByRole('heading', { name: 'Versi contoh 2025' })).toBeInTheDocument()
+  })
+
   it.each(['forbidden', 'not_found'] as const)('shows a generic denied state for %s without offering a connection retry', async (code) => {
     render(<Fixture listCurriculum={{ execute: async () => { throw new OperationError(code) } }} />)
     expect(await screen.findByRole('alert')).toHaveTextContent('Capaian Pembelajaran tidak tersedia')

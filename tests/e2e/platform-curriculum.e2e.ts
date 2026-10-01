@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 
-test('CP review keeps publication unavailable and restores keyboard focus', async ({ page }, testInfo) => {
+test('CP publication validates, reviews and simulates success with mobile keyboard focus', async ({ page }, testInfo) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.setViewportSize({ width: 320, height: 800 })
   await page.goto('/review/platform/cp-versions')
   await expect(page.getByRole('heading', { name: 'BSKAP 046/2025', exact: true })).toBeVisible()
@@ -9,15 +10,60 @@ test('CP review keeps publication unavailable and restores keyboard focus', asyn
   await trigger.focus()
   await page.keyboard.press('Enter')
   const dialog = page.getByRole('dialog', { name: 'Terbitkan versi CP baru' })
-  await expect(dialog.getByRole('textbox', { name: 'Nama versi' })).toBeDisabled()
-  await expect(dialog.getByLabel('Dokumen CP')).toBeDisabled()
-  await expect(dialog.getByRole('button', { name: 'Terbitkan versi', exact: true })).toBeDisabled()
+  const decision = dialog.getByRole('textbox', { name: 'Nomor keputusan' })
+  await dialog.getByRole('button', { name: 'Tinjau publikasi' }).click()
+  await expect(decision).toBeFocused()
+  await expect(decision).toHaveAttribute('aria-invalid', 'true')
+  await decision.fill('BSKAP 012/2027')
+  await dialog.getByRole('checkbox').uncheck()
+  await dialog.getByRole('button', { name: 'Tinjau publikasi' }).click()
+  await expect(dialog.getByRole('checkbox')).toBeFocused()
+  await dialog.getByRole('checkbox').check()
+  for (const width of [320, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    expect(await dialog.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(false)
+    await page.screenshot({ path: testInfo.outputPath(`cp-publication-${width}.png`), fullPage: true })
+  }
+  await page.setViewportSize({ width: 320, height: 700 })
+  await dialog.getByRole('button', { name: 'Tinjau publikasi' }).click()
+  await expect(dialog.getByRole('heading', { name: 'Konfirmasi publikasi CP' })).toBeFocused()
+  await dialog.getByRole('button', { name: 'Ubah isian' }).click()
+  await expect(decision).toHaveValue('BSKAP 012/2027')
+  await dialog.getByRole('button', { name: 'Tinjau publikasi' }).click()
+  await dialog.getByRole('button', { name: 'Simulasikan publikasi' }).focus()
+  await page.keyboard.press('Tab')
+  await expect(dialog.getByRole('button', { name: 'Tutup dialog' })).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await page.keyboard.press('Enter')
+  await expect(dialog.getByRole('button', { name: 'Menyiapkan simulasi…' })).toBeDisabled()
+  await expect(dialog.getByRole('heading', { name: 'Simulasi publikasi selesai' })).toBeFocused()
   await dialog.press('Escape')
   await expect(trigger).toBeFocused()
   for (const width of [320, 1440]) {
     await page.setViewportSize({ width, height: 900 })
     await page.screenshot({ path: testInfo.outputPath(`cp-${width}.png`), fullPage: true })
   }
+})
+
+test('CP publication failure retains inputs and Escape cancels pending work', async ({ page }) => {
+  await page.goto('/review/platform/cp-versions?publication=failure')
+  const trigger = page.getByRole('button', { name: 'Terbitkan versi baru' })
+  await trigger.click()
+  const dialog = page.getByRole('dialog', { name: 'Terbitkan versi CP baru' })
+  const decision = dialog.getByRole('textbox', { name: 'Nomor keputusan' })
+  await decision.fill('BSKAP 012/2027')
+  await dialog.getByRole('button', { name: 'Tinjau publikasi' }).click()
+  await dialog.getByRole('button', { name: 'Simulasikan publikasi' }).click()
+  await expect(dialog.getByRole('alert')).toContainText('pilihan dokumen tetap tersimpan')
+  await dialog.getByRole('button', { name: 'Ubah isian' }).click()
+  await expect(decision).toHaveValue('BSKAP 012/2027')
+  await expect(dialog.getByRole('checkbox')).toBeChecked()
+  await dialog.getByRole('button', { name: 'Tinjau publikasi' }).click()
+  await dialog.getByRole('button', { name: 'Simulasikan publikasi' }).click()
+  await dialog.press('Escape')
+  await expect(trigger).toBeFocused()
+  await trigger.click()
+  await expect(decision).toHaveValue('')
 })
 
 test('CP version names and statement content reflow at all review widths', async ({ page }) => {
