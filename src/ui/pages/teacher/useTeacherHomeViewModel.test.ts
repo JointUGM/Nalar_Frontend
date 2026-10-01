@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { kpiExamples, sparklinePoints, summarize } from './teacherHomeExamples'
+import { actionExamples, changedMindExamples, kpiExamples, sparklinePoints, summarize, trendPoint, trendSeries, trendWeeks, weekSessions } from './teacherHomeExamples'
 import { useTeacherHomeViewModel } from './useTeacherHomeViewModel'
 
 afterEach(() => vi.useRealTimers())
@@ -47,5 +47,25 @@ describe('teacher home data', () => {
     expect(rising.points).not.toMatch('NaN')
     expect(sparklinePoints([5, 5, 5, 5]).points).not.toMatch('NaN')
     expect(rising.lastY).toBeLessThan(sparklinePoints([61, 70, 81, 93]).points.split(' ').map((p) => Number(p.split(',')[1]))[0])
+  })
+})
+
+describe('teacher home insight data', () => {
+  it('keeps the sessions KPI, its trend and the section caption on one source value', () => {
+    const sessions = kpiExamples(124)[0]
+    expect(sessions.value).toBe(String(weekSessions))
+    expect(sessions.trend.at(-1)).toBe(weekSessions)
+  })
+  it('never reports more changed minds than students who held the misconception', () => {
+    expect(changedMindExamples.every((item) => item.resolved <= item.held)).toBe(true)
+    expect(actionExamples.map((item) => item.tone)).toEqual(['review', 'urgent'])
+  })
+  it('gives every trend series one value per week inside the 0-60% chart scale', () => {
+    for (const series of trendSeries) {
+      expect(series.values).toHaveLength(trendWeeks.length)
+      expect(series.values.every((value) => value >= 0 && value <= 60)).toBe(true)
+    }
+    expect(trendPoint(0, 0)).toEqual({ x: 36, y: 130 })
+    expect(trendPoint(3, 60)).toEqual({ x: 276, y: 10 })
   })
 })
