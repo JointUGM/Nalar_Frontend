@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import type { ReactNode } from 'react'
-import { Navigate, Route, Routes } from 'react-router'
+import { Route, Routes } from 'react-router'
 import { AppRoutes } from '@/ui/routes'
 import { TeacherLayout } from '@/ui/pages/teacher/TeacherLayout'
 
@@ -24,7 +24,6 @@ const SchoolImport = lazy(() => import('@/ui/pages/school-admin/SchoolImport').t
 
 export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: ReactNode; privateEntry?: ReactNode }) {
   return <Suspense fallback={<p role="status">Memuat halaman…</p>}><Routes>
-    <Route path="/" element={<Navigate to="/review/platform/schools" replace />} />
     <Route path="/review/platform/schools" element={<PlatformSchools />} />
     <Route path="/review/platform/schools/:schoolId" element={<PlatformSchools />} />
     <Route path="/review/platform/cp-versions" element={<CurriculumVersions />} />
