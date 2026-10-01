@@ -1,0 +1,24 @@
+.content { max-inline-size: 1360px; }
+.header { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.header h1 { margin: 0; font-size: 22px; line-height: 30px; letter-spacing: -.015em; }
+.header p { margin: 2px 0 0; font-size: 13px; color: var(--color-text-muted); }
+.upload { gap: 6px; font-size: 13px; padding-inline: 14px; border-radius: 8px; white-space: nowrap; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 16px; margin: 20px 0 0; padding: 0; list-style: none; }
+.card { display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); min-inline-size: 0; }
+.card h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+.meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.tag { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+.approved { background: var(--color-success-bg); color: var(--color-success-strong); }
+.review { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.empty { background: var(--color-paper); color: var(--color-text-secondary); }
+.when { font-size: 11px; color: var(--color-text-muted); }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+.stats > div { padding-inline-start: 8px; border-inline-start: 2px solid var(--color-role-border); }
+.stats dt { font-size: 11px; color: var(--color-text-muted); }
+.stats dd { margin: 0; font-size: 15px; font-weight: 700; }
+.file { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; color: var(--color-text-muted); }
+.emptyText { margin: 0 0 12px; }
+.skeleton { display: grid; gap: 20px; }
+.bar { block-size: 44px; inline-size: min(100%, 420px); border-radius: 8px; background: var(--color-surface-muted); }
+.block { block-size: 120px; border-radius: 14px; background: var(--color-surface-muted); }
+.hidden { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }

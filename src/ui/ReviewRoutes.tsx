@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import type { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 import { AppRoutes } from '@/ui/routes'
+import { TeacherLayout } from '@/ui/pages/teacher/TeacherLayout'
 
 const PlatformSchools = lazy(() => import('@/ui/pages/platform-admin/PlatformSchools').then((module) => ({ default: module.PlatformSchools })))
 const CurriculumVersions = lazy(() => import('@/ui/pages/platform-admin/CurriculumVersions').then((module) => ({ default: module.CurriculumVersions })))
@@ -12,6 +13,7 @@ const SchoolSubjects = lazy(() => import('@/ui/pages/school-admin/SchoolSubjects
 const SchoolAssignments = lazy(() => import('@/ui/pages/school-admin/SchoolAssignments').then((module) => ({ default: module.SchoolAssignments })))
 const SchoolKbOwners = lazy(() => import('@/ui/pages/school-admin/SchoolKbOwners').then((module) => ({ default: module.SchoolKbOwners })))
 const TeacherHome = lazy(() => import('@/ui/pages/teacher/TeacherHome').then((module) => ({ default: module.TeacherHome })))
+const TeacherKnowledgeBase = lazy(() => import('@/ui/pages/teacher/TeacherKnowledgeBase').then((module) => ({ default: module.TeacherKnowledgeBase })))
 const SchoolImport = lazy(() => import('@/ui/pages/school-admin/SchoolImport').then((module) => ({ default: module.SchoolImport })))
 
 export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: ReactNode; privateEntry?: ReactNode }) {
@@ -26,7 +28,10 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
     <Route path="/review/school/subjects" element={<SchoolSubjects />} />
     <Route path="/review/school/assignments" element={<SchoolAssignments />} />
     <Route path="/review/school/kb-owners" element={<SchoolKbOwners />} />
-    <Route path="/review/teacher/home" element={<TeacherHome />} />
+    <Route element={<TeacherLayout />}>
+      <Route path="/review/teacher/home" element={<TeacherHome />} />
+      <Route path="/review/teacher/knowledge-base" element={<TeacherKnowledgeBase />} />
+    </Route>
     <Route path="/review/school/import" element={<SchoolImport />} />
     <Route path="*" element={<AppRoutes accountEntry={accountEntry} privateEntry={privateEntry} />} />
   </Routes></Suspense>

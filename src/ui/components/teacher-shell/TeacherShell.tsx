@@ -5,6 +5,7 @@ import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Icon } from '@/ui/components/icon/Icon'
 import type { IconName } from '@/ui/components/icon/Icon'
+import { useTeacherContext } from './useTeacherContext'
 import styles from './TeacherShell.module.css'
 
 interface NavItem { label: string; icon: IconName; to?: string; badge?: string }
@@ -13,7 +14,7 @@ const workspace: readonly NavItem[] = [
   { label: 'Beranda', icon: 'home', to: '/review/teacher/home' },
   { label: 'Kelas', icon: 'users' },
   { label: 'Misi', icon: 'target' },
-  { label: 'Basis pengetahuan', icon: 'layers' },
+  { label: 'Basis pengetahuan', icon: 'layers', to: '/review/teacher/knowledge-base' },
   { label: 'Sesi langsung', icon: 'monitor' },
   { label: 'Hasil kelas', icon: 'graph' },
   { label: 'Perlu perhatian', icon: 'alert', badge: '5 baru' },
@@ -21,7 +22,8 @@ const workspace: readonly NavItem[] = [
 const more: readonly NavItem[] = [{ label: 'Ubah kata sandi', icon: 'key' }, { label: 'Bantuan', icon: 'info' }]
 const unavailable = 'Belum tersedia di pratinjau'
 
-export function TeacherShell({ title, user, school, schools, onSchoolChange, children }: { title: string; user: string; school: string; schools: readonly string[]; onSchoolChange: (name: string) => void; children: ReactNode }) {
+export function TeacherShell({ title, user, children }: { title: string; user: string; children: ReactNode }) {
+  const { school, schools, changeSchool } = useTeacherContext()
   const [collapsed, setCollapsed] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [schoolOpen, setSchoolOpen] = useState(false)
@@ -40,7 +42,7 @@ export function TeacherShell({ title, user, school, schools, onSchoolChange, chi
     <p className={styles.group}>Lainnya</p>
     <nav className={styles.navigation} aria-label="Lainnya">
       <button type="button" aria-expanded={schoolOpen} aria-controls="teacher-school-list" onClick={() => setSchoolOpen((open) => !open)}><Icon name="swap" /><span className={styles.label}>Ganti sekolah</span></button>
-      {schoolOpen && <div id="teacher-school-list" role="group" aria-label="Pilih sekolah" className={styles.schools}>{schools.map((name) => <button key={name} type="button" aria-pressed={name === school} onClick={() => { onSchoolChange(name); setSchoolOpen(false); close() }}>{name}{name === school && <Icon name="check" size={14} />}</button>)}</div>}
+      {schoolOpen && <div id="teacher-school-list" role="group" aria-label="Pilih sekolah" className={styles.schools}>{schools.map((name) => <button key={name} type="button" aria-pressed={name === school} onClick={() => { changeSchool(name); setSchoolOpen(false); close() }}>{name}{name === school && <Icon name="check" size={14} />}</button>)}</div>}
       {more.map(item)}
     </nav>
   </>
