@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
-import { missionRows, openMissions, studentKpis } from './studentExamples'
+import { missionRows, missionStartPath, openMissions, studentKpis } from './studentExamples'
 import { StudentHome } from './StudentHome'
 import type { HomeScenario } from './useStudentHomeViewModel'
 
@@ -16,15 +16,16 @@ describe('student dashboard', () => {
     expect(screen.getByRole('region', { name: 'Pesan dari Nala' })).toHaveTextContent('“Kenapa kelereng berhenti?”')
   })
 
-  it('lists the open missions with their state, an accessible progress and actions that stay unavailable', () => {
+  it('lists the open missions with their state, an accessible progress and a start link that opens the introduction', () => {
     page()
     const open = within(screen.getByRole('region', { name: /Terbuka sekarang/ }))
     expect(open.getAllByRole('article')).toHaveLength(openMissions.length)
     expect(open.getByText('Ditutup 15.00')).toBeInTheDocument()
     expect(open.getByRole('img', { name: 'Pertanyaan 2 dari 5' })).toBeInTheDocument()
-    expect(open.getByRole('button', { name: 'Mulai' })).toBeDisabled()
+    expect(open.getByRole('link', { name: 'Mulai' })).toHaveAttribute('href', missionStartPath('kelereng'))
     expect(open.getByRole('button', { name: 'Lanjutkan' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Ayo mulai' })).toBeDisabled()
+    expect(screen.getByRole('link', { name: 'Ayo mulai' })).toHaveAttribute('href', missionStartPath('kelereng'))
+    expect(screen.getByRole('link', { name: 'Mulai misi hari ini' })).toHaveAttribute('href', missionStartPath('kelereng'))
     expect(screen.getByRole('list', { name: 'Ringkasan misimu' }).querySelectorAll('li')).toHaveLength(studentKpis.length)
   })
 
@@ -48,7 +49,7 @@ describe('student dashboard', () => {
     expect(screen.getByText('Belum ada misi untukmu')).toBeInTheDocument()
     expect(screen.getByText(/belum ada misi yang bisa kamu mulai/)).toBeInTheDocument()
     expect(screen.queryByRole('article')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Ayo mulai' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Ayo mulai' })).not.toBeInTheDocument()
   })
 
   it('never shows a score, verdict or comparison to the student', () => {

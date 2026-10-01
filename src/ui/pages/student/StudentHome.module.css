@@ -2,7 +2,7 @@
 .header { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
 .header h1 { margin: 0; font-size: 22px; line-height: 30px; letter-spacing: -.015em; }
 .header p { margin: 2px 0 0; font-size: 13px; color: var(--color-text-muted); }
-.header button { gap: 6px; font-size: 13px; border-radius: 8px; white-space: nowrap; }
+.header > button, .header > a { gap: 6px; font-size: 13px; border-radius: 8px; white-space: nowrap; }
 .scenario { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-block-start: 12px; font-size: 13px; font-weight: 600; }
 .scenario select { min-block-size: 44px; padding: 6px 10px; border: 1px solid var(--color-control-border); border-radius: 8px; font: inherit; font-weight: 400; color: var(--color-ink); background: var(--color-surface); }
 .loading { margin: 16px 0 0; font-size: 14px; font-weight: 600; color: var(--color-primary-hover); }
@@ -12,7 +12,8 @@
 .bubble { flex: 1 1 240px; padding: 16px 20px; border-radius: 4px 18px 18px 18px; background: var(--color-surface); }
 .bubble strong { font-size: 12px; color: var(--color-warning-text); }
 .bubble p { margin: 4px 0 0; font-size: 16px; line-height: 24px; font-weight: 500; }
-.hero > button { font-size: 14px; border-radius: 12px; box-shadow: 0 4px 0 var(--color-primary-hover); white-space: nowrap; }
+.heroStart { font-size: 14px; border-radius: 12px; box-shadow: 0 4px 0 var(--color-primary-hover); white-space: nowrap; }
+.heroStart:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--color-primary-hover); }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); margin: 20px 0 0; padding: 0; list-style: none; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); overflow: hidden; }
 .kpis li { display: grid; align-content: start; gap: 4px; padding: 16px 20px; border-inline-start: 1px solid var(--color-role-border); }
 .kpis li:first-child { border-inline-start: 0; }
@@ -43,7 +44,7 @@
 .progress > span { flex: 1; display: flex; gap: 3px; }
 .progress i { flex: 1; block-size: 4px; border-radius: 2px; background: var(--color-role-border); }
 .progress i[data-on="true"] { background: var(--color-primary); }
-.mission button { margin-block-start: auto; font-size: 13px; border-radius: 8px; }
+.mission > button, .mission > a { margin-block-start: auto; font-size: 13px; border-radius: 8px; }
 .table { overflow: hidden; }
 .tableHead { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 12px 16px; border-block-end: 1px solid var(--color-role-border); }
 .tableHead h2 { flex: 1; }
