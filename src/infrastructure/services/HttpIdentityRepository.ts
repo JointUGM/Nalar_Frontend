@@ -8,7 +8,6 @@ type MeResponse = paths['/api/v1/me']['get']['responses'][200]['content']['appli
 
 export interface HttpIdentityOptions {
   apiBaseUrl: string
-  getAccessToken: () => Promise<string | null>
   fetch?: typeof globalThis.fetch
 }
 
@@ -50,16 +49,11 @@ export class HttpIdentityRepository implements IdentityRepository {
   constructor(private readonly options: HttpIdentityOptions) {}
 
   async getMe(signal?: AbortSignal): Promise<Identity> {
-    let token: string | null
-    try { token = await this.options.getAccessToken() }
-    catch { throw new OperationError('unavailable') }
-    if (!token) throw new OperationError('unauthenticated')
-
     let response: Response
     try {
       response = await (this.options.fetch ?? globalThis.fetch)(`${this.options.apiBaseUrl.replace(/\/+$/, '')}/me`, {
-        method: 'GET', headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-        cache: 'no-store', credentials: 'omit', signal,
+        method: 'GET', headers: { Accept: 'application/json' },
+        cache: 'no-store', credentials: 'include', signal,
       })
     } catch { throw new OperationError('unavailable') }
 

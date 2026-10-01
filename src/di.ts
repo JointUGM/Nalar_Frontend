@@ -8,11 +8,12 @@ import type { AccountDependencies } from '@/ui/pages/account/AccountDependencies
 export interface PublicAppConfig { apiBaseUrl?: string }
 
 function resolveApiBaseUrl(input?: string): string | null {
+  if (input?.trim() === '/api/v1') return '/api/v1'
   try {
     const url = new URL(input?.trim() ?? '')
     const localHttp = url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)
     if ((url.protocol !== 'https:' && !localHttp) || url.username || url.password || url.search || url.hash || url.pathname !== '/api/v1') return null
-    return url.href.replace(/\/$/, '')
+    return '/api/v1'
   } catch { return null }
 }
 
@@ -24,7 +25,7 @@ export async function createDependencies(config: PublicAppConfig): Promise<{ acc
   return {
     account: {
       signIn: new SignInUseCase(auth), signOut: new SignOutUseCase(auth), session: new ObserveAuthSessionUseCase(auth),
-      identity: new GetCurrentIdentityUseCase(new HttpIdentityRepository({ apiBaseUrl, getAccessToken: () => auth.getAccessToken() })),
+      identity: new GetCurrentIdentityUseCase(new HttpIdentityRepository({ apiBaseUrl })),
     },
     dispose: async () => { auth.dispose() },
   }
