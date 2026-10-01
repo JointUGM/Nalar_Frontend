@@ -4,7 +4,7 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { schoolExample } from './peopleExamples'
 import { useSimulatedConfirmation } from './useSimulatedConfirmation'
 import { copyClassCount, copyRangeLabel, nextYear } from './yearExamples'
-import styles from './YearCopyDialog.module.css'
+import styles from './dialogForm.module.css'
 
 export function YearCopyDialog({ onApply, onClose }: { onApply: () => void; onClose: () => void }) {
   const view = useSimulatedConfirmation(onApply)
@@ -15,7 +15,7 @@ export function YearCopyDialog({ onApply, onClose }: { onApply: () => void; onCl
       {busy && <Feedback title="Menyalin kelas (simulasi)…" announce>Menunggu hasil contoh. Dialog tetap terbuka.</Feedback>}
       {view.status === 'failure' && <Feedback tone="danger" title="Simulasi penyalinan gagal" announce>Tidak ada kelas yang disalin. Ubah skenario atau coba lagi.</Feedback>}
       {view.status === 'success' && <Feedback tone="success" title={`${copyClassCount} kelas disalin dalam simulasi`} announce>Langkah berikutnya: impor data siswa baru. Muat ulang mengembalikan data awal.</Feedback>}
-      {view.status !== 'success' && <label className={styles.scenario}>Hasil skenario
+      {view.status !== 'success' && <label className={styles.field}>Hasil skenario
         <select disabled={busy} value={view.outcome} onChange={(event) => view.setOutcome(event.target.value as 'success' | 'failure')}><option value="success">Berhasil</option><option value="failure">Penyalinan gagal</option></select>
       </label>}
       <div className={styles.actions}>{view.status === 'success' ? <Button autoFocus onClick={onClose}>Tutup</Button> : <><Button tone="secondary" disabled={busy} onClick={onClose}>Batal</Button><Button pending={busy} pendingLabel="Menyalin simulasi…" onClick={view.confirm}>Konfirmasi salin kelas</Button></>}</div>

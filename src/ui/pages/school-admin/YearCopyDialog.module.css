@@ -1,5 +1,0 @@
-.form { display: grid; gap: 24px; }
-.scenario { display: grid; gap: 8px; font-size: 14px; font-weight: 600; }
-.scenario select { min-inline-size: 0; inline-size: 100%; min-block-size: 44px; padding: 10px; font: inherit; border: 1px solid var(--color-control-border); border-radius: 12px; background: var(--color-surface); color: var(--color-ink); }
-.actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.actions > button { flex: 1 1 140px; }
