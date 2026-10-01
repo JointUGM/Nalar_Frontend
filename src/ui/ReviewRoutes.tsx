@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import type { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 import { AppRoutes } from '@/ui/routes'
+import { TeacherLayout } from '@/ui/pages/teacher/TeacherLayout'
 
 const PlatformSchools = lazy(() => import('@/ui/pages/platform-admin/PlatformSchools').then((module) => ({ default: module.PlatformSchools })))
 const CurriculumVersions = lazy(() => import('@/ui/pages/platform-admin/CurriculumVersions').then((module) => ({ default: module.CurriculumVersions })))
@@ -26,7 +27,9 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
     <Route path="/review/school/subjects" element={<SchoolSubjects />} />
     <Route path="/review/school/assignments" element={<SchoolAssignments />} />
     <Route path="/review/school/kb-owners" element={<SchoolKbOwners />} />
-    <Route path="/review/teacher/home" element={<TeacherHome />} />
+    <Route element={<TeacherLayout />}>
+      <Route path="/review/teacher/home" element={<TeacherHome />} />
+    </Route>
     <Route path="/review/school/import" element={<SchoolImport />} />
     <Route path="*" element={<AppRoutes accountEntry={accountEntry} privateEntry={privateEntry} />} />
   </Routes></Suspense>

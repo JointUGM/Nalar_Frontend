@@ -1,23 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useTeacherContext } from '@/ui/components/teacher-shell/useTeacherContext'
 import { summarize, teacherSchools } from './teacherHomeExamples'
 
 export function useTeacherHomeViewModel() {
-  const [schoolName, setSchoolName] = useState(teacherSchools[0].name)
-  const [classFilter, setClassFilter] = useState('all')
-  const [status, setStatus] = useState<'ready' | 'loading'>('ready')
-  useEffect(() => {
-    if (status !== 'loading') return
-    const timer = setTimeout(() => setStatus('ready'), 500)
-    return () => clearTimeout(timer)
-  }, [status])
+  const { school: schoolName, selection, schools, status, changeSchool } = useTeacherContext()
+  // the filter remembers which school selection it belongs to, so any school change resets it without an effect
+  const [filter, setFilter] = useState({ selection, value: 'all' })
+  const classFilter = filter.selection === selection ? filter.value : 'all'
   const school = teacherSchools.find((item) => item.name === schoolName) ?? teacherSchools[0]
   const scope = classFilter === 'all' ? school.classes : school.classes.filter((item) => item.name === classFilter)
-  function changeSchool(name: string) {
-    if (name === schoolName || !teacherSchools.some((item) => item.name === name)) return
-    setSchoolName(name); setClassFilter('all'); setStatus('loading')
-  }
   function changeClass(value: string) {
-    if (value === 'all' || school.classes.some((item) => item.name === value)) setClassFilter(value)
+    if (value === 'all' || school.classes.some((item) => item.name === value)) setFilter({ selection, value })
   }
-  return { school, schools: teacherSchools.map((item) => item.name), classFilter, status, scope: summarize(scope), total: summarize(school.classes), changeSchool, changeClass }
+  return { school, schools, classFilter, status, scope: summarize(scope), total: summarize(school.classes), changeSchool, changeClass }
 }

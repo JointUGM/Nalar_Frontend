@@ -1,12 +1,15 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { actionExamples, changedMindExamples, kpiExamples, sparklinePoints, summarize, trendPoint, trendSeries, trendWeeks, weekSessions } from './teacherHomeExamples'
+import type { ReactNode } from 'react'
+import { describe, expect, it } from 'vitest'
+import { TeacherContextProvider } from '@/ui/components/teacher-shell/TeacherContextProvider'
+import { actionExamples, changedMindExamples, kpiExamples, sparklinePoints, summarize, teacherSchools, trendPoint, trendSeries, trendWeeks, weekSessions } from './teacherHomeExamples'
 import { useTeacherHomeViewModel } from './useTeacherHomeViewModel'
 
-afterEach(() => vi.useRealTimers())
+const wrapper = ({ children }: { children: ReactNode }) => <TeacherContextProvider schools={teacherSchools.map((item) => item.name)}>{children}</TeacherContextProvider>
+
 describe('teacher home context', () => {
   it('starts on the supplied school with all classes and filters by class', () => {
-    const { result } = renderHook(() => useTeacherHomeViewModel())
+    const { result } = renderHook(() => useTeacherHomeViewModel(), { wrapper })
     expect(result.current.scope).toEqual({ classCount: 4, students: 124 })
     act(() => result.current.changeClass('8B'))
     expect(result.current.scope).toEqual({ classCount: 1, students: 30 })
@@ -15,23 +18,15 @@ describe('teacher home context', () => {
     act(() => result.current.changeClass('all'))
     expect(result.current.scope.classCount).toBe(4)
   })
-  it('resets the class filter and shows a loading state when the school changes', () => {
-    vi.useFakeTimers()
-    const { result } = renderHook(() => useTeacherHomeViewModel())
+  it('resets the class filter when the school changes and keeps it for the same school', () => {
+    const { result } = renderHook(() => useTeacherHomeViewModel(), { wrapper })
     act(() => result.current.changeClass('8C'))
+    act(() => result.current.changeSchool('SMPN 5 Yogyakarta'))
+    expect(result.current.classFilter).toBe('8C')
     act(() => result.current.changeSchool('SMP Muhammadiyah 2'))
     expect(result.current).toMatchObject({ classFilter: 'all', status: 'loading', total: { classCount: 0, students: 0 } })
-    act(() => vi.advanceTimersByTime(499))
-    expect(result.current.status).toBe('loading')
-    act(() => vi.advanceTimersByTime(1))
-    expect(result.current.status).toBe('ready')
-  })
-  it('ignores the current school and unknown schools', () => {
-    const { result } = renderHook(() => useTeacherHomeViewModel())
-    act(() => result.current.changeClass('8D'))
     act(() => result.current.changeSchool('SMPN 5 Yogyakarta'))
-    act(() => result.current.changeSchool('Sekolah Lain'))
-    expect(result.current).toMatchObject({ classFilter: '8D', status: 'ready' })
+    expect(result.current.classFilter).toBe('all')
   })
 })
 

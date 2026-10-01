@@ -16,7 +16,7 @@ export function TeacherHome() {
   const loading = view.status === 'loading'
   const noData = view.total.classCount === 0
   const filtered = view.classFilter !== 'all'
-  return <TeacherShell title="Beranda" user={teacherUser} school={view.school.name} schools={view.schools} onSchoolChange={view.changeSchool}>
+  return <TeacherShell title="Beranda" user={teacherUser}>
     <div className={styles.content} aria-busy={loading}>
       {loading ? <div role="status" className={styles.skeleton}><span className={styles.hidden}>Memuat ringkasan {view.school.name}…</span><div className={styles.bar} /><div className={styles.block} /></div>
         : noData ? <Feedback title={`Belum ada data contoh untuk ${view.school.name}`}>
