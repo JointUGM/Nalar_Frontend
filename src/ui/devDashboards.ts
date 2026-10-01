@@ -4,6 +4,7 @@ const reviewDashboards: Readonly<Record<string, string>> = {
   platform: '/review/platform/schools',
   school: '/review/school/people',
   teacher: '/review/teacher/home',
+  student: '/review/student/home',
 }
 
 export function devDashboardPath(rolePath: string): string | null {
