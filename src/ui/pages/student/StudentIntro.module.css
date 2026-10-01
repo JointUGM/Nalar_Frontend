@@ -6,7 +6,7 @@
 .titleRow h1 { margin: 0; font-size: 22px; line-height: 30px; letter-spacing: -.015em; }
 .titleRow span { padding: 3px 8px; border-radius: 6px; background: var(--color-warning-bg); color: var(--color-warning-text); font-size: 11px; font-weight: 700; }
 .header p { margin: 2px 0 0; font-size: 13px; color: var(--color-text-muted); }
-.header button { gap: 6px; font-size: 13px; border-radius: 8px; white-space: nowrap; }
+.header > a { gap: 6px; font-size: 13px; border-radius: 8px; white-space: nowrap; }
 .scenario { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-block: 12px; font-size: 13px; font-weight: 600; }
 .scenario select { min-block-size: 44px; padding: 6px 10px; border: 1px solid var(--color-control-border); border-radius: 8px; font: inherit; font-weight: 400; color: var(--color-ink); background: var(--color-surface); }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); margin: 20px 0 0; padding: 0; list-style: none; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); overflow: hidden; }

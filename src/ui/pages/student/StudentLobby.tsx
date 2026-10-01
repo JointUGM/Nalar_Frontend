@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/ui/components/button/Button'
+import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { StudentFocusShell } from '@/ui/components/student-focus-shell/StudentFocusShell'
-import { homePath, lobbyExample, studentUser } from './studentExamples'
+import { homePath, lobbyExample, sessionPath, studentUser } from './studentExamples'
 import { useStudentLobbyViewModel } from './useStudentLobbyViewModel'
 import styles from './StudentLobby.module.css'
 
@@ -28,7 +29,7 @@ export function StudentLobby() {
         <span className={styles.chip} data-tone="info">{lobbyExample.teacher} sudah memulai</span>
         <h1>Begini cara mainnya</h1>
       </div>
-      <Button variant="student" disabled title="Sesi belum tersedia di pratinjau">Aku siap<Icon name="chevronRight" size={20} /></Button>
+      <ButtonLink className={styles.ready} to={sessionPath(mission.id)}>Aku siap<Icon name="chevronRight" size={20} /></ButtonLink>
     </div>
     <ol className={styles.steps}>{lobbyExample.steps.map(([title, text], index) => <li key={title} data-step={index}>
       <span aria-hidden="true">{index + 1}</span>
@@ -36,7 +37,7 @@ export function StudentLobby() {
     </li>)}</ol>
     <ul className={styles.pills} aria-label="Hal yang perlu kamu tahu">{lobbyExample.pills.map(([icon, label]) => <li key={label}><Icon name={icon} size={16} />{label}</li>)}</ul>
     <section className={styles.preview} aria-label="Kontrol pratinjau">
-      <p>Kontrol pratinjau · bukan bagian layar siswa. Tombol “Aku siap” belum aktif karena sesinya belum dibuat.</p>
+      <p>Kontrol pratinjau · bukan bagian layar siswa. “Aku siap” membuka sesi contoh; tidak ada sesi nyata yang dibuat.</p>
       <Button tone="secondary" onClick={view.backToWaiting}>Kembali ke ruang tunggu</Button>
     </section>
   </div>)

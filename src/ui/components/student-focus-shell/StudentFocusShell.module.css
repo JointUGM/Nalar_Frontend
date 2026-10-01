@@ -7,4 +7,5 @@
 .main { flex: 1; min-inline-size: 0; }
 .skipLink { position: fixed; inset-block-start: 8px; inset-inline-start: 8px; padding: 12px 16px; background: var(--color-surface); z-index: 3; transform: translateY(-200%); }
 .skipLink:focus { transform: translateY(0); }
-@media (max-width: 767px) { .bar { padding-inline: 16px; gap: 4px 12px; } }
+/* On a phone the bar can reach two rows; let it scroll away so the keyboard leaves room for the answer. */
+@media (max-width: 767px) { .bar { position: static; padding-inline: 16px; gap: 4px 12px; } }

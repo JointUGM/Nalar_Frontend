@@ -1,10 +1,10 @@
 import { Link } from 'react-router'
-import { Button } from '@/ui/components/button/Button'
+import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { StudentShell } from '@/ui/components/student-shell/StudentShell'
-import { homePath, introExample, studentDetail, studentUser } from './studentExamples'
+import { homePath, introExample, sessionPath, studentDetail, studentUser } from './studentExamples'
 import { useStudentIntroViewModel } from './useStudentIntroViewModel'
 import type { IntroScenario } from './useStudentIntroViewModel'
 import styles from './StudentIntro.module.css'
@@ -26,7 +26,7 @@ export function StudentIntro() {
         <div className={styles.titleRow}><h1>{mission.title}</h1><span>{introExample.subject}</span></div>
         <p>{introExample.teacher} · ditutup hari ini {introExample.closes} WIB · {introExample.attempts}</p>
       </div>
-      {view.scenario === 'open' && <Button disabled title="Sesi belum tersedia di pratinjau">Aku siap<Icon name="chevronRight" size={13} /></Button>}
+      {view.scenario === 'open' && <ButtonLink to={sessionPath(mission.id)}>Aku siap<Icon name="chevronRight" size={13} /></ButtonLink>}
     </div>
     <label className={styles.scenario}>Keadaan misi (pratinjau)
       <select value={view.scenario} onChange={(event) => view.setScenario(scenarios.find(([value]) => value === event.target.value)?.[0] ?? 'open')}>{scenarios.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>

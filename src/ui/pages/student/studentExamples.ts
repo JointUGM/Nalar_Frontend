@@ -81,3 +81,29 @@ export const lobbyExample = {
   ] as const,
   pills: [['lock', 'Tanpa nilai'], ['refresh', 'Boleh berubah pikiran'], ['clock', 'Sekitar 15 menit, paling lama 20'], ['monitor', 'Tetap di halaman ini sampai selesai']] as const,
 }
+
+export const sessionPath = (id: string) => `/review/student/missions/${id}/session`
+
+// Supplied focus-session sample: a fixed script, not generated questions. The sample answers only fill the composer on request,
+// as a labelled review shortcut; the student's own typed answers are the ones shown back. Elapsed times are fixed examples, not a clock.
+export const sessionExample = {
+  questions: [
+    'Raka menggelindingkan kelereng di lantai keramik kelas. Kelereng itu melaju, makin lambat, lalu berhenti di dekat pintu. Kenapa kelereng itu akhirnya berhenti?',
+    'Kamu bilang dorongannya habis. Kalau begitu, kenapa pesawat luar angkasa tetap melaju walau mesinnya mati?',
+    'Apa yang membuatmu yakin? Gaya apa saja yang bekerja pada kelereng itu setelah lepas dari tangan?',
+    'Bayangkan kelereng yang sama digelindingkan di atas es. Apa yang berbeda, dan kenapa?',
+    'Kalau lantainya diganti karpet, apa yang berubah pada gaya-gaya itu?',
+    'Sebuah sepeda tetap melaju sebentar setelah kamu berhenti mengayuh. Bagaimana kamu menjelaskannya dengan idemu tadi?',
+  ],
+  sampleAnswers: [
+    'Karena dorongan dari tangan Raka sudah habis, jadi kelerengnya berhenti.',
+    'Hmm, di luar angkasa tidak ada udara yang menahan. Jadi mungkin bukan dorongannya yang habis, tapi ada yang melawan kalau di bumi?',
+    'Ada gaya gesek dari lantai yang arahnya berlawanan dengan gerak kelereng. Sama gaya gravitasi ke bawah, tapi itu ditahan lantai.',
+    'Kelerengnya bakal lebih jauh karena es licin, gesekannya kecil. Jadi melambatnya lebih pelan.',
+    'Gesekannya jadi lebih besar, jadi kelereng cepat berhenti. Gaya dari tangan tidak berubah, yang beda gaya lawannya.',
+    'Sepeda masih bergerak karena tidak ada yang langsung menghentikannya. Pelan-pelan berhenti karena gesekan ban dan udara.',
+  ],
+  elapsedSeconds: [0, 95, 190, 290, 410, 520],
+  closes: '15.00',
+}
+export const formatClock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
