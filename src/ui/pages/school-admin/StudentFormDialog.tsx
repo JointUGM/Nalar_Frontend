@@ -6,7 +6,7 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import type { PersonExample } from './peopleExamples'
 import { classOptions, schoolExample } from './peopleExamples'
 import { StudentActionPanel } from './StudentActionPanel'
-import type { StudentAction } from './useStudentActionViewModel'
+import type { StudentAction } from './StudentActionPanel'
 import { useStudentFormViewModel } from './useStudentFormViewModel'
 import styles from './StudentFormDialog.module.css'
 
