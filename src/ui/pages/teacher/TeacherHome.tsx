@@ -2,8 +2,12 @@ import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { TeacherShell } from '@/ui/components/teacher-shell/TeacherShell'
+import { ActionCards } from './ActionCards'
+import { AttentionCard } from './AttentionCard'
+import { ChangedMindCard } from './ChangedMindCard'
 import { Sparkline } from './Sparkline'
-import { kpiExamples, teacherSubject, teacherUser } from './teacherHomeExamples'
+import { kpiExamples, teacherSubject, teacherUser, weekSessions } from './teacherHomeExamples'
+import { TrendCard } from './TrendCard'
 import { useTeacherHomeViewModel } from './useTeacherHomeViewModel'
 import styles from './TeacherHome.module.css'
 
@@ -36,12 +40,21 @@ export function TeacherHome() {
             <p className={styles.emptyText}>Ringkasan contoh hanya tersedia untuk semua kelas.</p>
             <Button tone="secondary" onClick={() => view.changeClass('all')}>Tampilkan semua kelas</Button>
           </Feedback>
-            : <ul className={styles.kpis} aria-label="Ringkasan minggu ini (contoh)">{kpiExamples(view.total.students).map((kpi) => <li key={kpi.id}>
-              <span className={styles.label}>{kpi.label}</span>
-              <div className={styles.value}><strong>{kpi.value}</strong><Sparkline trend={kpi.trend} label="Tren 4 minggu" /></div>
-              <span className={[styles.chip, styles[kpi.tone]].join(' ')}><Icon name={kpi.icon} size={10} />{kpi.chip}</span>
-              <small>{kpi.caption}</small>
-            </li>)}</ul>}
+            : <>
+              <ul className={styles.kpis} aria-label="Ringkasan minggu ini (contoh)">{kpiExamples(view.total.students).map((kpi) => <li key={kpi.id}>
+                <span className={styles.label}>{kpi.label}</span>
+                <div className={styles.value}><strong>{kpi.value}</strong><Sparkline trend={kpi.trend} label="Tren 4 minggu" /></div>
+                <span className={[styles.chip, styles[kpi.tone]].join(' ')}><Icon name={kpi.icon} size={10} />{kpi.chip}</span>
+                <small>{kpi.caption}</small>
+              </li>)}</ul>
+              <div className={styles.insights}>
+                <div className={styles.primary}>
+                  <ActionCards sessions={weekSessions} />
+                  <div className={styles.pair}><TrendCard /><AttentionCard /></div>
+                </div>
+                <ChangedMindCard />
+              </div>
+            </>}
         </>}
     </div>
   </TeacherShell>
