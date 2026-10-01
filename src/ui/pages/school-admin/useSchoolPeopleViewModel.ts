@@ -18,9 +18,10 @@ export function useSchoolPeopleViewModel() {
   const pageSize = 6
   function changeRole(value: PeopleRole) { setRole(value); setQuery(''); setPage(0); setSelected(null) }
   function search(value: string) { setQuery(value); setPage(0); setSelected(null) }
-  const saveStudent = useCallback((person: PersonExample) => {
+  const saveStudent = useCallback((person: PersonExample, previousClassroom?: string) => {
     setStudents((current) => current.some((item) => item.id === person.id) ? current.map((item) => item.id === person.id ? person : item) : [person, ...current])
-    setMessage('Perubahan siswa tersimpan dalam simulasi lokal. Data sekolah dan akses akun tidak berubah; muat ulang akan mengembalikan data contoh.')
+    const moved = previousClassroom !== undefined && previousClassroom !== person.classroom
+    setMessage(`${moved ? `${person.name} dipindahkan dari ${previousClassroom} ke ${person.classroom}` : 'Perubahan siswa tersimpan'} dalam simulasi lokal. Data sekolah dan akses akun tidak berubah; muat ulang akan mengembalikan data contoh.`)
   }, [])
   function addStudent() { setEditor({ person: null }); setNewId(`review-student-${++nextId.current}`) }
   return { role, query, page, selected, editor, students, message, total: dataset.length, newId, addStudent, setEditor, saveStudent, people: matching.slice(page * pageSize, (page + 1) * pageSize), count: matching.length, pageCount: Math.max(1, Math.ceil(matching.length / pageSize)), changeRole, search, setPage, setSelected }
