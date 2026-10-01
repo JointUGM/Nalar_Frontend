@@ -1,0 +1,42 @@
+.content { max-inline-size: 1120px; }
+.heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.heading h1 { margin: 0; font-size: 22px; line-height: 30px; }
+.addButton { font-size: 13px; padding: 8px 14px; border-radius: 8px; }
+.filters { margin-block-start: 24px; display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.filters > div:last-child { flex: 1 1 260px; max-inline-size: 420px; }
+.tabs { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--color-surface-muted); }
+.tabs button { padding: 8px 16px; font-size: 14px; color: var(--color-ink); background: transparent; border: 0; border-radius: 999px; white-space: nowrap; }
+.tabs button:hover { background: var(--color-paper); }
+.tabs .selected { background: var(--color-surface); }
+.note { font-size: 13px; margin: 16px 0; }
+.card { padding: 8px 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
+.table { display: block; inline-size: 100%; border-collapse: collapse; }
+.table thead, .table tbody { display: block; }
+.table tr { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) 80px minmax(0, 1.2fr) 44px; align-items: center; gap: 16px; padding-block: 12px; }
+.table th { text-align: start; font-size: 13px; font-weight: 600; color: var(--color-text-muted); }
+.table td { min-inline-size: 0; padding: 0; overflow-wrap: anywhere; }
+.table tbody tr { border-block-start: 1px solid var(--color-surface-muted); }
+.name, .classroom { font-size: 15px; }
+.name { font-weight: 500; }
+.identifier { color: var(--color-text-secondary); font-size: 14px; font-variant-numeric: tabular-nums; }
+.more { padding: 0; inline-size: 44px; block-size: 44px; }
+.pagination { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-block-start: 16px; }
+.pagination span { margin-inline-end: auto; color: var(--color-text-secondary); font-size: 13px; }
+.empty { padding: 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
+.details { display: grid; gap: 8px; }
+.details dt { font-size: 13px; color: var(--color-text-secondary); }
+.details dd { margin: 0 0 12px; overflow-wrap: anywhere; }
+.hidden { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+@media (min-width: 768px) and (max-width: 1100px) {
+  .table tr { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.4fr) 48px 150px 44px; gap: 12px; }
+}
+@media (max-width: 767px) {
+  .card { padding-inline: 16px; }
+  .table thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+  .table tr { grid-template-columns: minmax(0, 1fr) 44px; gap: 12px; }
+  .table td { grid-column: 1; }
+  .table td:last-child { grid-column: 2; grid-row: 1; }
+  .classroom::before { content: 'Kelas: '; color: var(--color-text-secondary); font-size: 13px; }
+  .tabs { inline-size: 100%; justify-content: space-between; }
+  .tabs button { padding-inline: 12px; }
+}

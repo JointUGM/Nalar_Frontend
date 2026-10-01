@@ -1,0 +1,7 @@
+.grades { border: 0; padding: 0; margin: 0; min-inline-size: 0; }
+.grades legend { padding: 0; font-size: 14px; font-weight: 600; margin-block-end: 8px; }
+.grades > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.grades label { display: flex; align-items: center; justify-content: center; gap: 6px; min-block-size: 44px; border-radius: 12px; background: var(--color-paper); font-size: 15px; }
+.grades label:has(input:checked) { background: var(--color-ink); color: var(--color-surface); }
+.grades label:has(input:focus-visible) { outline: 3px solid var(--color-primary); outline-offset: 3px; }
+.grades input { margin: 0; accent-color: var(--color-primary); }

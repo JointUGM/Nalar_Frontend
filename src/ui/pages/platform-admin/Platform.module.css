@@ -2,27 +2,19 @@
 .pageHeading { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; margin-block-end: 8px; }
 .pageHeading h1 { margin: 0; font-size: 24px; line-height: 32px; font-weight: 700; letter-spacing: -.02em; color: var(--color-ink); }
 .pageHeading p { margin: 8px 0 0; font-size: 16px; }
-.compactButton { font-size: 14px; font-weight: 600; padding: 10px 18px; border-radius: 10px; white-space: nowrap; box-shadow: 0 1px 3px rgba(36, 71, 209, 0.2); transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
-.compactButton:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(36, 71, 209, 0.25); }
-
-.metrics { margin-block-start: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 16px; }
-.metrics > div { padding: 22px 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); transition: transform 0.15s ease, box-shadow 0.15s ease; position: relative; overflow: hidden; }
-.metrics > div:nth-child(1) { border-top: 3px solid #10B981; }
-.metrics > div:nth-child(2) { border-top: 3px solid #3B82F6; }
-.metrics > div:nth-child(3) { border-top: 3px solid #8B5CF6; }
-.metrics > div:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
-.metrics span { display: block; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--color-text-secondary); }
-.metrics strong { display: block; margin-block-start: 6px; font-size: 32px; font-weight: 800; letter-spacing: -.02em; color: var(--color-ink); font-variant-numeric: tabular-nums; }
-
-.tableCard { margin-block-start: 24px; padding: 0; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03); overflow: hidden; }
-.table { inline-size: 100%; border-collapse: collapse; text-align: start; }
-.table th { padding: 14px 20px; text-align: start; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted); background: var(--color-canvas); border-block-end: 1px solid var(--color-role-border); }
-.table td { padding: 16px 20px; vertical-align: middle; border-block-end: 1px solid var(--color-surface-muted); }
-.table tbody tr { transition: background-color 0.12s ease; }
-.table tbody tr:hover { background-color: var(--color-nav-hover); }
-.table tbody tr:last-child td { border-block-end: none; }
-
-.schoolName { display: inline-block; color: var(--color-ink); font-size: 15px; font-weight: 600; text-decoration: none; transition: color 0.15s ease; }
+.compactButton { font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 8px; white-space: nowrap; }
+.metrics { margin-block-start: 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 16px; }
+.metrics > div { padding: 20px 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
+.metrics span { display: block; font-size: 14px; color: var(--color-text-secondary); }
+.metrics strong { display: block; margin-block-start: 4px; font-size: 32px; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tableCard { margin-block-start: 24px; padding: 8px 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
+.table { display: block; inline-size: 100%; border-collapse: collapse; }
+.table thead, .table tbody { display: block; }
+.table tr { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) 100px 120px 48px; gap: 16px; padding-block: 14px; align-items: center; }
+.table tbody tr { border-block-start: 1px solid var(--color-surface-muted); }
+.table th { text-align: start; font-size: 13px; font-weight: 600; color: var(--color-text-muted); }
+.table td { min-inline-size: 0; overflow-wrap: anywhere; }
+.schoolName { display: block; color: var(--color-ink); font-size: 15px; font-weight: 600; text-decoration: none; }
 .schoolName:hover { color: var(--color-primary); text-decoration: underline; }
 .city { display: block; margin-block-start: 2px; font-size: 13px; color: var(--color-text-muted); }
 .admin { font-size: 14px; color: var(--color-text-secondary); }
@@ -56,19 +48,24 @@
 .form { display: grid; gap: 16px; margin-block-start: 20px; }
 .form label { font-size: 14px; }
 .form input { border-radius: 8px; padding: 12px 14px; }
+.dialogSummary { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 8px 16px; margin: 0; padding: 16px; border-radius: 10px; background: var(--color-paper); font-size: 14px; }
+.dialogSummary dt { color: var(--color-text-secondary); }
+.dialogSummary dd { min-inline-size: 0; margin: 0; overflow-wrap: anywhere; font-weight: 600; }
 .dialogActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-block-start: 4px; }
 .details { display: grid; gap: 8px; }
 .details dt { font-size: 13px; color: var(--color-text-secondary); }
 .details dd { margin: 0 0 16px; }
 .curriculumGrid { margin-block-start: 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 24px; align-items: start; }
-.versions { padding: 8px 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
+.versions { min-inline-size: 0; padding: 8px 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
 .version { display: flex; align-items: center; gap: 16px; padding-block: 20px; }
 .version + .version { border-block-start: 1px solid var(--color-surface-muted); }
-.version > div { flex: 1; }
+.version > div { flex: 1; min-inline-size: 0; overflow-wrap: anywhere; }
+.version > .badge { flex-shrink: 0; }
 .version h2 { margin: 0; font-size: 17px; font-weight: 700; }
 .version p { margin: 2px 0 0; font-size: 14px; }
 .archived { color: var(--color-text-secondary); background: var(--color-paper); }
-.outcomes { padding: 20px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
+.outcomes { min-inline-size: 0; overflow-wrap: anywhere; padding: 20px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
+.referenceNote { margin: 0 0 16px; font-size: 14px; color: var(--color-text-secondary); }
 .outcomes h2 { margin: 0; font-size: 15px; font-weight: 700; }
 .outcomes ul { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 12px; }
 .outcomes li { padding: 14px 16px; border-radius: 14px; background: var(--color-paper); font-size: 14px; line-height: 21px; }
@@ -76,8 +73,9 @@
 .visuallyHidden { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
 
 @media (max-width: 767px) {
-  .tableCard { padding: 0; border-radius: 12px; }
-  .table { display: block; }
+  .version { flex-wrap: wrap; }
+  .version > div { flex-basis: 100%; }
+  .tableCard { padding: 8px 16px; }
   .table thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
   .table tbody { display: block; }
   .table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 12px; padding: 16px; border-block-end: 1px solid var(--color-surface-muted); }
@@ -90,4 +88,25 @@
   .table .rowActions { grid-column: 1 / -1; justify-content: flex-start; padding: 12px 0 0; background: transparent; border-block-start: none; }
   .platformDialog > div:first-child { padding: 16px 16px 0; }
   .platformDialog > div:last-child { padding: 0 16px 16px; }
+}
+
+.pendingNote { margin: 0; font-size: 14px; color: var(--color-text-secondary); }
+.documentExample { display: flex; align-items: center; gap: 16px; min-block-size: 44px; padding: 16px; border-radius: 16px; background: var(--color-info-bg); cursor: pointer; }
+.documentExample input { inline-size: 20px; block-size: 20px; flex-shrink: 0; accent-color: var(--color-primary); }
+.documentExample > span { min-inline-size: 0; overflow-wrap: anywhere; }
+.documentExample strong { display: block; font-size: 15px; font-weight: 600; }
+.documentExample span span { display: block; margin-block-start: 4px; font-size: 13px; }
+.documentHelp, .documentError { margin: 8px 0 0; font-size: 13px; line-height: 20px; }
+.documentHelp { color: var(--color-text-secondary); }
+.documentError { color: var(--color-danger-text); }
+.statusOption { padding: 14px 16px; border: 2px solid var(--color-primary); border-radius: 14px; font-size: 15px; overflow-wrap: anywhere; }
+.statusOption strong { font-weight: 600; }
+.statusOption p { margin: 2px 0 0; font-size: 13px; color: var(--color-text-secondary); }
+.handoffForm { display: grid; gap: 16px; }
+.handoffHeading { margin: 0; font-size: 17px; line-height: 25px; overflow-wrap: anywhere; }
+.handoffNote { margin: 0; font-size: 15px; line-height: 24px; overflow-wrap: anywhere; }
+@media (max-width: 479px) {
+  .dialogSummary { grid-template-columns: minmax(0, 1fr); }
+  .dialogSummary dd + dt { margin-block-start: 8px; }
+  .dialogActions > button { flex: 1 1 auto; }
 }

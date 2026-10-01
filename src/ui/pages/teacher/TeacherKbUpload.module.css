@@ -1,0 +1,44 @@
+.content { max-inline-size: 1360px; }
+.content h1 { margin: 0; font-size: 22px; line-height: 30px; letter-spacing: -.015em; }
+.back { display: inline-flex; align-items: center; gap: 4px; min-block-size: 44px; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); text-decoration: none; }
+.back:hover { color: var(--color-primary); }
+.lead { margin: 2px 0 0; font-size: 13px; color: var(--color-text-muted); }
+.note { margin: 8px 0 0; max-inline-size: 72ch; font-size: 13px; line-height: 20px; color: var(--color-text-secondary); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 16px; align-items: start; margin-block-start: 20px; }
+.card { display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); min-inline-size: 0; }
+.drop { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 28px; border: 1.5px dashed var(--color-border); border-radius: 12px; background: var(--color-canvas); text-align: center; }
+.drop > strong { font-size: 14px; }
+.drop > span:not(.dropIcon) { font-size: 12px; color: var(--color-text-muted); }
+.drop > div { inline-size: 100%; margin-block-start: 8px; text-align: start; }
+.drop input[type="file"] { inline-size: 100%; min-inline-size: 0; padding: 8px; font-size: 14px; }
+.drop > button { margin-block-start: 4px; }
+.dropIcon { display: grid; place-items: center; inline-size: 36px; block-size: 36px; border-radius: 50%; background: var(--color-info-bg); color: var(--color-primary); }
+.file { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--color-role-border); border-radius: 10px; }
+.badge { display: grid; place-items: center; flex: none; inline-size: 32px; block-size: 32px; border-radius: 8px; background: var(--color-misconception-bg); color: var(--color-misconception-text); font-size: 10px; font-weight: 700; }
+.fileText { flex: 1 1 160px; min-inline-size: 0; overflow-wrap: anywhere; }
+.fileText strong, .fileText small { display: block; }
+.fileText strong { font-size: 13px; }
+.fileText small { font-size: 12px; color: var(--color-text-muted); }
+.ok { display: flex; color: var(--color-success-text); }
+.buildHead { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.buildHead h2 { margin: 0; font-size: 14px; line-height: 22px; }
+.buildHead h2:focus-visible { outline-offset: 4px; }
+.buildHead span { font-size: 12px; color: var(--color-text-muted); }
+.steps { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.steps li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-block-start: 1px solid var(--color-surface-muted); font-size: 13px; color: var(--color-text-muted); }
+.steps li[data-state="running"], .steps li[data-state="done"], .steps li[data-state="failed"] { color: var(--color-ink); }
+.mark { display: grid; place-items: center; flex: none; inline-size: 20px; block-size: 20px; border-radius: 50%; background: var(--color-border); color: var(--color-surface); font-size: 12px; font-weight: 700; }
+li[data-state="running"] .mark { background: var(--color-primary); }
+li[data-state="done"] .mark { background: var(--color-success-text); }
+li[data-state="failed"] .mark { background: var(--color-danger-text); }
+.stepLabel { flex: 1; min-inline-size: 0; overflow-wrap: anywhere; }
+.stepState { font-size: 11px; color: var(--color-text-muted); }
+li[data-state="failed"] .stepState { color: var(--color-danger-text); font-weight: 600; }
+.spinner { display: block; inline-size: 10px; block-size: 10px; border: 2px solid rgba(255, 255, 255, .4); border-block-start-color: var(--color-surface); border-radius: 50%; animation: kbSpin .8s linear infinite; }
+@keyframes kbSpin { to { transform: rotate(360deg); } }
+.scenario { display: grid; gap: 8px; font-size: 13px; font-weight: 600; }
+.scenario select { inline-size: 100%; min-inline-size: 0; min-block-size: 44px; padding: 10px; border: 1px solid var(--color-control-border); border-radius: 12px; font: inherit; font-weight: 400; color: var(--color-ink); background: var(--color-surface); }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.hidden { position: absolute; inline-size: 1px; block-size: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); }
+@media (max-width: 480px) { .card { padding: 16px; } .drop { padding: 20px 12px; } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }

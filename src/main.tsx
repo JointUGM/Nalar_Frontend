@@ -18,8 +18,6 @@ function render(application: ReactNode) {
 let dependencies: ReturnType<typeof import('./di').createDependencies> | null = null
 function getDependencies() {
   if (!dependencies) dependencies = import('./di').then(({ createDependencies }) => createDependencies({
-    supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
-    supabasePublishableKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     apiBaseUrl: import.meta.env.VITE_API_BASE_URL,
   }))
   return dependencies

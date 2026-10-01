@@ -14,8 +14,6 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 30_000,
     env: {
-      VITE_SUPABASE_URL: baseURL,
-      VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_browser_test',
       VITE_API_BASE_URL: `${baseURL}/api/v1`,
     },
   },
