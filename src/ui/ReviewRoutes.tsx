@@ -20,6 +20,7 @@ const TeacherMissions = lazy(() => import('@/ui/pages/teacher/TeacherMissions').
 const TeacherMissionNew = lazy(() => import('@/ui/pages/teacher/TeacherMissionNew').then((module) => ({ default: module.TeacherMissionNew })))
 const TeacherMissionReview = lazy(() => import('@/ui/pages/teacher/TeacherMissionReview').then((module) => ({ default: module.TeacherMissionReview })))
 const TeacherPublication = lazy(() => import('@/ui/pages/teacher/TeacherPublication').then((module) => ({ default: module.TeacherPublication })))
+const TeacherProjector = lazy(() => import('@/ui/pages/teacher/TeacherProjector').then((module) => ({ default: module.TeacherProjector })))
 const SchoolImport = lazy(() => import('@/ui/pages/school-admin/SchoolImport').then((module) => ({ default: module.SchoolImport })))
 
 export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: ReactNode; privateEntry?: ReactNode }) {
@@ -42,6 +43,7 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
       <Route path="/review/teacher/missions/new" element={<TeacherMissionNew />} />
       <Route path="/review/teacher/missions/:missionId" element={<TeacherMissionReview />} />
       <Route path="/review/teacher/missions/:missionId/publish" element={<TeacherPublication />} />
+      <Route path="/review/teacher/missions/:missionId/projector" element={<TeacherProjector />} />
     </Route>
     <Route path="/review/school/import" element={<SchoolImport />} />
     <Route path="*" element={<AppRoutes accountEntry={accountEntry} privateEntry={privateEntry} />} />
