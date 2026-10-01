@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { projectorExample } from '@/ui/pages/teacher/teacherProjectorExamples'
-import { introExample, joinExample, lobbyPath, missionStartPath } from './studentExamples'
+import { introExample, joinExample, lobbyPath, missionStartPath, sessionPath } from './studentExamples'
 import { StudentIntro } from './StudentIntro'
 import { StudentJoin } from './StudentJoin'
 import { checkJoinCode, normalizeCode } from './useStudentJoinViewModel'
@@ -63,13 +63,13 @@ describe('join screen', () => {
 })
 
 describe('mission introduction (window entry)', () => {
-  it('describes how the mission works, without scores or verdicts, and keeps the session unavailable', () => {
+  it('describes how the mission works, without scores or verdicts, and opens the session', () => {
     intro()
     expect(screen.getByRole('heading', { level: 1, name: 'Kenapa kelereng berhenti?' })).toBeInTheDocument()
     expect(screen.getByText(`Bu Sari · ditutup hari ini ${introExample.closes} WIB · ${introExample.attempts}`)).toBeInTheDocument()
     expect(within(screen.getByRole('list', { name: 'Tentang misi ini' })).getAllByRole('listitem')).toHaveLength(introExample.stats.length)
     expect(screen.getByRole('region', { name: 'Cara kerjanya' })).toHaveTextContent('NALAR bertanya tentang alasanmu')
-    expect(screen.getByRole('button', { name: /Aku siap/ })).toBeDisabled()
+    expect(screen.getByRole('link', { name: /Aku siap/ })).toHaveAttribute('href', sessionPath('kelereng'))
     expect(document.body.textContent).not.toMatch(/skor|rubrik|peringkat|verifikasi/i)
   })
 
@@ -77,10 +77,10 @@ describe('mission introduction (window entry)', () => {
     intro()
     introScenario('notOpen')
     expect(screen.getByRole('status')).toHaveTextContent(`dibuka pukul ${introExample.opens} WIB`)
-    expect(screen.queryByRole('button', { name: /Aku siap/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Aku siap/ })).not.toBeInTheDocument()
     introScenario('closed')
     expect(screen.getByRole('status')).toHaveTextContent(`ditutup pukul ${introExample.closes} WIB`)
-    expect(screen.queryByRole('button', { name: /Aku siap/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Aku siap/ })).not.toBeInTheDocument()
   })
 
   it('has no introduction for a mission that is only resumed, or an unknown one', () => {

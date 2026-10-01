@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
-import { lobbyExample, lobbyPath } from './studentExamples'
+import { lobbyExample, lobbyPath, sessionPath } from './studentExamples'
 import { StudentLobby } from './StudentLobby'
 
 const lobby = (id = 'kelereng') => render(<MemoryRouter initialEntries={[lobbyPath(id)]}><Routes><Route path="/review/student/missions/:missionId/lobby" element={<StudentLobby />} /></Routes></MemoryRouter>)
@@ -40,7 +40,7 @@ describe('student waiting room', () => {
     expect(screen.getByText('Bu Sari sudah memulai')).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(lobbyExample.steps.length)
     expect(within(screen.getByRole('list', { name: 'Hal yang perlu kamu tahu' })).getAllByRole('listitem')).toHaveLength(lobbyExample.pills.length)
-    expect(screen.getByRole('button', { name: /Aku siap/ })).toBeDisabled()
+    expect(screen.getByRole('link', { name: /Aku siap/ })).toHaveAttribute('href', sessionPath('kelereng'))
     fireEvent.click(screen.getByRole('button', { name: 'Kembali ke ruang tunggu' }))
     expect(screen.getByText('Menunggu Bu Sari memulai')).toBeInTheDocument()
   })
