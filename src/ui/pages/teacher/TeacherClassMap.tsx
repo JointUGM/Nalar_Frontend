@@ -27,7 +27,7 @@ export function TeacherClassMap() {
       <div><h1>Peta miskonsepsi kelas</h1><p>{klass.name} · {mission.title} · {example.total} dari {example.total} siswa selesai</p></div>
       <div className={styles.actions}>
         <Button tone="secondary" disabled title="Ekspor belum tersedia di pratinjau"><Icon name="file" size={14} />Ekspor catatan</Button>
-        <Button disabled title="Rilis ke orang tua belum tersedia di pratinjau"><Icon name="send" size={14} />Rilis ke orang tua</Button>
+        <Link className={styles.release} to={`${missionsPath}/${mission.id}/class-map/release?kelas=${encodeURIComponent(klass.name)}`}><Icon name="send" size={14} />Rilis ke orang tua</Link>
       </div>
     </div>
     <p className={styles.note}>Pratinjau lokal · angka adalah contoh dari sampel (kelas contoh berisi {example.total} siswa), bukan hasil sesi nyata. Tidak ada yang dihitung, disimpulkan, atau dibuat oleh AI di halaman ini.</p>

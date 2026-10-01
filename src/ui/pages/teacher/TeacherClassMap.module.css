@@ -4,6 +4,8 @@
 .header h1 { margin: 0; font-size: 22px; line-height: 30px; letter-spacing: -.015em; }
 .header p { margin: 2px 0 0; font-size: 13px; color: var(--color-text-muted); }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.release { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-block-size: var(--control-min-size); padding-inline: var(--space-4); border-radius: 8px; background: var(--color-primary); color: var(--color-surface); font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.release:hover { background: var(--color-primary-hover); }
 .actions button { gap: 6px; font-size: 13px; border-radius: 8px; white-space: nowrap; }
 .note { margin: 8px 0 0; max-inline-size: 72ch; font-size: 13px; line-height: 20px; color: var(--color-text-secondary); }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 20px 0 0; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); overflow: hidden; }
