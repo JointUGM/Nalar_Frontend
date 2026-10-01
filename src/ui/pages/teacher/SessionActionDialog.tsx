@@ -11,6 +11,8 @@ export interface SessionAction {
   note: string
   confirmLabel: string
   doneText: string
+  /** What stays unchanged after a failed simulation; defaults to the session state. */
+  failure?: string
 }
 
 /** Confirmation for a session transition, with a simulated pending/success/failure outcome. */
@@ -21,7 +23,7 @@ export function SessionActionDialog({ action, onApply, onClose }: { action: Sess
     <dl className={styles.rows}>{action.rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
     <p className={styles.dialogNote}>{action.note}</p>
     {busy && <Feedback title="Menjalankan (simulasi)…" announce>Menunggu hasil contoh. Dialog tetap terbuka.</Feedback>}
-    {view.status === 'failure' && <Feedback tone="danger" title="Simulasi gagal" announce>Status sesi tidak berubah. Ubah skenario atau coba lagi.</Feedback>}
+    {view.status === 'failure' && <Feedback tone="danger" title="Simulasi gagal" announce>{action.failure ?? 'Status sesi tidak berubah.'} Ubah skenario atau coba lagi.</Feedback>}
     {view.status === 'success' && <Feedback tone="success" title="Berhasil dalam simulasi" announce>{action.doneText}</Feedback>}
     {view.status !== 'success' && <label className={styles.scenario}>Hasil skenario
       <select disabled={busy} value={view.outcome} onChange={(event) => view.setOutcome(event.target.value === 'failure' ? 'failure' : 'success')}><option value="success">Berhasil</option><option value="failure">Gagal</option></select>

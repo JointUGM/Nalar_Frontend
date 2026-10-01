@@ -14,3 +14,10 @@ export const closeAdmissionAction = (rows: Rows): SessionAction => ({
   note: `Siswa yang sudah mulai tetap boleh menyelesaikan sesinya sampai ${publicationExample.maxDuration} setelah penerimaan ditutup; batas waktu mereka tidak berubah. Ini hanya simulasi.`,
   confirmLabel: 'Tutup penerimaan', doneText: 'Kode tidak lagi menerima siswa baru. Tidak ada batas waktu siswa yang diubah.',
 })
+
+export const releaseAction = (rows: Rows, count: number): SessionAction => ({
+  title: 'Rilis ke orang tua (simulasi)', description: `Ringkasan ${count} siswa dirilis ke orang tua yang tertaut.`, rows,
+  note: 'Ringkasan dikunci saat dirilis dan tanpa skor atau catatan verifikasi. Siswa yang belum selesai tidak ikut. Ini hanya simulasi; tidak ada email yang dikirim dan orang tua tidak melihat apa pun.',
+  confirmLabel: `Rilis ${count} ringkasan`, doneText: 'Ringkasan dikunci di halaman ini. Muat ulang mengembalikan data awal.',
+  failure: 'Tidak ada ringkasan yang dirilis.',
+})

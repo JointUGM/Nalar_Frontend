@@ -43,7 +43,7 @@ describe('class map page', () => {
     expect(table.getAllByRole('row')).toHaveLength(classMapExample.misconceptions.length + 1)
     expect(table.getByText('10 dari 18')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ekspor catatan' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Rilis ke orang tua' })).toBeDisabled()
+    expect(screen.getByRole('link', { name: 'Rilis ke orang tua' })).toHaveAttribute('href', `${missionsPath}/${generatedMissionId}/class-map/release?kelas=8B`)
     expect(screen.getByRole('button', { name: 'Lihat siswa: Gaya bisa habis' })).toBeDisabled()
   })
 })
