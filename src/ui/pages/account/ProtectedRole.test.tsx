@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Link, MemoryRouter } from 'react-router'
+import { Link, MemoryRouter, useLocation } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import type { AuthSession } from '@/domain/model/AuthSession'
 import type { Identity } from '@/domain/model/Identity'
@@ -28,23 +28,74 @@ function createAccess() {
   return { dependencies, identityRead, signOut, setCurrent: (value: AuthSession | null) => { current = value }, emit: (value: AuthSession | null) => { current = value; listeners.forEach((listener) => listener(value)) }, listeners }
 }
 
+function Where() { return <p data-testid="where">{useLocation().pathname}</p> }
+
 function route(dependencies: AccountDependencies, path: string) {
-  return render(<MemoryRouter initialEntries={[path]}><AppRoutes accountEntry={<Login dependencies={dependencies} />} privateEntry={<ProtectedRole dependencies={dependencies} />} /></MemoryRouter>)
+  return render(<MemoryRouter initialEntries={[path]}><Where /><AppRoutes accountEntry={<Login dependencies={dependencies} />} privateEntry={<ProtectedRole dependencies={dependencies} />} /></MemoryRouter>)
 }
 
 describe('production identity and route boundary', () => {
-  it('shows only /me role choices and preserves an authorized deep link through login', async () => {
-    const access = createAccess()
-    access.setCurrent(null)
-    route(access.dependencies, '/teacher/00000000-0000-4000-8000-000000000002/classes')
+  async function signIn() {
     const user = userEvent.setup()
     await screen.findByRole('button', { name: 'Masuk' })
     await user.type(screen.getByLabelText(/^Email/), 'ayu@example.test')
     await user.type(screen.getByLabelText(/^Kata sandi/), 'password')
     await user.click(screen.getByRole('button', { name: 'Masuk' }))
-    expect(await screen.findByRole('link', { name: /Guru.*Sekolah A/ })).toHaveAttribute('href', '/teacher/00000000-0000-4000-8000-000000000002')
-    expect(screen.getByRole('link', { name: 'Lanjutkan ke halaman yang dituju' })).toHaveAttribute('href', '/teacher/00000000-0000-4000-8000-000000000002/classes')
+  }
+  const teacherPath = '/teacher/00000000-0000-4000-8000-000000000002'
+  const parentToo: Identity = { ...identity, isParent: true }
+
+  it('sends a signed-in user straight to a safe deep link they asked for, without a role question', async () => {
+    const access = createAccess()
+    access.setCurrent(null)
+    route(access.dependencies, `${teacherPath}/classes`)
+    await signIn()
+    expect(await screen.findByRole('heading', { name: 'Halaman peran belum tersedia' })).toBeInTheDocument()
+    expect(screen.getByTestId('where')).toHaveTextContent(`${teacherPath}/classes`)
+    expect(screen.queryByText('Masuk sebagai')).not.toBeInTheDocument()
+  })
+
+  it('takes an account with exactly one role to that dashboard after sign-in', async () => {
+    const access = createAccess()
+    access.setCurrent(null)
+    route(access.dependencies, '/login')
+    await signIn()
+    expect(await screen.findByRole('heading', { name: 'Halaman peran belum tersedia' })).toBeInTheDocument()
+    expect(screen.getByTestId('where')).toHaveTextContent(teacherPath)
+  })
+
+  it('also redirects a visitor who already has a session and opens the sign-in page', async () => {
+    route(createAccess().dependencies, '/login')
+    expect(await screen.findByRole('heading', { name: 'Halaman peran belum tersedia' })).toBeInTheDocument()
+    expect(screen.getByTestId('where')).toHaveTextContent(teacherPath)
+  })
+
+  it('asks only when several roles are possible, and lists just the /me roles', async () => {
+    const access = createAccess()
+    access.identityRead.mockResolvedValue(parentToo)
+    route(access.dependencies, '/login')
+    expect(await screen.findByRole('link', { name: /Guru.*Sekolah A/ })).toHaveAttribute('href', teacherPath)
+    expect(screen.getByRole('link', { name: /Orang Tua/ })).toHaveAttribute('href', '/parent')
     expect(screen.queryByRole('link', { name: /Admin Platform/ })).not.toBeInTheDocument()
+    expect(screen.getByTestId('where')).toHaveTextContent('/login')
+  })
+
+  it('still honours a requested page when the account has several roles', async () => {
+    const access = createAccess()
+    access.identityRead.mockResolvedValue(parentToo)
+    access.setCurrent(null)
+    route(access.dependencies, `${teacherPath}/classes`)
+    await signIn()
+    expect(await screen.findByRole('heading', { name: 'Halaman peran belum tersedia' })).toBeInTheDocument()
+    expect(screen.getByTestId('where')).toHaveTextContent(`${teacherPath}/classes`)
+  })
+
+  it('does not redirect an account that has no role', async () => {
+    const access = createAccess()
+    access.identityRead.mockResolvedValue({ ...identity, memberships: [] })
+    route(access.dependencies, '/login')
+    expect(await screen.findByText('Akun ini belum memiliki peran yang tersedia.')).toBeInTheDocument()
+    expect(screen.getByTestId('where')).toHaveTextContent('/login')
   })
 
   it('checks a direct deep link before rendering an authorized role placeholder', async () => {
