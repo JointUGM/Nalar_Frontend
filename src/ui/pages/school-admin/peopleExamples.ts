@@ -1,9 +1,9 @@
 export type PeopleRole = 'student' | 'teacher' | 'parent'
-export interface PersonExample { name: string; identifier: string; classroom: string; status: 'Aktif' | 'Undangan terkirim' | 'Menunggu aktivasi' | 'Nonaktif' }
+export interface PersonExample { id: string; name: string; identifier: string; classroom: string; status: 'Aktif' | 'Undangan terkirim' | 'Menunggu aktivasi' | 'Nonaktif' }
 
 export const schoolExample = { name: 'SMPN 5 Yogyakarta', year: '2026/2027', admin: 'Hendra Santoso' }
 export const roleLabels = { student: 'Siswa', teacher: 'Guru', parent: 'Orang tua' }
-const person = (name: string, identifier: string, classroom: string, status: PersonExample['status']): PersonExample => ({ name, identifier, classroom, status })
+const person = (name: string, identifier: string, classroom: string, status: PersonExample['status']): PersonExample => ({ id: identifier, name, identifier, classroom, status })
 export const peopleExamples: Record<PeopleRole, readonly PersonExample[]> = {
   student: [
     person('Adinda Putri', '0098123401', '8B', 'Aktif'), person('Bagas Saputra', '0098123402', '8B', 'Aktif'),
