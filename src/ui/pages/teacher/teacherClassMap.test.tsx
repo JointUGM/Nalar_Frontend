@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { TeacherContextProvider } from '@/ui/components/teacher-shell/TeacherContextProvider'
 import { teacherSchools } from './teacherHomeExamples'
 import { generatedMissionId, missionsPath } from './teacherMissionExamples'
+import { reportExample } from './teacherReportExamples'
 import { classMapExample } from './teacherSessionExamples'
 import { TeacherClassMap } from './TeacherClassMap'
 import { summarizeClassMap } from './useTeacherClassMapViewModel'
@@ -60,7 +61,9 @@ describe('class map page', () => {
     expect(table.getByText('10 dari 18')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ekspor catatan' })).toBeEnabled()
     expect(screen.getByRole('link', { name: 'Rilis ke orang tua' })).toHaveAttribute('href', `${missionsPath}/${generatedMissionId}/class-map/release?kelas=8B`)
-    expect(screen.getByRole('button', { name: 'Lihat siswa: Gaya bisa habis' })).toBeDisabled()
+    expect(classMapExample.misconceptions.map((row) => row.name)).toContain(reportExample.misconception)
+    expect(screen.getByRole('link', { name: 'Lihat siswa: Gaya bisa habis' })).toHaveAttribute('href', `${missionsPath}/${generatedMissionId}/class-map/report?kelas=8B`)
+    expect(screen.getAllByRole('button', { name: /^Lihat siswa: (?!Gaya bisa habis)/ }).every((button) => button.hasAttribute('disabled'))).toBe(true)
   })
 })
 
