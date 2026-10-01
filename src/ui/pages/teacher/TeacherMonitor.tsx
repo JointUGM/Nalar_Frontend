@@ -9,6 +9,7 @@ import { SessionActionDialog } from './SessionActionDialog'
 import { closeAdmissionAction } from './sessionActions'
 import { teacherUser } from './teacherHomeExamples'
 import { missionsPath } from './teacherMissionExamples'
+import { reportExample } from './teacherReportExamples'
 import { monitorExample, studentNames } from './teacherSessionExamples'
 import { projectorExample } from './teacherProjectorExamples'
 import { useTeacherMonitorViewModel } from './useTeacherMonitorViewModel'
@@ -89,7 +90,9 @@ export function TeacherMonitor() {
       <h2>{selected.name}</h2>
       <p>{selected.label}</p>
       {selected.flagged && <p className={styles.hint}>Catatan “perlu verifikasi” adalah petunjuk, bukan tuduhan. Anda yang menilai.</p>}
-      <Button tone="secondary" disabled title="Laporan siswa belum tersedia di pratinjau">Buka laporan siswa</Button>
+      {selected.index === reportExample.studentIndex
+        ? <Link className={styles.report} to={`${missionsPath}/${mission.id}/class-map/report?kelas=${encodeURIComponent(klass.name)}`}>Buka laporan siswa</Link>
+        : <Button tone="secondary" disabled title={`Contoh laporan hanya tersedia untuk ${studentNames[reportExample.studentIndex]}`}>Buka laporan siswa</Button>}
     </section>}
     {closing && <SessionActionDialog action={closeAdmissionAction(summary)} onApply={view.closeAdmission} onClose={() => setClosing(false)} />}
   </div></TeacherShell>
