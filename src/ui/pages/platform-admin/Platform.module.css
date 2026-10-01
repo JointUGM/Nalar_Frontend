@@ -79,6 +79,14 @@
 }
 
 .pendingNote { margin: 0; font-size: 14px; color: var(--color-text-secondary); }
+.documentExample { display: flex; align-items: center; gap: 16px; min-block-size: 44px; padding: 16px; border-radius: 16px; background: var(--color-info-bg); cursor: pointer; }
+.documentExample input { inline-size: 20px; block-size: 20px; flex-shrink: 0; accent-color: var(--color-primary); }
+.documentExample > span { min-inline-size: 0; overflow-wrap: anywhere; }
+.documentExample strong { display: block; font-size: 15px; font-weight: 600; }
+.documentExample span span { display: block; margin-block-start: 4px; font-size: 13px; }
+.documentHelp, .documentError { margin: 8px 0 0; font-size: 13px; line-height: 20px; }
+.documentHelp { color: var(--color-text-secondary); }
+.documentError { color: var(--color-danger-text); }
 .statusOption { padding: 14px 16px; border: 2px solid var(--color-primary); border-radius: 14px; font-size: 15px; overflow-wrap: anywhere; }
 .statusOption strong { font-weight: 600; }
 .statusOption p { margin: 2px 0 0; font-size: 13px; color: var(--color-text-secondary); }
