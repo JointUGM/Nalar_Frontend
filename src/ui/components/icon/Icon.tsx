@@ -15,8 +15,26 @@ const paths = {
   more: <><circle cx="5.5" cy="12" r="1.3" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" /><circle cx="18.5" cy="12" r="1.3" fill="currentColor" stroke="none" /></>,
   swap: <path d="M4 8h15l-3.5-3.5M20 16H5l3.5 3.5" />,
   pause: <path d="M9 6v12M15 6v12" />,
+  home: <path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-5h4v5" />,
+  target: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" /></>,
+  monitor: <><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></>,
+  graph: <path d="M4 4v16h16M8 16v-5M12 16V8M16 16v-3" />,
+  alert: <><path d="M12 4 21 19H3z" /><path d="M12 10v4M12 16.5v.5" /></>,
+  key: <><circle cx="8" cy="15" r="3.5" /><path d="m10.5 12.5 9-9M16 7l3 3" /></>,
+  info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8v.5" /></>,
+  chevronDown: <path d="m6 9 6 6 6-6" />,
+  chevronLeft: <path d="m15 6-6 6 6 6" />,
+  chevronRight: <path d="m9 6 6 6-6 6" />,
+  play: <path d="M7 5v14l12-7z" />,
+  arrowUp: <path d="M12 19V5M6 11l6-6 6 6" />,
+  clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+  sun: <><circle cx="12" cy="12" r="4" /><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4" /></>,
+  moon: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />,
+  check: <path d="m5 12.5 4.5 4.5L19 7" />,
 }
 
-export function Icon({ name, size = 18 }: { name: keyof typeof paths; size?: number }) {
+export type IconName = keyof typeof paths
+
+export function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>{paths[name]}</svg>
 }
