@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { kbTopicsBySchool } from './teacherKbExamples'
+import { kbSampleFile, kbSampleTopicId, kbTopicsBySchool } from './teacherKbExamples'
 import { teacherSchools } from './teacherHomeExamples'
 
 describe('knowledge base examples', () => {
+  it('opens the review of the topic the sample upload belongs to', () => {
+    expect(Object.values(kbTopicsBySchool).flat().find((topic) => topic.id === kbSampleTopicId)?.file).toBe(kbSampleFile.name)
+  })
   it('has an entry for every example school', () => {
     expect(Object.keys(kbTopicsBySchool).sort()).toEqual(teacherSchools.map((school) => school.name).sort())
   })
