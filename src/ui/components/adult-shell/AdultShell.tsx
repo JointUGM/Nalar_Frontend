@@ -21,7 +21,7 @@ export function AdultShell({ children, search = '', onSearch, schoolContext }: {
     <NavLink to="/review/school/classes" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="grid" /><span>Kelas</span></NavLink>
     <NavLink to="/review/school/subjects" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="book" /><span>Mata pelajaran</span></NavLink>
     <NavLink to="/review/school/assignments" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="link" /><span>Penugasan guru</span></NavLink>
-    <button disabled title="Belum tersedia di pratinjau"><Icon name="layers" /><span>Basis pengetahuan</span></button>
+    <NavLink to="/review/school/kb-owners" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="layers" /><span>Basis pengetahuan</span></NavLink>
     <NavLink to="/review/school/year" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="calendar" /><span>Tahun ajaran</span></NavLink>
   </nav> : <nav className={styles.navigation} aria-label="Navigasi Admin Platform">
     <NavLink to={`${base}/schools`} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="school" /><span>Sekolah</span></NavLink>
