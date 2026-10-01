@@ -1,5 +1,29 @@
 import { expect, test } from '@playwright/test'
 
+test('platform navigation focuses destination content and drawer cancellation restores its trigger', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 })
+  await page.goto('/review/platform/schools')
+  const trigger = page.getByRole('button', { name: 'Buka navigasi' })
+  await trigger.focus()
+  await page.keyboard.press('Enter')
+  const drawer = page.getByRole('dialog', { name: 'Admin platform' })
+  await drawer.press('Escape')
+  await expect(trigger).toBeFocused()
+  await trigger.click()
+  await drawer.getByRole('link', { name: 'Capaian Pembelajaran' }).focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('heading', { name: 'Capaian Pembelajaran nasional' })).toBeVisible()
+  await expect(page.getByRole('main')).toBeFocused()
+  await expect(drawer).not.toBeVisible()
+  await trigger.click()
+  await drawer.getByRole('link', { name: 'Sekolah', exact: true }).click()
+  await expect(page.getByRole('main')).toBeFocused()
+  const search = page.getByRole('textbox', { name: 'Cari sekolah' })
+  await search.fill('Sleman')
+  await expect(search).toBeFocused()
+  await expect(page.getByRole('link', { name: 'SMP Muhammadiyah 2' })).toBeVisible()
+})
+
 test('onboarding review validates, simulates confirmation and restores mobile keyboard focus', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 375, height: 800 })
   await page.goto('/review/platform/schools')

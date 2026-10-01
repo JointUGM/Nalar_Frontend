@@ -6,7 +6,7 @@
 .metrics { margin-block-start: 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 16px; }
 .metrics > div { padding: 20px 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
 .metrics span { display: block; font-size: 14px; color: var(--color-text-secondary); }
-.metrics strong { display: block; margin-block-start: 4px; font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.metrics strong { display: block; margin-block-start: 4px; font-size: 32px; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; }
 .tableCard { margin-block-start: 24px; padding: 8px 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
 .table { display: block; inline-size: 100%; border-collapse: collapse; }
 .table thead, .table tbody { display: block; }
