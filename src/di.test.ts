@@ -25,8 +25,8 @@ describe('Backend account composition', () => {
         expect(JSON.parse(String(init.body))).toEqual({ email: 'ayu@example.test', password: 'secret' })
         return Response.json({ user_id: userId, access_token: 'access-test', refresh_token: 'refresh-test', token_type: 'bearer', expires_at: Math.floor(Date.now() / 1000) + 3600 })
       }
-      expect(url).toBe('https://api.nalar.test/api/v1/me')
-      expect(new Headers(init.headers).get('Authorization')).toBe('Bearer access-test')
+      expect(url).toBe('/api/v1/me')
+      expect(new Headers(init.headers).has('Authorization')).toBe(false)
       return Response.json({ user_id: userId, full_name: 'Ayu', roles: [], is_parent: false, is_platform_admin: true })
     })
     const composition = await createDependencies({ apiBaseUrl: 'https://api.nalar.test/api/v1' })
