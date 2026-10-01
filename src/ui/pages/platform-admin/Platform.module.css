@@ -38,7 +38,7 @@
 .form { display: grid; gap: 16px; margin-block-start: 20px; }
 .form label { font-size: 14px; }
 .form input { border-radius: 8px; padding: 12px 14px; }
-.dialogSummary { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 16px; margin: 0; padding: 16px; border-radius: 10px; background: var(--color-paper); font-size: 14px; }
+.dialogSummary { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 8px 16px; margin: 0; padding: 16px; border-radius: 10px; background: var(--color-paper); font-size: 14px; }
 .dialogSummary dt { color: var(--color-text-secondary); }
 .dialogSummary dd { min-inline-size: 0; margin: 0; overflow-wrap: anywhere; font-weight: 600; }
 .dialogActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-block-start: 4px; }
@@ -76,4 +76,14 @@
   .table .rowActions { grid-column: 1 / -1; justify-content: flex-start; }
   .platformDialog > div:first-child { padding: 16px 16px 0; }
   .platformDialog > div:last-child { padding: 0 16px 16px; }
+}
+
+.pendingNote { margin: 0; font-size: 14px; color: var(--color-text-secondary); }
+.handoffForm { display: grid; gap: 16px; }
+.handoffHeading { margin: 0; font-size: 17px; line-height: 25px; overflow-wrap: anywhere; }
+.handoffNote { margin: 0; font-size: 15px; line-height: 24px; overflow-wrap: anywhere; }
+@media (max-width: 479px) {
+  .dialogSummary { grid-template-columns: minmax(0, 1fr); }
+  .dialogSummary dd + dt { margin-block-start: 8px; }
+  .dialogActions > button { flex: 1 1 auto; }
 }
