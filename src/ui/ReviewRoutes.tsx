@@ -16,6 +16,9 @@ const TeacherHome = lazy(() => import('@/ui/pages/teacher/TeacherHome').then((mo
 const TeacherKnowledgeBase = lazy(() => import('@/ui/pages/teacher/TeacherKnowledgeBase').then((module) => ({ default: module.TeacherKnowledgeBase })))
 const TeacherKbUpload = lazy(() => import('@/ui/pages/teacher/TeacherKbUpload').then((module) => ({ default: module.TeacherKbUpload })))
 const TeacherKbReview = lazy(() => import('@/ui/pages/teacher/TeacherKbReview').then((module) => ({ default: module.TeacherKbReview })))
+const TeacherMissions = lazy(() => import('@/ui/pages/teacher/TeacherMissions').then((module) => ({ default: module.TeacherMissions })))
+const TeacherMissionNew = lazy(() => import('@/ui/pages/teacher/TeacherMissionNew').then((module) => ({ default: module.TeacherMissionNew })))
+const TeacherMissionReview = lazy(() => import('@/ui/pages/teacher/TeacherMissionReview').then((module) => ({ default: module.TeacherMissionReview })))
 const SchoolImport = lazy(() => import('@/ui/pages/school-admin/SchoolImport').then((module) => ({ default: module.SchoolImport })))
 
 export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: ReactNode; privateEntry?: ReactNode }) {
@@ -35,6 +38,9 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
       <Route path="/review/teacher/knowledge-base" element={<TeacherKnowledgeBase />} />
       <Route path="/review/teacher/knowledge-base/upload" element={<TeacherKbUpload />} />
       <Route path="/review/teacher/knowledge-base/:topicId" element={<TeacherKbReview />} />
+      <Route path="/review/teacher/missions" element={<TeacherMissions />} />
+      <Route path="/review/teacher/missions/new" element={<TeacherMissionNew />} />
+      <Route path="/review/teacher/missions/:missionId" element={<TeacherMissionReview />} />
     </Route>
     <Route path="/review/school/import" element={<SchoolImport />} />
     <Route path="*" element={<AppRoutes accountEntry={accountEntry} privateEntry={privateEntry} />} />

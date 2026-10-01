@@ -32,7 +32,10 @@ const paths = {
   moon: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />,
   check: <path d="m5 12.5 4.5 4.5L19 7" />,
   file: <><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4" /></>,
-  pencil: <><path d="M4 20h4L19.5 8.5l-4-4L4 16z" /><path d="m13.5 6.5 4 4" /></>,
+  sparkle: <><path d="m11 3 1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z" /><path d="M19 15v5M16.5 17.5h5" /></>,
+  lock: <><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>,
+  send: <path d="M21 3 10 14M21 3l-7 18-4-7-7-4z" />,
+  pencil:<><path d="M4 20h4L19.5 8.5l-4-4L4 16z" /><path d="m13.5 6.5 4 4" /></>,
   archive: <><path d="M4 6h16v4H4z" /><path d="M6 10v10h12V10M10 14h4" /></>,
   idea: <path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" />,
 }
