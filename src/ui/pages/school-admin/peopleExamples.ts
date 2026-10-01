@@ -3,6 +3,7 @@ export interface PersonExample { id: string; name: string; identifier: string; c
 
 export const schoolExample = { name: 'SMPN 5 Yogyakarta', year: '2026/2027', admin: 'Hendra Santoso' }
 export const roleLabels = { student: 'Siswa', teacher: 'Guru', parent: 'Orang tua' }
+export const classOptions = ['8A', '8B', '8C', '8D']
 const person = (name: string, identifier: string, classroom: string, status: PersonExample['status']): PersonExample => ({ id: identifier, name, identifier, classroom, status })
 export const peopleExamples: Record<PeopleRole, readonly PersonExample[]> = {
   student: [

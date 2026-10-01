@@ -34,7 +34,7 @@ export function SchoolPeople() {
         }}>{roleLabels[role]}</button>)}</div>
         <div ref={searchRef}><Field label="Cari nama, NISN, atau email" type="search" placeholder="Cari nama, NISN, atau email" value={view.query} onChange={(event) => view.search(event.target.value)} /></div>
       </div>
-      <p className={styles.note}>Data contoh · {view.total} {roleLabels[view.role].toLocaleLowerCase('id-ID')}. {view.role === 'student' ? 'Tambah/ubah siswa hanya berlaku dalam simulasi lokal.' : 'Formulir guru dan orang tua belum tersedia.'}</p>
+      <p className={styles.note}>Data contoh · {view.total} {roleLabels[view.role].toLocaleLowerCase('id-ID')}. {view.role === 'student' ? 'Tambah, ubah, dan pindah kelas siswa hanya berlaku dalam simulasi lokal.' : 'Formulir guru dan orang tua belum tersedia.'}</p>
       {view.message && <Feedback tone="success" title={view.message} announce />}
       <section id="people-panel" role="tabpanel" aria-labelledby={`people-tab-${view.role}`} tabIndex={0}>
         {view.people.length ? <div className={styles.card}><table className={styles.table}><caption className={styles.hidden}>Daftar {roleLabels[view.role].toLocaleLowerCase('id-ID')} contoh</caption><thead><tr><th scope="col">Nama</th><th scope="col">{identifierLabel}</th><th scope="col">Kelas</th><th scope="col">Status</th><th scope="col"><span className={styles.hidden}>Tindakan</span></th></tr></thead><tbody>{view.people.map((person) => <tr key={person.id}>
