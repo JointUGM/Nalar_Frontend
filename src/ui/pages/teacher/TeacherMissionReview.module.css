@@ -11,7 +11,9 @@
 .locked { background: var(--color-paper); color: var(--color-text-secondary); }
 .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .actions button { gap: 6px; font-size: 13px; border-radius: 8px; white-space: nowrap; }
-.saveState { font-size: 12px; color: var(--color-text-muted); }
+.publish { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-block-size: var(--control-min-size); padding-inline: var(--space-4); border-radius: 8px; background: var(--color-primary); color: var(--color-surface); font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.publish:hover { background: var(--color-primary-hover); }
+.saveState {font-size: 12px; color: var(--color-text-muted); }
 .saveState[data-state="unsaved"] { color: var(--color-warning-text); font-weight: 600; }
 .note { margin: 8px 0 12px; max-inline-size: 72ch; font-size: 13px; line-height: 20px; color: var(--color-text-secondary); }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin: 16px 0 0; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); overflow: hidden; }

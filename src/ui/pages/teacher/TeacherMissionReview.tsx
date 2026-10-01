@@ -53,7 +53,9 @@ function ReviewBody() {
       <div className={styles.actions}>
         <span role="status" className={styles.saveState} data-state={view.saveState}>{saveText[view.saveState]}</span>
         <Button tone="secondary" disabled={!view.canSave} onClick={view.save}>Simpan versi</Button>
-        <Button disabled title="Penerbitan belum tersedia di pratinjau"><Icon name="send" size={14} />Terbitkan</Button>
+        {view.dirty
+          ? <Button disabled title="Simpan versi sebelum menerbitkan"><Icon name="send" size={14} />Terbitkan</Button>
+          : <Link className={styles.publish} to={`${missionsPath}/${mission.id}/publish`}><Icon name="send" size={14} />Terbitkan</Link>}
       </div>
     </div>
     <p className={styles.note}>Pratinjau lokal · konten contoh. Perubahan hanya berlaku selama halaman ini terbuka; tidak ada versi yang dibuat, dikunci, disimpan, atau diterbitkan.</p>

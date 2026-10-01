@@ -66,6 +66,9 @@ export const missionReviews: Readonly<Record<string, MissionReview>> = {
   },
 }
 
+// Supplied "Terbitkan ke kelas" defaults. Times are local WIB (datetime-local values, no zone).
+export const publicationExample = { selectedClasses: ['8A', '8B'], opens: '2026-09-28T07:30', closes: '2026-09-28T15:00', attempts: '1 per siswa', maxDuration: '20 menit' }
+
 // Supplied "Misi baru" form. The suggested concepts are a fixed example, not derived from the typed goal.
 export const newMissionExample = {
   goal: 'Siswa dapat menjelaskan mengapa benda yang bergerak melambat lalu berhenti, dengan konsep gaya gesek.',
