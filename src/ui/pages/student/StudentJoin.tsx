@@ -4,7 +4,7 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { StudentShell } from '@/ui/components/student-shell/StudentShell'
-import { homePath, joinExample, missionStartPath, studentDetail, studentUser } from './studentExamples'
+import { homePath, joinExample, lobbyPath, studentDetail, studentUser } from './studentExamples'
 import { useStudentJoinViewModel } from './useStudentJoinViewModel'
 import type { JoinScenario } from './useStudentJoinViewModel'
 import styles from './StudentJoin.module.css'
@@ -45,7 +45,7 @@ export function StudentJoin() {
       </div>
       <div className={styles.footer}>
         <ButtonLink tone="secondary" to={homePath}>Batal</ButtonLink>
-        {view.result === 'match' ? <ButtonLink to={missionStartPath('kelereng')}>Gabung sesi</ButtonLink> : <Button disabled title="Masukkan kode yang cocok dulu">Gabung sesi</Button>}
+        {view.result === 'match' ? <ButtonLink to={lobbyPath('kelereng')}>Gabung sesi</ButtonLink> : <Button disabled title="Masukkan kode yang cocok dulu">Gabung sesi</Button>}
       </div>
     </section>
   </div></StudentShell>
