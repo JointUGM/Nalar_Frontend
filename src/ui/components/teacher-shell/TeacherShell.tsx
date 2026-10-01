@@ -12,7 +12,7 @@ interface NavItem { label: string; icon: IconName; to?: string; badge?: string; 
 
 const workspace: readonly NavItem[] = [
   { label: 'Beranda', icon: 'home', to: '/review/teacher/home' },
-  { label: 'Kelas', icon: 'users' },
+  { label: 'Kelas', icon: 'users', to: '/review/teacher/classes' },
   { label: 'Misi', icon: 'target', to: '/review/teacher/missions', exclude: /\/(monitor|class-map)(\/|$)/ },
   { label: 'Basis pengetahuan', icon: 'layers', to: '/review/teacher/knowledge-base' },
   { label: 'Sesi langsung', icon: 'monitor', to: '/review/teacher/missions/kenapa-kelereng-berhenti/monitor?kelas=8B' },
