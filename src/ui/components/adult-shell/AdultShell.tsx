@@ -16,8 +16,8 @@ export function AdultShell({ children, search = '', onSearch, schoolContext }: {
   }, [focusContent, location.key])
   const base = location.pathname.startsWith('/review/') ? '/review/platform' : '/platform'
   const navigation = schoolContext ? <nav className={styles.navigation} aria-label="Navigasi Admin Sekolah">
-    <button disabled title="Belum tersedia di pratinjau"><Icon name="upload" /><span>Impor data</span></button>
-    <NavLink to="/review/school/people" state={{ focusPlatformContent: true }} className={styles.active} onClick={() => setDrawerOpen(false)}><Icon name="users" /><span>Orang</span></NavLink>
+    <NavLink to="/review/school/import" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="upload" /><span>Impor data</span></NavLink>
+    <NavLink to="/review/school/people" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="users" /><span>Orang</span></NavLink>
     {(['Kelas', 'Mata pelajaran', 'Penugasan guru', 'Basis pengetahuan', 'Tahun ajaran'] as const).map((label, index) => <button key={label} disabled title="Belum tersedia di pratinjau"><Icon name={(['grid', 'book', 'link', 'layers', 'calendar'] as const)[index]} /><span>{label}</span></button>)}
   </nav> : <nav className={styles.navigation} aria-label="Navigasi Admin Platform">
     <NavLink to={`${base}/schools`} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="school" /><span>Sekolah</span></NavLink>
@@ -28,7 +28,7 @@ export function AdultShell({ children, search = '', onSearch, schoolContext }: {
     <a className={styles.skipLink} href="#platform-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>
       <Link to={schoolContext ? '/review/school/people' : '/'} className={styles.brand}><BrandMark /><span>nalar</span><small>{schoolContext ? 'sekolah' : 'platform'}</small></Link>
-      {schoolContext && <div className={styles.schoolContext}><Icon name="school" /><span><strong>{schoolContext.name}</strong><small>Admin sekolah · {schoolContext.year}</small></span></div>}
+      {schoolContext && <div className={[styles.schoolContext, styles.schoolCard].join(' ')}><Icon name="school" /><span><strong>{schoolContext.name}</strong><small>Admin sekolah · {schoolContext.year}</small></span></div>}
       {navigation}
       <div className={styles.sidebarSpacer} />
       {!schoolContext && <p className={styles.scopeNote}>Anda hanya melihat data sekolah. Sesi, transkrip, dan hasil siswa tidak dapat diakses dari sini.</p>}
