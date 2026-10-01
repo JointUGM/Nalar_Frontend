@@ -28,6 +28,8 @@
 .level { display: block; margin-block-start: 6px; font-size: 11px; color: var(--color-text-muted); }
 .scores > div[data-status="overridden"] .level { color: var(--color-primary-hover); font-weight: 600; }
 .scores > div[data-status="no-evidence"] .level { color: var(--color-warning-text); font-weight: 600; }
+.changes { display: grid; gap: 4px; margin: 8px 0 0; padding: 0; list-style: none; font-size: 13px; line-height: 20px; color: var(--color-text-secondary); }
+.changes b { color: var(--color-ink); }
 .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; align-items: start; margin-block-start: 16px; }
 .column { display: flex; flex-direction: column; gap: 16px; min-inline-size: 0; }
 .card, .flag, .panel { border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); min-inline-size: 0; }
@@ -40,6 +42,9 @@
 .hint { margin: 10px 0 0; padding: 8px 12px; border-radius: 8px; background: var(--color-verification-bg); font-size: 12px; }
 .flagActions { display: flex; flex-wrap: wrap; gap: 8px; margin-block-start: 12px; }
 .flagActions button { font-size: 12px; border-radius: 8px; }
+.flagActions button[aria-pressed="true"], .flagActions button[aria-pressed="true"]:hover:not(:disabled) { border-color: var(--color-ink); background: var(--color-ink); color: var(--color-surface); }
+.decision { margin: 0; font-size: 12px; line-height: 18px; color: var(--color-text-secondary); }
+.decision:not(:empty) { margin-block-start: 10px; }
 .muted { margin: 8px 0 0; font-size: 13px; line-height: 20px; color: var(--color-text-muted); }
 .evidence { display: grid; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
 .evidence button { display: flex; flex-direction: column; gap: 4px; inline-size: 100%; padding: 10px 12px; border: 1px solid var(--color-role-border); border-radius: 10px; background: var(--color-surface); color: var(--color-ink); text-align: start; font-weight: 400; }
