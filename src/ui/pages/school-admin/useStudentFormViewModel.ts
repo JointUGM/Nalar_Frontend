@@ -14,7 +14,7 @@ export function useStudentFormViewModel(person: PersonExample | null, newId: str
   useEffect(() => {
     if (status !== 'pending') return
     const timer = setTimeout(() => {
-      if (outcome === 'success') onSave({ id: person?.id ?? newId, name: fields.name.trim(), identifier: fields.identifier.trim(), classroom: fields.classroom, status: person?.status ?? 'Menunggu aktivasi' }, person?.classroom)
+      if (outcome === 'success') onSave({ ...person, id: person?.id ?? newId, name: fields.name.trim(), identifier: fields.identifier.trim(), classroom: fields.classroom, status: person?.status ?? 'Menunggu aktivasi' }, person?.classroom)
       setStatus(outcome); submitting.current = false
     }, 650)
     return () => clearTimeout(timer)

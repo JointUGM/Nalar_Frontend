@@ -34,7 +34,7 @@ export function SchoolPeople() {
         }}>{roleLabels[role]}</button>)}</div>
         <div ref={searchRef}><Field label="Cari nama, NISN, atau email" type="search" placeholder="Cari nama, NISN, atau email" value={view.query} onChange={(event) => view.search(event.target.value)} /></div>
       </div>
-      <p className={styles.note}>Data contoh · {view.total} {roleLabels[view.role].toLocaleLowerCase('id-ID')}. {view.role === 'student' ? 'Tambah, ubah, dan pindah kelas siswa hanya berlaku dalam simulasi lokal.' : 'Formulir guru dan orang tua belum tersedia.'}</p>
+      <p className={styles.note}>Data contoh · {view.total} {roleLabels[view.role].toLocaleLowerCase('id-ID')}. {view.role === 'student' ? 'Tambah, ubah, pindah kelas, undangan, dan nonaktif siswa hanya berlaku dalam simulasi lokal.' : 'Formulir guru dan orang tua belum tersedia.'}</p>
       {view.message && <Feedback tone="success" title={view.message} announce />}
       <section id="people-panel" role="tabpanel" aria-labelledby={`people-tab-${view.role}`} tabIndex={0}>
         {view.people.length ? <div className={styles.card}><table className={styles.table}><caption className={styles.hidden}>Daftar {roleLabels[view.role].toLocaleLowerCase('id-ID')} contoh</caption><thead><tr><th scope="col">Nama</th><th scope="col">{identifierLabel}</th><th scope="col">Kelas</th><th scope="col">Status</th><th scope="col"><span className={styles.hidden}>Tindakan</span></th></tr></thead><tbody>{view.people.map((person) => <tr key={person.id}>
@@ -43,7 +43,7 @@ export function SchoolPeople() {
         <nav className={styles.pagination} aria-label="Halaman orang"><span role="status">{view.count} hasil contoh · Halaman {view.page + 1} dari {view.pageCount}</span>{view.page > 0 && <Button tone="secondary" onClick={() => view.setPage(view.page - 1)}>Sebelumnya</Button>}{view.page + 1 < view.pageCount && <Button tone="secondary" onClick={() => view.setPage(view.page + 1)}>Berikutnya</Button>}</nav>
       </section>
     </div>
-    {view.editor && <StudentFormDialog person={view.editor.person} newId={view.newId} students={view.students} onSave={view.saveStudent} onClose={() => { view.setEditor(null); requestAnimationFrame(() => { if (!openerRef.current?.isConnected) searchRef.current?.querySelector('input')?.focus() }) }} />}
+    {view.editor && <StudentFormDialog person={view.editor.person} newId={view.newId} students={view.students} onSave={view.saveStudent} onApplyAction={view.applyStudentAction} onClose={() => { view.setEditor(null); requestAnimationFrame(() => { if (!openerRef.current?.isConnected) searchRef.current?.querySelector('input')?.focus() }) }} />}
     {view.selected && <Dialog open onClose={() => view.setSelected(null)} title={view.selected.name} description="Metadata contoh dalam pratinjau. Data dan akses tidak berubah."><dl className={styles.details}><dt>Peran</dt><dd>{roleLabels[view.role]}</dd><dt>{identifierLabel}</dt><dd>{view.selected.identifier}</dd><dt>Kelas</dt><dd>{view.selected.classroom}</dd><dt>Status</dt><dd>{view.selected.status}</dd><dt>Sekolah · tahun ajaran</dt><dd>{schoolExample.name} · {schoolExample.year}</dd></dl><Button onClick={() => view.setSelected(null)}>Tutup</Button></Dialog>}
   </AdultShell>
 }
