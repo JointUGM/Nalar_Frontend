@@ -13,7 +13,7 @@ interface NavItem { label: string; icon: IconName; to?: string; badge?: string }
 const workspace: readonly NavItem[] = [
   { label: 'Beranda', icon: 'home', to: '/review/teacher/home' },
   { label: 'Kelas', icon: 'users' },
-  { label: 'Misi', icon: 'target' },
+  { label: 'Misi', icon: 'target', to: '/review/teacher/missions' },
   { label: 'Basis pengetahuan', icon: 'layers', to: '/review/teacher/knowledge-base' },
   { label: 'Sesi langsung', icon: 'monitor' },
   { label: 'Hasil kelas', icon: 'graph' },

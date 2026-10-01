@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import type { ReactNode } from 'react'
-import { Navigate, Route, Routes } from 'react-router'
+import { Route, Routes } from 'react-router'
 import { AppRoutes } from '@/ui/routes'
 import { TeacherLayout } from '@/ui/pages/teacher/TeacherLayout'
 
@@ -15,13 +15,15 @@ const SchoolKbOwners = lazy(() => import('@/ui/pages/school-admin/SchoolKbOwners
 const TeacherHome = lazy(() => import('@/ui/pages/teacher/TeacherHome').then((module) => ({ default: module.TeacherHome })))
 const TeacherKnowledgeBase = lazy(() => import('@/ui/pages/teacher/TeacherKnowledgeBase').then((module) => ({ default: module.TeacherKnowledgeBase })))
 const TeacherKbUpload = lazy(() => import('@/ui/pages/teacher/TeacherKbUpload').then((module) => ({ default: module.TeacherKbUpload })))
+const TeacherKbReview = lazy(() => import('@/ui/pages/teacher/TeacherKbReview').then((module) => ({ default: module.TeacherKbReview })))
+const TeacherMissions = lazy(() => import('@/ui/pages/teacher/TeacherMissions').then((module) => ({ default: module.TeacherMissions })))
+const TeacherMissionNew = lazy(() => import('@/ui/pages/teacher/TeacherMissionNew').then((module) => ({ default: module.TeacherMissionNew })))
+const TeacherMissionReview = lazy(() => import('@/ui/pages/teacher/TeacherMissionReview').then((module) => ({ default: module.TeacherMissionReview })))
+const TeacherPublication = lazy(() => import('@/ui/pages/teacher/TeacherPublication').then((module) => ({ default: module.TeacherPublication })))
 const SchoolImport = lazy(() => import('@/ui/pages/school-admin/SchoolImport').then((module) => ({ default: module.SchoolImport })))
 
 export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: ReactNode; privateEntry?: ReactNode }) {
   return <Suspense fallback={<p role="status">Memuat halaman…</p>}><Routes>
-    <Route path="/" element={<Navigate to="/review/platform/schools" replace />} />
-
-    {/* Platform admin review */}
     <Route path="/review/platform/schools" element={<PlatformSchools />} />
     <Route path="/review/platform/schools/:schoolId" element={<PlatformSchools />} />
     <Route path="/review/platform/cp-versions" element={<CurriculumVersions />} />
@@ -35,6 +37,11 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
       <Route path="/review/teacher/home" element={<TeacherHome />} />
       <Route path="/review/teacher/knowledge-base" element={<TeacherKnowledgeBase />} />
       <Route path="/review/teacher/knowledge-base/upload" element={<TeacherKbUpload />} />
+      <Route path="/review/teacher/knowledge-base/:topicId" element={<TeacherKbReview />} />
+      <Route path="/review/teacher/missions" element={<TeacherMissions />} />
+      <Route path="/review/teacher/missions/new" element={<TeacherMissionNew />} />
+      <Route path="/review/teacher/missions/:missionId" element={<TeacherMissionReview />} />
+      <Route path="/review/teacher/missions/:missionId/publish" element={<TeacherPublication />} />
     </Route>
     <Route path="/review/school/import" element={<SchoolImport />} />
     <Route path="*" element={<AppRoutes accountEntry={accountEntry} privateEntry={privateEntry} />} />

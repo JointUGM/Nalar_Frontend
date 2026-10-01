@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router'
+import { Link, Navigate, useLocation } from 'react-router'
 import { getRoleChoices, resolveRoleDestination } from '@/domain/model/RoleContext'
 import { Button } from '@/ui/components/button/Button'
 import type { AccountDependencies } from './AccountDependencies'
@@ -17,11 +17,14 @@ export function RoleSelection({ dependencies }: { dependencies: AccountDependenc
   if (!access.identity) return null
 
   const choices = getRoleChoices(access.identity)
-  const intended = resolveRoleDestination(access.identity, requested)
+  // The role comes from the verified /me result, never from the user. A page they asked for before signing
+  // in, or the only role they have, needs no choice; only several roles (e.g. a teacher who is also a
+  // parent) still ask where to go.
+  const target = resolveRoleDestination(access.identity, requested) ?? (choices.length === 1 ? choices[0].path : null)
+  if (target) return <Navigate to={target} replace />
   return <section className={styles.selection} aria-label="Pilih peran">
     <h2>Masuk sebagai</h2>
     <p>{access.identity.fullName}</p>
-    {intended && <Link className={styles.intent} to={intended}>Lanjutkan ke halaman yang dituju</Link>}
     {choices.length === 0 ? <p>Akun ini belum memiliki peran yang tersedia.</p> : <ul className={styles.list}>
       {choices.map((choice) => <li key={choice.path}><Link className={styles.choice} to={choice.path}>
         <span><strong>{choice.label}</strong><small>{choice.detail}</small></span><span aria-hidden="true">›</span>

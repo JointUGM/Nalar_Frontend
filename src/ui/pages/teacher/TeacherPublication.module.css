@@ -1,0 +1,40 @@
+.content { max-inline-size: 1360px; }
+.content h1 { margin: 0; font-size: 22px; line-height: 30px; letter-spacing: -.015em; }
+.back { display: inline-flex; align-items: center; gap: 4px; min-block-size: 44px; min-inline-size: 44px; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); text-decoration: none; }
+.back:hover { color: var(--color-primary); }
+.lead { margin: 2px 0 0; font-size: 13px; color: var(--color-text-muted); overflow-wrap: anywhere; }
+.note { margin: 8px 0 12px; max-inline-size: 72ch; font-size: 13px; line-height: 20px; color: var(--color-text-secondary); }
+.grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: start; margin-block-start: 16px; }
+.card { display: flex; flex-direction: column; gap: 20px; padding: 20px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); min-inline-size: 0; }
+.card h2 { margin: 0; font-size: 14px; line-height: 22px; }
+.label { margin: 0; padding: 0; font-size: 13px; font-weight: 600; }
+.classes { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-block-start: 8px; }
+.classButton { display: block; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface); color: var(--color-ink); text-align: start; }
+.classButton:hover:not(:disabled) { background: var(--color-nav-hover); }
+.classButton[aria-pressed="true"] { border-color: var(--color-primary); background: var(--color-nav-hover); }
+.classButton span { display: flex; align-items: center; justify-content: space-between; font-size: 15px; font-weight: 700; color: var(--color-primary); }
+.classButton[aria-pressed="false"] span { color: var(--color-ink); }
+.classButton small { display: block; font-size: 12px; font-weight: 400; color: var(--color-text-muted); }
+.modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 8px; margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+.modes legend { margin-block-end: 8px; }
+.mode { position: relative; display: block; }
+.mode input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.mode > span { display: grid; gap: 2px; padding: 14px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+.mode input:checked + span { border-color: var(--color-primary); background: var(--color-nav-hover); }
+.mode input:focus-visible + span { outline: 3px solid var(--color-primary); outline-offset: 3px; }
+.mode svg { color: var(--color-primary); }
+.mode strong { margin-block-start: 6px; font-size: 14px; }
+.mode small { font-size: 12px; line-height: 18px; color: var(--color-text-secondary); }
+.times { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; }
+.error { margin: 6px 0 0; font-size: 13px; font-weight: 600; color: var(--color-danger-text); }
+.rows { display: flex; flex-direction: column; margin: 0; font-size: 13px; }
+.rows > div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-block-start: 1px solid var(--color-surface-muted); }
+.rows dt { color: var(--color-text-muted); }
+.rows dd { margin: 0; font-weight: 600; text-align: end; overflow-wrap: anywhere; }
+.lock { display: flex; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--color-info-bg); color: var(--color-primary-hover); font-size: 12px; line-height: 18px; }
+.card > button { font-size: 13px; border-radius: 8px; gap: 6px; }
+.scenario { display: grid; gap: 8px; margin-block-start: 16px; font-size: 14px; font-weight: 600; }
+.scenario select { inline-size: 100%; min-inline-size: 0; min-block-size: 44px; padding: 10px; border: 1px solid var(--color-control-border); border-radius: 12px; font: inherit; font-weight: 400; color: var(--color-ink); background: var(--color-surface); }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-block-start: 16px; }
+@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) { .card { padding: 16px; } }

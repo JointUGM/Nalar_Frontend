@@ -3,7 +3,7 @@ import { lazy, Suspense } from 'react'
 import type { ReactNode } from 'react'
 import styles from './RouteBoundary.module.css'
 
-const LandingPage = lazy(() => import('./pages/landing/LandingPage').then((m) => ({ default: m.LandingPage })))
+const Landing = lazy(() => import('@/ui/pages/landing/Landing').then((module) => ({ default: module.Landing })))
 
 function AccessBoundary() {
   return <main className={styles.page}><h1>Akses belum tersedia</h1><p>Masuk dengan akun yang memiliki akses untuk membuka halaman ini.</p><Link to="/login">Masuk</Link></main>
@@ -20,7 +20,7 @@ function PrivateEntryBoundary({ entry }: { entry: ReactNode }) {
 
 export function AppRoutes({ accountEntry, privateEntry }: { accountEntry: ReactNode; privateEntry?: ReactNode }) {
   return <Routes>
-    <Route path="/" element={<Suspense fallback={<main className={styles.page}><h1>Memuat…</h1><p role="status">Tunggu sebentar.</p></main>}><LandingPage /></Suspense>} />
+    <Route path="/" element={<Suspense fallback={<main className={styles.page}><h1>Membuka NALAR…</h1><p role="status">Tunggu sebentar.</p></main>}><Landing /></Suspense>} />
     <Route path="/login" element={<Suspense fallback={<main className={styles.page}><h1>Membuka halaman masuk…</h1><p role="status">Tunggu sebentar.</p></main>}>{accountEntry}</Suspense>} />
     {['platform', 'school', 'parent', 'teacher', 'student'].map((role) => <Route key={role} path={`/${role}/*`} element={privateEntry ? <PrivateEntryBoundary entry={privateEntry} /> : <AccessBoundary />} />)}
     <Route path="*" element={<main className={styles.page}><h1>Halaman tidak tersedia</h1><Link to="/">Kembali ke NALAR</Link></main>} />
