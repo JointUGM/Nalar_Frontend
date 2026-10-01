@@ -109,7 +109,7 @@ describe('projector page', () => {
     expect(screen.getByRole('group', { name: 'Kode gabung K 7 Q 2 M W' })).toBeInTheDocument()
     expect(screen.getByText('Lobi · belum dimulai')).toBeInTheDocument()
     expect(screen.getByText(/Belum ada soal yang dibuka dan tidak ada yang dinilai/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Buka pemantauan' })).toBeDisabled()
+    expect(screen.getByRole('link', { name: 'Buka pemantauan' })).toHaveAttribute('href', `${missionsPath}/${generatedMissionId}/monitor?kelas=8B`)
     expect(screen.queryByRole('button', { name: 'Tutup penerimaan' })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Mulai sesi' }))

@@ -25,6 +25,8 @@
 .code[data-closed="true"] span { color: var(--color-text-muted); background: var(--color-surface-muted); }
 .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-block-start: 32px; }
 .secondary { border: 1px solid var(--color-control-border); }
+.monitorLink { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-block-size: 44px; padding-inline: 18px; border-radius: 10px; background: var(--color-primary); color: var(--color-surface); font-size: 15px; font-weight: 700; text-decoration: none; }
+.monitorLink:hover { background: var(--color-primary-hover); }
 .reset { margin-block-start: 16px; font-size: 13px; }
 .joined { padding: clamp(20px, 3vw, 28px); border: 1px solid var(--color-role-border); border-radius: 20px; min-inline-size: 0; }
 .joined h2 { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--color-text-muted); }

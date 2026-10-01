@@ -8,6 +8,7 @@ import { SessionActionDialog } from './SessionActionDialog'
 import type { SessionAction } from './SessionActionDialog'
 import { teacherUser } from './teacherHomeExamples'
 import { missionsPath, publicationExample } from './teacherMissionExamples'
+import { closeAdmissionAction, startSessionAction } from './sessionActions'
 import { projectorExample } from './teacherProjectorExamples'
 import { useTeacherProjectorViewModel } from './useTeacherProjectorViewModel'
 import type { SessionPhase } from './useTeacherProjectorViewModel'
@@ -15,7 +16,6 @@ import styles from './TeacherProjector.module.css'
 
 const badges: Record<Exclude<SessionPhase, 'idle'>, string> = { lobby: 'Lobi · belum dimulai', live: 'Langsung', closed: 'Penerimaan ditutup' }
 const announcements: Record<SessionPhase, string> = { idle: '', lobby: 'Lobi dibuka. Kode gabung tampil di layar.', live: 'Sesi dimulai (simulasi).', closed: 'Penerimaan ditutup (simulasi).' }
-const monitorHint = 'Pemantauan belum tersedia di pratinjau'
 
 export function TeacherProjector() {
   const view = useTeacherProjectorViewModel()
@@ -28,13 +28,8 @@ export function TeacherProjector() {
 
   const code = projectorExample.joinCode.join(' ')
   const summary: [string, string][] = [['Misi', mission.title], ['Kelas', klass.name], ['Sudah bergabung', `${view.joined} dari ${view.total} siswa`]]
-  const actions: Record<'start' | 'close', SessionAction> = {
-    start: { title: 'Mulai sesi (simulasi)', description: 'Siswa yang sudah bergabung mulai mengerjakan soal pembuka. Lobi tidak menilai apa pun.', rows: summary,
-      note: 'Siswa yang belum bergabung masih bisa masuk sampai penerimaan ditutup. Ini hanya simulasi; tidak ada sesi yang dimulai.', confirmLabel: 'Mulai sesi', doneText: 'Tampilan berpindah ke sesi langsung. Tidak ada siswa yang menerima soal.' },
-    close: { title: 'Tutup penerimaan (simulasi)', description: 'Siswa baru tidak dapat bergabung lagi dengan kode ini.', rows: summary,
-      note: `Siswa yang sudah mulai tetap boleh menyelesaikan sesinya sampai ${publicationExample.maxDuration} setelah penerimaan ditutup; batas waktu mereka tidak berubah. Ini hanya simulasi.`, confirmLabel: 'Tutup penerimaan', doneText: 'Kode tidak lagi menerima siswa baru. Tidak ada batas waktu siswa yang diubah.' },
-  }
-  const monitor = <Button disabled title={monitorHint} className={styles.secondary}><Icon name="grid" size={16} />Buka pemantauan</Button>
+  const actions: Record<'start' | 'close', SessionAction> = { start: startSessionAction(summary), close: closeAdmissionAction(summary) }
+  const monitor = <Link className={styles.monitorLink} to={`${missionsPath}/${mission.id}/monitor?kelas=${encodeURIComponent(klass.name)}`}><Icon name="grid" size={16} />Buka pemantauan</Link>
 
   return <div className={styles.screen} data-phase={phase}>
     <header className={styles.header}>

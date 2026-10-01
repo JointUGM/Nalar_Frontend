@@ -8,15 +8,15 @@ import type { IconName } from '@/ui/components/icon/Icon'
 import { useTeacherContext } from './useTeacherContext'
 import styles from './TeacherShell.module.css'
 
-interface NavItem { label: string; icon: IconName; to?: string; badge?: string }
+interface NavItem { label: string; icon: IconName; to?: string; badge?: string; /** Paths under `to` that belong to a sibling item instead. */ exclude?: RegExp }
 
 const workspace: readonly NavItem[] = [
   { label: 'Beranda', icon: 'home', to: '/review/teacher/home' },
   { label: 'Kelas', icon: 'users' },
-  { label: 'Misi', icon: 'target', to: '/review/teacher/missions' },
+  { label: 'Misi', icon: 'target', to: '/review/teacher/missions', exclude: /\/(monitor|class-map)$/ },
   { label: 'Basis pengetahuan', icon: 'layers', to: '/review/teacher/knowledge-base' },
-  { label: 'Sesi langsung', icon: 'monitor' },
-  { label: 'Hasil kelas', icon: 'graph' },
+  { label: 'Sesi langsung', icon: 'monitor', to: '/review/teacher/missions/kenapa-kelereng-berhenti/monitor?kelas=8B' },
+  { label: 'Hasil kelas', icon: 'graph', to: '/review/teacher/missions/kenapa-kelereng-berhenti/class-map?kelas=8B' },
   { label: 'Perlu perhatian', icon: 'alert', badge: '5 baru' },
 ]
 const more: readonly NavItem[] = [{ label: 'Ubah kata sandi', icon: 'key' }, { label: 'Bantuan', icon: 'info' }]
@@ -34,7 +34,7 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
   const close = () => setDrawerOpen(false)
   const initials = user.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
   const item = (entry: NavItem) => entry.to
-    ? <NavLink key={entry.label} to={entry.to} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span></NavLink>
+    ? <NavLink key={entry.label} to={entry.to} end={entry.exclude?.test(location.pathname)} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span></NavLink>
     : <button key={entry.label} type="button" disabled title={unavailable}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</button>
   const navigation = <>
     <p className={styles.group}>Ruang kerja</p>
