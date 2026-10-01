@@ -14,7 +14,7 @@ const workspace: readonly NavItem[] = [
   { label: 'Beranda', icon: 'home', to: '/review/teacher/home' },
   { label: 'Kelas', icon: 'users' },
   { label: 'Misi', icon: 'target' },
-  { label: 'Basis pengetahuan', icon: 'layers' },
+  { label: 'Basis pengetahuan', icon: 'layers', to: '/review/teacher/knowledge-base' },
   { label: 'Sesi langsung', icon: 'monitor' },
   { label: 'Hasil kelas', icon: 'graph' },
   { label: 'Perlu perhatian', icon: 'alert', badge: '5 baru' },
