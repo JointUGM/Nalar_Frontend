@@ -12,10 +12,12 @@ function authResponse() {
   }
 }
 
+// Two roles (teacher and parent) keep the role chooser on screen; a single-role account skips it.
 const identity = {
-  user_id: userId, full_name: 'Ayu', is_parent: false, is_platform_admin: false,
+  user_id: userId, full_name: 'Ayu', is_parent: true, is_platform_admin: false,
   roles: [{ role: 'teacher', school_id: schoolId, school_name: 'Sekolah A' }],
 }
+const singleRoleIdentity = { ...identity, is_parent: false }
 
 test('restores safe role intent only after fresh identity checks', async ({ page }) => {
   let identityReads = 0
@@ -34,11 +36,31 @@ test('restores safe role intent only after fresh identity checks', async ({ page
   await page.getByLabel('Email').fill('ayu@example.test')
   await page.getByLabel('Kata sandi').fill('synthetic-password')
   await page.getByRole('button', { name: 'Masuk' }).click()
-  await expect(page.getByRole('link', { name: 'Lanjutkan ke halaman yang dituju' })).toHaveAttribute('href', `${schoolPath}/classes`)
-  await expect(page.getByRole('link', { name: /Guru.*Sekolah A/ })).toHaveAttribute('href', schoolPath)
-  await page.getByRole('link', { name: 'Lanjutkan ke halaman yang dituju' }).click()
   await expect(page.getByRole('heading', { name: 'Halaman peran belum tersedia' })).toBeVisible()
+  await expect(page).toHaveURL(new RegExp(`${schoolPath}/classes$`))
+  await expect(page.getByText('Masuk sebagai')).toHaveCount(0)
   expect(identityReads).toBeGreaterThanOrEqual(2)
+})
+
+test('opens the landing page first and sends a single-role account straight to its dashboard', async ({ page }) => {
+  await page.route('**/api/v1/auth/login', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(authResponse()) })
+  })
+  await page.route('**/api/v1/me', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(singleRoleIdentity) })
+  })
+
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1, name: /Ukur cara siswa berpikir/ })).toBeVisible()
+  await expect(page.getByText(/daftar|registrasi|buat akun/i)).toHaveCount(0)
+  await page.getByRole('link', { name: 'Masuk ke NALAR' }).click()
+  await expect(page).toHaveURL(/\/login$/)
+  await page.getByLabel('Email').fill('ayu@example.test')
+  await page.getByLabel('Kata sandi').fill('synthetic-password')
+  await page.getByRole('button', { name: 'Masuk' }).click()
+  await expect(page).toHaveURL(new RegExp(`${schoolPath}$`))
+  await expect(page.getByRole('heading', { name: 'Halaman peran belum tersedia' })).toBeVisible()
+  await expect(page.getByText('Masuk sebagai')).toHaveCount(0)
 })
 
 test('closes a role path after backend revocation without showing review data', async ({ page }) => {
