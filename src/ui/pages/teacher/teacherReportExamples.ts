@@ -18,7 +18,12 @@ export const reportExample = {
     { dimension: 'Transfer', score: 2, turn: 5, quote: 'Sepeda masih bergerak karena tidak ada yang langsung menghentikannya' },
   ] as readonly ReportScore[],
   // Review scenario: the teacher raised Transfer from 2 to 3. The original AI score is kept next to it.
-  override: { dimension: 'Transfer', value: 3 },
+  override: { dimension: 'Transfer', value: 3, reason: 'Gesekan ban dan udara disebut sebagai penyebab berhenti di giliran 5' },
+  // Supplied "Kesempatan lagi" choices; the window is a fixed example, not read from the publication.
+  extraAttempt: {
+    window: { label: 'Jendela waktu', detail: 'Sel, 29 Sep · 07.30 – 15.00' },
+    live: { label: 'Sesi langsung kecil', detail: 'Anda mulai sendiri dengan kode baru' },
+  },
   turns: [
     { label: 'PEMBUKA', move: 'Soal pembuka', why: '', question: 'Raka menggelindingkan kelereng di lantai keramik kelas. Kelereng itu melaju, makin lambat, lalu berhenti di dekat pintu. Kenapa kelereng itu akhirnya berhenti?', answer: 'Karena dorongan dari tangan Raka sudah habis, jadi kelerengnya berhenti.', state: 'Miskonsepsi: “gaya bisa habis”', telemetry: 'Mengetik 48 detik · tanpa tempel' },
     { label: 'GILIRAN 1', move: 'Contoh pembanding', why: 'Dipilih karena siswa menyebut ide keliru “gaya habis”', question: 'Kamu bilang dorongannya habis. Kalau begitu, kenapa pesawat luar angkasa tetap melaju walau mesinnya mati?', answer: 'Hmm, di luar angkasa tidak ada udara yang menahan. Jadi mungkin bukan dorongannya yang habis, tapi ada yang melawan kalau di bumi?', state: 'Sebagian benar · mulai berubah', telemetry: 'Mengetik 1 menit 12 detik' },
