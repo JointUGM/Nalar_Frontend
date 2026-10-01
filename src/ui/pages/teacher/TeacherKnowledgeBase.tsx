@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
@@ -6,6 +7,8 @@ import { teacherSubject, teacherUser } from './teacherHomeExamples'
 import { kbGrade, kbOwnership, kbStatusLabels } from './teacherKbExamples'
 import { useTeacherKnowledgeBaseViewModel } from './useTeacherKnowledgeBaseViewModel'
 import styles from './TeacherKnowledgeBase.module.css'
+
+const uploadPath = '/review/teacher/knowledge-base/upload'
 
 export function TeacherKnowledgeBase() {
   const view = useTeacherKnowledgeBaseViewModel()
@@ -20,11 +23,11 @@ export function TeacherKnowledgeBase() {
         : <>
           <div className={styles.header}>
             <div><h1>Basis pengetahuan · {teacherSubject} {kbGrade}</h1><p>{kbOwnership}</p></div>
-            <Button className={styles.upload} disabled title="Unggah materi belum tersedia di pratinjau"><Icon name="upload" size={14} />Unggah materi</Button>
+            <Link className={styles.upload} to={uploadPath}><Icon name="upload" size={14} />Unggah materi</Link>
           </div>
-          <ul className={styles.grid} aria-label="Topik basis pengetahuan (contoh)">{view.topics.map((topic) => <li key={topic.id} className={styles.card}>
+          <ul className={styles.grid} aria-label="Topik basis pengetahuan (contoh)">{view.topics.map((topic) => <li key={topic.id} className={[styles.card, topic.status === 'empty' && styles.linked].filter(Boolean).join(' ')}>
             <div className={styles.meta}><span className={[styles.tag, styles[topic.status]].join(' ')}>{kbStatusLabels[topic.status]}</span><span className={styles.when}>{topic.when}</span></div>
-            <h2>{topic.name}</h2>
+            <h2>{topic.status === 'empty' ? <Link className={styles.cover} to={`${uploadPath}?topik=${topic.id}`} aria-label={`Unggah materi untuk ${topic.name}`}>{topic.name}</Link> : topic.name}</h2>
             <dl className={styles.stats}>
               <div><dt>Konsep</dt><dd>{topic.concepts ?? '—'}</dd></div>
               <div><dt>Miskonsepsi</dt><dd>{topic.misconceptions ?? '—'}</dd></div>
