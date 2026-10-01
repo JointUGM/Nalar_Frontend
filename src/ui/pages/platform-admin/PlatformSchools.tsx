@@ -4,12 +4,12 @@ import type { School } from '@/domain/model/platform/School'
 import { AdultShell } from '@/ui/components/adult-shell/AdultShell'
 import { Button } from '@/ui/components/button/Button'
 import { Dialog } from '@/ui/components/dialog/Dialog'
-import { Field } from '@/ui/components/field/Field'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { usePlatformSchoolsViewModel } from './usePlatformSchoolsViewModel'
 import { SchoolOnboardingDialog } from './SchoolOnboardingDialog'
 import { SchoolAdminHandoffDialog } from './SchoolAdminHandoffDialog'
+import { SchoolStatusDialog } from './SchoolStatusDialog'
 import styles from './Platform.module.css'
 
 const number = new Intl.NumberFormat('id-ID')
@@ -26,7 +26,8 @@ export function PlatformSchools() {
   const navigate = useNavigate()
   const { schoolId } = useParams()
   const base = location.pathname.startsWith('/review/') ? '/review/platform' : '/platform'
-  const schools = view.data?.schools ?? []
+  const suspendedExample = params.get('suspended')
+  const schools = (view.data?.schools ?? []).map((school) => school.id === suspendedExample ? { ...school, status: 'suspended' as const } : school)
   const nextCursor = view.data?.nextCursor
   const detail = schools.find((school) => school.id === schoolId)
 
@@ -37,6 +38,7 @@ export function PlatformSchools() {
       {view.status === 'denied' && <div className={styles.readState}><h2>Akses tidak tersedia</h2><p>Daftar sekolah tidak tersedia untuk akun ini.</p></div>}
       {view.status === 'error' && <div className={styles.readState}><Feedback tone="danger" title="Data sekolah belum dapat dimuat" announce>Periksa koneksi dan coba lagi.</Feedback><Button tone="secondary" onClick={view.retry}>Coba lagi</Button></div>}
       {view.status === 'ready' && view.data && <>
+        {suspendedExample && <p className={styles.referenceNote}>Skenario pratinjau: sekolah yang dipilih ditampilkan sebagai Ditangguhkan untuk meninjau pengaktifan kembali.</p>}
         <div className={styles.metrics}>
           <div><span>Sekolah aktif</span><strong>{view.data.summary.activeSchools === null ? '—' : number.format(view.data.summary.activeSchools)}</strong></div>
           <div><span>Pengguna</span><strong>{view.data.summary.users === null ? '—' : number.format(view.data.summary.users)}</strong></div>
@@ -60,13 +62,7 @@ export function PlatformSchools() {
     </div>
     {modal?.kind === 'onboard' && <SchoolOnboardingDialog onClose={() => setModal(null)} outcome={params.get('onboarding') === 'failure' ? 'failure' : 'success'} />}
     {modal?.kind === 'replace' && modal.school && <SchoolAdminHandoffDialog key={modal.school.id} school={modal.school} outcome={params.get('handoff') === 'failure' ? 'failure' : 'success'} onClose={() => setModal(null)} />}
-    <Dialog open={modal?.kind === 'suspend'} onClose={() => setModal(null)} title={`${modal?.school?.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'} ${modal?.school?.name}?`} description="Pratinjau perubahan status. Status, akses, dan sesi sekolah tidak berubah." className={styles.platformDialog}>
-      <form className={styles.form} onSubmit={(event) => event.preventDefault()}>
-        {modal?.kind === 'suspend' && <><dl className={styles.dialogSummary}><dt>Status saat ini</dt><dd>{modal.school ? statusLabels[modal.school.status] : '—'}</dd></dl><Field label="Alasan" placeholder="Jelaskan alasan perubahan akses" disabled /></>}
-        <Feedback title="Layanan administrasi belum tersedia">Pratinjau ini tidak mengirim undangan atau mengubah status dan akses sekolah.</Feedback>
-        <div className={styles.dialogActions}><Button tone="ghost" className={styles.pillButton} onClick={() => setModal(null)}>Batal</Button><Button disabled className={styles.pillButton}>Konfirmasi</Button></div>
-      </form>
-    </Dialog>
+    {modal?.kind === 'suspend' && modal.school && <SchoolStatusDialog key={modal.school.id} school={modal.school} outcome={params.get('status') === 'failure' ? 'failure' : 'success'} onClose={() => setModal(null)} />}
     <Dialog open={Boolean(detail)} onClose={() => navigate(`${base}/schools${location.search}`)} title={detail?.name ?? 'Sekolah'} description="Identitas dan akses administrasi sekolah." className={styles.platformDialog}>
       {detail && <dl className={styles.details}><dt>NPSN</dt><dd>{detail.npsn}</dd><dt>Lokasi</dt><dd>{detail.city}</dd><dt>Admin sekolah</dt><dd>{detail.admin}</dd><dt>Status</dt><dd>{statusLabels[detail.status]}</dd></dl>}
     </Dialog>

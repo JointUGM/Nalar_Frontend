@@ -174,20 +174,28 @@ describe('PlatformSchools', () => {
     expect(screen.getByRole('textbox', { name: 'Email admin baru' })).toHaveValue('')
   })
 
-  it('shows the selected active school without offering a status change', async () => {
+  it('simulates suspension for the selected school without changing its data and restores focus', async () => {
     const user = userEvent.setup()
     render(<Fixture listSchools={{ execute: async () => overview }} />)
     await screen.findByText('Sekolah Yogyakarta')
     await user.click(screen.getByRole('button', { name: 'Tindakan Sekolah Yogyakarta' }))
-    await user.click(screen.getByRole('button', { name: 'Tangguhkan' }))
+    const trigger = screen.getByRole('button', { name: 'Tangguhkan' })
+    await user.click(trigger)
     const dialog = screen.getByRole('dialog', { name: 'Tangguhkan Sekolah Yogyakarta?' })
     expect(dialog).toHaveTextContent('Status saat ini')
     expect(dialog).toHaveTextContent('Aktif')
-    expect(within(dialog).getByRole('textbox', { name: 'Alasan' })).toBeDisabled()
-    expect(within(dialog).getByRole('button', { name: 'Konfirmasi' })).toBeDisabled()
+    expect(dialog).toHaveTextContent('12 pengguna')
+    expect(within(dialog).getByRole('heading', { name: 'Konfirmasi penangguhan sementara' })).toHaveFocus()
+    await user.click(within(dialog).getByRole('button', { name: 'Simulasikan penangguhan' }))
+    expect(within(dialog).getByRole('button', { name: 'Menyiapkan simulasi…' })).toBeDisabled()
+    await within(dialog).findByRole('heading', { name: 'Simulasi penangguhan selesai' })
+    expect(dialog).toHaveTextContent('Status sekolah tetap Aktif')
+    expect(overview.schools[0].status).toBe('active')
+    await user.click(within(dialog).getByRole('button', { name: 'Selesai' }))
+    expect(trigger).toHaveFocus()
   })
 
-  it('shows the selected suspended school without offering reactivation', async () => {
+  it('simulates reactivation while preserving the suspended school data', async () => {
     const user = userEvent.setup()
     const suspended = { ...overview.schools[0], status: 'suspended' as const }
     render(<Fixture listSchools={{ execute: async () => ({ ...overview, schools: [suspended] }) }} />)
@@ -197,7 +205,30 @@ describe('PlatformSchools', () => {
     const dialog = screen.getByRole('dialog', { name: 'Aktifkan kembali Sekolah Yogyakarta?' })
     expect(dialog).toHaveTextContent('Status saat ini')
     expect(dialog).toHaveTextContent('Ditangguhkan')
-    expect(within(dialog).getByRole('button', { name: 'Konfirmasi' })).toBeDisabled()
+    expect(dialog).toHaveTextContent('akses 12 pengguna akan dibuka kembali')
+    await user.click(within(dialog).getByRole('button', { name: 'Simulasikan pengaktifan' }))
+    await within(dialog).findByRole('heading', { name: 'Simulasi pengaktifan selesai' })
+    expect(dialog).toHaveTextContent('Status sekolah tetap Ditangguhkan')
+    expect(suspended.status).toBe('suspended')
+  })
+
+  it('retains the status choice after failure and cancels a pending simulation on close', async () => {
+    const user = userEvent.setup()
+    render(<Fixture entry='/review/platform/schools?status=failure' listSchools={{ execute: async () => overview }} />)
+    await user.click(await screen.findByRole('button', { name: 'Tindakan Sekolah Sleman' }))
+    const trigger = screen.getByRole('button', { name: 'Tangguhkan' })
+    await user.click(trigger)
+    const dialog = screen.getByRole('dialog', { name: 'Tangguhkan Sekolah Sleman?' })
+    expect(dialog).toHaveTextContent('Diundang')
+    await user.click(within(dialog).getByRole('button', { name: 'Simulasikan penangguhan' }))
+    await within(dialog).findByRole('alert')
+    expect(dialog).toHaveTextContent('Pilihan tetap tersimpan')
+    await user.click(within(dialog).getByRole('button', { name: 'Coba lagi' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Batal' }))
+    expect(trigger).toHaveFocus()
+    await user.click(trigger)
+    expect(within(screen.getByRole('dialog')).getByRole('button', { name: 'Simulasikan penangguhan' })).toBeEnabled()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('closes a school action menu with Escape while keeping keyboard focus', async () => {
