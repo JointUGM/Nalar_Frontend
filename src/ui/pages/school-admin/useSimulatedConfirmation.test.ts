@@ -1,13 +1,13 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useStudentActionViewModel } from './useStudentActionViewModel'
+import { useSimulatedConfirmation } from './useSimulatedConfirmation'
 
 afterEach(() => vi.useRealTimers())
-describe('student action simulation', () => {
+describe('simulated confirmation', () => {
   it('applies once after a confirmed success and never on failure', () => {
     vi.useFakeTimers()
     const apply = vi.fn()
-    const { result } = renderHook(() => useStudentActionViewModel(apply))
+    const { result } = renderHook(() => useSimulatedConfirmation(apply))
     act(() => result.current.setOutcome('failure'))
     act(() => { result.current.confirm(); result.current.confirm() })
     expect(result.current.status).toBe('pending')

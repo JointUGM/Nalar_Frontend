@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-export type StudentAction = 'invite' | 'deactivate'
-export function useStudentActionViewModel(onApply: () => void) {
+export function useSimulatedConfirmation(onApply: () => void) {
   const [status, setStatus] = useState<'confirming' | 'pending' | 'failure' | 'success'>('confirming')
   const [outcome, setOutcome] = useState<'success' | 'failure'>('success')
   const submitting = useRef(false)

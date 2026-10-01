@@ -2,9 +2,10 @@ import { useCallback, useEffect } from 'react'
 import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import type { PersonExample } from './peopleExamples'
-import type { StudentAction } from './useStudentActionViewModel'
-import { useStudentActionViewModel } from './useStudentActionViewModel'
+import { useSimulatedConfirmation } from './useSimulatedConfirmation'
 import styles from './StudentFormDialog.module.css'
+
+export type StudentAction = 'invite' | 'deactivate'
 
 const copy = {
   invite: { title: 'Kirim ulang undangan?', body: 'Pratinjau ini tidak mengirim email, tautan, atau kode apa pun.', confirm: 'Konfirmasi kirim ulang', pending: 'Mengirim simulasi…', done: 'Undangan ulang tersimpan dalam simulasi', doneBody: 'Tidak ada pesan terkirim dan akses akun tidak berubah.' },
@@ -14,7 +15,7 @@ const copy = {
 export function StudentActionPanel({ action, person, onApply, onBack, onClose, onBusy }: { action: StudentAction; person: PersonExample; onApply: (person: PersonExample | null, notice: string) => void; onBack: () => void; onClose: () => void; onBusy: (busy: boolean) => void }) {
   const text = copy[action]
   const apply = useCallback(() => onApply(action === 'deactivate' ? { ...person, status: 'Nonaktif' } : null, `${person.name}: ${text.done.toLocaleLowerCase('id-ID')}. Data sekolah dan akses akun tidak berubah; muat ulang akan mengembalikan data contoh.`), [action, person, text.done, onApply])
-  const view = useStudentActionViewModel(apply)
+  const view = useSimulatedConfirmation(apply)
   const busy = view.status === 'pending'
   useEffect(() => { onBusy(busy); return () => onBusy(false) }, [busy, onBusy])
   return <div className={styles.form}>
