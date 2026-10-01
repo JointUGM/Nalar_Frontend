@@ -1,19 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router'
-import { useTeacherContext } from '@/ui/components/teacher-shell/useTeacherContext'
-import { teacherSchools } from './teacherHomeExamples'
-import { missionReviews, missionsBySchool } from './teacherMissionExamples'
 import { projectorExample } from './teacherProjectorExamples'
+import { useSessionTarget } from './useSessionTarget'
 
 export type SessionPhase = 'idle' | 'lobby' | 'live' | 'closed'
 
 export function useTeacherProjectorViewModel() {
-  const { missionId = '' } = useParams()
-  const [params] = useSearchParams()
-  const { school } = useTeacherContext()
-  const found = missionsBySchool[school]?.find((item) => item.id === missionId)
-  const mission = found && found.id in missionReviews ? found : undefined
-  const klass = teacherSchools.find((item) => item.name === school)?.classes.find((item) => item.name === params.get('kelas'))
+  const { mission, klass } = useSessionTarget()
   const total = klass?.students ?? 0
   const [phase, setPhase] = useState<SessionPhase>('idle')
   const [joined, setJoined] = useState(0)
