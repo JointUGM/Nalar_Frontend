@@ -90,7 +90,7 @@ describe('publication page', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getAllByText('Diterbitkan dalam simulasi').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: /^8A/ })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Buka layar proyektor' })).toBeDisabled()
+    expect(screen.getByRole('link', { name: 'Buka layar proyektor' })).toHaveAttribute('href', `${missionsPath}/${generatedMissionId}/projector?kelas=8A`)
     fireEvent.click(screen.getByRole('button', { name: 'Atur ulang contoh' }))
     expect(screen.getByRole('button', { name: /^8A/ })).toBeEnabled()
   })
