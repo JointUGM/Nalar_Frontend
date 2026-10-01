@@ -13,6 +13,8 @@ const SchoolSubjects = lazy(() => import('@/ui/pages/school-admin/SchoolSubjects
 const SchoolAssignments = lazy(() => import('@/ui/pages/school-admin/SchoolAssignments').then((module) => ({ default: module.SchoolAssignments })))
 const SchoolKbOwners = lazy(() => import('@/ui/pages/school-admin/SchoolKbOwners').then((module) => ({ default: module.SchoolKbOwners })))
 const TeacherHome = lazy(() => import('@/ui/pages/teacher/TeacherHome').then((module) => ({ default: module.TeacherHome })))
+const StudentJoin = lazy(() => import('@/ui/pages/student/StudentJoin').then((module) => ({ default: module.StudentJoin })))
+const StudentIntro = lazy(() => import('@/ui/pages/student/StudentIntro').then((module) => ({ default: module.StudentIntro })))
 const StudentHome = lazy(() => import('@/ui/pages/student/StudentHome').then((module) => ({ default: module.StudentHome })))
 const TeacherAttention = lazy(() => import('@/ui/pages/teacher/TeacherAttention').then((module) => ({ default: module.TeacherAttention })))
 const TeacherClasses = lazy(() => import('@/ui/pages/teacher/TeacherClasses').then((module) => ({ default: module.TeacherClasses })))
@@ -59,6 +61,8 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
       <Route path="/review/teacher/missions/:missionId/class-map/release" element={<TeacherRelease />} />
     </Route>
     <Route path="/review/student/home" element={<StudentHome />} />
+    <Route path="/review/student/join" element={<StudentJoin />} />
+    <Route path="/review/student/missions/:missionId/start" element={<StudentIntro />} />
     <Route path="/review/school/import" element={<SchoolImport />} />
     <Route path="*" element={<AppRoutes accountEntry={accountEntry} privateEntry={privateEntry} />} />
   </Routes></Suspense>

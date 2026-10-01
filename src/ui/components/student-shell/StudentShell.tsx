@@ -9,11 +9,11 @@ import { Nala } from '@/ui/components/nala/Nala'
 import styles from './StudentShell.module.css'
 
 interface NavItem { label: string; icon: IconName; to?: string; badge?: string }
-// Only "Misi saya" exists so far; the other destinations stay disabled until their own screens are built.
+// "Refleksi" stays disabled until its screen is built.
 const items: readonly NavItem[] = [
   { label: 'Misi saya', icon: 'target', to: '/review/student/home', badge: '1 terbuka' },
   { label: 'Refleksi', icon: 'message' },
-  { label: 'Gabung sesi', icon: 'monitor' },
+  { label: 'Gabung sesi', icon: 'monitor', to: '/review/student/join' },
 ]
 const unavailable = 'Belum tersedia di pratinjau'
 
@@ -55,7 +55,7 @@ export function StudentShell({ title, user, detail, children }: { title: string;
         <button type="button" className={styles.menuButton} aria-label="Buka navigasi" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Icon name="menu" /></button>
         <span className={styles.title}>{title}</span>
         <span className={styles.reviewLabel}>Pratinjau · data contoh</span>
-        <button type="button" className={styles.join} disabled title={unavailable}><span aria-hidden="true"><Icon name="monitor" size={12} /></span>Gabung sesi kelas</button>
+        <Link className={styles.join} to="/review/student/join"><span aria-hidden="true"><Icon name="monitor" size={12} /></span>Gabung sesi kelas</Link>
         <button type="button" className={styles.bell} disabled aria-label="Notifikasi belum tersedia"><Icon name="bell" size={16} /></button>
       </header>
       <main ref={contentRef} className={styles.main} id="student-content" tabIndex={-1}>{children}</main>

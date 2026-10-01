@@ -43,3 +43,26 @@ export const shifts: readonly Shift[] = [
 ]
 
 export const formatToday = () => new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Jakarta' }).format(new Date(studentToday))
+
+export const joinPath = '/review/student/join'
+export const missionStartPath = (id: string) => `/review/student/missions/${id}/start`
+export const homePath = '/review/student/home'
+
+// Supplied join screen. This code is the one the teacher's projector example shows; every other code resolves by the review scenario.
+export const joinExample = { code: 'K7Q2MW', mission: 'Kenapa kelereng berhenti?', teacher: 'Bu Sari', klass: '8B' }
+
+// Supplied mission introduction (the window-entry screen). Times are WIB.
+export const introExample = {
+  subject: 'IPA · Gaya dan Gerak', teacher: 'Bu Sari', attempts: '1 kesempatan', opens: '07.30', closes: '15.00',
+  stats: [
+    { icon: 'message', value: '1 soal + 4–6 pertanyaan', caption: 'Tentang alasanmu' },
+    { icon: 'clock', value: '± 15 menit', caption: 'Maksimal 20 menit' },
+    { icon: 'lock', value: 'Tanpa nilai', caption: 'Tidak ada benar atau salah' },
+  ] as const,
+  steps: [
+    ['Jawab satu soal dengan kata-katamu', 'Tidak perlu istilah yang rumit.'],
+    ['NALAR bertanya tentang alasanmu', '4 sampai 6 pertanyaan lanjutan.'],
+    ['Kamu dapat refleksi', 'Tentang cara kamu berpikir hari ini.'],
+  ] as const,
+  notes: ['Tidak ada jawaban yang dinilai benar atau salah di sini. Yang penting alasanmu.', 'Boleh berubah pikiran. Itu tanda kamu sedang berpikir.', 'Tetap di halaman ini sampai selesai, ya.'] as const,
+}
