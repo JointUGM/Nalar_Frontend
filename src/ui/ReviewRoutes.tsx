@@ -13,6 +13,7 @@ const SchoolSubjects = lazy(() => import('@/ui/pages/school-admin/SchoolSubjects
 const SchoolAssignments = lazy(() => import('@/ui/pages/school-admin/SchoolAssignments').then((module) => ({ default: module.SchoolAssignments })))
 const SchoolKbOwners = lazy(() => import('@/ui/pages/school-admin/SchoolKbOwners').then((module) => ({ default: module.SchoolKbOwners })))
 const TeacherHome = lazy(() => import('@/ui/pages/teacher/TeacherHome').then((module) => ({ default: module.TeacherHome })))
+const TeacherAttention = lazy(() => import('@/ui/pages/teacher/TeacherAttention').then((module) => ({ default: module.TeacherAttention })))
 const TeacherClasses = lazy(() => import('@/ui/pages/teacher/TeacherClasses').then((module) => ({ default: module.TeacherClasses })))
 const TeacherKnowledgeBase = lazy(() => import('@/ui/pages/teacher/TeacherKnowledgeBase').then((module) => ({ default: module.TeacherKnowledgeBase })))
 const TeacherKbUpload = lazy(() => import('@/ui/pages/teacher/TeacherKbUpload').then((module) => ({ default: module.TeacherKbUpload })))
@@ -42,6 +43,7 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
     <Route element={<TeacherLayout />}>
       <Route path="/review/teacher/home" element={<TeacherHome />} />
       <Route path="/review/teacher/classes" element={<TeacherClasses />} />
+      <Route path="/review/teacher/attention" element={<TeacherAttention />} />
       <Route path="/review/teacher/knowledge-base" element={<TeacherKnowledgeBase />} />
       <Route path="/review/teacher/knowledge-base/upload" element={<TeacherKbUpload />} />
       <Route path="/review/teacher/knowledge-base/:topicId" element={<TeacherKbReview />} />
