@@ -4,9 +4,15 @@ import { describe, expect, it } from 'vitest'
 import { AppRoutes } from './routes'
 
 describe('Account route boundary', () => {
-  it('opens the injected account page through the public root redirect', async () => {
+  it('renders the landing page at the public root', async () => {
     render(<MemoryRouter initialEntries={['/']}><AppRoutes accountEntry={<h1>Supplied account entry</h1>} /></MemoryRouter>)
-    expect(await screen.findByRole('heading', { name: 'Supplied account entry' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /Pahami cara siswa/i })).toBeInTheDocument()
+  })
+  it('landing page provides a link to /login', async () => {
+    render(<MemoryRouter initialEntries={['/']}><AppRoutes accountEntry={<h1>Supplied account entry</h1>} /></MemoryRouter>)
+    await screen.findByRole('heading', { name: /Pahami cara siswa/i })
+    const loginLinks = screen.getAllByRole('link', { name: /Masuk ke NALAR/i })
+    expect(loginLinks[0]).toHaveAttribute('href', '/login')
   })
   it.each(['platform', 'school', 'teacher', 'student', 'parent'])('does not grant %s access from the account entry', (role) => {
     render(<MemoryRouter initialEntries={[`/${role}/private`]}><AppRoutes accountEntry={<h1>Signed-in account</h1>} /></MemoryRouter>)

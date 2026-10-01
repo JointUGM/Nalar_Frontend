@@ -46,7 +46,7 @@ const privateEntry = createElement(lazy(async () => {
 
 if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('preview') === 'foundation') {
   void import('./ui/pages/foundation-preview/FoundationPreview').then(({ FoundationPreview }) => render(<FoundationPreview />))
-} else if (import.meta.env.DEV && (window.location.pathname === '/' || window.location.pathname.startsWith('/review/'))) {
+} else if (import.meta.env.DEV && window.location.pathname.startsWith('/review/')) {
   void Promise.all([import('./review-di'), import('./ui/ReviewRoutes')]).then(([{ createReviewDependencies }, { ReviewRoutes }]) => {
     render(<BrowserRouter><DependenciesProvider value={createReviewDependencies()}><ReviewRoutes accountEntry={accountEntry} privateEntry={privateEntry} /></DependenciesProvider></BrowserRouter>)
   })

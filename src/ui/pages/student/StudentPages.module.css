@@ -1,10 +1,15 @@
+/* StudentPages.module.css
+   Shared styles for all student-facing pages.
+   Token reference: src/index.css */
+
+/* ── Page wrapper ───────────────────────────────────────────── */
 .page {
-  min-block-size: 100vh;
-  padding: var(--space-6) var(--space-4) var(--space-8);
-  background: linear-gradient(180deg, var(--color-surface-alt, #f4f3ef) 0%, var(--color-surface, #fff) 100%);
+  padding: var(--space-6) clamp(var(--space-4), 4vw, var(--space-8)) var(--space-12);
   color: var(--color-ink);
+  min-block-size: calc(100dvh - 60px);
 }
 
+/* ── Topbar (standalone pages without StudentShell) ─────────── */
 .topbar {
   display: flex;
   align-items: center;
@@ -15,46 +20,61 @@
 }
 
 .brand {
-  font-size: clamp(1.8rem, 2vw, 2.2rem);
+  font-size: clamp(1.6rem, 2vw, 2rem);
   font-weight: 800;
-  letter-spacing: -0.08em;
-}
-
-.nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.nav a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-block-size: 40px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
-  padding: var(--space-2) var(--space-4);
+  letter-spacing: -0.07em;
+  color: var(--color-ink);
   text-decoration: none;
 }
 
+.brand span {
+  color: var(--color-primary);
+}
+
+/* ── Shell: wraps all cards in a page ───────────────────────── */
 .shell {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-5);
   max-inline-size: 76rem;
   margin: 0 auto;
 }
 
+/* ── Card ───────────────────────────────────────────────────── */
 .card {
   background: var(--color-paper);
   border: 3px solid var(--color-ink);
   border-radius: var(--radius-student-card);
-  padding: var(--space-5) clamp(var(--space-4), 3vw, var(--space-6));
+  padding: clamp(var(--space-5), 3vw, var(--space-8)) clamp(var(--space-4), 3vw, var(--space-8));
   box-shadow: var(--shadow-student);
 }
 
+.cardLight {
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-student-card);
+  padding: clamp(var(--space-4), 3vw, var(--space-6)) clamp(var(--space-4), 3vw, var(--space-6));
+}
+
+/* ── Hero card accent bar ───────────────────────────────────── */
+.heroCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.heroCard::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: 100%;
+  block-size: 5px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  border-radius: 2px 2px 0 0;
+}
+
+/* ── Eyebrow label ──────────────────────────────────────────── */
 .eyebrow {
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--space-2);
   color: var(--color-primary);
   font-size: var(--font-size-meta);
   font-weight: 700;
@@ -62,133 +82,191 @@
   text-transform: uppercase;
 }
 
+/* ── Headings inside cards ──────────────────────────────────── */
 .card h1,
 .card h2,
-.card h3 {
+.card h3,
+.cardLight h1,
+.cardLight h2,
+.cardLight h3 {
   margin: 0;
   color: var(--color-ink);
 }
 
-.card h1 {
-  font-size: clamp(2rem, 4vw, 3rem);
+.card h1,
+.cardLight h1 {
+  font-size: clamp(2rem, 4vw, 2.75rem);
   line-height: 1.1;
+  letter-spacing: -0.04em;
 }
 
-.card h2 {
-  font-size: clamp(1.5rem, 3vw, 2.2rem);
+.card h2,
+.cardLight h2 {
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  letter-spacing: -0.025em;
 }
 
-.card h3 {
-  font-size: clamp(1.1rem, 2vw, 1.5rem);
+.card h3,
+.cardLight h3 {
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
 }
 
-.lead,
-.prompt,
-.summary,
-.metaText,
-.statusText,
+/* ── Body text classes ──────────────────────────────────────── */
+.lead {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-reading);
+  font-size: var(--font-size-student-body);
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+}
+
+.prompt {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-reading);
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  line-height: 1.65;
+  color: var(--color-ink);
+  max-inline-size: 60ch;
+}
+
+.summary {
+  margin: 0;
+  font-family: var(--font-reading);
+  font-size: var(--font-size-student-body);
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+}
+
 .caption {
   margin: 0;
-  color: var(--color-text-secondary);
   font-family: var(--font-reading);
+  font-size: 1rem;
   line-height: 1.6;
+  color: var(--color-text-secondary);
 }
 
-.lead {
-  margin-top: var(--space-4);
-  font-size: var(--font-size-student-body);
+.metaText {
+  margin: 0;
+  font-size: var(--font-size-meta);
+  color: var(--color-text-muted);
+  line-height: 1.5;
 }
 
+.statusText {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+/* ── Inline highlights ──────────────────────────────────────── */
+.kicker {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* ── Badge/tag row ──────────────────────────────────────────── */
 .meta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
-  margin-block-start: var(--space-5);
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
 }
 
-.grid {
-  display: grid;
-  gap: var(--space-5);
-}
-
-.list {
-  display: grid;
-  gap: var(--space-4);
-  margin-top: var(--space-5);
-}
-
-.mission {
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.7);
-}
-
-.missionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.missionTitle {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--color-ink);
-}
-
-.missionMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-
+/* ── Action row ─────────────────────────────────────────────── */
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
   margin-block-start: var(--space-5);
+  align-items: center;
 }
 
-.prompt {
-  margin-top: var(--space-4);
-  font-size: clamp(1.25rem, 2vw, 1.6rem);
-  max-inline-size: 62ch;
+/* ── Two-column grid (dashboard) ────────────────────────────── */
+.grid {
+  display: grid;
+  gap: var(--space-5);
 }
 
-.studentInput {
+/* ── Stack of text rows ─────────────────────────────────────── */
+.stack {
+  display: grid;
+  gap: var(--space-3);
   margin-block-start: var(--space-4);
 }
 
-.stack {
+/* ── Mission list ───────────────────────────────────────────── */
+.list {
   display: grid;
   gap: var(--space-4);
+  margin-block-start: var(--space-5);
 }
 
-.kicker {
-  color: var(--color-primary);
+/* ── Mission card ───────────────────────────────────────────── */
+.mission {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+.mission:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 0 var(--color-primary);
+}
+
+.missionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.missionTitle {
+  font-size: 1rem;
   font-weight: 700;
+  color: var(--color-ink);
+  line-height: 1.4;
 }
 
+.missionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-1);
+}
+
+/* ── Session code display ───────────────────────────────────── */
 .code {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-block-size: 54px;
-  padding: var(--space-3) var(--space-5);
-  border-radius: var(--radius-pill);
+  min-block-size: 60px;
+  padding: var(--space-3) var(--space-6);
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-student-card);
   background: var(--color-info-bg);
   color: var(--color-ink);
-  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
   font-weight: 800;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
+  box-shadow: var(--shadow-student);
+  user-select: all;
 }
 
+/* ── Join input container ───────────────────────────────────── */
+.studentInput {
+  margin-block-start: var(--space-5);
+}
+
+/* ── Participants list ──────────────────────────────────────── */
 .people {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
 }
 
 .personRow {
@@ -197,9 +275,9 @@
   justify-content: space-between;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
+  border: 1.5px solid var(--color-border);
   border-radius: var(--radius-input);
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--color-surface);
 }
 
 .userPill {
@@ -207,21 +285,295 @@
   align-items: center;
   gap: var(--space-2);
   font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--color-ink);
 }
 
+.userAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 30px;
+  block-size: 30px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: 2px solid var(--color-ink);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-ink);
+  flex-shrink: 0;
+}
+
+/* ── Divider ────────────────────────────────────────────────── */
 .divider {
   border: 0;
-  border-top: 1px solid var(--color-border);
-  margin: var(--space-5) 0;
+  border-block-start: 1.5px solid var(--color-border);
+  margin-block: var(--space-5);
 }
 
+/* ── Footer note ────────────────────────────────────────────── */
 .footerNote {
-  margin-top: var(--space-4);
-  font-size: 0.95rem;
+  margin-block-start: var(--space-4);
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
 }
 
+/* ── Progress indicator ─────────────────────────────────────── */
+.progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-4);
+}
+
+.progressBar {
+  flex: 1;
+  block-size: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+  border: 1.5px solid var(--color-ink);
+  overflow: hidden;
+}
+
+.progressFill {
+  block-size: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: inline-size 0.4s ease;
+}
+
+.progressLabel {
+  font-size: var(--font-size-meta);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* ── Answer textarea (multi-line overrides Field) ───────────── */
+.answerArea {
+  inline-size: 100%;
+  min-block-size: 160px;
+  max-block-size: 480px;
+  padding: var(--space-4) var(--space-5);
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-student-input);
+  font-family: var(--font-reading);
+  font-size: var(--font-size-student-body);
+  line-height: 1.65;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  resize: vertical;
+  transition: box-shadow var(--motion-fast), border-color var(--motion-fast);
+}
+
+.answerArea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.answerArea:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(36, 71, 209, 0.18);
+}
+
+.answerArea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--color-surface-muted);
+}
+
+.answerLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-block-end: var(--space-2);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.answerCount {
+  font-size: var(--font-size-meta);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.answerHelp {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-meta);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* ── Timer ──────────────────────────────────────────────────── */
+.timerBlock {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border: 2.5px solid var(--color-ink);
+  border-radius: var(--radius-student-card);
+  background: var(--color-surface);
+  box-shadow: 0 3px 0 var(--color-ink);
+  width: fit-content;
+}
+
+.timerLabel {
+  font-size: var(--font-size-meta);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.timerValue {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 800;
+  color: var(--color-ink);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.timerUrgent .timerValue {
+  color: var(--color-danger-text);
+}
+
+/* ── Stat row (dashboard summary) ───────────────────────────── */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-block-start: var(--space-5);
+  padding-block-start: var(--space-5);
+  border-block-start: 1.5px solid var(--color-border);
+}
+
+.stat {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-ink);
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: var(--font-size-meta);
+  color: var(--color-text-muted);
+}
+
+/* ── Empty state ────────────────────────────────────────────── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.emptyTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.emptyText {
+  margin: 0;
+  font-family: var(--font-reading);
+  font-size: var(--font-size-student-body);
+  color: var(--color-text-secondary);
+  max-inline-size: 42ch;
+  line-height: 1.65;
+}
+
+/* ── History item ───────────────────────────────────────────── */
+.historyItem {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  text-decoration: none;
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+  color: var(--color-ink);
+}
+
+.historyItem:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 0 var(--color-primary);
+}
+
+.historyTitle {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.historyMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  font-size: var(--font-size-meta);
+  color: var(--color-text-muted);
+}
+
+/* ── Profile section ────────────────────────────────────────── */
+.profileAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 80px;
+  block-size: 80px;
+  border: 3px solid var(--color-ink);
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: var(--shadow-student);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  margin-block-end: var(--space-4);
+}
+
+.profileName {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.profileDetail {
+  margin: var(--space-2) 0 0;
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
+/* ── Responsive two-column grid ─────────────────────────────── */
 @media (min-width: 768px) {
   .grid {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    align-items: start;
   }
 }
