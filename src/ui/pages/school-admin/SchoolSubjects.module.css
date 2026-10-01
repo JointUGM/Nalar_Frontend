@@ -1,0 +1,25 @@
+.content { max-inline-size: 1120px; }
+.content h1 { margin: 0; font-size: 22px; line-height: 30px; }
+.lead { margin: 8px 0 0; font-size: 16px; line-height: 24px; color: var(--color-text-secondary); }
+.note { margin: 16px 0; font-size: 13px; }
+.card { padding: 8px 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
+.table { display: block; inline-size: 100%; border-collapse: collapse; }
+.table thead, .table tbody { display: block; }
+.table tr { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 2fr) minmax(0, 1.2fr) 80px; align-items: center; gap: 16px; padding-block: 14px; }
+.table th { text-align: start; font-size: 13px; font-weight: 600; color: var(--color-text-muted); }
+.table td { min-inline-size: 0; padding: 0; overflow-wrap: anywhere; }
+.table tbody tr { border-block-start: 1px solid var(--color-surface-muted); }
+.name { font-size: 15px; font-weight: 600; }
+.cp { font-size: 14px; color: var(--color-text-secondary); }
+.unmapped { color: var(--color-warning-text); font-weight: 600; }
+.kb { font-size: 14px; }
+.edit { justify-self: end; min-inline-size: 44px; color: var(--color-primary); font-weight: 600; }
+.hidden { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+@media (max-width: 767px) {
+  .card { padding-inline: 16px; }
+  .table thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+  .table tr { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+  .table td { grid-column: 1; }
+  .table td:last-child { grid-column: 2; grid-row: 1 / span 3; }
+  .kb::before { content: 'Basis pengetahuan: '; color: var(--color-text-secondary); font-size: 13px; }
+}
