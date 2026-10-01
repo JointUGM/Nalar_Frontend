@@ -22,6 +22,7 @@ export function TeacherReport() {
   const view = useTeacherReportViewModel()
   const rows = useRef<Record<number, HTMLLIElement | null>>({})
   const tabs = useRef<(HTMLButtonElement | null)[]>([])
+  const heading = useRef<HTMLHeadingElement>(null)
   const [dialog, setDialog] = useState<{ kind: 'score'; index: number } | { kind: 'attempt' } | null>(null)
   const { mission, klass, scores, selectedTurn, selectedQuote } = view
   const editing = dialog?.kind === 'score' ? scores[dialog.index] : undefined
@@ -46,7 +47,7 @@ export function TeacherReport() {
     <div className={styles.header}>
       <div className={styles.who}>
         <span className={styles.avatar} aria-hidden="true">{view.initials}</span>
-        <div><h1>{view.student}</h1><p>{klass.name} · {mission.title} · Percobaan {reportExample.attempt} · {reportExample.duration}</p></div>
+        <div><h1 ref={heading} tabIndex={-1}>{view.student}</h1><p>{klass.name} · {mission.title} · Percobaan {reportExample.attempt} · {reportExample.duration}</p></div>
       </div>
       <Button tone="secondary" disabled={view.extraAttempt !== null} title={view.extraAttempt ? 'Kesempatan sudah dicatat dalam simulasi' : undefined} onClick={() => setDialog({ kind: 'attempt' })}><Icon name="refresh" size={14} />{view.extraAttempt ? 'Kesempatan lagi dicatat' : 'Beri kesempatan lagi'}</Button>
     </div>
@@ -111,6 +112,6 @@ export function TeacherReport() {
       </section>
     </div>
     {dialog?.kind === 'score' && editing?.value != null && <ScoreOverrideDialog dimension={editing.dimension} ai={editing.original ?? editing.value} current={editing.value} levels={view.levels(editing.dimension)} onApply={(value, reason) => view.changeScore(editing.dimension, value, reason)} onClose={() => setDialog(null)} />}
-    {dialog?.kind === 'attempt' && <ExtraAttemptDialog student={view.student} onApply={view.grantAttempt} onClose={() => setDialog(null)} />}
+    {dialog?.kind === 'attempt' && <ExtraAttemptDialog student={view.student} onApply={view.grantAttempt} onClose={() => { setDialog(null); /* The trigger is disabled once an attempt is recorded; focus the heading once the dialog has finished restoring focus. */ if (view.extraAttempt) setTimeout(() => heading.current?.focus()) }} />}
   </div></TeacherShell>
 }
