@@ -8,6 +8,8 @@ export const reportExample = {
   attempt: 1,
   duration: '12 menit 40 detik',
   maxScore: 4,
+  // The class-map misconception this student holds (it is one of `classMapExample.misconceptions`; tested).
+  misconception: 'Gaya bisa habis',
   flag: { title: 'Pindah tab 2 kali, total 41 detik', where: 'Saat menjawab pertanyaan 2 · 10.46' },
   concepts: [['Gaya gesek', 'Paham'], ['Kelembaman', 'Berkembang'], ['“Gaya bisa habis”', 'Berubah selama sesi']] as readonly (readonly [string, string])[],
   // `turn` indexes `turns`; every quote is an exact excerpt of that turn's answer (tested).

@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { TeacherContextProvider } from '@/ui/components/teacher-shell/TeacherContextProvider'
 import { teacherSchools } from './teacherHomeExamples'
-import { kbBuildSteps, kbStepMs } from './teacherKbExamples'
+import { kbBuildSteps, kbSampleTopicId, kbStepMs } from './teacherKbExamples'
 import { TeacherKbUpload } from './TeacherKbUpload'
 
 const view = (path = '/review/teacher/knowledge-base/upload') => render(<MemoryRouter initialEntries={[path]}><TeacherContextProvider schools={teacherSchools.map((item) => item.name)}><TeacherKbUpload /></TeacherContextProvider></MemoryRouter>)
@@ -38,7 +38,7 @@ describe('upload page', () => {
     expect(screen.getByRole('button', { name: 'Sedang menyusun…' })).toBeDisabled()
     tick(kbBuildSteps.length)
     expect(screen.getByText('Simulasi selesai')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Tinjau draf' })).toBeDisabled()
+    expect(screen.getByRole('link', { name: 'Tinjau draf' })).toHaveAttribute('href', `/review/teacher/knowledge-base/${kbSampleTopicId}`)
     expect(screen.getAllByText('Selesai')).toHaveLength(kbBuildSteps.length)
   })
   it('shows the failure scenario with a retry and keeps the typed name', () => {

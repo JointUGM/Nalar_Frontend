@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/ui/components/button/Button'
+import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { TeacherShell } from '@/ui/components/teacher-shell/TeacherShell'
 import { ExportNotesDialog } from './ExportNotesDialog'
 import { teacherUser } from './teacherHomeExamples'
 import { missionsPath } from './teacherMissionExamples'
+import { reportExample } from './teacherReportExamples'
+import { studentNames } from './teacherSessionExamples'
 import { useTeacherClassMapViewModel } from './useTeacherClassMapViewModel'
 import styles from './TeacherClassMap.module.css'
 
@@ -80,7 +83,9 @@ export function TeacherClassMap() {
             <td className={styles.held}>{row.held}</td>
             <td><span className={styles.progress}><span aria-hidden="true"><i style={{ inlineSize: `${row.share}%` }} /></span>{row.changed} dari {row.held}</span></td>
             <td>{row.concept}</td>
-            <td><Button tone="secondary" disabled title="Laporan siswa belum tersedia di pratinjau" aria-label={`Lihat siswa: ${row.name}`}>Lihat siswa</Button></td>
+            <td>{row.name === reportExample.misconception
+              ? <ButtonLink tone="secondary" to={`${missionsPath}/${mission.id}/class-map/report?kelas=${encodeURIComponent(klass.name)}`} aria-label={`Lihat siswa: ${row.name}`}>Lihat siswa</ButtonLink>
+              : <Button tone="secondary" disabled title={`Contoh laporan hanya tersedia untuk ${studentNames[reportExample.studentIndex]} (“${reportExample.misconception}”)`} aria-label={`Lihat siswa: ${row.name}`}>Lihat siswa</Button>}</td>
           </tr>)}</tbody>
         </table>
       </div>

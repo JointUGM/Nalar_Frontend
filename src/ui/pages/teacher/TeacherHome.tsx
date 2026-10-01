@@ -1,4 +1,5 @@
 import { Button } from '@/ui/components/button/Button'
+import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { TeacherShell } from '@/ui/components/teacher-shell/TeacherShell'
@@ -7,6 +8,7 @@ import { AttentionCard } from './AttentionCard'
 import { ChangedMindCard } from './ChangedMindCard'
 import { Sparkline } from './Sparkline'
 import { kpiExamples, teacherSubject, teacherUser, weekSessions } from './teacherHomeExamples'
+import { generatedMissionId, missionsPath } from './teacherMissionExamples'
 import { TrendCard } from './TrendCard'
 import { useTeacherHomeViewModel } from './useTeacherHomeViewModel'
 import styles from './TeacherHome.module.css'
@@ -33,7 +35,7 @@ export function TeacherHome() {
                   {view.school.classes.map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}
                 </select>
               </label>
-              <Button className={styles.start} disabled title="Sesi langsung belum tersedia di pratinjau"><Icon name="play" size={14} />Mulai sesi 8B · 10.30</Button>
+              <ButtonLink className={styles.start} to={`${missionsPath}/${generatedMissionId}/projector?kelas=8B`}><Icon name="play" size={14} />Mulai sesi 8B · 10.30</ButtonLink>
             </div>
           </div>
           {filtered ? <Feedback title={`Angka per kelas belum tersedia untuk ${view.classFilter}`}>
