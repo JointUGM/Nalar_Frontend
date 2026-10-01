@@ -23,3 +23,7 @@
 .scenario { display: grid; gap: 8px; margin-block-start: 16px; }
 .scenario select { inline-size: 100%; min-inline-size: 0; min-block-size: 44px; padding: 10px; border: 1px solid var(--color-control-border); border-radius: 12px; font: inherit; font-weight: 400; color: var(--color-ink); background: var(--color-surface); }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-block-start: 16px; }
+.included { display: grid; gap: 8px; margin: 0 0 16px; padding: 0; list-style: none; font-size: 14px; }
+.included li { display: flex; align-items: center; gap: 10px; }
+.included svg { color: var(--color-primary); }
+.included li[data-off="true"], .included li[data-off="true"] svg { color: var(--color-text-muted); }

@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { TeacherContextProvider } from '@/ui/components/teacher-shell/TeacherContextProvider'
 import { teacherSchools } from './teacherHomeExamples'
 import { generatedMissionId, missionsPath } from './teacherMissionExamples'
@@ -10,6 +10,22 @@ import { summarizeClassMap } from './useTeacherClassMapViewModel'
 
 const schools = teacherSchools.map((item) => item.name)
 const page = (query = 'kelas=8B') => render(<MemoryRouter initialEntries={[`${missionsPath}/${generatedMissionId}/class-map?${query}`]}><TeacherContextProvider schools={schools}><Routes><Route path={`${missionsPath}/:missionId/class-map`} element={<TeacherClassMap />} /></Routes></TeacherContextProvider></MemoryRouter>)
+
+const originals = { showModal: Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal'), close: Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close') }
+beforeAll(() => {
+  // jsdom lacks the native modal API; modal focus containment is verified in a browser.
+  Object.defineProperties(HTMLDialogElement.prototype, {
+    showModal: { configurable: true, value(this: HTMLDialogElement) { this.open = true } },
+    close: { configurable: true, value(this: HTMLDialogElement) { this.open = false } },
+  })
+})
+afterAll(() => {
+  for (const [name, descriptor] of Object.entries(originals)) {
+    if (descriptor) Object.defineProperty(HTMLDialogElement.prototype, name, descriptor)
+    else Reflect.deleteProperty(HTMLDialogElement.prototype, name)
+  }
+})
+afterEach(() => vi.useRealTimers())
 
 describe('class map example data', () => {
   it('splits every concept across exactly the whole class, and draws lines only between known concepts', () => {
@@ -42,8 +58,25 @@ describe('class map page', () => {
     const table = within(screen.getByRole('table', { name: /Miskonsepsi di kelas/ }))
     expect(table.getAllByRole('row')).toHaveLength(classMapExample.misconceptions.length + 1)
     expect(table.getByText('10 dari 18')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Ekspor catatan' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Ekspor catatan' })).toBeEnabled()
     expect(screen.getByRole('link', { name: 'Rilis ke orang tua' })).toHaveAttribute('href', `${missionsPath}/${generatedMissionId}/class-map/release?kelas=8B`)
     expect(screen.getByRole('button', { name: 'Lihat siswa: Gaya bisa habis' })).toBeDisabled()
+  })
+})
+
+describe('export notes', () => {
+  it('lists what is exported, keeps dialogue quotes out, and creates no file even after success', () => {
+    vi.useFakeTimers()
+    page()
+    fireEvent.click(screen.getByRole('button', { name: 'Ekspor catatan' }))
+    const dialog = () => within(screen.getByRole('dialog', { name: 'Ekspor catatan asesmen formatif' }))
+    expect(dialog().getByRole('list', { name: 'Isi ekspor' })).toHaveTextContent('Kutipan dialog · tidak disertakan')
+    fireEvent.click(dialog().getByRole('radio', { name: 'PDF' }))
+    fireEvent.click(dialog().getByRole('button', { name: 'Unduh' }))
+    expect(dialog().getByRole('button', { name: 'Menyiapkan simulasi…' })).toBeDisabled()
+    act(() => { vi.advanceTimersByTime(650) })
+    expect(dialog().getByText(/Ekspor PDF tidak dibuat dan tidak ada yang diunduh/)).toBeInTheDocument()
+    fireEvent.click(dialog().getByRole('button', { name: 'Tutup' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

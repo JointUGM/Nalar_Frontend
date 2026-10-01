@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { TeacherShell } from '@/ui/components/teacher-shell/TeacherShell'
+import { ExportNotesDialog } from './ExportNotesDialog'
 import { teacherUser } from './teacherHomeExamples'
 import { missionsPath } from './teacherMissionExamples'
 import { useTeacherClassMapViewModel } from './useTeacherClassMapViewModel'
@@ -14,6 +16,7 @@ const height = 360
 
 export function TeacherClassMap() {
   const view = useTeacherClassMapViewModel()
+  const [exporting, setExporting] = useState(false)
   const { mission, klass, example, lead } = view
   if (!mission || !klass) return <TeacherShell title="Hasil kelas / Peta miskonsepsi" user={teacherUser}><div className={styles.content}>
     <Feedback title="Contoh peta kelas belum tersedia" announce>Buka peta kelas dari halaman pemantauan sebuah misi contoh.</Feedback>
@@ -26,7 +29,7 @@ export function TeacherClassMap() {
     <div className={styles.header}>
       <div><h1>Peta miskonsepsi kelas</h1><p>{klass.name} · {mission.title} · {example.total} dari {example.total} siswa selesai</p></div>
       <div className={styles.actions}>
-        <Button tone="secondary" disabled title="Ekspor belum tersedia di pratinjau"><Icon name="file" size={14} />Ekspor catatan</Button>
+        <Button tone="secondary" onClick={() => setExporting(true)}><Icon name="file" size={14} />Ekspor catatan</Button>
         <Link className={styles.release} to={`${missionsPath}/${mission.id}/class-map/release?kelas=${encodeURIComponent(klass.name)}`}><Icon name="send" size={14} />Rilis ke orang tua</Link>
       </div>
     </div>
@@ -82,5 +85,6 @@ export function TeacherClassMap() {
         </table>
       </div>
     </section>
+    {exporting && <ExportNotesDialog onClose={() => setExporting(false)} />}
   </div></TeacherShell>
 }
