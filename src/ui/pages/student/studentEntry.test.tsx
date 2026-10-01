@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { projectorExample } from '@/ui/pages/teacher/teacherProjectorExamples'
-import { introExample, joinExample, missionStartPath } from './studentExamples'
+import { introExample, joinExample, lobbyPath, missionStartPath } from './studentExamples'
 import { StudentIntro } from './StudentIntro'
 import { StudentJoin } from './StudentJoin'
 import { checkJoinCode, normalizeCode } from './useStudentJoinViewModel'
@@ -33,7 +33,7 @@ describe('join code rules', () => {
 })
 
 describe('join screen', () => {
-  it('stays inactive until a full code is entered, then confirms a matching code and opens the introduction', () => {
+  it('stays inactive until a full code is entered, then confirms a matching code and opens the waiting room', () => {
     join()
     expect(card().getByRole('button', { name: 'Gabung sesi' })).toBeDisabled()
     type('k7q2')
@@ -42,7 +42,7 @@ describe('join screen', () => {
     expect(screen.getByLabelText('Kode gabung')).toHaveValue('K7Q2MW')
     expect(screen.getByRole('status')).toHaveTextContent('KODE COCOK')
     expect(screen.getByRole('status')).toHaveTextContent('Kenapa kelereng berhenti? · Bu Sari, 8B')
-    expect(card().getByRole('link', { name: 'Gabung sesi' })).toHaveAttribute('href', missionStartPath('kelereng'))
+    expect(card().getByRole('link', { name: 'Gabung sesi' })).toHaveAttribute('href', lobbyPath('kelereng'))
   })
 
   it('explains an unknown code, a closed session and a rate limit, and keeps the typed code', () => {

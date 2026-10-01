@@ -66,3 +66,18 @@ export const introExample = {
   ] as const,
   notes: ['Tidak ada jawaban yang dinilai benar atau salah di sini. Yang penting alasanmu.', 'Boleh berubah pikiran. Itu tanda kamu sedang berpikir.', 'Tetap di halaman ini sampai selesai, ya.'] as const,
 }
+
+export const lobbyPath = (id: string) => `/review/student/missions/${id}/lobby`
+
+// Supplied waiting room and warm-up. The warm-up question is unscored: no option is marked right or wrong and nothing is revealed.
+export const lobbyExample = {
+  subject: 'IPA · Gaya dan Gerak', teacher: 'Bu Sari', klass: '8B', attempts: '1 kesempatan',
+  warmQuestion: 'Kelereng digelindingkan di lantai yang sangat licin, hampir tanpa gesekan. Apa yang terjadi?',
+  warmOptions: ['Berhenti secepat di lantai biasa', 'Melaju jauh sekali sebelum berhenti', 'Langsung berhenti begitu dilepas'],
+  steps: [
+    ['Jawab dengan kata-katamu', 'Satu soal pembuka. Tidak perlu istilah yang rumit.'],
+    ['NALAR menanyakan alasanmu', '4 sampai 6 pertanyaan lanjutan. Tiap jawabanmu membuka pertanyaan berikutnya.'],
+    ['Kamu dapat refleksi', 'Tentang cara kamu berpikir hari ini. Bukan nilai.'],
+  ] as const,
+  pills: [['lock', 'Tanpa nilai'], ['refresh', 'Boleh berubah pikiran'], ['clock', 'Sekitar 15 menit, paling lama 20'], ['monitor', 'Tetap di halaman ini sampai selesai']] as const,
+}
