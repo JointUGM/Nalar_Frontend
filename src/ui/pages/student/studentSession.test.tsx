@@ -107,8 +107,8 @@ describe('focus session', () => {
     expect(document.body.textContent).not.toMatch(/skor|peringkat|jawaban yang benar|jawaban yang salah|tepat|berubah pikiran/i)
   })
 
-  it('has no session for a mission that is only resumed', () => {
-    session('tekanan')
+  it('has no session for a mission that does not exist', () => {
+    session('tidak-ada')
     expect(screen.getByText('Sesi ini tidak bisa dimulai')).toBeInTheDocument()
   })
 })
