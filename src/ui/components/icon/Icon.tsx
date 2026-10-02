@@ -46,6 +46,7 @@ const paths = {
   pencil:<><path d="M4 20h4L19.5 8.5l-4-4L4 16z" /><path d="m13.5 6.5 4 4" /></>,
   archive: <><path d="M4 6h16v4H4z" /><path d="M6 10v10h12V10M10 14h4" /></>,
   idea: <path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" />,
+  sliders: <path d="M4 7h9M17 7h3M4 17h3M11 17h9M13 4v6M7 14v6" />,
 }
 
 export type IconName = keyof typeof paths
