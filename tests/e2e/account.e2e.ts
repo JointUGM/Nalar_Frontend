@@ -59,7 +59,7 @@ test('opens the landing page first and sends a single-role account straight to i
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1, name: /Ukur cara siswa berpikir/ })).toBeVisible()
   await expect(page.getByText(/daftar|registrasi|buat akun/i)).toHaveCount(0)
-  await page.getByRole('link', { name: 'Masuk ke NALAR' }).click()
+  await page.getByRole('banner').getByRole('link', { name: 'Masuk ke NALAR' }).click()
   await expect(page).toHaveURL(/\/login$/)
   await page.getByLabel('Email').fill('ayu@example.test')
   await page.getByLabel('Kata sandi').fill('synthetic-password')
@@ -118,7 +118,7 @@ test('keeps the Auth session through a temporary identity outage', async ({ page
 test('keeps the account form usable at 320 px without page overflow', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 })
   await page.goto('/login')
-  await expect(page.getByRole('heading', { name: 'Selamat datang kembali' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Hello Welcome to Nalar' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Masuk' })).toBeEnabled()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.keyboard.press('Tab')

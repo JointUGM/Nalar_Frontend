@@ -1,19 +1,16 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { projectorExample } from '@/ui/pages/teacher/teacherProjectorExamples'
-import { introExample, joinExample, lobbyPath, missionStartPath, sessionPath } from './studentExamples'
+import { introExample, joinExample, missionStartPath, sessionPath } from './studentExamples'
 import { StudentIntro } from './StudentIntro'
 import { StudentJoin } from './StudentJoin'
 import { checkJoinCode, normalizeCode } from './useStudentJoinViewModel'
 import type { IntroScenario } from './useStudentIntroViewModel'
-import type { JoinScenario } from './useStudentJoinViewModel'
 
 const join = () => render(<MemoryRouter><StudentJoin /></MemoryRouter>)
 const intro = (id = 'kelereng') => render(<MemoryRouter initialEntries={[missionStartPath(id)]}><Routes><Route path="/review/student/missions/:missionId/start" element={<StudentIntro />} /></Routes></MemoryRouter>)
-const card = () => within(screen.getByRole('region', { name: 'Masukkan kode gabung' }))
-const type = (value: string) => fireEvent.change(screen.getByLabelText('Kode gabung'), { target: { value } })
-const joinScenario = (value: JoinScenario) => fireEvent.change(screen.getByLabelText('Hasil pencocokan (pratinjau)'), { target: { value } })
+const type = (value: string) => fireEvent.change(screen.getByLabelText(/Kode sesi/), { target: { value } })
 const introScenario = (value: IntroScenario) => fireEvent.change(screen.getByLabelText('Keadaan misi (pratinjau)'), { target: { value } })
 
 describe('join code rules', () => {
@@ -33,32 +30,37 @@ describe('join code rules', () => {
 })
 
 describe('join screen', () => {
-  it('stays inactive until a full code is entered, then confirms a matching code and opens the waiting room', () => {
+  it('stays inactive until a full code is entered, and shows it grouped in the box', () => {
     join()
-    expect(card().getByRole('button', { name: 'Gabung sesi' })).toBeDisabled()
-    type('k7q2')
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
-    type('k7q2 mw')
-    expect(screen.getByLabelText('Kode gabung')).toHaveValue('K7Q2MW')
-    expect(screen.getByRole('status')).toHaveTextContent('KODE COCOK')
-    expect(screen.getByRole('status')).toHaveTextContent('Kenapa kelereng berhenti? · Bu Sari, 8B')
-    expect(card().getByRole('link', { name: 'Gabung sesi' })).toHaveAttribute('href', lobbyPath('kelereng'))
+    const submit = screen.getByRole('button', { name: 'Masuk ke ruang tunggu' })
+    expect(submit).toBeDisabled()
+    type('abc')
+    expect(screen.getByLabelText(/Kode sesi/)).toHaveValue('ABC')
+    expect(submit).toBeDisabled()
+    type('abc-d23')
+    expect(screen.getByLabelText(/Kode sesi/)).toHaveValue('ABC-D23')
+    expect(submit).toBeEnabled()
   })
 
-  it('explains an unknown code, a closed session and a rate limit, and keeps the typed code', () => {
+  it('drops characters outside the join alphabet, so O, 0, I and 1 cannot be typed', () => {
     join()
-    type('ABCDEF')
-    expect(screen.getByRole('alert')).toHaveTextContent('Kode tidak dikenal')
-    expect(screen.getByLabelText('Kode gabung')).toHaveAttribute('aria-invalid', 'true')
-    expect(card().getByRole('button', { name: 'Gabung sesi' })).toBeDisabled()
-    joinScenario('closed')
-    expect(screen.getByRole('alert')).toHaveTextContent('Sesi ini sudah ditutup')
-    type('K7Q2MW')
-    expect(screen.getByRole('status')).toHaveTextContent('KODE COCOK')
-    joinScenario('limited')
-    expect(screen.getByRole('alert')).toHaveTextContent('Terlalu banyak percobaan')
-    expect(card().queryByRole('link', { name: 'Gabung sesi' })).not.toBeInTheDocument()
-    expect(screen.getByLabelText('Kode gabung')).toHaveValue('K7Q2MW')
+    type('ab0c1i')
+    expect(screen.getByLabelText(/Kode sesi/)).toHaveValue('ABC')
+  })
+
+  it('opens the waiting room once the simulated join finishes', async () => {
+    vi.useFakeTimers()
+    try {
+      render(<MemoryRouter initialEntries={['/review/student/join']}><Routes>
+        <Route path="/review/student/join" element={<StudentJoin />} />
+        <Route path="/review/student/runs/:runId/lobby" element={<h1>Ruang tunggu</h1>} />
+      </Routes></MemoryRouter>)
+      type('ABCD23')
+      fireEvent.click(screen.getByRole('button', { name: 'Masuk ke ruang tunggu' }))
+      expect(screen.getByRole('button', { name: 'Masuk…' })).toBeDisabled()
+      await act(async () => { vi.advanceTimersByTime(800) })
+      expect(screen.getByRole('heading', { name: 'Ruang tunggu' })).toBeInTheDocument()
+    } finally { vi.useRealTimers() }
   })
 })
 
