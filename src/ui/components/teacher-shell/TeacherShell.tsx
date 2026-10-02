@@ -4,7 +4,11 @@ import { Link, NavLink, useLocation } from 'react-router'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Icon } from '@/ui/components/icon/Icon'
+import { ShellSearch } from '@/ui/components/shell-search/ShellSearch'
+import type { SearchTarget } from '@/ui/components/shell-search/ShellSearch'
+import { missionsBySchool, missionsPath } from '@/ui/pages/teacher/teacherMissionExamples'
 import type { IconName } from '@/ui/components/icon/Icon'
+import { AssistantPanel, NotificationsPanel } from './TeacherPanels'
 import { useTeacherContext } from './useTeacherContext'
 import styles from './TeacherShell.module.css'
 
@@ -27,11 +31,19 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
   const [collapsed, setCollapsed] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [schoolOpen, setSchoolOpen] = useState(false)
+  const [assistantOpen, setAssistantOpen] = useState(false)
+  const [bellOpen, setBellOpen] = useState(false)
+  const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark')
+  const setTheme = (value: boolean) => { document.documentElement.dataset.theme = value ? 'dark' : 'light'; setDark(value) }
   const location = useLocation()
   const contentRef = useRef<HTMLElement>(null)
   const focusContent = location.state?.focusPlatformContent === true
   useEffect(() => { if (focusContent) contentRef.current?.focus() }, [focusContent, location.key])
   const close = () => setDrawerOpen(false)
+  const searchTargets: SearchTarget[] = [
+    ...workspace.map((entry) => ({ label: entry.label, hint: 'Halaman', to: entry.to ?? '' })),
+    ...(missionsBySchool[school] ?? []).map((mission) => ({ label: mission.title, hint: `Misi · ${mission.topic}`, to: `${missionsPath}/${mission.id}` })),
+  ]
   const initials = user.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
   const item = (entry: NavItem) => entry.to
     ? <NavLink key={entry.label} to={entry.to} end={entry.exclude?.test(location.pathname)} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</NavLink>
@@ -68,13 +80,15 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
         <button type="button" className={styles.menuButton} aria-label="Buka navigasi" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Icon name="menu" /></button>
         <span className={styles.title}>{title}</span>
         <span className={styles.reviewLabel}>Pratinjau · data contoh</span>
-        <label className={styles.search}><Icon name="search" size={14} /><input aria-label="Pencarian belum tersedia" placeholder="Cari siswa, misi, kelas…" disabled /></label>
-        <button type="button" className={styles.assistant} disabled title={unavailable}>Asisten NALAR</button>
-        <span className={styles.theme} title="Tema belum tersedia di pratinjau"><button type="button" disabled aria-label="Tema terang"><Icon name="sun" size={14} /></button><button type="button" disabled aria-label="Tema gelap"><Icon name="moon" size={14} /></button></span>
-        <button type="button" className={styles.bell} disabled aria-label="Notifikasi belum tersedia"><Icon name="bell" size={16} /></button>
+        <ShellSearch className={styles.search} label="Cari halaman atau misi" placeholder="Cari halaman atau misi…" targets={searchTargets} />
+        <button type="button" className={styles.assistant} onClick={() => setAssistantOpen(true)}>Asisten NALAR</button>
+        <span className={styles.theme} role="group" aria-label="Tema"><button type="button" aria-pressed={!dark} aria-label="Tema terang" onClick={() => setTheme(false)}><Icon name="sun" size={14} /></button><button type="button" aria-pressed={dark} aria-label="Tema gelap" onClick={() => setTheme(true)}><Icon name="moon" size={14} /></button></span>
+        <button type="button" className={styles.bell} aria-label="Notifikasi" onClick={() => setBellOpen(true)}><Icon name="bell" size={16} /></button>
       </header>
       <main ref={contentRef} className={styles.main} id="teacher-content" tabIndex={-1}>{children}</main>
     </div>
+    <AssistantPanel open={assistantOpen} onClose={() => setAssistantOpen(false)} />
+    <NotificationsPanel open={bellOpen} onClose={() => setBellOpen(false)} />
     <Dialog open={drawerOpen} onClose={close} title="Ruang kerja guru" description={`${user} · ${school}`} presentation="drawer"><div className={styles.drawerNav}>{navigation}{signOut}</div></Dialog>
   </div>
 }

@@ -4,6 +4,8 @@ import { Link, NavLink, useLocation } from 'react-router'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Dialog } from '@/ui/components/dialog/Dialog'
+import { ShellSearch } from '@/ui/components/shell-search/ShellSearch'
+import type { SearchTarget } from '@/ui/components/shell-search/ShellSearch'
 import styles from './AdultShell.module.css'
 
 export function AdultShell({ children, search = '', onSearch, schoolContext }: { children: ReactNode; search?: string; onSearch?: (value: string) => void; schoolContext?: { name: string; year: string; admin: string } }) {
@@ -28,6 +30,11 @@ export function AdultShell({ children, search = '', onSearch, schoolContext }: {
     <NavLink to={`${base}/cp-versions`} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="book" /><span>Capaian Pembelajaran</span></NavLink>
   </nav>
 
+  const pages: SearchTarget[] = (schoolContext
+    ? [['Impor data', '/review/school/import'], ['Orang', '/review/school/people'], ['Kelas', '/review/school/classes'], ['Mata pelajaran', '/review/school/subjects'], ['Penugasan guru', '/review/school/assignments'], ['Basis pengetahuan', '/review/school/kb-owners'], ['Tahun ajaran', '/review/school/year']]
+    : [['Sekolah', `${base}/schools`], ['Capaian Pembelajaran', `${base}/cp-versions`]]
+  ).map(([label, to]) => ({ label, hint: 'Halaman', to }))
+
   // Signing out must stay reachable wherever the sidebar is not: on a phone the navigation lives in the drawer.
   const exitLabel = 'Keluar dari pratinjau'
   return <div className={styles.shell}>
@@ -37,16 +44,20 @@ export function AdultShell({ children, search = '', onSearch, schoolContext }: {
       {schoolContext && <div className={[styles.schoolContext, styles.schoolCard].join(' ')}><Icon name="school" /><span><strong>{schoolContext.name}</strong><small>Admin sekolah · {schoolContext.year}</small></span></div>}
       {navigation}
       <div className={styles.sidebarSpacer} />
-      {!schoolContext && <p className={styles.scopeNote}>Anda hanya melihat data sekolah. Sesi, transkrip, dan hasil siswa tidak dapat diakses dari sini.</p>}
-      <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label={exitLabel}><Icon name="logout" /><span>Keluar</span></Link>
-      {schoolContext && <div className={styles.schoolContext}><span className={styles.avatar}>HS</span><span><strong>{schoolContext.admin}</strong><small>Operator sekolah · contoh</small></span></div>}
+      <div className={styles.sidebarFooter}>
+        {!schoolContext && <p className={styles.scopeNote}>Anda hanya melihat data sekolah. Sesi, transkrip, dan hasil siswa tidak dapat diakses dari sini.</p>}
+        <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label={exitLabel}><Icon name="logout" /><span>Keluar</span></Link>
+        {schoolContext && <div className={styles.schoolContext}><span className={styles.avatar}>HS</span><span><strong>{schoolContext.admin}</strong><small>Operator sekolah · contoh</small></span></div>}
+      </div>
     </aside>
     <div className={styles.workspace}>
       <header className={[styles.topbar, schoolContext ? styles.schoolTopbar : undefined].filter(Boolean).join(' ')}>
         <button className={styles.menuButton} aria-label="Buka navigasi" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Icon name="menu" /></button>
         <span className={[styles.roleTitle, schoolContext ? styles.schoolTitle : undefined].filter(Boolean).join(' ')}>{schoolContext ? `Admin sekolah · ${schoolContext.name}` : 'Admin platform'}</span>
         <span className={styles.reviewLabel}>Pratinjau · data contoh</span>
-        <label className={styles.search}><Icon name="search" size={14} /><input aria-label={schoolContext ? 'Pencarian global belum tersedia' : 'Cari sekolah'} placeholder="Cari…" value={search} onChange={(event) => onSearch?.(event.target.value)} disabled={!onSearch} /></label>
+        {onSearch
+          ? <label className={styles.search}><Icon name="search" size={14} /><input aria-label="Cari sekolah" placeholder="Cari…" value={search} onChange={(event) => onSearch(event.target.value)} /></label>
+          : <ShellSearch className={styles.search} label="Cari halaman" placeholder="Cari halaman…" targets={pages} />}
         <button className={styles.notifications} disabled aria-label="Notifikasi belum tersedia"><Icon name="bell" size={16} /></button>
       </header>
       <main ref={contentRef} className={styles.main} id="platform-content" tabIndex={-1}>{children}</main>
