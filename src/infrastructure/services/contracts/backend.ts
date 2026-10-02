@@ -1185,6 +1185,7 @@ export interface components {
             entity_type: string;
             /** Error Code */
             error_code: string | null;
+            generation_result?: components["schemas"]["MissionGenerationResultOut"] | null;
             /**
              * Id
              * Format: uuid
@@ -1471,6 +1472,31 @@ export interface components {
              * Format: uuid
              */
             mission_id: string;
+        };
+        /** MissionGenerationQueuedOut */
+        MissionGenerationQueuedOut: {
+            /**
+             * Job Id
+             * Format: uuid
+             */
+            job_id: string;
+            /**
+             * Status
+             * @default queued
+             */
+            status: string;
+        };
+        /** MissionGenerationResultOut */
+        MissionGenerationResultOut: {
+            /** Ungrounded Concept Ids */
+            ungrounded_concept_ids: string[];
+            /**
+             * Version Id
+             * Format: uuid
+             */
+            version_id: string;
+            /** Version Number */
+            version_number: number;
         };
         /** MissionIn */
         MissionIn: {
@@ -2999,7 +3025,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MissionGenerationQueuedOut"];
                 };
             };
             /** @description Validation Error */
