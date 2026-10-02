@@ -42,6 +42,8 @@ export function ParentShell({ title, user, nav, children }: { title: string; use
     {navigation}
   </>
 
+  // On a phone the sidebar is hidden, so signing out has to live in the drawer too.
+  const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label="Keluar dari pratinjau" onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
   return <div className={styles.shell} data-collapsed={collapsed}>
     <a className={styles.skipLink} href="#parent-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>
@@ -73,6 +75,6 @@ export function ParentShell({ title, user, nav, children }: { title: string; use
       </header>
       <main ref={contentRef} className={styles.main} id="parent-content" tabIndex={-1}>{children}</main>
     </div>
-    <Dialog open={drawerOpen} onClose={close} title="Menu orang tua" description={`${user} · ${child ? child.name : 'belum ada anak tertaut'}`} presentation="drawer"><div className={styles.drawerNav}>{menu}</div></Dialog>
+    <Dialog open={drawerOpen} onClose={close} title="Menu orang tua" description={`${user} · ${child ? child.name : 'belum ada anak tertaut'}`} presentation="drawer"><div className={styles.drawerNav}>{menu}{signOut}</div></Dialog>
   </div>
 }

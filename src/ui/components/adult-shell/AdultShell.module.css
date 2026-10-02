@@ -1,5 +1,5 @@
 .shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-block-size: 100dvh; background: var(--color-canvas); }
-.sidebar { position: sticky; inset-block-start: 0; block-size: 100dvh; padding: 24px 16px; display: flex; flex-direction: column; gap: 24px; background: var(--color-surface); border-inline-end: 1px solid var(--color-role-border); }
+.sidebar { position: sticky; inset-block-start: 0; block-size: 100dvh; padding: 24px 16px; overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; background: var(--color-surface); border-inline-end: 1px solid var(--color-role-border); }
 .brand { display: flex; align-items: center; gap: 8px; color: var(--color-ink); padding: 0 8px; text-decoration: none; }
 .brand > span { font-size: 20px; font-weight: 800; letter-spacing: -.03em; }
 .brand small { font-size: 12px; font-weight: 600; color: var(--color-text-muted); margin-inline-start: 4px; }
@@ -22,6 +22,7 @@
 .scopeNote { margin: 0; padding: 16px; border-radius: 14px; background: var(--color-paper); font-size: 13px; line-height: 20px; color: var(--color-text-secondary); }
 .exit { display: flex; align-items: center; gap: 12px; min-block-size: 44px; padding: 10px 12px; border-radius: 12px; font-size: 14px; color: var(--color-text-secondary); text-decoration: none; }
 .exit:hover { background: var(--color-nav-hover); }
+.drawerExit { margin-block-start: 16px; padding-block-start: 12px; border-block-start: 1px solid var(--color-role-border); border-radius: 0; }
 .workspace { min-inline-size: 0; display: flex; flex-direction: column; }
 .topbar { position: sticky; inset-block-start: 0; z-index: 1; block-size: 56px; padding: 0 24px; display: flex; align-items: center; gap: 12px; background: var(--color-surface); border-block-end: 1px solid var(--color-role-border); }
 .roleTitle { font-size: 15px; font-weight: 600; flex: 1; white-space: nowrap; }
