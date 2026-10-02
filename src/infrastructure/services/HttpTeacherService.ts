@@ -1,4 +1,4 @@
-import type { ClassMap, MissionSummary, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import type { ClassMap, MissionInput, MissionSummary, MissionVersion, MissionVersionDraft, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
@@ -6,6 +6,8 @@ import type { components } from './contracts/backend'
 
 type Schemas = components['schemas']
 const publication = (id: string) => `/publications/${encodeURIComponent(id)}`
+const mission = (id: string) => `/missions/${encodeURIComponent(id)}`
+const texts = (value: unknown) => list(value).map((entry) => text(entry))
 
 export class HttpTeacherService implements TeacherService {
   constructor(private readonly api: HttpApi) {}
@@ -42,6 +44,44 @@ export class HttpTeacherService implements TeacherService {
         latest_version: nullable(value.latest_version, (raw) => { const version = record(raw); return { id: text(version.id), version_number: count(version.version_number), status: text(version.status) } }),
       }
     })
+  }
+
+  async createMission(input: MissionInput, signal?: AbortSignal): Promise<{ mission_id: string }> {
+    const body: Schemas['MissionIn'] = input
+    return { mission_id: text(record((await this.api.request('/missions', { method: 'POST', body, signal })).data).mission_id) }
+  }
+
+  async generateMission(missionId: string, signal?: AbortSignal): Promise<{ job_id: string }> {
+    return { job_id: text(record((await this.api.request(`${mission(missionId)}/generate`, { method: 'POST', signal })).data).job_id) }
+  }
+
+  async missionVersion(missionId: string, number: number, signal?: AbortSignal): Promise<MissionVersion> {
+    const value = record((await this.api.request(`${mission(missionId)}/versions/${number}`, { signal })).data), rubric = record(value.rubric)
+    return {
+      id: text(value.id), version_number: count(value.version_number), status: text(value.status), can_edit: flag(value.can_edit),
+      anchor_problem: text(value.anchor_problem), reference_reasoning: text(value.reference_reasoning),
+      rubric: { claim: texts(rubric.claim), evidence: texts(rubric.evidence), mechanism: texts(rubric.mechanism), transfer: texts(rubric.transfer) },
+      target_concept_ids: texts(value.target_concept_ids), misconception_ids: texts(value.misconception_ids), source_chunk_ids: texts(value.source_chunk_ids), answer_terms: texts(value.answer_terms),
+      question_bank: list(value.question_bank).map((entry) => {
+        const question = record(entry)
+        return { id: text(question.id), concept_id: text(question.concept_id), misconception_id: nullable(question.misconception_id, text), move: text(question.move), text: text(question.text) }
+      }),
+      live_warmup: nullable(value.live_warmup, (raw) => {
+        const warmup = record(raw)
+        return { prompt: text(warmup.prompt), choices: list(warmup.choices).map((entry) => { const choice = record(entry); return { id: text(choice.id), text: text(choice.text) } }) }
+      }),
+      max_turns: count(value.max_turns), max_duration_minutes: count(value.max_duration_minutes),
+    }
+  }
+
+  async saveMissionVersion(missionId: string, draft: MissionVersionDraft, signal?: AbortSignal): Promise<{ version_number: number }> {
+    const body: Schemas['VersionIn'] = draft
+    return { version_number: count(record((await this.api.request(`${mission(missionId)}/versions`, { method: 'POST', body, signal })).data).version_number) }
+  }
+
+  // The AI checks the version before it is frozen, so this answers more slowly than an ordinary request. Repeating it is safe: a reviewed version answers as reviewed.
+  async reviewMissionVersion(missionId: string, number: number, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${mission(missionId)}/versions/${number}/review`, { method: 'POST', timeoutMs: 60_000, signal })
   }
 
   async publish(input: PublishInput, signal?: AbortSignal): Promise<Published> {

@@ -29,3 +29,17 @@ export interface PublishInput { class_id: string; mission_version_id: string; mo
 export interface Published { publication_id: string; run_id: string; run_status: string }
 // Only a reviewed version can be published; publishing locks it, and a locked one can still go to another class.
 export const publishable = (mission: MissionSummary) => mission.latest_version !== null && ['reviewed', 'locked'].includes(mission.latest_version.status)
+
+export interface MissionInput { knowledge_base_id: string; title: string; learning_objective: string }
+export interface BankQuestion { id: string; concept_id: string; misconception_id: string | null; move: string; text: string }
+export interface MissionRubric { claim: string[]; evidence: string[]; mechanism: string[]; transfer: string[] }
+export interface MissionVersion {
+  id: string; version_number: number; status: string; can_edit: boolean
+  anchor_problem: string; reference_reasoning: string; rubric: MissionRubric
+  target_concept_ids: string[]; misconception_ids: string[]; source_chunk_ids: string[]
+  question_bank: BankQuestion[]; answer_terms: string[]
+  live_warmup: { prompt: string; choices: { id: string; text: string }[] } | null
+  max_turns: number; max_duration_minutes: number
+}
+// A saved edit is always a new version: everything the teacher did not change is carried over from the base.
+export type MissionVersionDraft = Omit<MissionVersion, 'id' | 'version_number' | 'status' | 'can_edit'> & { base_version_id: string }

@@ -16,7 +16,8 @@ export type KbItemPatch =
   | { kind: 'misconception'; statement: string; correct_understanding: string; detection_cues: string[]; counter_examples: string[] }
 
 // A background job: `queued` or `running` until it ends as `succeeded` or `failed` (then `error_code` says why).
-export interface Job { id: string; kind: string; status: string; error_code: string | null }
+// `generation_result` is set only when a mission draft was generated: the new version, and the target concepts the AI could not ground in the materials.
+export interface Job { id: string; kind: string; status: string; error_code: string | null; generation_result: { version_number: number; ungrounded_concept_ids: string[] } | null }
 export const jobEnded = (job: Job) => job.status === 'succeeded' || job.status === 'failed'
 
 export const kbMaxUploadBytes = 50 * 1024 * 1024

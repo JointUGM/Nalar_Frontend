@@ -102,9 +102,12 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
     await this.api.request(`${item(kind, itemId)}/review`, { method: 'POST', body, signal })
   }
 
-  // ponytail: jobs live here while the knowledge base is their only reader; move to a shared service when mission generation polls them too.
+  // ponytail: the one job reader, used for uploads, chapter builds and mission drafts; give jobs their own service when a role without a knowledge base needs them.
   async job(jobId: string, signal?: AbortSignal): Promise<Job> {
     const value = record((await this.api.request(`/jobs/${encodeURIComponent(jobId)}`, { signal })).data)
-    return { id: text(value.id), kind: text(value.kind), status: text(value.status), error_code: nullable(value.error_code, text) }
+    return {
+      id: text(value.id), kind: text(value.kind), status: text(value.status), error_code: nullable(value.error_code, text),
+      generation_result: nullable(value.generation_result, (raw) => { const result = record(raw); return { version_number: count(result.version_number), ungrounded_concept_ids: texts(result.ungrounded_concept_ids) } }),
+    }
   }
 }
