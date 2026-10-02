@@ -1,5 +1,6 @@
 import { createElement, lazy, StrictMode } from 'react'
 import type { ReactNode } from 'react'
+import type { TelemetryBatch } from './domain/model/Student'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import { DependenciesProvider } from './ui/components/dependencies/DependenciesProvider'
@@ -39,10 +40,16 @@ const privateEntry = createElement(lazy(async () => {
     const livePath = /^\/(teacher\/[^/]+\/publications\/|student\/[^/]+\/(join|runs\/|sessions\/))/
     // Its own chunk, so only a parent downloads the parent pages.
     const ParentRoutes = lazy(() => import('./ui/pages/parent/app/ParentRoutes').then((module) => ({ default: module.ParentRoutes })))
+    const StudentRoutes = lazy(() => import('./ui/pages/student/app/StudentRoutes').then((module) => ({ default: module.StudentRoutes })))
+    const { student } = created
+    // Telemetry is best effort: the session page works the same without it.
+    const telemetry = student ? (sessionId: string, batch: TelemetryBatch) => student.telemetry(sessionId, batch) : undefined
     return { default: () => <ProtectedRole dependencies={created.account} dashboardFor={dev.devDashboardPath} renderRole={(identity, path) => {
       // A role with real pages is served here; the rest still open their example dashboard.
       if (created.parent && /^\/parent(\/|$)/.test(path)) return <ParentRoutes service={created.parent} identity={identity} />
-      return created.live && livePath.test(path) ? <LiveRoutes service={created.live} identity={identity} /> : null
+      if (created.live && livePath.test(path)) return <LiveRoutes service={created.live} identity={identity} telemetry={telemetry} />
+      // Every other student path is the real home or a mission start page.
+      return student && path.startsWith('/student/') ? <StudentRoutes service={student} identity={identity} /> : null
     }} /> }
   } catch {
     return { default: AccountLoadFailure }
