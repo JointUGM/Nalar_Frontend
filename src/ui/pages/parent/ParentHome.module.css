@@ -14,11 +14,11 @@
 .empty p { margin: 4px 0 0; font-size: 15px; color: var(--color-text-secondary); }
 .empty .email { display: flex; align-items: center; gap: 6px; margin-block-start: 12px; font-size: 13px; font-weight: 600; color: var(--color-text-muted); }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); margin: 16px 0 0; padding: 0; list-style: none; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); overflow: hidden; }
-.kpis li { display: grid; align-content: start; gap: 4px; padding: 16px 20px; border-inline-start: 1px solid var(--color-role-border); }
+.kpis li { min-inline-size: 0; display: grid; align-content: start; gap: 4px; padding: 16px 20px; border-inline-start: 1px solid var(--color-role-border); }
 .kpis li:first-child { border-inline-start: 0; }
 .label { font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--color-text-muted); }
 .value { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-block-start: 4px; color: var(--color-ink); }
-.value strong { font-size: 24px; line-height: 32px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+.value strong { min-inline-size: 0; font-size: 24px; line-height: 32px; font-weight: 700; letter-spacing: -.01em; }
 .kpis small { font-size: 12px; color: var(--color-text-muted); }
 .grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; margin-block-start: 16px; }
 .card, .talk { min-inline-size: 0; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }

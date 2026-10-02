@@ -78,6 +78,15 @@
 .shell[data-collapsed='true'] .sidebar .kids button { justify-content: center; padding-inline: 0; }
 @media (min-width: 768px) and (max-width: 1023px) { .sidebar .kids button { justify-content: center; padding-inline: 0; } .sidebar .noKids { display: none; } }
 .shell[data-collapsed='true'] .sidebar .noKids { display: none; }
+.kidCheck { display: grid; place-items: center; flex: none; color: var(--color-primary-hover); }
+.chipButton { display: none; min-block-size: 44px; background: var(--color-surface); color: var(--color-ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.chipButton:hover:not(:disabled) { background: var(--color-nav-hover); }
+.shell[data-collapsed='true'] .sidebar .kidCheck { display: none; }
+@media (min-width: 768px) and (max-width: 1023px) { .sidebar .kidCheck { display: none; } }
+@media (max-width: 767px) {
+  .chip[data-switchable="true"]:not(.chipButton) { display: none; }
+  .chipButton { display: inline-flex; }
+}
 @media print {
   .sidebar, .topbar, .skipLink { display: none; }
   .shell { display: block; }
