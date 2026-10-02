@@ -15,6 +15,10 @@ const SchoolAssignments = lazy(() => import('@/ui/pages/school-admin/SchoolAssig
 const SchoolKbOwners = lazy(() => import('@/ui/pages/school-admin/SchoolKbOwners').then((module) => ({ default: module.SchoolKbOwners })))
 const TeacherHome = lazy(() => import('@/ui/pages/teacher/TeacherHome').then((module) => ({ default: module.TeacherHome })))
 const ParentHome = lazy(() => import('@/ui/pages/parent/ParentHome').then((module) => ({ default: module.ParentHome })))
+const ParentReflections = lazy(() => import('@/ui/pages/parent/ParentReflections').then((module) => ({ default: module.ParentReflections })))
+const ParentReflection = lazy(() => import('@/ui/pages/parent/ParentReflection').then((module) => ({ default: module.ParentReflection })))
+const ParentSettings = lazy(() => import('@/ui/pages/parent/ParentSettings').then((module) => ({ default: module.ParentSettings })))
+const ParentEmailSample = lazy(() => import('@/ui/pages/parent/ParentEmailSample').then((module) => ({ default: module.ParentEmailSample })))
 const StudentReflection = lazy(() => import('@/ui/pages/student/StudentReflection').then((module) => ({ default: module.StudentReflection })))
 const StudentReflections = lazy(() => import('@/ui/pages/student/StudentReflections').then((module) => ({ default: module.StudentReflections })))
 const StudentResume = lazy(() => import('@/ui/pages/student/StudentResume').then((module) => ({ default: module.StudentResume })))
@@ -77,6 +81,10 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
     <Route path="/review/student/reflections/:reflectionId" element={<StudentReflection />} />
     <Route element={<ParentLayout />}>
       <Route path="/review/parent/home" element={<ParentHome />} />
+      <Route path="/review/parent/reflections" element={<ParentReflections />} />
+      <Route path="/review/parent/reflections/:reflectionId" element={<ParentReflection />} />
+      <Route path="/review/parent/settings" element={<ParentSettings />} />
+      <Route path="/review/parent/settings/email" element={<ParentEmailSample />} />
     </Route>
     <Route path="/review/school/import" element={<SchoolImport />} />
     <Route path="*" element={<AppRoutes accountEntry={accountEntry} privateEntry={privateEntry} />} />

@@ -1,0 +1,29 @@
+.content { max-inline-size: 1200px; }
+.header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; }
+.titleRow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.titleRow h1 { margin: 0; font-size: 22px; line-height: 30px; letter-spacing: -.015em; }
+.titleRow span { padding: 3px 8px; border-radius: 6px; background: var(--color-warning-bg); color: var(--color-warning-text); font-size: 11px; font-weight: 700; }
+.header p { margin: 2px 0 0; font-size: 13px; color: var(--color-text-muted); }
+.actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.back { display: inline-flex; align-items: center; gap: 4px; min-block-size: 44px; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); text-decoration: none; }
+.back:hover { color: var(--color-primary); }
+.note { margin: 12px 0 0; font-size: 13px; line-height: 20px; color: var(--color-text-secondary); }
+.grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; margin-block-start: 16px; }
+.main { display: flex; flex-direction: column; gap: 16px; min-inline-size: 0; }
+.card { min-inline-size: 0; padding: 20px 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
+.card h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; line-height: 22px; }
+.card > p { margin: 12px 0 0; font-family: var(--font-reading); font-size: 18px; line-height: 28px; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.concepts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 16px; margin-block-start: 12px; }
+.concepts h3, .tryHome h3 { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-text-muted); }
+.concepts ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
+.concepts li { padding: 3px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+.concepts li[data-status="done"] { background: var(--color-info-bg); color: var(--color-primary-hover); }
+.concepts li[data-status="growing"] { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.ask { background: var(--color-accent); border-color: var(--color-accent); }
+.ask .question { color: var(--color-ink); font-size: 20px; line-height: 30px; font-weight: 600; }
+.tryHome { margin-block-start: 20px; padding-block-start: 16px; border-block-start: 1px solid rgb(21 33 59 / 18%); }
+.tryHome h3 { color: var(--color-ink); }
+.tryHome p { margin: 6px 0 0; font-size: 16px; line-height: 24px; color: var(--color-ink); }
+@media (max-width: 899px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+}

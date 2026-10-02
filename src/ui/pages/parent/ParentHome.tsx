@@ -1,15 +1,15 @@
 import { Button } from '@/ui/components/button/Button'
+import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { Sparkline } from '@/ui/components/sparkline/Sparkline'
-import { week } from './parentExamples'
+import { reflectionPath, reflectionsPath, week } from './parentExamples'
 import { useParentHomeViewModel } from './useParentHomeViewModel'
 import type { HomeScenario } from './useParentHomeViewModel'
 import styles from './ParentHome.module.css'
 
 const scenarios: readonly (readonly [HomeScenario, string])[] = [['normal', 'Normal'], ['loading', 'Sedang memuat'], ['error', 'Gagal memuat']]
-const unavailable = 'Belum tersedia di pratinjau'
 
 export function ParentHome() {
   const view = useParentHomeViewModel()
@@ -43,7 +43,7 @@ export function ParentHome() {
       <div>
         <h2 id="empty-title">Belum ada kabar dari guru {first}</h2>
         <p>Ringkasan muncul di sini setelah guru merilis hasil misi.</p>
-        <p className={styles.email}><Icon name="bell" size={14} />Email mingguan: aktif</p>
+        <p className={styles.email}><Icon name="bell" size={14} />Email mingguan: {view.weeklyEmail ? 'aktif' : 'mati'}</p>
       </div>
     </section>}
 
@@ -62,7 +62,7 @@ export function ParentHome() {
             <h3>{news.summary.mission}</h3>
             <p className={styles.text}>{news.summary.text}</p>
             <div className={styles.tryHome}><strong><Icon name="idea" size={14} />Untuk dicoba di rumah</strong><p>{news.summary.tryAtHome}</p></div>
-            <Button tone="secondary" disabled title={unavailable}>Baca refleksi lengkap</Button>
+            <ButtonLink tone="secondary" to={reflectionPath(news.summary.reflection)}>Baca refleksi lengkap</ButtonLink>
           </div>
         </section>
 
@@ -87,7 +87,7 @@ export function ParentHome() {
           <p>Pertanyaan dari refleksi {first}. Tidak perlu tahu jawabannya, cukup tanyakan alasannya.</p>
         </div>
         <ol>{news.talk.map((item) => <li key={item.question}><div><strong>{item.question}</strong><small>{item.from}</small></div></li>)}</ol>
-        <Button tone="secondary" disabled title={unavailable}>Semua refleksi</Button>
+        <ButtonLink tone="secondary" to={reflectionsPath}>Semua refleksi</ButtonLink>
       </section>
     </>}
   </div>
