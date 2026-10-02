@@ -2,12 +2,12 @@ import { useEffect, useRef } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/ui/components/button/Button'
-import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { StudentFocusShell } from '@/ui/components/student-focus-shell/StudentFocusShell'
 import { SessionEnd } from './SessionEnd'
+import { SessionFinish } from './SessionFinish'
 import { SessionPause } from './SessionPause'
 import { StepTrack } from './StepTrack'
 import { formatClock, homePath, lobbyExample, resumeExample, sessionExample, studentUser } from './studentExamples'
@@ -15,7 +15,6 @@ import { useStudentSessionViewModel } from './useStudentSessionViewModel'
 import type { Connection } from './useStudentSessionViewModel'
 import styles from './StudentSession.module.css'
 
-const firstName = studentUser.split(' ')[0]
 const connections: readonly (readonly [Connection, string])[] = [['online', 'Tersambung'], ['offline', 'Terputus'], ['stale', 'Layar sudah usang']]
 
 function Progress({ step, total, elapsed }: { step: number; total: number; elapsed: number }) {
@@ -51,15 +50,7 @@ export function StudentSession() {
   if (phase === 'paused') return <SessionPause onContinue={view.backToSession} />
   if (phase === 'timedOut' || phase === 'ended') return shell(mission.title, <SessionEnd kind={phase} onBack={view.backToSession} />)
 
-  if (phase === 'finished') return shell(mission.title, <div className={styles.page}>
-    <p className={styles.note}>Pratinjau lokal · layar penutup dan refleksi dibuat di langkah berikutnya.</p>
-    <section className={styles.finished} aria-labelledby="finished-title">
-      <Nala mood="proud" size={140} />
-      <h1 id="finished-title">Terima kasih, {firstName}.</h1>
-      <p>Semua jawabanmu sudah dikirim (pratinjau).</p>
-      <ButtonLink to={homePath}>Kembali ke Misi saya</ButtonLink>
-    </section>
-  </div>)
+  if (phase === 'finished') return shell(mission.title, <SessionFinish missionId={mission.id} steps={view.total} lastAnswer={view.lastAnswer} warmPick={view.warmPick} />)
 
   const sending = phase === 'sending'
   const failed = phase === 'failed'
