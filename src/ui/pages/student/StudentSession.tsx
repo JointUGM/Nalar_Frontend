@@ -7,21 +7,20 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { StudentFocusShell } from '@/ui/components/student-focus-shell/StudentFocusShell'
-import { formatClock, homePath, lobbyExample, sessionExample, studentUser } from './studentExamples'
+import { SessionEnd } from './SessionEnd'
+import { SessionPause } from './SessionPause'
+import { StepTrack } from './StepTrack'
+import { formatClock, homePath, lobbyExample, resumeExample, sessionExample, studentUser } from './studentExamples'
 import { useStudentSessionViewModel } from './useStudentSessionViewModel'
+import type { Connection } from './useStudentSessionViewModel'
 import styles from './StudentSession.module.css'
 
 const firstName = studentUser.split(' ')[0]
+const connections: readonly (readonly [Connection, string])[] = [['online', 'Tersambung'], ['offline', 'Terputus'], ['stale', 'Layar sudah usang']]
 
 function Progress({ step, total, elapsed }: { step: number; total: number; elapsed: number }) {
   return <>
-    <ol className={styles.track} aria-label={`Langkah ${step + 1} dari ${total}`}>{Array.from({ length: total }, (_, index) => {
-      const state = index < step ? 'done' : index === step ? 'current' : 'todo'
-      return <li key={index} data-state={state} aria-current={state === 'current' ? 'step' : undefined}>
-        <span className={styles.hidden}>Langkah {index + 1}{state === 'done' ? ' selesai' : state === 'current' ? ', sekarang' : ''}</span>
-        <span aria-hidden="true">{state === 'done' ? <Icon name="check" size={16} /> : index + 1}</span>
-      </li>
-    })}</ol>
+    <StepTrack step={step} total={total} />
     <span className={styles.time}><Icon name="clock" size={14} />{formatClock(elapsed)}<span className={styles.hidden}> waktu berjalan, contoh</span></span>
   </>
 }
@@ -30,6 +29,7 @@ export function StudentSession() {
   const view = useStudentSessionViewModel()
   const question = useRef<HTMLDivElement>(null)
   const { mission, phase } = view
+  const closes = mission?.kind === 'resume' ? resumeExample.closes : sessionExample.closes
   // A new question (and the first one) takes focus so assistive technology reads it before the composer.
   useEffect(() => { if (phase === 'writing') question.current?.focus() }, [phase, view.step])
 
@@ -48,6 +48,9 @@ export function StudentSession() {
     <Button variant="student" tone="secondary" onClick={view.skipCountdown}>Mulai sekarang</Button>
   </main>
 
+  if (phase === 'paused') return <SessionPause onContinue={view.backToSession} />
+  if (phase === 'timedOut' || phase === 'ended') return shell(mission.title, <SessionEnd kind={phase} onBack={view.backToSession} />)
+
   if (phase === 'finished') return shell(mission.title, <div className={styles.page}>
     <p className={styles.note}>Pratinjau lokal · layar penutup dan refleksi dibuat di langkah berikutnya.</p>
     <section className={styles.finished} aria-labelledby="finished-title">
@@ -60,13 +63,16 @@ export function StudentSession() {
 
   const sending = phase === 'sending'
   const failed = phase === 'failed'
-  const canSend = view.draft.trim().length > 0
+  const connected = view.connection === 'online'
+  const canSend = view.draft.trim().length > 0 && connected
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); view.submit() }
   }
 
   return shell(mission.title, <div className={styles.page}>
     <p className={styles.note}>Pratinjau lokal · pertanyaannya tetap (tidak dibuat AI), jawabanmu tidak dikirim ke mana pun, dan tidak ada penilaian.</p>
+    {view.connection === 'offline' && <div className={styles.notice}><Feedback tone="warning" variant="student" title="Koneksimu terputus" announce>Tulisanmu tetap ada di layar ini. Kamu bisa mengirimnya begitu tersambung lagi.</Feedback></div>}
+    {view.connection === 'stale' && <div className={styles.notice}><Feedback variant="student" title="Layar ini perlu disegarkan" announce>Sesi sudah bergerak sejak layar ini dibuka. Muat ulang dulu supaya jawabanmu masuk ke pertanyaan yang tepat. Tulisanmu tidak hilang.</Feedback><Button variant="student" tone="secondary" onClick={() => view.setConnection('online')}><Icon name="refresh" size={18} />Muat ulang</Button></div>}
     <div className={styles.grid}>
       <section className={styles.ask} aria-labelledby="ask-title">
         <div className={styles.askHead}>
@@ -93,11 +99,19 @@ export function StudentSession() {
     </div>
 
     <section className={styles.preview} aria-label="Kontrol pratinjau">
-      <p>Kontrol pratinjau · bukan bagian layar siswa. Waktu di bagan atas adalah contoh tetap; misi ditutup {sessionExample.closes} WIB.</p>
+      <p>Kontrol pratinjau · bukan bagian layar siswa. Waktu di bagan atas adalah contoh tetap; misi ditutup {closes} WIB.</p>
+      <label>Sambungan
+        <select disabled={sending} value={view.connection} onChange={(event) => view.setConnection(connections.find(([value]) => value === event.target.value)?.[0] ?? 'online')}>{connections.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
+      </label>
       <label>Hasil pengiriman
         <select disabled={sending} value={view.outcome} onChange={(event) => view.setOutcome(event.target.value === 'failure' ? 'failure' : 'success')}><option value="success">Berhasil</option><option value="failure">Gagal (tulisan tetap di layar)</option></select>
       </label>
       <Button tone="secondary" disabled={sending} onClick={view.fillSample}>Isi jawaban contoh</Button>
+      <div className={styles.scenarios} role="group" aria-label="Kejadian dari kelas">
+        <Button tone="secondary" onClick={() => view.interrupt('paused')}>Jeda keselamatan</Button>
+        <Button tone="secondary" onClick={() => view.interrupt('timedOut')}>Waktu habis</Button>
+        <Button tone="secondary" onClick={() => view.interrupt('ended')}>Guru mengakhiri sesi</Button>
+      </div>
     </section>
   </div>, <Progress step={view.step} total={view.total} elapsed={view.elapsed} />)
 }

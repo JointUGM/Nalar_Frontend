@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
-import { missionRows, missionStartPath, openMissions, studentKpis } from './studentExamples'
+import { missionRows, missionStartPath, openMissions, resumePath, studentKpis } from './studentExamples'
 import { StudentHome } from './StudentHome'
 import type { HomeScenario } from './useStudentHomeViewModel'
 
@@ -23,7 +23,7 @@ describe('student dashboard', () => {
     expect(open.getByText('Ditutup 15.00')).toBeInTheDocument()
     expect(open.getByRole('img', { name: 'Pertanyaan 2 dari 5' })).toBeInTheDocument()
     expect(open.getByRole('link', { name: 'Mulai' })).toHaveAttribute('href', missionStartPath('kelereng'))
-    expect(open.getByRole('button', { name: 'Lanjutkan' })).toBeDisabled()
+    expect(open.getByRole('link', { name: 'Lanjutkan' })).toHaveAttribute('href', resumePath('tekanan'))
     expect(screen.getByRole('link', { name: 'Ayo mulai' })).toHaveAttribute('href', missionStartPath('kelereng'))
     expect(screen.getByRole('link', { name: 'Mulai misi hari ini' })).toHaveAttribute('href', missionStartPath('kelereng'))
     expect(screen.getByRole('list', { name: 'Ringkasan misimu' }).querySelectorAll('li')).toHaveLength(studentKpis.length)

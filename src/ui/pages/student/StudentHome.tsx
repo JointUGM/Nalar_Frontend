@@ -5,7 +5,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { Sparkline } from '@/ui/components/sparkline/Sparkline'
 import { StudentShell } from '@/ui/components/student-shell/StudentShell'
-import { missionStartPath, openMissions, studentDetail, studentUser } from './studentExamples'
+import { missionStartPath, openMissions, resumePath, studentDetail, studentUser } from './studentExamples'
 import { missionTabs, useStudentHomeViewModel } from './useStudentHomeViewModel'
 import type { HomeScenario } from './useStudentHomeViewModel'
 import styles from './StudentHome.module.css'
@@ -61,7 +61,7 @@ export function StudentHome() {
                   <span role="img" aria-label={`Pertanyaan ${mission.progress.done} dari ${mission.progress.total}`}>{Array.from({ length: mission.progress.total + 1 }, (_, index) => <i key={index} data-on={index <= mission.progress!.done} />)}</span>
                   {mission.progress.done}/{mission.progress.total}
                 </div>}
-                {mission.kind === 'start' ? <ButtonLink to={missionStartPath(mission.id)}>Mulai</ButtonLink> : <Button tone="secondary" disabled title={unavailable}>Lanjutkan</Button>}
+                {mission.kind === 'start' ? <ButtonLink to={missionStartPath(mission.id)}>Mulai</ButtonLink> : <ButtonLink tone="secondary" to={resumePath(mission.id)}>Lanjutkan</ButtonLink>}
               </article>)}</div>
             </section>
 

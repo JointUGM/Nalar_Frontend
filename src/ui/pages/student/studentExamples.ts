@@ -107,3 +107,23 @@ export const sessionExample = {
   closes: '15.00',
 }
 export const formatClock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
+
+export const resumePath = (id: string) => `/review/student/missions/${id}/resume`
+
+// Supplied "Lanjutkan sesi" screen: what was saved when the connection dropped. Times are WIB.
+export const resumeExample = { savedAt: '13.52', closes: '14.30' }
+
+// Supplied safety-pause copy. The pause is supportive, never a verdict, and only the teacher can end it.
+export const pauseExample = {
+  title: 'Kita berhenti sebentar, ya.',
+  message: (teacher: string) => `Terima kasih sudah jujur menulis itu. ${teacher} sudah diberi tahu dan akan menghampirimu. Kamu tidak sendirian.`,
+  saved: 'Sesimu disimpan. Kamu bisa melanjutkannya nanti bersama gurumu.',
+  help: 'Butuh teman bicara di luar sekolah? Layanan SAPA 129 bisa dihubungi kapan saja.',
+}
+
+// Neutral end states. These two are not in the supplied screens; they only say what happened and what is kept.
+export type EndKind = 'timedOut' | 'ended'
+export const endExample: Readonly<Record<EndKind, { badge: string; title: string; message: (teacher: string) => string }>> = {
+  timedOut: { badge: 'Misi ditutup', title: 'Waktu mengerjakan sudah habis.', message: () => 'Jawaban yang sudah kamu kirim tetap tersimpan. Tidak ada yang perlu kamu lakukan lagi.' },
+  ended: { badge: 'Sesi selesai', title: 'Sesi kelas ini sudah diakhiri.', message: (teacher) => `${teacher} mengakhiri sesi ini. Jawaban yang sudah kamu kirim tetap tersimpan.` },
+}
