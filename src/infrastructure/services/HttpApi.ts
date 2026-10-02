@@ -26,6 +26,9 @@ export function instant(value: unknown): string {
   if (typeof value !== 'string' || !Number.isFinite(Date.parse(value)) || !/(Z|[+-]\d{2}:\d{2})$/.test(value)) throw invalid()
   return value
 }
+export function nullable<T>(value: unknown, read: (value: unknown) => T): T | null {
+  return value === null || value === undefined ? null : read(value)
+}
 
 // ponytail: HttpLiveService keeps its own copy of this request path until the pilot is over; fold it in when that file next changes.
 export class HttpApi {

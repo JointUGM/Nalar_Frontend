@@ -8,10 +8,12 @@ import { Nala } from '@/ui/components/nala/Nala'
 import { LiveFeedback } from './LiveFrame'
 import { sessionPollMs, useCommandSignal, useLiveResource, useServerTime } from './useLiveResource'
 import { LiveStudentReflection } from './LiveStudentReflection'
+import { useSessionTelemetry } from './useSessionTelemetry'
+import type { SendTelemetry } from './useSessionTelemetry'
 import styles from '@/ui/pages/student/StudentSession.module.css'
 import liveStyles from './Live.module.css'
 
-export function LiveStudentSession({ service, sessionId, base }: { service: LiveService; sessionId: string; base: string }) {
+export function LiveStudentSession({ service, sessionId, base, telemetry }: { service: LiveService; sessionId: string; base: string; telemetry?: SendTelemetry }) {
   const read = useCallback((signal: AbortSignal) => service.state(sessionId, signal), [service, sessionId])
   const attempt = useRef<LiveAnswer | null>(null)
   const poll = useCallback((data: LiveState | null) => data?.status === 'awaiting_answer' && attempt.current?.turn_index === data.turn_index ? 1000 : sessionPollMs(data), [])
@@ -36,6 +38,7 @@ export function LiveStudentSession({ service, sessionId, base }: { service: Live
   const editable = writable && resource.online && !resource.error
   useEffect(() => { if (state?.status === 'awaiting_answer') question.current?.focus() }, [current, state?.status])
   const status = state?.status
+  const track = useSessionTelemetry(telemetry, current, status === 'awaiting_answer' || status === 'processing')
   useEffect(() => { if (remaining === 0 && status && ['awaiting_answer', 'processing', 'paused_safety'].includes(status)) refresh() }, [remaining, status, refresh])
 
   async function submit() {
@@ -46,6 +49,7 @@ export function LiveStudentSession({ service, sessionId, base }: { service: Live
     attempt.current = answer
     setSubmission({ answer, accepted: false, reconcileAfter: Infinity })
     const signal = commandSignal()
+    track.flush()
     try {
       await service.answer(sessionId, answer, signal)
       if (!signal?.aborted) setSubmission({ answer, accepted: true, reconcileAfter: Infinity })
@@ -76,7 +80,7 @@ export function LiveStudentSession({ service, sessionId, base }: { service: Live
           </section>
           <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); void submit() }}>
             <div className={styles.composerHead}><label htmlFor="live-answer">Jawabanmu</label><span>Pakai kata-katamu sendiri</span></div>
-            <textarea id="live-answer" value={text} maxLength={4000} readOnly={!writable} placeholder="Tulis alasanmu di sini…" onChange={(event) => { if (current !== undefined) { setDraft({ turn: current, text: event.target.value }); setError(null) } }} onKeyDown={(event) => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); void submit() } }} />
+            <textarea id="live-answer" value={text} maxLength={4000} readOnly={!writable} placeholder="Tulis alasanmu di sini…" onPaste={(event) => track.paste(event.clipboardData.getData('text').length)} onChange={(event) => { if (current !== undefined) { track.typed(event.target.value.length - text.length); setDraft({ turn: current, text: event.target.value }); setError(null) } }} onKeyDown={(event) => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); void submit() } }} />
             {error && <div className={styles.failure}><LiveFeedback error={error} online={resource.online} refresh={resource.refresh} /><p>Tulisanmu tetap ada. Periksa status sesi sebelum mengirim ulang.</p></div>}
             <div className={styles.foot}><span>{text.length}/4000 · Ctrl + Enter untuk kirim</span><Button variant="student" type="submit" pending={sending} pendingLabel="Mengirim…" disabled={!editable || !text.trim()}>Kirim</Button></div>
           </form>
