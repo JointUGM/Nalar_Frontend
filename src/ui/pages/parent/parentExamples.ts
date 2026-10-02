@@ -8,15 +8,47 @@ export const week = '21–27 September 2026'
 
 export interface ChildNews {
   kpis: readonly { label: string; value: string; caption: string; trend: readonly number[] }[]
-  summary: { released: string; subject: string; teacher: string; mission: string; text: string; tryAtHome: string }
+  summary: { released: string; subject: string; teacher: string; mission: string; reflection: string; text: string; tryAtHome: string }
   concepts: readonly { name: string; status: 'Sudah dipahami' | 'Berkembang'; from: string }[]
   talk: readonly { question: string; from: string }[]
+}
+
+export const reflectionsPath = '/review/parent/reflections'
+export const reflectionPath = (id: string) => `${reflectionsPath}/${id}`
+
+// A released reflection. Only the first one has the full write-up in the supplied sample; the others show the released excerpt and the
+// question to ask at home, and nothing is invented for the rest. Prose is plain text and is rendered as such.
+export interface ParentReflection {
+  id: string; date: string; title: string; subject: string; excerpt: string; question: string
+  detail?: { released: string; good: string; shift: string; understood: readonly string[]; growing: readonly string[]; tryAtHome: string }
 }
 
 export const childrenExample: readonly ParentChild[] = [
   { id: 'raka', name: 'Raka Pratama', initials: 'R', detail: '8B · SMPN 5 Yogyakarta', klass: '8B', tone: 'warm' },
   { id: 'nadia', name: 'Nadia Pratama', initials: 'N', detail: '7A · SMP Muhammadiyah 2', klass: '7A', tone: 'info' },
 ]
+
+// A child with no entry here has no released reflection, and the list says only that.
+export const reflections: Readonly<Record<string, readonly ParentReflection[]>> = {
+  raka: [
+    { id: 'kelereng', date: '24 Sep 2026', title: 'Kenapa kelereng berhenti?', subject: 'IPA · Bu Sari',
+      excerpt: 'Raka memakai contoh es dan karpet untuk menjelaskan kenapa gesekan penting.',
+      question: 'Kalau tidak ada gesekan sama sekali, apa yang akan terjadi pada kelereng itu?',
+      detail: {
+        released: '24 September 2026 · dirilis Bu Sari Wulandari',
+        good: 'Raka memakai contoh es dan karpet untuk menjelaskan kenapa gesekan penting. Penjelasannya makin rinci di setiap pertanyaan.',
+        shift: 'Awalnya Raka bilang kelereng berhenti karena dorongannya habis. Setelah memikirkan pesawat luar angkasa, ia menyadari ada gaya yang melawan gerak kelereng.',
+        understood: ['Gaya gesek'], growing: ['Kelembaman'],
+        tryAtHome: 'Gelindingkan bola di lantai lalu di karpet. Minta Raka menjelaskan bedanya.',
+      } },
+    { id: 'bola', date: '17 Sep 2026', title: 'Bola yang dilempar ke atas', subject: 'IPA · Bu Sari',
+      excerpt: 'Raka menjelaskan arah gaya gravitasi dengan jelas, bahkan saat bola sedang naik.',
+      question: 'Di titik paling tinggi, apakah bola itu sedang diberi gaya?' },
+    { id: 'tarik-tambang', date: '10 Sep 2026', title: 'Tarik tambang', subject: 'IPA · Bu Sari',
+      excerpt: 'Raka berubah pikiran soal tim yang “lebih kuat” setelah membandingkan dua gaya.',
+      question: 'Kalau dua tim sama kuat, apakah talinya diam atau bergerak?' },
+  ],
+}
 
 // Only a child whose teacher has released something has news. The other child's page is a neutral "nothing yet" and says nothing about
 // work that is still with the teacher.
@@ -30,6 +62,7 @@ export const news: Readonly<Record<string, ChildNews>> = {
     ],
     summary: {
       released: 'Dirilis 24 Sep, 09.14', subject: 'IPA · Gaya dan Gerak', teacher: 'Bu Sari Wulandari', mission: 'Kenapa kelereng berhenti?',
+      reflection: 'kelereng',
       text: 'Raka awalnya berpikir dorongan bisa habis, lalu mengubah pendapatnya sendiri setelah memikirkan contoh pesawat luar angkasa. Ia sudah bisa menyebut gaya yang melawan gerak benda, dan masih mengembangkan pemahaman tentang kelembaman.',
       tryAtHome: 'Gelindingkan bola di lantai lalu di karpet. Minta Raka menjelaskan bedanya.',
     },
