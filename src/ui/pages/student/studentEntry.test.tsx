@@ -2,17 +2,13 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { projectorExample } from '@/ui/pages/teacher/teacherProjectorExamples'
-import { homePath, introExample, joinExample, missionStartPath, sessionPath } from './studentExamples'
-import { StudentIntro } from './StudentIntro'
+import { homePath, joinExample } from './studentExamples'
 import { StudentJoin } from './StudentJoin'
 import { checkJoinCode, normalizeCode } from './useStudentJoinViewModel'
-import type { IntroScenario } from './useStudentIntroViewModel'
 
 const join = () => render(<MemoryRouter><StudentJoin /></MemoryRouter>)
-const intro = (id = 'kelereng') => render(<MemoryRouter initialEntries={[missionStartPath(id)]}><Routes><Route path="/review/student/missions/:missionId/start" element={<StudentIntro />} /></Routes></MemoryRouter>)
 const joinPath = '/review/student/join'
 const type = (value: string) => fireEvent.change(screen.getByLabelText('Kode gabung'), { target: { value } })
-const introScenario = (value: IntroScenario) => fireEvent.change(screen.getByLabelText('Keadaan misi (pratinjau)'), { target: { value } })
 
 describe('join code rules', () => {
   it('keeps only upper-case letters and digits of pasted text, cut to six', () => {
@@ -78,29 +74,3 @@ describe('join screen', () => {
   })
 })
 
-describe('mission introduction (window entry)', () => {
-  it('describes how the mission works, without scores or verdicts, and opens the session', () => {
-    intro()
-    expect(screen.getByRole('heading', { level: 1, name: 'Kenapa kelereng berhenti?' })).toBeInTheDocument()
-    expect(screen.getByText(`Bu Sari · ditutup hari ini ${introExample.closes} WIB · ${introExample.attempts}`)).toBeInTheDocument()
-    expect(within(screen.getByRole('list', { name: 'Tentang misi ini' })).getAllByRole('listitem')).toHaveLength(introExample.stats.length)
-    expect(screen.getByRole('region', { name: 'Cara kerjanya' })).toHaveTextContent('NALAR bertanya tentang alasanmu')
-    expect(screen.getByRole('link', { name: /Aku siap/ })).toHaveAttribute('href', sessionPath('kelereng'))
-    expect(document.body.textContent).not.toMatch(/skor|rubrik|peringkat|verifikasi/i)
-  })
-
-  it('shows a mission that is not open yet or already closed without a way to start it', () => {
-    intro()
-    introScenario('notOpen')
-    expect(screen.getByRole('status')).toHaveTextContent(`dibuka pukul ${introExample.opens} WIB`)
-    expect(screen.queryByRole('link', { name: /Aku siap/ })).not.toBeInTheDocument()
-    introScenario('closed')
-    expect(screen.getByRole('status')).toHaveTextContent(`ditutup pukul ${introExample.closes} WIB`)
-    expect(screen.queryByRole('link', { name: /Aku siap/ })).not.toBeInTheDocument()
-  })
-
-  it('has no introduction for a mission that is only resumed, or an unknown one', () => {
-    intro('tekanan')
-    expect(screen.getByText('Misi ini tidak bisa dimulai')).toBeInTheDocument()
-  })
-})

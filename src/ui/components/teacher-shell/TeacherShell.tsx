@@ -19,14 +19,13 @@ const workspace: readonly NavItem[] = [
   { label: 'Kelas', icon: 'users', to: '/review/teacher/classes' },
   { label: 'Misi', icon: 'target', to: '/review/teacher/missions', exclude: /\/(monitor|class-map)(\/|$)/ },
   { label: 'Basis pengetahuan', icon: 'layers', to: '/review/teacher/knowledge-base' },
-  { label: 'Sesi langsung', icon: 'monitor', to: '/review/teacher/sessions', match: /\/monitor$/ },
-  { label: 'Hasil kelas', icon: 'graph', to: '/review/teacher/missions/kenapa-kelereng-berhenti/class-map?kelas=8B' },
   { label: 'Perlu perhatian', icon: 'alert', to: '/review/teacher/attention', badge: '5 baru' },
 ]
 const more: readonly NavItem[] = [{ label: 'Ubah kata sandi', icon: 'key' }, { label: 'Bantuan', icon: 'info' }]
 const unavailable = 'Belum tersedia di pratinjau'
 
-export function TeacherShell({ title, user, children }: { title: string; user: string; children: ReactNode }) {
+// The defaults are the example-data review pages; a signed-in teacher passes the real navigation and review={false}, which also hides the example assistant, notifications and search results.
+export function TeacherShell({ title, user, nav = workspace, home = '/review/teacher/home', review = true, children }: { title: string; user: string; nav?: readonly NavItem[]; home?: string; review?: boolean; children: ReactNode }) {
   const { school, schools, changeSchool } = useTeacherContext()
   const [collapsed, setCollapsed] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -41,8 +40,8 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
   useEffect(() => { if (focusContent) contentRef.current?.focus() }, [focusContent, location.key])
   const close = () => setDrawerOpen(false)
   const searchTargets: SearchTarget[] = [
-    ...workspace.map((entry) => ({ label: entry.label, hint: 'Halaman', to: entry.to ?? '' })),
-    ...(missionsBySchool[school] ?? []).map((mission) => ({ label: mission.title, hint: `Misi · ${mission.topic}`, to: `${missionsPath}/${mission.id}` })),
+    ...nav.map((entry) => ({ label: entry.label, hint: 'Halaman', to: entry.to ?? '' })),
+    ...(review ? missionsBySchool[school] ?? [] : []).map((mission) => ({ label: mission.title, hint: `Misi · ${mission.topic}`, to: `${missionsPath}/${mission.id}` })),
   ]
   const initials = user.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
   const item = (entry: NavItem) => entry.to
@@ -50,21 +49,21 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
     : <button key={entry.label} type="button" disabled title={unavailable}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</button>
   const navigation = <>
     <p className={styles.group}>Ruang kerja</p>
-    <nav className={styles.navigation} aria-label="Ruang kerja guru">{workspace.map(item)}</nav>
+    <nav className={styles.navigation} aria-label="Ruang kerja guru">{nav.map(item)}</nav>
     <p className={styles.group}>Lainnya</p>
     <nav className={styles.navigation} aria-label="Lainnya">
       <button type="button" aria-expanded={schoolOpen} aria-controls="teacher-school-list" onClick={() => setSchoolOpen((open) => !open)}><Icon name="swap" /><span className={styles.label}>Ganti sekolah</span></button>
       {schoolOpen && <div id="teacher-school-list" role="group" aria-label="Pilih sekolah" className={styles.schools}>{schools.map((name) => <button key={name} type="button" aria-pressed={name === school} onClick={() => { changeSchool(name); setSchoolOpen(false); close() }}>{name}{name === school && <Icon name="check" size={14} />}</button>)}</div>}
-      {more.map(item)}
+      {review && more.map(item)}
     </nav>
   </>
   // On a phone the sidebar is hidden, so signing out has to live in the drawer too.
-  const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label="Keluar dari pratinjau" onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
+  const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label={review ? 'Keluar dari pratinjau' : 'Keluar'} onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
   return <div className={styles.shell} data-collapsed={collapsed}>
     <a className={styles.skipLink} href="#teacher-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>
       <div className={styles.brandRow}>
-        <Link to="/review/teacher/home" className={styles.brand}><BrandMark /><span className={styles.label}>nalar</span></Link>
+        <Link to={home} className={styles.brand}><BrandMark /><span className={styles.label}>nalar</span></Link>
         <button type="button" className={styles.collapse} aria-expanded={!collapsed} aria-label={collapsed ? 'Perluas navigasi' : 'Ciutkan navigasi'} onClick={() => setCollapsed((value) => !value)}><Icon name={collapsed ? 'chevronRight' : 'chevronLeft'} size={12} /></button>
       </div>
       {navigation}
@@ -72,18 +71,18 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
       <div className={styles.user}>
         <span className={styles.avatar} aria-hidden="true">{initials}</span>
         <span className={[styles.who, styles.label].join(' ')}><strong>{user}</strong><small>{school}</small></span>
-        <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label="Keluar dari pratinjau"><Icon name="logout" size={16} /></Link>
+        <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label={review ? 'Keluar dari pratinjau' : 'Keluar'}><Icon name="logout" size={16} /></Link>
       </div>
     </aside>
     <div className={styles.workspace}>
       <header className={styles.topbar}>
         <button type="button" className={styles.menuButton} aria-label="Buka navigasi" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Icon name="menu" /></button>
         <span className={styles.title}>{title}</span>
-        <span className={styles.reviewLabel}>Pratinjau · data contoh</span>
+        {review && <span className={styles.reviewLabel}>Pratinjau · data contoh</span>}
         <ShellSearch className={styles.search} label="Cari halaman atau misi" placeholder="Cari halaman atau misi…" targets={searchTargets} />
-        <button type="button" className={styles.assistant} onClick={() => setAssistantOpen(true)}>Asisten NALAR</button>
+        {review && <button type="button" className={styles.assistant} onClick={() => setAssistantOpen(true)}>Asisten NALAR</button>}
         <span className={styles.theme} role="group" aria-label="Tema"><button type="button" aria-pressed={!dark} aria-label="Tema terang" onClick={() => setTheme(false)}><Icon name="sun" size={14} /></button><button type="button" aria-pressed={dark} aria-label="Tema gelap" onClick={() => setTheme(true)}><Icon name="moon" size={14} /></button></span>
-        <button type="button" className={styles.bell} aria-label="Notifikasi" onClick={() => setBellOpen(true)}><Icon name="bell" size={16} /></button>
+        {review && <button type="button" className={styles.bell} aria-label="Notifikasi" onClick={() => setBellOpen(true)}><Icon name="bell" size={16} /></button>}
       </header>
       <main ref={contentRef} className={styles.main} id="teacher-content" tabIndex={-1}>{children}</main>
     </div>

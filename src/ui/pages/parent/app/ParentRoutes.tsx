@@ -25,7 +25,7 @@ const titles: Readonly<Record<string, string>> = { [parentPaths.home]: 'Ringkasa
 function Frame({ service, user }: { service: ParentService; user: string }) {
   const { child } = useParentContext()
   const { pathname } = useLocation()
-  return <ParentShell title={titles[pathname.replace(/\/+$/, '')] ?? (pathname.startsWith(parentPaths.reflections) ? 'Refleksi' : 'Orang tua')} user={user} nav={nav} home={parentPaths.home} review={false}>
+  return <ParentShell title={titles[pathname.replace(/\/+$/, '')] ?? (pathname.startsWith(parentPaths.reflections) ? 'Refleksi' : 'Orang tua')} user={user} nav={nav} home={parentPaths.home}>
     {/* Switching child remounts the page, so nothing read for one child is still on screen for the next. */}
     <Routes key={child?.id ?? 'none'}>
       <Route index element={<Navigate to={parentPaths.home} replace />} />
@@ -50,5 +50,5 @@ export function ParentRoutes({ service, identity }: { service: ParentService; id
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!error && <p role="status">Tunggu sebentar.</p>}
   </main>
-  return <ParentContextProvider all={all} initialLinked="all"><Frame service={service} user={identity.fullName} /></ParentContextProvider>
+  return <ParentContextProvider all={all}><Frame service={service} user={identity.fullName} /></ParentContextProvider>
 }

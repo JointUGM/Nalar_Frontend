@@ -36,12 +36,13 @@ const accountEntry = createElement(lazy(async () => {
 const privateEntry = createElement(lazy(async () => {
   try {
     const [created, { ProtectedRole }, { LiveRoutes }, dev] = await Promise.all([getDependencies(), import('./ui/pages/account/ProtectedRole'), import('./ui/pages/live/LiveRoutes'), import('./ui/devDashboards')])
-    // Live pages own only the paths they know; every other role path opens its dashboard (the example-data review pages).
-    const livePath = /^\/(teacher\/[^/]+\/publications\/|student\/[^/]+\/(join|runs\/|sessions\/))/
+    // Live pages own the projector, monitor, join, lobby and session paths; admin roles still open their example dashboard.
+    const livePath = /^\/(teacher\/[^/]+\/publications\/[^/]+\/(projector|monitor)\/?$|student\/[^/]+\/(join|runs\/|sessions\/))/
     // Its own chunk, so only a parent downloads the parent pages.
     const ParentRoutes = lazy(() => import('./ui/pages/parent/app/ParentRoutes').then((module) => ({ default: module.ParentRoutes })))
     const StudentRoutes = lazy(() => import('./ui/pages/student/app/StudentRoutes').then((module) => ({ default: module.StudentRoutes })))
-    const { student } = created
+    const TeacherRoutes = lazy(() => import('./ui/pages/teacher/app/TeacherRoutes').then((module) => ({ default: module.TeacherRoutes })))
+    const { student, teacher } = created
     // Telemetry is best effort: the session page works the same without it.
     const telemetry = student ? (sessionId: string, batch: TelemetryBatch) => student.telemetry(sessionId, batch) : undefined
     return { default: () => <ProtectedRole dependencies={created.account} dashboardFor={dev.devDashboardPath} renderRole={(identity, path) => {
@@ -49,7 +50,9 @@ const privateEntry = createElement(lazy(async () => {
       if (created.parent && /^\/parent(\/|$)/.test(path)) return <ParentRoutes service={created.parent} identity={identity} />
       if (created.live && livePath.test(path)) return <LiveRoutes service={created.live} identity={identity} telemetry={telemetry} />
       // Every other student path is the real home or a mission start page.
-      return student && path.startsWith('/student/') ? <StudentRoutes service={student} identity={identity} /> : null
+      if (student && path.startsWith('/student/')) return <StudentRoutes service={student} identity={identity} />
+      // Every other teacher path is the session list, a class map or a release page.
+      return teacher && path.startsWith('/teacher/') ? <TeacherRoutes service={teacher} identity={identity} /> : null
     }} /> }
   } catch {
     return { default: AccountLoadFailure }

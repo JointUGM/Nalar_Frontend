@@ -11,19 +11,11 @@ export interface ParentChild {
   tone: 'warm' | 'info'
 }
 
-/** How many children are shown. 'all' is the signed-in parent's real list; the others are review scenarios. */
-export type LinkedChildren = 'all' | 'two' | 'one' | 'none'
-
 export interface ParentContextValue {
-  linked: LinkedChildren
-  setLinked: (value: LinkedChildren) => void
   linkedChildren: readonly ParentChild[]
   /** The child whose released summaries are shown; null when none is linked. */
   child: ParentChild | null
   selectChild: (id: string) => void
-  /** An account preference, not a per-child one, so it stays when the selected child changes. */
-  weeklyEmail: boolean
-  setWeeklyEmail: (value: boolean) => void
 }
 
 export const ParentContext = createContext<ParentContextValue | null>(null)
