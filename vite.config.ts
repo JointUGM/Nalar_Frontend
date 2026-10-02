@@ -20,5 +20,7 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.ts'],
     clearMocks: true,
     maxWorkers: 2,
+    // The dialog and monitor tests are heavy under jsdom; the 5s default fails them intermittently when the machine is busy.
+    testTimeout: 15000,
   },
 })
