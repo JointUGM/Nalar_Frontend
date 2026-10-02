@@ -1,6 +1,6 @@
 .skip { position: absolute; inset-inline-start: 16px; inset-block-start: -64px; z-index: 10; padding: 12px 16px; border-radius: 10px; background: var(--color-ink); color: var(--color-surface); }
 .skip:focus { inset-block-start: 16px; }
-.header { display: flex; align-items: center; gap: 16px 24px; padding: 12px 32px; background: var(--color-paper); }
+.header { position: sticky; inset-block-start: 0; z-index: 10; display: flex; align-items: center; gap: 16px 24px; padding: 12px 32px; background: rgb(246 244 239 / 88%); backdrop-filter: blur(12px); }
 .brand { display: inline-flex; align-items: center; gap: 8px; min-block-size: 44px; margin-inline-end: auto; color: var(--color-ink); font-size: 20px; font-weight: 800; letter-spacing: -.02em; text-decoration: none; }
 .nav { display: flex; gap: 8px 24px; }
 .nav a { display: inline-flex; align-items: center; min-block-size: 44px; color: var(--color-text-secondary); font-size: 14px; font-weight: 600; text-decoration: none; }
@@ -22,7 +22,7 @@
 .ai p, .student { margin: 0; padding: 16px 20px; border-radius: 16px; font-family: var(--font-reading); font-size: 18px; line-height: 28px; }
 .ai p { background: var(--color-info-bg); }
 .student { margin-inline-start: 24px; border: 1px solid var(--color-border); background: var(--color-canvas); }
-.section { max-inline-size: 1120px; margin-inline: auto; padding: 72px 32px 0; }
+.section { max-inline-size: 1120px; margin-inline: auto; padding: 72px 32px 0; scroll-margin-block-start: 72px; }
 .section h2, .closing h2 { margin: 0; max-inline-size: 26ch; font-size: clamp(1.5rem, 3.4vw, 2.25rem); line-height: 1.2; font-weight: 800; letter-spacing: -.03em; }
 .lead { max-inline-size: 64ch; margin: 16px 0 0; font-size: 17px; line-height: 28px; color: var(--color-text-secondary); }
 .steps, .moves, .points { display: grid; gap: 16px; margin: 32px 0 0; padding: 0; list-style: none; }
@@ -36,6 +36,32 @@
 .moves strong { display: block; font-size: 13px; letter-spacing: .04em; color: var(--color-text-muted); }
 .moves q { display: block; margin-block-start: 8px; font-family: var(--font-reading); font-size: 17px; line-height: 27px; }
 .points { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.band { margin-block-start: 72px; background: var(--color-ink); color: var(--color-surface); }
+.band .section { padding-block-end: 72px; }
+.band h2, .band h3 { color: var(--color-surface); }
+.band .lead, .band .steps p { color: var(--color-border); }
+.band .steps li { border-color: rgb(255 255 255 / 14%); background: rgb(255 255 255 / 6%); }
+.band .number { color: var(--color-accent); }
+.band .steps small { color: var(--color-account-caption); }
+.parents { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 40px 64px; align-items: center; }
+.parentCard { display: grid; gap: 16px; margin: 0; padding: 24px; border: 1px solid var(--color-role-border); border-radius: 24px; background: var(--color-surface); }
+.parentCard figcaption { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--color-text-muted); }
+.child { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin: 0; font-size: 14px; color: var(--color-text-muted); }
+.child span { display: grid; place-items: center; inline-size: 36px; block-size: 36px; border-radius: 50%; background: var(--color-warning-bg); color: var(--color-warning-text); font-weight: 800; }
+.child strong { font-size: 18px; color: var(--color-ink); }
+.parentCard dl { display: grid; gap: 12px; margin: 0; }
+.parentCard dt { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-text-muted); }
+.parentCard dd { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+.parentCard dd span { padding: 4px 12px; border-radius: 999px; background: var(--color-info-bg); color: var(--color-primary-hover); font-size: 14px; font-weight: 700; }
+.parentCard dd span[data-growing] { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.tip { margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--color-paper); font-size: 15px; line-height: 24px; color: var(--color-text-secondary); }
+.tip strong { color: var(--color-ink); }
+.menuButton { display: none; align-items: center; justify-content: center; inline-size: 44px; block-size: 44px; padding: 0; border: 1px solid var(--color-control-border); border-radius: 10px; background: var(--color-surface); color: var(--color-ink); }
+.menuButton:hover:not(:disabled) { background: var(--color-surface-muted); }
+.drawerNav { display: flex; flex-direction: column; gap: 4px; }
+.drawerNav a:not(.login) { display: flex; align-items: center; min-block-size: 48px; padding-inline: 12px; border-radius: 10px; color: var(--color-ink); font-size: 16px; font-weight: 600; text-decoration: none; }
+.drawerNav a:not(.login):hover { background: var(--color-nav-hover); }
+.drawerNav .login { margin-block-start: 12px; }
 .closing { margin: 80px 32px 0; padding: 56px 32px; border-radius: 24px; background: var(--color-ink); color: var(--color-surface); text-align: center; }
 .closing h2 { margin-inline: auto; }
 .closing p { margin: 16px 0 24px; color: var(--color-border); font-size: 16px; line-height: 26px; }
@@ -46,5 +72,5 @@
 .footer a { display: inline-flex; align-items: center; min-block-size: 44px; min-inline-size: 44px; color: var(--color-text-secondary); }
 .footer a:first-of-type { margin-inline-start: auto; }
 @media (max-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr); gap: 32px; padding: 40px 24px 56px; } .section { padding-inline: 24px; } .closing { margin-inline: 24px; } }
-@media (max-width: 720px) { .nav { display: none; } .header { padding-inline: 16px; } }
+@media (max-width: 720px) { .nav { display: none; } .menuButton { display: inline-flex; } .header { padding-inline: 16px; gap: 12px; } }
 @media (max-width: 480px) { .hero { padding-inline: 16px; } .section { padding: 56px 16px 0; } .closing { margin-inline: 16px; padding: 40px 20px; } .footer { padding-inline: 16px; } .student { margin-inline-start: 0; } }

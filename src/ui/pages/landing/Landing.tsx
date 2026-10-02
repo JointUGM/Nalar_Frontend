@@ -1,8 +1,10 @@
 import { Link } from 'react-router'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import nalaAsk from '@/ui/assets/nala-ask.svg'
+import { LandingMenu } from './LandingMenu'
 import styles from './Landing.module.css'
 
+const links = [['cara-kerja', 'Cara kerja'], ['siswa', 'Untuk siswa'], ['guru', 'Untuk guru'], ['orang-tua', 'Untuk orang tua']] as const
 const steps = [
   { title: 'Guru menyiapkan misi', text: 'Unggah materi, tulis tujuan pembelajaran. AI menyusun soal pembuka, rubrik, dan bank pertanyaan untuk Anda periksa.', time: '5 menit' },
   { title: 'Siswa berdialog', text: 'Satu soal, lalu 4 sampai 6 pertanyaan lanjutan. AI tidak pernah bilang benar atau salah, hanya meminta alasan.', time: '≤ 15 menit' },
@@ -26,10 +28,9 @@ export function Landing() {
     <a className={styles.skip} href="#konten">Lewati ke konten</a>
     <header className={styles.header}>
       <Link to="/" className={styles.brand} aria-label="NALAR, beranda"><BrandMark size={28} /><span>nalar</span></Link>
-      <nav className={styles.nav} aria-label="Bagian halaman">
-        <a href="#cara-kerja">Cara kerja</a><a href="#siswa">Untuk siswa</a><a href="#guru">Untuk guru</a><a href="#orang-tua">Untuk orang tua</a>
-      </nav>
+      <nav className={styles.nav} aria-label="Bagian halaman">{links.map(([id, label]) => <a key={id} href={`#${id}`}>{label}</a>)}</nav>
       <Link className={styles.login} to="/login">Masuk</Link>
+      <LandingMenu links={links} />
     </header>
     <main id="konten">
       <section className={styles.hero} aria-labelledby="judul">
@@ -52,14 +53,14 @@ export function Landing() {
         </figure>
       </section>
 
-      <section id="cara-kerja" className={styles.section} aria-labelledby="cara-kerja-judul">
+      <div className={styles.band}><section id="cara-kerja" className={styles.section} aria-labelledby="cara-kerja-judul">
         <h2 id="cara-kerja-judul">Satu jam pelajaran, dari soal pembuka sampai keputusan mengajar.</h2>
         <p className={styles.lead}>Setiap langkah yang dibuat AI melewati persetujuan guru. Tidak ada yang sampai ke siswa atau orang tua tanpa diperiksa.</p>
         <ol className={styles.steps}>{steps.map((step, index) => <li key={step.title}>
           <span className={styles.number} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
           <h3>{step.title}</h3><p>{step.text}</p><small>{step.time}</small>
         </li>)}</ol>
-      </section>
+      </section></div>
 
       <section id="siswa" className={styles.section} aria-labelledby="siswa-judul">
         <h2 id="siswa-judul">Untuk siswa: AI yang tidak pernah memberi jawaban.</h2>
@@ -72,9 +73,20 @@ export function Landing() {
         <ul className={styles.points}>{teacherPoints.map(([title, text]) => <li key={title}><h3>{title}</h3><p>{text}</p></li>)}</ul>
       </section>
 
-      <section id="orang-tua" className={styles.section} aria-labelledby="orang-tua-judul">
-        <h2 id="orang-tua-judul">Untuk orang tua: kabar tentang cara anak berpikir, dari gurunya.</h2>
-        <p className={styles.lead}>Orang tua hanya melihat ringkasan yang sudah dirilis guru. Tidak ada skor, tidak ada perbandingan dengan teman sekelas.</p>
+      <section id="orang-tua" className={[styles.section, styles.parents].join(' ')} aria-labelledby="orang-tua-judul">
+        <div>
+          <h2 id="orang-tua-judul">Untuk orang tua: kabar tentang cara anak berpikir, dari gurunya.</h2>
+          <p className={styles.lead}>Orang tua hanya melihat ringkasan yang sudah dirilis guru. Tidak ada skor, tidak ada perbandingan dengan teman sekelas.</p>
+        </div>
+        <figure className={styles.parentCard}>
+          <figcaption>Contoh tampilan · data fiktif</figcaption>
+          <p className={styles.child}><span aria-hidden="true">R</span><strong>Raka</strong>8B · SMPN 5 Yogyakarta</p>
+          <dl>
+            <div><dt>Sudah dipahami</dt><dd><span>Gaya gesek</span><span>Kelembaman</span></dd></div>
+            <div><dt>Masih berkembang</dt><dd><span data-growing="true">Resultan gaya</span></dd></div>
+          </dl>
+          <p className={styles.tip}><strong>Coba tanyakan di rumah:</strong> kenapa sepeda tetap melaju sebentar setelah berhenti dikayuh?</p>
+        </figure>
       </section>
 
       <section className={styles.closing} aria-labelledby="penutup">
