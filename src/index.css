@@ -98,4 +98,7 @@ a { color: var(--color-primary); text-underline-offset: .2em; }
 :focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
 code { color: var(--color-ink); font-size: .9em; overflow-wrap: anywhere; }
 ::selection { color: var(--color-ink); background: var(--color-info-bg); }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, ::before, ::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
