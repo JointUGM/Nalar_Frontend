@@ -43,7 +43,7 @@ export function ParentHome() {
       <div>
         <h2 id="empty-title">Belum ada kabar dari guru {first}</h2>
         <p>Ringkasan muncul di sini setelah guru merilis hasil misi.</p>
-        <p className={styles.email}><Icon name="bell" size={14} />Email mingguan: aktif</p>
+        <p className={styles.email}><Icon name="bell" size={14} />Email mingguan: {view.weeklyEmail ? 'aktif' : 'mati'}</p>
       </div>
     </section>}
 

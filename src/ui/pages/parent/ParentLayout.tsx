@@ -3,11 +3,11 @@ import { ParentContextProvider } from '@/ui/components/parent-shell/ParentContex
 import { ParentShell } from '@/ui/components/parent-shell/ParentShell'
 import { useParentContext } from '@/ui/components/parent-shell/useParentContext'
 import type { LinkedChildren } from '@/ui/components/parent-shell/ParentContext'
-import { childrenExample, homePath, news, parentUser, reflectionPath, reflections, reflectionsPath } from './parentExamples'
+import { childrenExample, homePath, news, emailSamplePath, parentUser, reflectionPath, reflections, reflectionsPath, settingsPath } from './parentExamples'
 import styles from './ParentLayout.module.css'
 
 const linkedOptions: readonly (readonly [LinkedChildren, string])[] = [['two', 'Dua anak'], ['one', 'Satu anak'], ['none', 'Belum ada anak tertaut']]
-const titles: Readonly<Record<string, string>> = { [homePath]: 'Ringkasan', [reflectionsPath]: 'Refleksi' }
+const titles: Readonly<Record<string, string>> = { [homePath]: 'Ringkasan', [reflectionsPath]: 'Refleksi', [settingsPath]: 'Pengaturan', [emailSamplePath]: 'Pengaturan / Email mingguan' }
 
 function Frame() {
   const { linked, setLinked, child } = useParentContext()
@@ -18,7 +18,7 @@ function Frame() {
   const nav = [
     { label: 'Ringkasan', icon: 'home', to: homePath, badge: unread ? '1 baru' : undefined },
     { label: 'Refleksi', icon: 'message', to: reflectionsPath },
-    { label: 'Pengaturan', icon: 'sliders' },
+    { label: 'Pengaturan', icon: 'sliders', to: settingsPath },
   ] as const
   return <ParentShell title={openTitle ? `Refleksi / ${openTitle}` : titles[pathname] ?? 'Orang tua'} user={parentUser} nav={nav}>
     <label className={styles.scenario}>Anak yang tertaut (pratinjau)
