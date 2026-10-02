@@ -1,9 +1,25 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { ParentHome } from './ParentHome'
 import { ParentLayout } from './ParentLayout'
 import { homePath, news, reflectionPath, reflectionsPath, settingsPath } from './parentExamples'
+
+const originalShowModal = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
+const originalClose = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close')
+beforeAll(() => {
+  // jsdom lacks the native modal API; the real drawer is checked in a browser.
+  Object.defineProperties(HTMLDialogElement.prototype, {
+    showModal: { configurable: true, value(this: HTMLDialogElement) { this.open = true } },
+    close: { configurable: true, value(this: HTMLDialogElement) { this.open = false } },
+  })
+})
+afterAll(() => {
+  if (originalShowModal) Object.defineProperty(HTMLDialogElement.prototype, 'showModal', originalShowModal)
+  else Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
+  if (originalClose) Object.defineProperty(HTMLDialogElement.prototype, 'close', originalClose)
+  else Reflect.deleteProperty(HTMLDialogElement.prototype, 'close')
+})
 
 const page = () => render(<MemoryRouter initialEntries={[homePath]}><Routes><Route element={<ParentLayout />}><Route path={homePath} element={<ParentHome />} /></Route></Routes></MemoryRouter>)
 const sidebar = () => screen.getByRole('complementary')
@@ -35,6 +51,17 @@ describe('parent shell and child context', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Keadaan halaman (pratinjau)')).toHaveValue('normal')
     expect(screen.getByRole('heading', { level: 3, name: 'Kenapa kelereng berhenti?' })).toBeInTheDocument()
+  })
+
+  it('marks the selected child with more than colour, and lets the child be changed from the top bar', () => {
+    page()
+    expect(kid(/Raka Pratama/).querySelector('svg')).not.toBeNull()
+    expect(kid(/Nadia Pratama/).querySelector('svg')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Anak: Raka Pratama. Ganti anak' }))
+    const menu = screen.getByRole('dialog', { name: 'Menu orang tua' })
+    fireEvent.click(within(menu).getByRole('button', { name: /Nadia Pratama/ }))
+    expect(screen.getByRole('heading', { level: 1, name: 'Kabar Nadia minggu ini' })).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('handles one linked child and none', () => {

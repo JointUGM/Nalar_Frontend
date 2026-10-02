@@ -29,6 +29,7 @@ export function ParentShell({ title, user, nav, children }: { title: string; use
       <button type="button" aria-pressed={item.id === child?.id} title={item.name} onClick={() => { selectChild(item.id); close() }}>
         <span className={styles.kidAvatar} data-tone={item.tone} aria-hidden="true">{item.initials}</span>
         <span className={[styles.kidText, styles.label].join(' ')}><strong>{item.name}</strong><small>{item.detail}</small></span>
+        {item.id === child?.id && <span className={styles.kidCheck} aria-hidden="true"><Icon name="check" size={14} /></span>}
       </button>
     </li>)}</ul>
   const navigation = <nav className={styles.navigation} aria-label="Menu orang tua">{nav.map((entry) => entry.to
@@ -65,7 +66,9 @@ export function ParentShell({ title, user, nav, children }: { title: string; use
         <button type="button" className={styles.menuButton} aria-label="Buka navigasi" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Icon name="menu" /></button>
         <span className={styles.title}>{title}</span>
         <span className={styles.reviewLabel}>Pratinjau · data contoh</span>
-        {child && <span className={styles.chip}><span data-tone={child.tone} aria-hidden="true">{child.initials}</span>{child.name.split(' ')[0]} · {child.klass}</span>}
+        {child && <span className={styles.chip} data-switchable={linkedChildren.length > 1}><span data-tone={child.tone} aria-hidden="true">{child.initials}</span>{child.name.split(' ')[0]} · {child.klass}</span>}
+        {/* On a phone the sidebar is a drawer, so the child can be changed straight from the bar. */}
+        {child && linkedChildren.length > 1 && <button type="button" className={[styles.chip, styles.chipButton].join(' ')} aria-label={`Anak: ${child.name}. Ganti anak`} aria-haspopup="dialog" onClick={() => setDrawerOpen(true)}><span data-tone={child.tone} aria-hidden="true">{child.initials}</span>{child.name.split(' ')[0]} · {child.klass}<Icon name="chevronDown" size={14} /></button>}
         <button type="button" className={styles.bell} disabled aria-label="Notifikasi belum tersedia"><Icon name="bell" size={16} /></button>
       </header>
       <main ref={contentRef} className={styles.main} id="parent-content" tabIndex={-1}>{children}</main>
