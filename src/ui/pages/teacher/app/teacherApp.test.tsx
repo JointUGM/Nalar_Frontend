@@ -40,6 +40,12 @@ afterAll(() => {
 
 const publications = { items: [{ id: publication, class_id: school, class_name: '8B', mission_title: 'Kenapa kelereng berhenti?', released_to_parents_at: null, run: { id: school, mode: 'live', status: 'closed', join_code: null, opens_at: null, closes_at: null }, counts: { started: 30, completed: 28, timed_out: 2, evaluated: 28 } }], next_cursor: null }
 const classMap = { denominator: 28, incomplete_count: 2, concepts: [{ concept_id: concept, name: 'Gaya gesek', mastered_count: 10, developing_count: 6, not_observed_count: 0, misconceptions: [{ misconception_id: misconception, statement: 'Gaya bisa habis', count: 18, resolved_count: 11, student_ids: [student] }] }], insight: { narrative: 'Sebanyak 18 siswa mengira gaya bisa habis.', generated_at: '2026-10-02T03:00:00+00:00' } }
+const mission = '00000000-0000-4000-8000-00000000000e'
+const version = '00000000-0000-4000-8000-00000000000f'
+const draft = '00000000-0000-4000-8000-000000000010'
+const klass = '00000000-0000-4000-8000-000000000011'
+const missions = { items: [{ id: mission, title: 'Kenapa kelereng berhenti?', knowledge_base_id: school, created_by: school, can_edit: true, latest_version: { id: version, version_number: 2, status: 'reviewed' } }, { id: draft, title: 'Tekanan Zat', knowledge_base_id: school, created_by: school, can_edit: true, latest_version: { id: draft, version_number: 1, status: 'draft' } }], next_cursor: null }
+const assignments = { items: [{ school_id: school, class_id: klass, class_name: '8B', grade_level: 8, school_subject_id: school, subject_name: 'IPA' }] }
 const preview = (extra: Record<string, unknown> = {}) => ({ ready: true, blockers: [], eligible_count: 1, ineligible_count: 2, summaries: [{ student_id: student, name: 'Raka Pratama', summary_text: 'Raka mengubah pendapatnya sendiri.' }], released_at: null, ...extra })
 
 type Reply = () => Response
@@ -48,6 +54,9 @@ function backend(overrides: Record<string, Reply> = {}) {
     'GET /teacher/publications?limit=100': () => Response.json(publications),
     [`GET /publications/${publication}/class-map`]: () => Response.json(classMap),
     [`GET /publications/${publication}/release-preview`]: () => Response.json(preview()),
+    [`GET /schools/${school}/missions?limit=100`]: () => Response.json(missions),
+    'GET /teacher/assignments': () => Response.json(assignments),
+    'POST /publications': () => Response.json({ publication_id: publication, run_id: school, run_status: 'scheduled' }, { status: 201 }),
     ...overrides,
   }
   return vi.fn<typeof fetch>(async (input, init) => {
@@ -102,5 +111,27 @@ describe('signed-in teacher pages', () => {
     open(`${base}/publications/${publication}/release`, backend({ [`GET /publications/${publication}/release-preview`]: () => Response.json(preview({ ready: false, blockers: [{ code: 'EVALUATION_PENDING', count: 3 }] })) }))
     await screen.findByText('3 sesi belum selesai dinilai.')
     await waitFor(() => expect(screen.getByRole('button', { name: 'Rilis 1 ringkasan' })).toBeDisabled())
+  })
+
+  it('offers publishing only for a reviewed version', async () => {
+    open(`${base}/missions`, backend())
+    const ready = within(await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?' }))
+    expect(ready.getByRole('link', { name: 'Terbitkan ke kelas' })).toHaveAttribute('href', `${base}/missions/${mission}/publish`)
+    expect(within(screen.getByRole('listitem', { name: 'Tekanan Zat' })).queryByRole('link')).not.toBeInTheDocument()
+  })
+
+  it('publishes a live session to the chosen class once, only after a class is picked and the lock is confirmed', async () => {
+    const request = backend()
+    open(`${base}/missions/${mission}/publish`, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Terbitkan' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Pilih satu kelas.')
+    fireEvent.click(screen.getByRole('button', { name: /8B/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Terbitkan' }))
+    const confirm = screen.getByRole('button', { name: 'Terbitkan sekarang' })
+    fireEvent.click(confirm)
+    fireEvent.click(confirm)
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1))
+    const [, init] = request.mock.calls.find(([, options]) => options?.method === 'POST')!
+    expect(JSON.parse(String(init?.body))).toEqual({ class_id: klass, mission_version_id: version, run: { mode: 'live' } })
   })
 })
