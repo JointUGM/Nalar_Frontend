@@ -40,7 +40,7 @@ export function StudentSession() {
 
   if (phase === 'countdown') return <main className={styles.countdown}>
     <span className={styles.circle}><Nala mood="calm" size={104} /></span>
-    <p className={styles.countTitle}>{mission.title}</p>
+    <h1 className={styles.countTitle}>{mission.title}</h1>
     <p role="status" className={styles.hidden}>Sesi akan dimulai sebentar lagi.</p>
     <div className={styles.count} aria-hidden="true">{view.count}</div>
     <p className={styles.calm}>Tarik napas. Tidak ada jawaban yang salah.</p>
