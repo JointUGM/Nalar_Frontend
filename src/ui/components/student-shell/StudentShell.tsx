@@ -29,6 +29,8 @@ export function StudentShell({ title, user, detail, children }: { title: string;
     ? <NavLink key={entry.label} to={entry.to} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</NavLink>
     : <button key={entry.label} type="button" disabled title={unavailable}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span></button>)}</nav>
 
+  // On a phone the sidebar is hidden, so signing out has to live in the drawer too.
+  const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label="Keluar dari pratinjau" onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
   return <div className={styles.shell} data-collapsed={collapsed}>
     <a className={styles.skipLink} href="#student-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>
@@ -59,6 +61,6 @@ export function StudentShell({ title, user, detail, children }: { title: string;
       </header>
       <main ref={contentRef} className={styles.main} id="student-content" tabIndex={-1}>{children}</main>
     </div>
-    <Dialog open={drawerOpen} onClose={close} title="Menu siswa" description={`${user} · ${detail}`} presentation="drawer"><div className={styles.drawerNav}>{navigation}</div></Dialog>
+    <Dialog open={drawerOpen} onClose={close} title="Menu siswa" description={`${user} · ${detail}`} presentation="drawer"><div className={styles.drawerNav}>{navigation}{signOut}</div></Dialog>
   </div>
 }

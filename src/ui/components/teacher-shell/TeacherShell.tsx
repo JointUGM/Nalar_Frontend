@@ -46,6 +46,8 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
       {more.map(item)}
     </nav>
   </>
+  // On a phone the sidebar is hidden, so signing out has to live in the drawer too.
+  const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label="Keluar dari pratinjau" onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
   return <div className={styles.shell} data-collapsed={collapsed}>
     <a className={styles.skipLink} href="#teacher-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>
@@ -73,6 +75,6 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
       </header>
       <main ref={contentRef} className={styles.main} id="teacher-content" tabIndex={-1}>{children}</main>
     </div>
-    <Dialog open={drawerOpen} onClose={close} title="Ruang kerja guru" description={`${user} · ${school}`} presentation="drawer"><div className={styles.drawerNav}>{navigation}</div></Dialog>
+    <Dialog open={drawerOpen} onClose={close} title="Ruang kerja guru" description={`${user} · ${school}`} presentation="drawer"><div className={styles.drawerNav}>{navigation}{signOut}</div></Dialog>
   </div>
 }
