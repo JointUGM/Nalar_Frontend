@@ -35,8 +35,8 @@ const accountEntry = createElement(lazy(async () => {
 
 const privateEntry = createElement(lazy(async () => {
   try {
-    const [created, { ProtectedRole }, dev] = await Promise.all([getDependencies(), import('./ui/pages/account/ProtectedRole'), import.meta.env.DEV ? import('./ui/devDashboards') : null])
-    return { default: () => <ProtectedRole dependencies={created.account} dashboardFor={dev?.devDashboardPath} /> }
+    const [created, { ProtectedRole }, { LiveRoutes }, dev] = await Promise.all([getDependencies(), import('./ui/pages/account/ProtectedRole'), import('./ui/pages/live/LiveRoutes'), import.meta.env.DEV ? import('./ui/devDashboards') : null])
+    return { default: () => <ProtectedRole dependencies={created.account} dashboardFor={dev?.devDashboardPath} renderRole={(identity, path) => created.live && /^\/(student|teacher)\//.test(path) ? <LiveRoutes service={created.live} identity={identity} /> : null} /> }
   } catch {
     return { default: AccountLoadFailure }
   }
