@@ -3,6 +3,8 @@ import { SignOutUseCase } from '@/application/sign-out-use-case'
 import { ObserveAuthSessionUseCase } from '@/application/observe-auth-session-use-case'
 import { GetCurrentIdentityUseCase } from '@/application/get-current-identity-use-case'
 import { HttpIdentityRepository } from '@/infrastructure/services/HttpIdentityRepository'
+import { HttpLiveService } from '@/infrastructure/services/HttpLiveService'
+import { LiveUseCases } from '@/application/live-use-cases'
 import type { AccountDependencies } from '@/ui/pages/account/AccountDependencies'
 
 export interface PublicAppConfig { apiBaseUrl?: string }
@@ -17,12 +19,13 @@ function resolveApiBaseUrl(input?: string): string | null {
   } catch { return null }
 }
 
-export async function createDependencies(config: PublicAppConfig): Promise<{ account: AccountDependencies | null; dispose: () => Promise<void> }> {
+export async function createDependencies(config: PublicAppConfig): Promise<{ account: AccountDependencies | null; live: LiveUseCases | null; dispose: () => Promise<void> }> {
   const apiBaseUrl = resolveApiBaseUrl(config.apiBaseUrl)
-  if (!apiBaseUrl) return { account: null, dispose: async () => {} }
+  if (!apiBaseUrl) return { account: null, live: null, dispose: async () => {} }
   const { HttpAuthService } = await import('@/infrastructure/services/HttpAuthService')
   const auth = new HttpAuthService({ apiBaseUrl })
   return {
+    live: new LiveUseCases(new HttpLiveService({ apiBaseUrl })),
     account: {
       signIn: new SignInUseCase(auth), signOut: new SignOutUseCase(auth), session: new ObserveAuthSessionUseCase(auth),
       identity: new GetCurrentIdentityUseCase(new HttpIdentityRepository({ apiBaseUrl })),
