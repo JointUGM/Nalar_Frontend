@@ -42,7 +42,7 @@ const privateEntry = createElement(lazy(async () => {
     const ParentRoutes = lazy(() => import('./ui/pages/parent/app/ParentRoutes').then((module) => ({ default: module.ParentRoutes })))
     const StudentRoutes = lazy(() => import('./ui/pages/student/app/StudentRoutes').then((module) => ({ default: module.StudentRoutes })))
     const TeacherRoutes = lazy(() => import('./ui/pages/teacher/app/TeacherRoutes').then((module) => ({ default: module.TeacherRoutes })))
-    const { student, teacher } = created
+    const { student, teacher, knowledgeBase } = created
     // Telemetry is best effort: the session page works the same without it.
     const telemetry = student ? (sessionId: string, batch: TelemetryBatch) => student.telemetry(sessionId, batch) : undefined
     return { default: () => <ProtectedRole dependencies={created.account} dashboardFor={dev.devDashboardPath} renderRole={(identity, path) => {
@@ -51,8 +51,8 @@ const privateEntry = createElement(lazy(async () => {
       if (created.live && livePath.test(path)) return <LiveRoutes service={created.live} identity={identity} telemetry={telemetry} />
       // Every other student path is the real home or a mission start page.
       if (student && path.startsWith('/student/')) return <StudentRoutes service={student} identity={identity} />
-      // Every other teacher path is the session list, a class map or a release page.
-      return teacher && path.startsWith('/teacher/') ? <TeacherRoutes service={teacher} identity={identity} /> : null
+      // Every other teacher path is a real teacher page: sessions, results, missions or the knowledge base.
+      return teacher && knowledgeBase && path.startsWith('/teacher/') ? <TeacherRoutes service={teacher} kb={knowledgeBase} identity={identity} /> : null
     }} /> }
   } catch {
     return { default: AccountLoadFailure }

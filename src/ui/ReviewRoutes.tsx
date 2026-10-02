@@ -24,13 +24,8 @@ const StudentLobby = lazy(() => import('@/ui/pages/student/StudentLobby').then((
 const StudentJoin = lazy(() => import('@/ui/pages/student/StudentJoin').then((module) => ({ default: module.StudentJoin })))
 const TeacherAttention = lazy(() => import('@/ui/pages/teacher/TeacherAttention').then((module) => ({ default: module.TeacherAttention })))
 const TeacherClasses = lazy(() => import('@/ui/pages/teacher/TeacherClasses').then((module) => ({ default: module.TeacherClasses })))
-const TeacherKnowledgeBase = lazy(() => import('@/ui/pages/teacher/TeacherKnowledgeBase').then((module) => ({ default: module.TeacherKnowledgeBase })))
-const TeacherKbUpload = lazy(() => import('@/ui/pages/teacher/TeacherKbUpload').then((module) => ({ default: module.TeacherKbUpload })))
-const TeacherKbReview = lazy(() => import('@/ui/pages/teacher/TeacherKbReview').then((module) => ({ default: module.TeacherKbReview })))
-const TeacherMissions = lazy(() => import('@/ui/pages/teacher/TeacherMissions').then((module) => ({ default: module.TeacherMissions })))
 const TeacherMissionNew = lazy(() => import('@/ui/pages/teacher/TeacherMissionNew').then((module) => ({ default: module.TeacherMissionNew })))
 const TeacherMissionReview = lazy(() => import('@/ui/pages/teacher/TeacherMissionReview').then((module) => ({ default: module.TeacherMissionReview })))
-const TeacherPublication = lazy(() => import('@/ui/pages/teacher/TeacherPublication').then((module) => ({ default: module.TeacherPublication })))
 const TeacherProjector = lazy(() => import('@/ui/pages/teacher/TeacherProjector').then((module) => ({ default: module.TeacherProjector })))
 const TeacherMonitor = lazy(() => import('@/ui/pages/teacher/TeacherMonitor').then((module) => ({ default: module.TeacherMonitor })))
 const TeacherReport = lazy(() => import('@/ui/pages/teacher/TeacherReport').then((module) => ({ default: module.TeacherReport })))
@@ -51,13 +46,8 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
       <Route path="/review/teacher/home" element={<TeacherHome />} />
       <Route path="/review/teacher/classes" element={<TeacherClasses />} />
       <Route path="/review/teacher/attention" element={<TeacherAttention />} />
-      <Route path="/review/teacher/knowledge-base" element={<TeacherKnowledgeBase />} />
-      <Route path="/review/teacher/knowledge-base/upload" element={<TeacherKbUpload />} />
-      <Route path="/review/teacher/knowledge-base/:topicId" element={<TeacherKbReview />} />
-      <Route path="/review/teacher/missions" element={<TeacherMissions />} />
       <Route path="/review/teacher/missions/new" element={<TeacherMissionNew />} />
       <Route path="/review/teacher/missions/:missionId" element={<TeacherMissionReview />} />
-      <Route path="/review/teacher/missions/:missionId/publish" element={<TeacherPublication />} />
       <Route path="/review/teacher/missions/:missionId/projector" element={<TeacherProjector />} />
       <Route path="/review/teacher/missions/:missionId/monitor" element={<TeacherMonitor />} />
       <Route path="/review/teacher/missions/:missionId/class-map/report" element={<TeacherReport />} />

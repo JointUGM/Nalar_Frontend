@@ -34,15 +34,16 @@ export function nullable<T>(value: unknown, read: (value: unknown) => T): T | nu
 export class HttpApi {
   constructor(private readonly options: { apiBaseUrl: string; fetch?: typeof globalThis.fetch }) {}
 
-  async request(path: string, init: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH'; body?: unknown; signal?: AbortSignal } = {}): Promise<{ status: number; data: unknown }> {
+  // `form` sends a multipart upload: the browser writes its own Content-Type with the boundary, and a file of up to 50 MB gets two minutes instead of ten seconds.
+  async request(path: string, init: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH'; body?: unknown; form?: FormData; signal?: AbortSignal } = {}): Promise<{ status: number; data: unknown }> {
     const method = init.method ?? 'GET'
     let response: Response
     try {
       response = await (this.options.fetch ?? globalThis.fetch)(`${this.options.apiBaseUrl}${path}`, {
         method, credentials: 'include', cache: 'no-store',
         headers: { Accept: 'application/json', ...(method === 'GET' ? {} : { 'X-Nalar-CSRF': '1' }), ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }) },
-        body: init.body === undefined ? undefined : JSON.stringify(init.body),
-        signal: AbortSignal.any([...(init.signal ? [init.signal] : []), AbortSignal.timeout(10_000)]),
+        body: init.form ?? (init.body === undefined ? undefined : JSON.stringify(init.body)),
+        signal: AbortSignal.any([...(init.signal ? [init.signal] : []), AbortSignal.timeout(init.form ? 120_000 : 10_000)]),
       })
     } catch { throw new ApiError(0, 'UNAVAILABLE') }
     if (!response.ok) {
