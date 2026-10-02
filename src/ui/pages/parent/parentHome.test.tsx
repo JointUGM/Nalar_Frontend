@@ -3,7 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { ParentHome } from './ParentHome'
 import { ParentLayout } from './ParentLayout'
-import { homePath, news } from './parentExamples'
+import { homePath, news, reflectionPath, reflectionsPath } from './parentExamples'
 
 const page = () => render(<MemoryRouter initialEntries={[homePath]}><Routes><Route element={<ParentLayout />}><Route path={homePath} element={<ParentHome />} /></Route></Routes></MemoryRouter>)
 const sidebar = () => screen.getByRole('complementary')
@@ -12,14 +12,14 @@ const setLinked = (value: string) => fireEvent.change(screen.getByLabelText('Ana
 const setScenario = (value: string) => fireEvent.change(screen.getByLabelText('Keadaan halaman (pratinjau)'), { target: { value } })
 
 describe('parent shell and child context', () => {
-  it('opens on the first child with both children selectable, the privacy note and a menu where later screens are not available yet', () => {
+  it('opens on the first child with both children selectable, the privacy note and a menu that opens the reflections', () => {
     page()
     expect(screen.getByRole('heading', { level: 1, name: 'Kabar Raka minggu ini' })).toBeInTheDocument()
     expect(kid(/Raka Pratama/)).toHaveAttribute('aria-pressed', 'true')
     expect(kid(/Nadia Pratama/)).toHaveAttribute('aria-pressed', 'false')
     expect(within(sidebar()).getByRole('note', { name: 'Privasi anak' })).toHaveTextContent('Tanpa skor dan tanpa perbandingan')
     expect(within(sidebar()).getByRole('link', { name: /Ringkasan/ })).toHaveAttribute('aria-current', 'page')
-    expect(within(sidebar()).getByRole('button', { name: 'Refleksi' })).toBeDisabled()
+    expect(within(sidebar()).getByRole('link', { name: 'Refleksi' })).toHaveAttribute('href', reflectionsPath)
     expect(within(sidebar()).getByRole('button', { name: 'Pengaturan' })).toBeDisabled()
   })
 
@@ -58,6 +58,7 @@ describe('parent summary', () => {
     expect(screen.getByRole('heading', { level: 3, name: summary.mission })).toBeInTheDocument()
     expect(screen.getByText(summary.text)).toBeInTheDocument()
     expect(screen.getByText(summary.tryAtHome)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Baca refleksi lengkap' })).toHaveAttribute('href', reflectionPath(summary.reflection))
     expect(screen.getByText('Dirilis 24 Sep, 09.14')).toBeInTheDocument()
     expect(within(screen.getByRole('list', { name: 'Ringkasan Raka' })).getAllByRole('listitem')).toHaveLength(4)
     const rows = within(screen.getByRole('table')).getAllByRole('row')
