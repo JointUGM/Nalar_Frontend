@@ -19,6 +19,9 @@ const ParentReflections = lazy(() => import('@/ui/pages/parent/ParentReflections
 const ParentReflection = lazy(() => import('@/ui/pages/parent/ParentReflection').then((module) => ({ default: module.ParentReflection })))
 const ParentSettings = lazy(() => import('@/ui/pages/parent/ParentSettings').then((module) => ({ default: module.ParentSettings })))
 const ParentEmailSample = lazy(() => import('@/ui/pages/parent/ParentEmailSample').then((module) => ({ default: module.ParentEmailSample })))
+const AccountActivate = lazy(() => import('@/ui/pages/account/AccountActivate').then((module) => ({ default: module.AccountActivate })))
+const AccountReset = lazy(() => import('@/ui/pages/account/AccountReset').then((module) => ({ default: module.AccountReset })))
+const AccountPassword = lazy(() => import('@/ui/pages/account/AccountPassword').then((module) => ({ default: module.AccountPassword })))
 const StudentReflection = lazy(() => import('@/ui/pages/student/StudentReflection').then((module) => ({ default: module.StudentReflection })))
 const StudentReflections = lazy(() => import('@/ui/pages/student/StudentReflections').then((module) => ({ default: module.StudentReflections })))
 const StudentResume = lazy(() => import('@/ui/pages/student/StudentResume').then((module) => ({ default: module.StudentResume })))
@@ -86,6 +89,9 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
       <Route path="/review/parent/settings" element={<ParentSettings />} />
       <Route path="/review/parent/settings/email" element={<ParentEmailSample />} />
     </Route>
+    <Route path="/review/account/activate" element={<AccountActivate />} />
+    <Route path="/review/account/reset" element={<AccountReset />} />
+    <Route path="/review/account/password" element={<AccountPassword />} />
     <Route path="/review/school/import" element={<SchoolImport />} />
     <Route path="*" element={<AppRoutes accountEntry={accountEntry} privateEntry={privateEntry} />} />
   </Routes></Suspense>
