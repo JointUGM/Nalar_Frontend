@@ -1,0 +1,22 @@
+// What a student may see about a mission: name, subject, time, mode and their own attempt status. Never a rubric, score or answer state.
+export interface MissionCard {
+  publication_id: string
+  mission_title: string
+  subject_name: string
+  mode: string
+  run_status: string
+  attempt_status: string
+  opens_at: string | null
+  closes_at: string | null
+  target_duration_minutes: number
+  max_duration_minutes: number
+}
+export interface StudentMissions { open: MissionCard[]; upcoming: MissionCard[]; completed: MissionCard[] }
+export interface WindowSession { session_id: string }
+
+// Authenticity telemetry holds counts and timings only (NFR-S11): never what was typed or pasted.
+export type TelemetryEvent =
+  | { type: 'paste' | 'visibility_hidden'; at: string; value: number }
+  | { type: 'disconnect' | 'reconnect'; at: string }
+  | { type: 'typing'; at: string; value: { chars: number; duration_ms: number } }
+export interface TelemetryBatch { client_seq: number; turn_index: number | null; events: TelemetryEvent[] }
