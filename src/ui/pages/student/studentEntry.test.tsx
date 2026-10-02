@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { projectorExample } from '@/ui/pages/teacher/teacherProjectorExamples'
-import { introExample, joinExample, missionStartPath, sessionPath } from './studentExamples'
+import { homePath, introExample, joinExample, missionStartPath, sessionPath } from './studentExamples'
 import { StudentIntro } from './StudentIntro'
 import { StudentJoin } from './StudentJoin'
 import { checkJoinCode, normalizeCode } from './useStudentJoinViewModel'
@@ -10,7 +10,8 @@ import type { IntroScenario } from './useStudentIntroViewModel'
 
 const join = () => render(<MemoryRouter><StudentJoin /></MemoryRouter>)
 const intro = (id = 'kelereng') => render(<MemoryRouter initialEntries={[missionStartPath(id)]}><Routes><Route path="/review/student/missions/:missionId/start" element={<StudentIntro />} /></Routes></MemoryRouter>)
-const type = (value: string) => fireEvent.change(screen.getByLabelText(/Kode sesi/), { target: { value } })
+const joinPath = '/review/student/join'
+const type = (value: string) => fireEvent.change(screen.getByLabelText('Kode gabung'), { target: { value } })
 const introScenario = (value: IntroScenario) => fireEvent.change(screen.getByLabelText('Keadaan misi (pratinjau)'), { target: { value } })
 
 describe('join code rules', () => {
@@ -19,48 +20,61 @@ describe('join code rules', () => {
     expect(normalizeCode(' k7 q2 mw extra ')).toBe('K7Q2MW')
     expect(normalizeCode('é!?ab')).toBe('AB')
   })
-  it('matches only the example code, which is the projector\'s, and lets a rate limit block everything', () => {
+  it("matches only the example code, which is the projector's", () => {
     expect(joinExample.code).toBe(projectorExample.joinCode.join(''))
-    expect(checkJoinCode('K7Q', 'unknown')).toBe('incomplete')
-    expect(checkJoinCode('K7Q2MW', 'unknown')).toBe('match')
-    expect(checkJoinCode('ABCDEF', 'unknown')).toBe('unknown')
-    expect(checkJoinCode('ABCDEF', 'closed')).toBe('closed')
-    expect(checkJoinCode('K7Q2MW', 'limited')).toBe('limited')
+    expect(checkJoinCode('K7Q')).toBe('incomplete')
+    expect(checkJoinCode('K7Q2MW')).toBe('match')
+    expect(checkJoinCode('ABCDEF')).toBe('unknown')
   })
 })
 
 describe('join screen', () => {
-  it('stays inactive until a full code is entered, and shows it grouped in the box', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it("asks for the code from the teacher's screen, with the reassurance panel beside it", () => {
     join()
-    const submit = screen.getByRole('button', { name: 'Masuk ke ruang tunggu' })
-    expect(submit).toBeDisabled()
+    expect(screen.getByRole('heading', { level: 1, name: 'Masukkan kode dari layar gurumu' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Masuk' })).toBeEnabled()
+    expect(screen.getByRole('link', { name: 'Kembali' })).toHaveAttribute('href', homePath)
+    expect(screen.getByRole('button', { name: `Pakai kode demo ${joinExample.code}` })).toBeInTheDocument()
+    const panel = within(screen.getByRole('region', { name: 'Yang perlu kamu tahu' }))
+    expect(panel.getByText('Tanpa nilai.')).toBeInTheDocument()
+    expect(panel.getByText('Tanpa peringkat.')).toBeInTheDocument()
+    expect(panel.getByText('Cuma kamu dan alasanmu.')).toBeInTheDocument()
+  })
+
+  it('says so when a full code is not found, and when Masuk is pressed with a short one', () => {
+    join()
     type('abc')
-    expect(screen.getByLabelText(/Kode sesi/)).toHaveValue('ABC')
-    expect(submit).toBeDisabled()
-    type('abc-d23')
-    expect(screen.getByLabelText(/Kode sesi/)).toHaveValue('ABC-D23')
-    expect(submit).toBeEnabled()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Masuk' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('Kode tidak ditemukan. Cek lagi layar gurumu.')
+    type('ABCDEF')
+    expect(screen.getByRole('alert')).toHaveTextContent('Kode tidak ditemukan')
+    expect(screen.getByLabelText('Kode gabung')).toHaveAttribute('aria-invalid', 'true')
+    type('ABCDE')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
-  it('drops characters outside the join alphabet, so O, 0, I and 1 cannot be typed', () => {
-    join()
-    type('ab0c1i')
-    expect(screen.getByLabelText(/Kode sesi/)).toHaveValue('ABC')
-  })
-
-  it('opens the waiting room once the simulated join finishes', async () => {
+  it('confirms the matching code, then opens the waiting room', () => {
     vi.useFakeTimers()
-    try {
-      render(<MemoryRouter initialEntries={['/review/student/join']}><Routes>
-        <Route path="/review/student/join" element={<StudentJoin />} />
-        <Route path="/review/student/runs/:runId/lobby" element={<h1>Ruang tunggu</h1>} />
-      </Routes></MemoryRouter>)
-      type('ABCD23')
-      fireEvent.click(screen.getByRole('button', { name: 'Masuk ke ruang tunggu' }))
-      expect(screen.getByRole('button', { name: 'Masuk…' })).toBeDisabled()
-      await act(async () => { vi.advanceTimersByTime(800) })
-      expect(screen.getByRole('heading', { name: 'Ruang tunggu' })).toBeInTheDocument()
-    } finally { vi.useRealTimers() }
+    render(<MemoryRouter initialEntries={[joinPath]}><Routes>
+      <Route path={joinPath} element={<StudentJoin />} />
+      <Route path="/review/student/missions/:missionId/lobby" element={<h1>Ruang tunggu</h1>} />
+    </Routes></MemoryRouter>)
+    type('k7q2 mw')
+    expect(screen.getByLabelText('Kode gabung')).toHaveValue('K7Q2MW')
+    expect(screen.getByRole('status')).toHaveTextContent('Kode cocok. Masuk ke ruang tunggu…')
+    expect(screen.queryByRole('heading', { name: 'Ruang tunggu' })).not.toBeInTheDocument()
+    act(() => { vi.advanceTimersByTime(1600) })
+    expect(screen.getByRole('heading', { name: 'Ruang tunggu' })).toBeInTheDocument()
+  })
+
+  it('fills and joins with the demo code', () => {
+    join()
+    fireEvent.click(screen.getByRole('button', { name: `Pakai kode demo ${joinExample.code}` }))
+    expect(screen.getByLabelText('Kode gabung')).toHaveValue(joinExample.code)
+    expect(screen.getByRole('status')).toHaveTextContent('Kode cocok')
   })
 })
 

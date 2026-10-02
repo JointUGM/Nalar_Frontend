@@ -31,3 +31,18 @@
   .card { border-radius: 24px; }
   .journey dd { font-size: 44px; }
 }
+
+/* Laptops: the same screen at a calmer scale, so it fits without zooming out. */
+@media (min-width: 768px) and (max-width: 1599px), (min-width: 768px) and (max-height: 899px) {
+  .page { gap: 28px; padding: 16px 40px 48px; }
+  .head h1 { font-size: clamp(32px, 4.4vw, 48px); }
+  .cards { gap: 20px; }
+  .card { gap: 14px; padding: 24px; border-radius: 24px; }
+  .pick { font-size: 20px; line-height: 28px; }
+  .pick span { inline-size: 44px; block-size: 44px; font-size: 20px; }
+  .words { font-size: 19px; line-height: 28px; }
+  .journey dd { font-size: 44px; }
+  .journey dt { font-size: 16px; }
+  .reflection { min-block-size: 54px; padding-inline: 28px; font-size: 18px; }
+  .wait { min-block-size: 54px; }
+}

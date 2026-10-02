@@ -9,3 +9,5 @@
 .skipLink:focus { transform: translateY(0); }
 /* On a phone the bar can reach two rows; let it scroll away so the keyboard leaves room for the answer. */
 @media (max-width: 767px) { .bar { position: static; padding-inline: 16px; gap: 4px 12px; } }
+
+@media (min-width: 768px) and (max-width: 1599px), (min-width: 768px) and (max-height: 899px) { .bar { min-block-size: 56px; padding-block: 6px; } }

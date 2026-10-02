@@ -12,14 +12,14 @@ import { AssistantPanel, NotificationsPanel } from './TeacherPanels'
 import { useTeacherContext } from './useTeacherContext'
 import styles from './TeacherShell.module.css'
 
-interface NavItem { label: string; icon: IconName; to?: string; badge?: string; /** Paths under `to` that belong to a sibling item instead. */ exclude?: RegExp }
+interface NavItem { label: string; icon: IconName; to?: string; badge?: string; /** Paths under `to` that belong to a sibling item instead. */ exclude?: RegExp; /** Paths outside `to` that still belong to this item. */ match?: RegExp }
 
 const workspace: readonly NavItem[] = [
   { label: 'Beranda', icon: 'home', to: '/review/teacher/home' },
   { label: 'Kelas', icon: 'users', to: '/review/teacher/classes' },
   { label: 'Misi', icon: 'target', to: '/review/teacher/missions', exclude: /\/(monitor|class-map)(\/|$)/ },
   { label: 'Basis pengetahuan', icon: 'layers', to: '/review/teacher/knowledge-base' },
-  { label: 'Sesi langsung', icon: 'monitor', to: '/review/teacher/missions/kenapa-kelereng-berhenti/monitor?kelas=8B' },
+  { label: 'Sesi langsung', icon: 'monitor', to: '/review/teacher/sessions', match: /\/monitor$/ },
   { label: 'Hasil kelas', icon: 'graph', to: '/review/teacher/missions/kenapa-kelereng-berhenti/class-map?kelas=8B' },
   { label: 'Perlu perhatian', icon: 'alert', to: '/review/teacher/attention', badge: '5 baru' },
 ]
@@ -46,7 +46,7 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
   ]
   const initials = user.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
   const item = (entry: NavItem) => entry.to
-    ? <NavLink key={entry.label} to={entry.to} end={entry.exclude?.test(location.pathname)} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</NavLink>
+    ? <NavLink key={entry.label} to={entry.to} end={entry.exclude?.test(location.pathname)} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive || entry.match?.test(location.pathname) ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</NavLink>
     : <button key={entry.label} type="button" disabled title={unavailable}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</button>
   const navigation = <>
     <p className={styles.group}>Ruang kerja</p>

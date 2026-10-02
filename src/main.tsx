@@ -2,7 +2,6 @@ import { createElement, lazy, StrictMode } from 'react'
 import type { ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
-import App from './App'
 import { DependenciesProvider } from './ui/components/dependencies/DependenciesProvider'
 import { AccountLoadFailure } from './ui/routes'
 import './index.css'
@@ -35,11 +34,10 @@ const accountEntry = createElement(lazy(async () => {
 
 const privateEntry = createElement(lazy(async () => {
   try {
-    const [created, { ProtectedRole }, { LiveRoutes }, dev] = await Promise.all([getDependencies(), import('./ui/pages/account/ProtectedRole'), import('./ui/pages/live/LiveRoutes'), import.meta.env.DEV ? import('./ui/devDashboards') : null])
-    // Live pages own only the paths they know; every other role path opens its dashboard when one exists (dev review pages).
+    const [created, { ProtectedRole }, { LiveRoutes }, dev] = await Promise.all([getDependencies(), import('./ui/pages/account/ProtectedRole'), import('./ui/pages/live/LiveRoutes'), import('./ui/devDashboards')])
+    // Live pages own only the paths they know; every other role path opens its dashboard (the example-data review pages).
     const livePath = /^\/(teacher\/[^/]+\/publications\/|student\/[^/]+\/(join|runs\/|sessions\/))/
-    const isLivePath = (path: string) => /^\/(student|teacher)\//.test(path) && (!dev || livePath.test(path))
-    return { default: () => <ProtectedRole dependencies={created.account} dashboardFor={dev?.devDashboardPath} renderRole={(identity, path) => created.live && isLivePath(path) ? <LiveRoutes service={created.live} identity={identity} /> : null} /> }
+    return { default: () => <ProtectedRole dependencies={created.account} dashboardFor={dev.devDashboardPath} renderRole={(identity, path) => created.live && livePath.test(path) ? <LiveRoutes service={created.live} identity={identity} /> : null} /> }
   } catch {
     return { default: AccountLoadFailure }
   }
@@ -47,10 +45,8 @@ const privateEntry = createElement(lazy(async () => {
 
 if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('preview') === 'foundation') {
   void import('./ui/pages/foundation-preview/FoundationPreview').then(({ FoundationPreview }) => render(<FoundationPreview />))
-} else if (import.meta.env.DEV) {
+} else {
   void Promise.all([import('./review-di'), import('./ui/ReviewRoutes')]).then(([{ createReviewDependencies }, { ReviewRoutes }]) => {
     render(<BrowserRouter><DependenciesProvider value={createReviewDependencies()}><ReviewRoutes accountEntry={accountEntry} privateEntry={privateEntry} /></DependenciesProvider></BrowserRouter>)
   })
-} else {
-  render(<App accountEntry={accountEntry} privateEntry={privateEntry} />)
 }

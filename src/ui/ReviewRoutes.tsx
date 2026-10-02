@@ -39,6 +39,7 @@ const TeacherMissions = lazy(() => import('@/ui/pages/teacher/TeacherMissions').
 const TeacherMissionNew = lazy(() => import('@/ui/pages/teacher/TeacherMissionNew').then((module) => ({ default: module.TeacherMissionNew })))
 const TeacherMissionReview = lazy(() => import('@/ui/pages/teacher/TeacherMissionReview').then((module) => ({ default: module.TeacherMissionReview })))
 const TeacherPublication = lazy(() => import('@/ui/pages/teacher/TeacherPublication').then((module) => ({ default: module.TeacherPublication })))
+const TeacherSessions = lazy(() => import('@/ui/pages/teacher/TeacherSessions').then((module) => ({ default: module.TeacherSessions })))
 const TeacherProjector = lazy(() => import('@/ui/pages/teacher/TeacherProjector').then((module) => ({ default: module.TeacherProjector })))
 const TeacherMonitor = lazy(() => import('@/ui/pages/teacher/TeacherMonitor').then((module) => ({ default: module.TeacherMonitor })))
 const TeacherClassMap = lazy(() => import('@/ui/pages/teacher/TeacherClassMap').then((module) => ({ default: module.TeacherClassMap })))
@@ -64,6 +65,7 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
       <Route path="/review/teacher/knowledge-base" element={<TeacherKnowledgeBase />} />
       <Route path="/review/teacher/knowledge-base/upload" element={<TeacherKbUpload />} />
       <Route path="/review/teacher/knowledge-base/:topicId" element={<TeacherKbReview />} />
+      <Route path="/review/teacher/sessions" element={<TeacherSessions />} />
       <Route path="/review/teacher/missions" element={<TeacherMissions />} />
       <Route path="/review/teacher/missions/new" element={<TeacherMissionNew />} />
       <Route path="/review/teacher/missions/:missionId" element={<TeacherMissionReview />} />
@@ -80,9 +82,6 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
     <Route path="/review/student/missions/:missionId/lobby" element={<StudentLobby />} />
     <Route path="/review/student/missions/:missionId/session" element={<StudentSession />} />
     <Route path="/review/student/missions/:missionId/resume" element={<StudentResume />} />
-    <Route path="/review/student/runs/:runId/lobby" element={<StudentLobby />} />
-    <Route path="/review/student/sessions/:sessionId" element={<StudentSession />} />
-    <Route path="/review/student/sessions/:sessionId/reflection" element={<StudentReflection />} />
     <Route path="/review/student/reflections" element={<StudentReflections />} />
     <Route path="/review/student/reflections/:reflectionId" element={<StudentReflection />} />
     <Route element={<ParentLayout />}>
