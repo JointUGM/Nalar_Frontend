@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { joinExample } from './studentExamples'
 
-export type JoinScenario = 'unknown' | 'closed' | 'limited'
-export type JoinResult = 'incomplete' | 'match' | JoinScenario
+export type JoinResult = 'incomplete' | 'match' | 'unknown'
 export const codeLength = 6
 
 /** Pasted text may carry spaces, dashes or lower case, so keep only letters and digits and cut to the code length. */
@@ -10,20 +9,35 @@ export function normalizeCode(raw: string): string {
   return raw.toLocaleUpperCase('en-US').replace(/[^A-Z0-9]/g, '').slice(0, codeLength)
 }
 
-/** Review-only lookup: the example code matches, every other code resolves by the chosen scenario, and a rate limit blocks them all. */
-export function checkJoinCode(code: string, scenario: JoinScenario): JoinResult {
+/** Review-only lookup: only the example code (the one on the teacher's projector) matches. */
+export function checkJoinCode(code: string): JoinResult {
   if (code.length < codeLength) return 'incomplete'
-  if (scenario === 'limited') return 'limited'
-  return code === joinExample.code ? 'match' : scenario
+  return code === joinExample.code ? 'match' : 'unknown'
 }
 
 export function useStudentJoinViewModel() {
   const [code, setCode] = useState('')
-  const [scenario, setScenario] = useState<JoinScenario>('unknown')
+  const [wrong, setWrong] = useState(false)
+  const [joined, setJoined] = useState(false)
+  const join = () => { setWrong(false); setJoined(true) }
   return {
-    code, scenario, setScenario,
-    setCode: (raw: string) => setCode(normalizeCode(raw)),
-    result: checkJoinCode(code, scenario),
+    code, wrong, joined,
     chars: Array.from({ length: codeLength }, (_, index) => code[index] ?? ''),
+    /** A full code is checked as soon as it is typed, like the supplied screen. */
+    type: (raw: string) => {
+      if (joined) return
+      const next = normalizeCode(raw)
+      setCode(next)
+      setWrong(false)
+      const result = checkJoinCode(next)
+      if (result === 'match') join()
+      else if (result === 'unknown') setWrong(true)
+    },
+    submit: () => {
+      if (joined) return
+      if (checkJoinCode(code) === 'match') join()
+      else setWrong(true)
+    },
+    fillDemo: () => { if (joined) return; setCode(joinExample.code); join() },
   }
 }

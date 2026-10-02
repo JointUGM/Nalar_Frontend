@@ -24,3 +24,17 @@
   .card { border-radius: 24px; }
   .facts dd { font-size: 22px; }
 }
+
+/* Laptops: the same screen at a calmer scale, so it fits without zooming out. */
+@media (min-width: 768px) and (max-width: 1599px), (min-width: 768px) and (max-height: 899px) {
+  .page { padding: 16px 40px 48px; }
+  .layout { gap: 40px; padding-block: 16px; }
+  .welcome { gap: 20px; }
+  .welcome h1 { font-size: clamp(32px, 4vw, 44px); }
+  .welcome p { font-size: 16px; line-height: 24px; }
+  .resume { min-block-size: 52px; padding-inline: 28px; font-size: 16px; }
+  .card { gap: 20px; padding: 24px; border-radius: 28px; }
+  .cardHead h2 { font-size: 22px; line-height: 28px; }
+  .facts div { padding: 16px; }
+  .facts dd { font-size: 24px; }
+}

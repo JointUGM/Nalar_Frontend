@@ -1,5 +1,4 @@
-// DEV only (loaded behind import.meta.env.DEV): the role screens exist today as example-data review
-// pages, so an authorized role path opens its review page. Production keeps the placeholder.
+// The role screens exist today as example-data review pages, so an authorized role path opens its review page.
 const reviewDashboards: Readonly<Record<string, string>> = {
   platform: '/review/platform/schools',
   school: '/review/school/people',

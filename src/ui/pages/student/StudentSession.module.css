@@ -52,3 +52,21 @@
   .composerHead { padding: 16px 16px 0; }
   .foot { padding: 12px 12px 14px 16px; border-radius: 0 0 21px 21px; }
 }
+
+/* Laptops: the same screens at a calmer scale, so they fit without zooming out. */
+@media (min-width: 768px) and (max-width: 1599px), (min-width: 768px) and (max-height: 899px) {
+  .page { padding: 16px 40px 48px; }
+  .grid { gap: 24px; }
+  .ask { min-block-size: 380px; gap: 20px; padding: clamp(20px, 2.4vw, 32px); border-radius: 28px; }
+  .question h1 { font-size: clamp(22px, 2.4vw, 28px); }
+  .thinking { font-size: 18px; line-height: 26px; }
+  .previous { padding: 14px 18px; }
+  .previous p { font-size: 16px; line-height: 25px; }
+  .composer { min-block-size: 380px; border-radius: 28px; }
+  .composerHead { padding: 20px 24px 0; }
+  .composer textarea { min-block-size: 180px; padding: 12px 24px; font-size: 19px; }
+  .foot { padding: 12px 16px 16px 24px; border-radius: 0 0 25px 25px; }
+  .circle { inline-size: 112px; block-size: 112px; }
+  .count { font-size: clamp(96px, 20vw, 160px); }
+  .calm { font-size: 20px; line-height: 28px; }
+}
