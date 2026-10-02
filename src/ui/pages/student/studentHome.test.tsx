@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
-import { missionRows, missionStartPath, openMissions, resumePath, studentKpis } from './studentExamples'
+import { missionRows, missionStartPath, openMissions, reflectionPath, resumePath, studentKpis } from './studentExamples'
 import { StudentHome } from './StudentHome'
 import type { HomeScenario } from './useStudentHomeViewModel'
 
@@ -37,7 +37,7 @@ describe('student dashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Selesai' }))
     expect(screen.getByRole('button', { name: 'Selesai' })).toHaveAttribute('aria-pressed', 'true')
     expect(table().getAllByRole('row')).toHaveLength(missionRows.done.length + 1)
-    expect(table().getByRole('button', { name: 'Refleksi: Tarik tambang' })).toBeDisabled()
+    expect(table().getByRole('link', { name: 'Refleksi: Tarik tambang' })).toHaveAttribute('href', reflectionPath('tarik-tambang'))
   })
 
   it('shows loading and empty states without inventing missions', () => {

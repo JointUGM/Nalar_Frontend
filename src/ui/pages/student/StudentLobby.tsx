@@ -6,12 +6,11 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { StudentFocusShell } from '@/ui/components/student-focus-shell/StudentFocusShell'
-import { homePath, lobbyExample, sessionPath, studentUser } from './studentExamples'
+import { homePath, lobbyExample, sessionPath, studentUser, warmLetters } from './studentExamples'
 import { useStudentLobbyViewModel } from './useStudentLobbyViewModel'
 import styles from './StudentLobby.module.css'
 
 const firstName = studentUser.split(' ')[0]
-const letters = ['A', 'B', 'C']
 
 export function StudentLobby() {
   const view = useStudentLobbyViewModel()
@@ -29,7 +28,7 @@ export function StudentLobby() {
         <span className={styles.chip} data-tone="info">{lobbyExample.teacher} sudah memulai</span>
         <h1>Begini cara mainnya</h1>
       </div>
-      <ButtonLink className={styles.ready} to={sessionPath(mission.id)}>Aku siap<Icon name="chevronRight" size={20} /></ButtonLink>
+      <ButtonLink className={styles.ready} to={sessionPath(mission.id)} state={{ warmPick: view.pick }}>Aku siap<Icon name="chevronRight" size={20} /></ButtonLink>
     </div>
     <ol className={styles.steps}>{lobbyExample.steps.map(([title, text], index) => <li key={title} data-step={index}>
       <span aria-hidden="true">{index + 1}</span>
@@ -64,7 +63,7 @@ export function StudentLobby() {
         <h2 id="warm-title">Sambil menunggu, tebak dulu.</h2>
         <p id="warm-question" className={styles.question}>{lobbyExample.warmQuestion}</p>
         <div className={styles.options} role="group" aria-labelledby="warm-question">{lobbyExample.warmOptions.map((text, index) => <button key={text} type="button" data-option={index} aria-pressed={view.pick === index} onClick={() => view.choose(index)}>
-          <span aria-hidden="true">{letters[index]}</span><span>{text}</span>{view.pick === index && <Icon name="check" size={20} />}
+          <span aria-hidden="true">{warmLetters[index]}</span><span>{text}</span>{view.pick === index && <Icon name="check" size={20} />}
         </button>)}</div>
         <p role="status" className={styles.hint}>{view.pick === null ? 'Pilih satu. Tidak ada yang salah di sini.' : 'Tebakanmu dicatat (pratinjau). Kita lihat lagi di akhir misi.'}</p>
       </section>

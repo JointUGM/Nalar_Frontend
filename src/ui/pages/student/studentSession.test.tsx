@@ -88,7 +88,7 @@ describe('focus session', () => {
     expect(screen.getByText('Tulisan yang panjang dan penting')).toBeInTheDocument()
   })
 
-  it('goes through every question and ends with a neutral thank-you', () => {
+  it('goes through every question and ends on the finish screen', () => {
     start()
     for (let index = 0; index < sessionExample.questions.length; index += 1) {
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(sessionExample.questions[index])
@@ -97,8 +97,8 @@ describe('focus session', () => {
       send()
       wait(sendMs)
     }
-    expect(screen.getByRole('heading', { level: 1, name: 'Terima kasih, Raka.' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Kembali ke Misi saya' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Selesai. Kamu sudah berpikir keras hari ini.' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ke beranda' })).toBeInTheDocument()
   })
 
   it('never shows a score, verdict or reaction to the content of an answer', () => {
