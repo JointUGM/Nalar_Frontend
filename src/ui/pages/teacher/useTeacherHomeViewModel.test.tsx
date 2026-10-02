@@ -2,7 +2,8 @@ import { act, renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { TeacherContextProvider } from '@/ui/components/teacher-shell/TeacherContextProvider'
-import { actionExamples, changedMindExamples, kpiExamples, sparklinePoints, summarize, teacherSchools, trendPoint, trendSeries, trendWeeks, weekSessions } from './teacherHomeExamples'
+import { sparklinePoints } from '@/ui/components/sparkline/sparklinePoints'
+import { actionExamples, changedMindExamples, kpiExamples, summarize, teacherSchools, trendPoint, trendSeries, trendWeeks, weekSessions } from './teacherHomeExamples'
 import { useTeacherHomeViewModel } from './useTeacherHomeViewModel'
 
 const wrapper = ({ children }: { children: ReactNode }) => <TeacherContextProvider schools={teacherSchools.map((item) => item.name)}>{children}</TeacherContextProvider>

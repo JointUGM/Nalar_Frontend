@@ -32,12 +32,21 @@ const paths = {
   moon: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />,
   check: <path d="m5 12.5 4.5 4.5L19 7" />,
   file: <><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4" /></>,
-  sparkle: <><path d="m11 3 1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z" /><path d="M19 15v5M16.5 17.5h5" /></>,
+  message: <path d="M4 5h16v11H9l-5 4z" />,
+  refresh: <path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" />,
+  heart:<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />,
+  flag: <path d="M6 21V4M6 5h11l-2 4 2 4H6" />,
+  minus: <path d="M6 12h12" />,
+  sort: <path d="M7 4v16M4 17l3 3 3-3M17 20V4M14 7l3-3 3 3" />,
+  x: <path d="M6 6l12 12M18 6 6 18" />,
+  stop: <rect x="6" y="6" width="12" height="12" rx="2" />,
+  sparkle:<><path d="m11 3 1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z" /><path d="M19 15v5M16.5 17.5h5" /></>,
   lock: <><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>,
   send: <path d="M21 3 10 14M21 3l-7 18-4-7-7-4z" />,
   pencil:<><path d="M4 20h4L19.5 8.5l-4-4L4 16z" /><path d="m13.5 6.5 4 4" /></>,
   archive: <><path d="M4 6h16v4H4z" /><path d="M6 10v10h12V10M10 14h4" /></>,
   idea: <path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" />,
+  sliders: <path d="M4 7h9M17 7h3M4 17h3M11 17h9M13 4v6M7 14v6" />,
 }
 
 export type IconName = keyof typeof paths

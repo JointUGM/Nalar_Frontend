@@ -7,6 +7,8 @@ export const kbFailureStep = 2
 export const kbStepMs = 1400
 export const kbMaxPdfBytes = 50 * 1024 * 1024
 export const kbSampleFile = { name: 'IPA 8 Bab 4 - Tekanan Zat.pdf', bytes: 4_404_019, pages: 18 }
+// The topic the sample file belongs to in the list example, so the finished build can open its review.
+export const kbSampleTopicId = 'tekanan-zat'
 export const kbGrade = 'Kelas 8'
 export const kbOwnership = 'Anda pemilik · dipakai 3 guru IPA lain (hanya baca) · CP BSKAP 046/2025 Fase D'
 

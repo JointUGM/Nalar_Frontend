@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Link, MemoryRouter, useLocation } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
@@ -44,6 +44,45 @@ describe('production identity and route boundary', () => {
   }
   const teacherPath = '/teacher/00000000-0000-4000-8000-000000000002'
   const parentToo: Identity = { ...identity, isParent: true }
+
+  it('hands an authorized role path to the dashboard mapping when one is supplied (development only)', async () => {
+    const access = createAccess()
+    render(<MemoryRouter initialEntries={[teacherPath]}><Where /><AppRoutes accountEntry={<Login dependencies={access.dependencies} />} privateEntry={<ProtectedRole dependencies={access.dependencies} dashboardFor={() => '/review/teacher/home'} />} /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/review/teacher/home'))
+  })
+
+  it('does not use the dashboard mapping for a path the account may not open', async () => {
+    const access = createAccess()
+    render(<MemoryRouter initialEntries={['/school/00000000-0000-4000-8000-000000000002']}><Where /><AppRoutes accountEntry={<Login dependencies={access.dependencies} />} privateEntry={<ProtectedRole dependencies={access.dependencies} dashboardFor={() => '/review/school/people'} />} /></MemoryRouter>)
+    expect(await screen.findByRole('heading', { name: 'Akses tidak tersedia' })).toBeInTheDocument()
+    expect(screen.getByTestId('where')).toHaveTextContent('/school/')
+  })
+
+  it('offers a real sign-out on the placeholder, and a role switch only when there are several roles', async () => {
+    const single = createAccess()
+    route(single.dependencies, teacherPath)
+    await screen.findByRole('heading', { name: 'Halaman peran belum tersedia' })
+    expect(screen.getByRole('link', { name: 'Keluar' })).toHaveAttribute('href', '/login')
+    expect(screen.queryByRole('link', { name: 'Pilih peran lain' })).not.toBeInTheDocument()
+    cleanup()
+    const several = createAccess()
+    several.identityRead.mockResolvedValue(parentToo)
+    route(several.dependencies, teacherPath)
+    expect(await screen.findByRole('link', { name: 'Pilih peran lain' })).toBeInTheDocument()
+  })
+
+  it('signs out when an exit link asks to, instead of redirecting back to the dashboard', async () => {
+    const access = createAccess()
+    render(<MemoryRouter initialEntries={[{ pathname: '/login', state: { signOut: true } }]}><Where /><AppRoutes accountEntry={<Login dependencies={access.dependencies} />} privateEntry={<ProtectedRole dependencies={access.dependencies} />} /></MemoryRouter>)
+    expect(await screen.findByLabelText(/^Email/)).toBeInTheDocument()
+    expect(access.signOut).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('where')).toHaveTextContent('/login')
+    expect(screen.queryByRole('heading', { name: 'Halaman peran belum tersedia' })).not.toBeInTheDocument()
+    // The request is consumed: signing in again on this page must not sign the user straight out.
+    await signIn()
+    expect(await screen.findByRole('heading', { name: 'Halaman peran belum tersedia' })).toBeInTheDocument()
+    expect(access.signOut).toHaveBeenCalledTimes(1)
+  })
 
   it('sends a signed-in user straight to a safe deep link they asked for, without a role question', async () => {
     const access = createAccess()

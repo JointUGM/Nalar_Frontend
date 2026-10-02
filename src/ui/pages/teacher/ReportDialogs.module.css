@@ -1,0 +1,29 @@
+.scale, .modes { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+.scale legend, .modes legend, .area label, .scenario { font-size: 14px; font-weight: 600; }
+.scale legend, .modes legend { padding: 0; margin-block-end: 8px; }
+.options { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.option { position: relative; display: block; }
+.option input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.option span { display: grid; place-items: center; min-block-size: 44px; border: 1px solid var(--color-control-border); border-radius: 8px; background: var(--color-surface); font-size: 16px; font-weight: 700; }
+.option input:checked + span { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-surface); }
+.option input:focus-visible + span { outline: 3px solid var(--color-primary); outline-offset: 3px; }
+.level { margin: 0; font-size: 13px; line-height: 20px; color: var(--color-text-secondary); }
+.error { margin: 0; font-size: 13px; line-height: 20px; color: var(--color-danger-text); }
+.area { display: grid; gap: 8px; margin-block-start: 16px; }
+.area textarea { inline-size: 100%; min-inline-size: 0; padding: 10px 12px; border: 1px solid var(--color-control-border); border-radius: 12px; font: inherit; font-weight: 400; line-height: 21px; color: var(--color-ink); background: var(--color-surface); resize: vertical; }
+.area textarea[aria-invalid="true"] { border-color: var(--color-danger-text); }
+.mode { position: relative; display: block; }
+.mode input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.mode > span { display: grid; gap: 2px; padding: 14px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+.mode input:checked + span { border-color: var(--color-primary); background: var(--color-nav-hover); }
+.mode input:focus-visible + span { outline: 3px solid var(--color-primary); outline-offset: 3px; }
+.mode svg { color: var(--color-primary); }
+.mode strong { margin-block-start: 6px; font-size: 14px; }
+.mode small { font-size: 12px; line-height: 18px; color: var(--color-text-secondary); }
+.scenario { display: grid; gap: 8px; margin-block-start: 16px; }
+.scenario select { inline-size: 100%; min-inline-size: 0; min-block-size: 44px; padding: 10px; border: 1px solid var(--color-control-border); border-radius: 12px; font: inherit; font-weight: 400; color: var(--color-ink); background: var(--color-surface); }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-block-start: 16px; }
+.included { display: grid; gap: 8px; margin: 0 0 16px; padding: 0; list-style: none; font-size: 14px; }
+.included li { display: flex; align-items: center; gap: 10px; }
+.included svg { color: var(--color-primary); }
+.included li[data-off="true"], .included li[data-off="true"] svg { color: var(--color-text-muted); }

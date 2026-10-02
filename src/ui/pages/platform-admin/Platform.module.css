@@ -14,7 +14,7 @@
 .table tbody tr { border-block-start: 1px solid var(--color-surface-muted); }
 .table th { text-align: start; font-size: 13px; font-weight: 600; color: var(--color-text-muted); }
 .table td { min-inline-size: 0; overflow-wrap: anywhere; }
-.schoolName { display: block; color: var(--color-ink); font-size: 15px; font-weight: 600; text-decoration: none; }
+.schoolName { display: block; padding-block: 11px; margin-block: -11px; color: var(--color-ink); font-size: 15px; font-weight: 600; text-decoration: none; }
 .schoolName:hover { color: var(--color-primary); text-decoration: underline; }
 .city { display: block; margin-block-start: 2px; font-size: 13px; color: var(--color-text-muted); }
 .admin { font-size: 14px; color: var(--color-text-secondary); }

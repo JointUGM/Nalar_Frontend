@@ -48,7 +48,7 @@ function PublicationForm() {
     <h1>Terbitkan ke kelas</h1>
     <p className={styles.lead}>{view.title}</p>
     <p className={styles.note}>Pratinjau lokal · “Terbitkan” hanya menjalankan simulasi. Tidak ada versi yang dikunci, sesi yang dibuat, atau siswa yang diberi tahu.</p>
-    {view.published && <Feedback tone="success" title="Diterbitkan dalam simulasi" announce>Pengaturan dikunci di halaman ini. {view.windowMode ? 'Pemantauan' : 'Layar proyektor'} belum tersedia di pratinjau.</Feedback>}
+    {view.published && <Feedback tone="success" title="Diterbitkan dalam simulasi" announce>Pengaturan dikunci di halaman ini. {view.windowMode ? 'Lanjutkan ke pemantauan untuk melihat kemajuan siswa.' : 'Lanjutkan ke layar proyektor untuk membuka lobi.'}</Feedback>}
     <div ref={formRef} className={styles.grid}>
       <section className={styles.card} aria-label="Pengaturan penerbitan">
         <div role="group" aria-labelledby="publication-classes" aria-describedby={view.classesError ? 'publication-classes-error' : undefined}>
@@ -75,7 +75,9 @@ function PublicationForm() {
         <dl className={styles.rows}>{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
         <p className={styles.lock}><Icon name="lock" size={14} />{view.versionLabel.split(' · ')[0]} akan dikunci saat diterbitkan.</p>
         {view.published ? <>
-          <Button disabled title={`${view.windowMode ? 'Pemantauan' : 'Layar proyektor'} belum tersedia di pratinjau`}>{view.windowMode ? 'Buka pemantauan' : 'Buka layar proyektor'}</Button>
+          {view.windowMode
+            ? <Link className={styles.next} to={`${missionsPath}/${view.mission.id}/monitor?kelas=${encodeURIComponent(view.chosen[0].name)}`}>Buka pemantauan</Link>
+            : <Link className={styles.next} to={`${missionsPath}/${view.mission.id}/projector?kelas=${encodeURIComponent(view.chosen[0].name)}`}>Buka layar proyektor</Link>}
           <Button tone="ghost" onClick={view.reset}>Atur ulang contoh</Button>
         </> : <Button onClick={publish}><Icon name="send" size={14} />Terbitkan</Button>}
       </section>

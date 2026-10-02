@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/ui/components/button/Button'
+import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
 import { TeacherShell } from '@/ui/components/teacher-shell/TeacherShell'
 import { useTeacherContext } from '@/ui/components/teacher-shell/useTeacherContext'
 import { teacherUser } from './teacherHomeExamples'
-import { kbBuildSteps, kbFailureStep } from './teacherKbExamples'
+import { kbBuildSteps, kbFailureStep, kbSampleTopicId } from './teacherKbExamples'
 import { formatPdfSize, useTeacherKbUploadViewModel } from './useTeacherKbUploadViewModel'
 import type { StepState } from './useTeacherKbUploadViewModel'
 import styles from './TeacherKbUpload.module.css'
@@ -84,7 +85,7 @@ function UploadForm() {
         <div className={styles.actions}>{view.phase === 'failed'
           ? <><Button onClick={view.retry}>Coba lagi</Button><Button tone="secondary" onClick={view.back}>Ubah materi</Button></>
           : view.phase === 'done'
-            ? <><Button disabled title="Tinjauan draf belum tersedia di pratinjau">Tinjau draf</Button><Button tone="secondary" onClick={view.back}>Ubah materi</Button></>
+            ? <><ButtonLink to={`/review/teacher/knowledge-base/${kbSampleTopicId}`}>Tinjau draf</ButtonLink><Button tone="secondary" onClick={view.back}>Ubah materi</Button></>
             : <Button type="submit" pending={running} pendingLabel="Sedang menyusun…">Mulai menyusun (simulasi)</Button>}</div>
       </section>
     </form>

@@ -28,6 +28,8 @@ export function AdultShell({ children, search = '', onSearch, schoolContext }: {
     <NavLink to={`${base}/cp-versions`} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="book" /><span>Capaian Pembelajaran</span></NavLink>
   </nav>
 
+  // Signing out must stay reachable wherever the sidebar is not: on a phone the navigation lives in the drawer.
+  const exitLabel = 'Keluar dari pratinjau'
   return <div className={styles.shell}>
     <a className={styles.skipLink} href="#platform-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>
@@ -36,7 +38,7 @@ export function AdultShell({ children, search = '', onSearch, schoolContext }: {
       {navigation}
       <div className={styles.sidebarSpacer} />
       {!schoolContext && <p className={styles.scopeNote}>Anda hanya melihat data sekolah. Sesi, transkrip, dan hasil siswa tidak dapat diakses dari sini.</p>}
-      <Link to="/login" className={styles.exit} aria-label="Keluar dari pratinjau"><Icon name="logout" /><span>Keluar</span></Link>
+      <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label={exitLabel}><Icon name="logout" /><span>Keluar</span></Link>
       {schoolContext && <div className={styles.schoolContext}><span className={styles.avatar}>HS</span><span><strong>{schoolContext.admin}</strong><small>Operator sekolah · contoh</small></span></div>}
     </aside>
     <div className={styles.workspace}>
@@ -49,6 +51,9 @@ export function AdultShell({ children, search = '', onSearch, schoolContext }: {
       </header>
       <main ref={contentRef} className={styles.main} id="platform-content" tabIndex={-1}>{children}</main>
     </div>
-    <Dialog open={drawerOpen} onClose={() => setDrawerOpen(false)} title={schoolContext ? 'Admin sekolah' : 'Admin platform'} description={schoolContext ? `${schoolContext.name} · ${schoolContext.year}` : 'Pilih halaman administrasi.'} presentation="drawer">{navigation}</Dialog>
+    <Dialog open={drawerOpen} onClose={() => setDrawerOpen(false)} title={schoolContext ? 'Admin sekolah' : 'Admin platform'} description={schoolContext ? `${schoolContext.name} · ${schoolContext.year}` : 'Pilih halaman administrasi.'} presentation="drawer">
+      {navigation}
+      <Link to="/login" state={{ signOut: true }} className={[styles.exit, styles.drawerExit].join(' ')} aria-label={exitLabel} onClick={() => setDrawerOpen(false)}><Icon name="logout" /><span>Keluar</span></Link>
+    </Dialog>
   </div>
 }

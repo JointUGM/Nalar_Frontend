@@ -11,9 +11,9 @@ const me = {
   is_parent: true, is_platform_admin: false,
 }
 
-function reader(fetch: typeof globalThis.fetch, token: string | null = 'test-access-token') {
+function reader(fetch: typeof globalThis.fetch) {
   return new GetCurrentIdentityUseCase(new HttpIdentityRepository({
-    apiBaseUrl: 'https://api.nalar.test/api/v1/', getAccessToken: async () => token, fetch,
+    apiBaseUrl: 'https://api.nalar.test/api/v1/', fetch,
   }))
 }
 
@@ -22,9 +22,9 @@ describe('Current identity HTTP boundary', () => {
     const identity = await reader(async (input, init) => {
       expect(String(input)).toBe('https://api.nalar.test/api/v1/me')
       expect(init?.method).toBe('GET')
-      expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer test-access-token')
+      expect(new Headers(init?.headers).has('Authorization')).toBe(false)
       expect(init?.cache).toBe('no-store')
-      expect(init?.credentials).toBe('omit')
+      expect(init?.credentials).toBe('include')
       return Response.json({ ...me, reports: ['private report'], roles: me.roles.map((role) => ({ ...role, answers: ['private answer'] })) })
     }).execute()
     expect(identity).toEqual({
@@ -51,8 +51,8 @@ describe('Current identity HTTP boundary', () => {
     expect(identity.isPlatformAdmin).toBe(true)
   })
 
-  it('does not send a request without an access token', async () => {
-    await expect(reader(async () => { throw new Error('API must not be contacted') }, null).execute()).rejects.toMatchObject({ code: 'unauthenticated' })
+  it('rejects requests without a server session', async () => {
+    await expect(reader(async () => new Response(null, { status: 401 })).execute()).rejects.toMatchObject({ code: 'unauthenticated' })
   })
 
   it.each([

@@ -35,8 +35,8 @@ const accountEntry = createElement(lazy(async () => {
 
 const privateEntry = createElement(lazy(async () => {
   try {
-    const [created, { ProtectedRole }] = await Promise.all([getDependencies(), import('./ui/pages/account/ProtectedRole')])
-    return { default: () => <ProtectedRole dependencies={created.account} /> }
+    const [created, { ProtectedRole }, { LiveRoutes }, dev] = await Promise.all([getDependencies(), import('./ui/pages/account/ProtectedRole'), import('./ui/pages/live/LiveRoutes'), import.meta.env.DEV ? import('./ui/devDashboards') : null])
+    return { default: () => <ProtectedRole dependencies={created.account} dashboardFor={dev?.devDashboardPath} renderRole={(identity, path) => created.live && /^\/(student|teacher)\//.test(path) ? <LiveRoutes service={created.live} identity={identity} /> : null} /> }
   } catch {
     return { default: AccountLoadFailure }
   }
@@ -44,7 +44,7 @@ const privateEntry = createElement(lazy(async () => {
 
 if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('preview') === 'foundation') {
   void import('./ui/pages/foundation-preview/FoundationPreview').then(({ FoundationPreview }) => render(<FoundationPreview />))
-} else if (import.meta.env.DEV && window.location.pathname.startsWith('/review/')) {
+} else if (import.meta.env.DEV) {
   void Promise.all([import('./review-di'), import('./ui/ReviewRoutes')]).then(([{ createReviewDependencies }, { ReviewRoutes }]) => {
     render(<BrowserRouter><DependenciesProvider value={createReviewDependencies()}><ReviewRoutes accountEntry={accountEntry} privateEntry={privateEntry} /></DependenciesProvider></BrowserRouter>)
   })

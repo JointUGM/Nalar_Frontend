@@ -8,16 +8,16 @@ import type { IconName } from '@/ui/components/icon/Icon'
 import { useTeacherContext } from './useTeacherContext'
 import styles from './TeacherShell.module.css'
 
-interface NavItem { label: string; icon: IconName; to?: string; badge?: string }
+interface NavItem { label: string; icon: IconName; to?: string; badge?: string; /** Paths under `to` that belong to a sibling item instead. */ exclude?: RegExp }
 
 const workspace: readonly NavItem[] = [
   { label: 'Beranda', icon: 'home', to: '/review/teacher/home' },
-  { label: 'Kelas', icon: 'users' },
-  { label: 'Misi', icon: 'target', to: '/review/teacher/missions' },
+  { label: 'Kelas', icon: 'users', to: '/review/teacher/classes' },
+  { label: 'Misi', icon: 'target', to: '/review/teacher/missions', exclude: /\/(monitor|class-map)(\/|$)/ },
   { label: 'Basis pengetahuan', icon: 'layers', to: '/review/teacher/knowledge-base' },
-  { label: 'Sesi langsung', icon: 'monitor' },
-  { label: 'Hasil kelas', icon: 'graph' },
-  { label: 'Perlu perhatian', icon: 'alert', badge: '5 baru' },
+  { label: 'Sesi langsung', icon: 'monitor', to: '/review/teacher/missions/kenapa-kelereng-berhenti/monitor?kelas=8B' },
+  { label: 'Hasil kelas', icon: 'graph', to: '/review/teacher/missions/kenapa-kelereng-berhenti/class-map?kelas=8B' },
+  { label: 'Perlu perhatian', icon: 'alert', to: '/review/teacher/attention', badge: '5 baru' },
 ]
 const more: readonly NavItem[] = [{ label: 'Ubah kata sandi', icon: 'key' }, { label: 'Bantuan', icon: 'info' }]
 const unavailable = 'Belum tersedia di pratinjau'
@@ -34,7 +34,7 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
   const close = () => setDrawerOpen(false)
   const initials = user.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
   const item = (entry: NavItem) => entry.to
-    ? <NavLink key={entry.label} to={entry.to} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span></NavLink>
+    ? <NavLink key={entry.label} to={entry.to} end={entry.exclude?.test(location.pathname)} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</NavLink>
     : <button key={entry.label} type="button" disabled title={unavailable}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</button>
   const navigation = <>
     <p className={styles.group}>Ruang kerja</p>
@@ -46,6 +46,8 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
       {more.map(item)}
     </nav>
   </>
+  // On a phone the sidebar is hidden, so signing out has to live in the drawer too.
+  const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label="Keluar dari pratinjau" onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
   return <div className={styles.shell} data-collapsed={collapsed}>
     <a className={styles.skipLink} href="#teacher-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>
@@ -58,7 +60,7 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
       <div className={styles.user}>
         <span className={styles.avatar} aria-hidden="true">{initials}</span>
         <span className={[styles.who, styles.label].join(' ')}><strong>{user}</strong><small>{school}</small></span>
-        <Link to="/login" className={styles.exit} aria-label="Keluar dari pratinjau"><Icon name="logout" size={16} /></Link>
+        <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label="Keluar dari pratinjau"><Icon name="logout" size={16} /></Link>
       </div>
     </aside>
     <div className={styles.workspace}>
@@ -73,6 +75,6 @@ export function TeacherShell({ title, user, children }: { title: string; user: s
       </header>
       <main ref={contentRef} className={styles.main} id="teacher-content" tabIndex={-1}>{children}</main>
     </div>
-    <Dialog open={drawerOpen} onClose={close} title="Ruang kerja guru" description={`${user} · ${school}`} presentation="drawer"><div className={styles.drawerNav}>{navigation}</div></Dialog>
+    <Dialog open={drawerOpen} onClose={close} title="Ruang kerja guru" description={`${user} · ${school}`} presentation="drawer"><div className={styles.drawerNav}>{navigation}{signOut}</div></Dialog>
   </div>
 }

@@ -1,4 +1,4 @@
-import { sparklinePoints } from './teacherHomeExamples'
+import { sparklinePoints } from './sparklinePoints'
 
 export function Sparkline({ trend, label }: { trend: readonly number[]; label: string }) {
   const { points, lastY } = sparklinePoints(trend)
