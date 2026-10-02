@@ -78,3 +78,8 @@
 .shell[data-collapsed='true'] .sidebar .kids button { justify-content: center; padding-inline: 0; }
 @media (min-width: 768px) and (max-width: 1023px) { .sidebar .kids button { justify-content: center; padding-inline: 0; } .sidebar .noKids { display: none; } }
 .shell[data-collapsed='true'] .sidebar .noKids { display: none; }
+@media print {
+  .sidebar, .topbar, .skipLink { display: none; }
+  .shell { display: block; }
+  .main { padding: 0; }
+}
