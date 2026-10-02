@@ -7,9 +7,10 @@ export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   help?: ReactNode
   error?: string
   variant?: 'adult' | 'student'
+  endAdornment?: ReactNode
 }
 
-export function Field({ label, help, error, variant = 'adult', id, className, 'aria-describedby': describedBy, 'aria-invalid': invalid, ...props }: FieldProps) {
+export function Field({ label, help, error, variant = 'adult', endAdornment, id, className, 'aria-describedby': describedBy, 'aria-invalid': invalid, ...props }: FieldProps) {
   const generatedId = useId()
   const inputId = id ?? `field-${generatedId}`
   const helpId = `${inputId}-help`
@@ -19,13 +20,16 @@ export function Field({ label, help, error, variant = 'adult', id, className, 'a
   return (
     <div className={[styles.field, styles[variant]].join(' ')}>
       <label className={styles.label} htmlFor={inputId}>{label}{props.required && <span aria-hidden="true"> *</span>}</label>
-      <input
-        {...props}
-        id={inputId}
-        className={[styles.input, className].filter(Boolean).join(' ')}
-        aria-describedby={descriptions || undefined}
-        aria-invalid={error ? true : invalid}
-      />
+      <div className={styles.inputContainer}>
+        <input
+          {...props}
+          id={inputId}
+          className={[styles.input, endAdornment ? styles.hasEndAdornment : '', className].filter(Boolean).join(' ')}
+          aria-describedby={descriptions || undefined}
+          aria-invalid={error ? true : invalid}
+        />
+        {endAdornment && <div className={styles.endAdornment} aria-hidden="true">{endAdornment}</div>}
+      </div>
       {help && <p id={helpId} className={styles.help}>{help}</p>}
       {error && <p id={errorId} className={styles.error}>{error}</p>}
     </div>

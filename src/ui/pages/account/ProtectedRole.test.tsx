@@ -143,6 +143,20 @@ describe('production identity and route boundary', () => {
     expect(await screen.findByRole('heading', { name: 'Halaman peran belum tersedia' })).toBeInTheDocument()
   })
 
+  it('renders a student dashboard for an authorized student route', async () => {
+    const access = createAccess()
+    access.identityRead.mockResolvedValue({
+      userId: session.userId,
+      fullName: 'Ayu',
+      isParent: false,
+      isPlatformAdmin: false,
+      memberships: [{ role: 'student', schoolId: '00000000-0000-4000-8000-000000000002', schoolName: 'Sekolah A' }],
+    })
+    route(access.dependencies, '/student/00000000-0000-4000-8000-000000000002')
+    expect(await screen.findByRole('heading', { name: 'Misi hari ini' })).toBeInTheDocument()
+    expect(screen.getByText('Ada ruang untuk alasanmu.')).toBeInTheDocument()
+  })
+
   it('denies an unrelated school role despite a valid local Auth session', async () => {
     const access = createAccess()
     route(access.dependencies, '/school/00000000-0000-4000-8000-000000000002/people')

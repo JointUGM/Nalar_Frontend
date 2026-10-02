@@ -1,0 +1,96 @@
+.page {
+  min-block-size: 100vh;
+  padding: var(--space-6) var(--space-4) var(--space-8);
+  background: linear-gradient(180deg, var(--color-surface-alt) 0%, var(--color-surface) 100%);
+  color: var(--color-ink);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-inline-size: 72rem;
+  margin: 0 auto var(--space-6);
+}
+
+.brand {
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+}
+
+.shell {
+  display: grid;
+  gap: var(--space-6);
+  max-inline-size: 72rem;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--color-paper);
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-student-card);
+  padding: var(--space-5) clamp(var(--space-4), 3vw, var(--space-6));
+  box-shadow: var(--shadow-student);
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-3);
+  color: var(--color-primary-ink);
+  font-size: var(--font-size-meta);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card h1,
+.card h2 {
+  margin: 0;
+  color: var(--color-ink);
+}
+
+.card h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+}
+
+.card h2 {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+}
+
+.lead {
+  margin: var(--space-4) 0 0;
+  color: var(--color-ink);
+  font-family: var(--font-reading);
+  font-size: var(--font-size-student-body);
+  line-height: 1.6;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-start: var(--space-5);
+}
+
+.prompt {
+  margin: var(--space-4) 0 var(--space-5);
+  color: var(--color-ink);
+  font-family: var(--font-reading);
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  line-height: 1.6;
+  max-inline-size: 62ch;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block: var(--space-5);
+}
+
+@media (min-width: 768px) {
+  .shell {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+}

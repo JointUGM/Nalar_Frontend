@@ -55,8 +55,11 @@ export function PlatformSchools() {
           </tr>{menu === school.id && <tr><td className={styles.rowActions} colSpan={5}><Button tone="secondary" className={styles.pillButton} onClick={() => { setModal({ kind: 'replace', school }) }}><Icon name="swap" size={14} />Ganti admin sekolah</Button><Button tone="secondary" className={styles.suspendButton} onClick={() => { setModal({ kind: 'suspend', school }) }}><Icon name="pause" size={14} />{school.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'}</Button></td></tr>}</Fragment>)}</tbody>
         </table></div> : <div className={styles.empty}><p>{query ? 'Tidak ada sekolah yang cocok dengan pencarian ini.' : 'Belum ada sekolah yang tersedia.'}</p>{query && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.delete('q'); next.delete('cursor'); setParams(next, { replace: true }) }}>Hapus pencarian</Button>}</div>}
         <nav className={styles.pagination} aria-label="Halaman sekolah">
-          {cursor && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.delete('cursor'); setParams(next) }}>Kembali ke awal</Button>}
-          {nextCursor && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.set('cursor', nextCursor); setParams(next) }}>Halaman berikutnya</Button>}
+          <span className={styles.paginationInfo}>Menampilkan {schools.length} sekolah pada halaman ini</span>
+          <div className={styles.paginationButtons}>
+            {cursor && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.delete('cursor'); setParams(next) }}>Kembali ke awal</Button>}
+            {nextCursor && <Button tone="secondary" onClick={() => { const next = new URLSearchParams(params); next.set('cursor', nextCursor); setParams(next) }}>Halaman berikutnya</Button>}
+          </div>
         </nav>
       </>}
     </div>
