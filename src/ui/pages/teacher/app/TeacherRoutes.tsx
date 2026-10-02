@@ -8,6 +8,8 @@ import { TeacherClassMapPage } from './TeacherClassMapPage'
 import { TeacherKbDetailPage } from './TeacherKbDetailPage'
 import { TeacherKbListPage } from './TeacherKbListPage'
 import { TeacherKbUploadPage } from './TeacherKbUploadPage'
+import { TeacherMissionNewPage } from './TeacherMissionNewPage'
+import { TeacherMissionPage } from './TeacherMissionPage'
 import { TeacherMissionsPage } from './TeacherMissionsPage'
 import { TeacherPublishPage } from './TeacherPublishPage'
 import { TeacherReleasePage } from './TeacherReleasePage'
@@ -35,6 +37,8 @@ export function TeacherRoutes({ service, kb, identity }: { service: TeacherServi
         <Route path=":schoolId/publications/:publicationId/class-map" element={<TeacherClassMapPage service={service} base={base} />} />
         <Route path=":schoolId/publications/:publicationId/release" element={<TeacherReleasePage service={service} base={base} />} />
         <Route path=":schoolId/missions" element={<TeacherMissionsPage service={service} base={base} schoolId={schoolId} />} />
+        <Route path=":schoolId/missions/new" element={<TeacherMissionNewPage service={service} kb={kb} base={base} schoolId={schoolId} />} />
+        <Route path=":schoolId/missions/:missionId" element={<TeacherMissionPage service={service} kb={kb} base={base} schoolId={schoolId} />} />
         <Route path=":schoolId/missions/:missionId/publish" element={<TeacherPublishPage service={service} base={base} schoolId={schoolId} />} />
         <Route path=":schoolId/knowledge-base" element={<TeacherKbListPage kb={kb} base={base} schoolId={schoolId} />} />
         <Route path=":schoolId/knowledge-base/upload" element={<TeacherKbUploadPage kb={kb} teacher={service} base={base} schoolId={schoolId} />} />

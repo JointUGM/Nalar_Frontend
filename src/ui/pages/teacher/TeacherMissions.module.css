@@ -26,3 +26,4 @@
 .bar { block-size: 44px; inline-size: min(100%, 420px); border-radius: 8px; background: var(--color-surface-muted); }
 .block { block-size: 120px; border-radius: 14px; background: var(--color-surface-muted); }
 .hidden { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+.name { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }

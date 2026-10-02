@@ -61,6 +61,13 @@ const kbDetail = (conceptStatus = 'pending', can_edit = true) => ({
 })
 const sections = { items: [{ id: section, material_id: school, parent_section_id: null, title: 'Bab 1 Tekanan', level: 1, ordinal: 1, page_start: 1, page_end: 20, suggested: true, build_status: 'pending', built_at: null }] }
 const jobOut = (extra: Record<string, unknown> = {}) => ({ id: job, kind: 'kb_detect_sections', status: 'succeeded', entity_type: 'materials', entity_id: school, error_code: null, updated_at: '2026-10-02T03:00:00+00:00', ...extra })
+const levels = ['Tidak ada', 'Awal', 'Sebagian', 'Jelas', 'Lengkap']
+const versionOut = (extra: Record<string, unknown> = {}) => ({
+  id: draft, version_number: 1, status: 'draft', can_edit: true, anchor_problem: 'Kenapa kelereng melambat?', reference_reasoning: 'Gaya gesek memperlambat kelereng.',
+  rubric: { claim: levels, evidence: levels, mechanism: levels, transfer: levels }, target_concept_ids: [concept], misconception_ids: [misconception], source_chunk_ids: [],
+  question_bank: [{ id: 'q1', concept_id: concept, misconception_id: null, move: 'request_justification', text: 'Mengapa menurutmu begitu?' }], answer_terms: ['gaya gesek'], live_warmup: null, max_turns: 6, max_duration_minutes: 20, ...extra,
+})
+const kbList = { items: [{ id: kbId, topic_key: 'tekanan-zat', topic_title: 'Tekanan Zat', school_subject_id: school, owner_teacher_id: school, material_count: 1, built_section_count: 1, pending_count: 0, approved_concept_count: 2, can_edit: true }], next_cursor: null }
 
 type Reply = () => Response
 function backend(overrides: Record<string, Reply> = {}) {
@@ -74,6 +81,8 @@ function backend(overrides: Record<string, Reply> = {}) {
     [`GET /knowledge-bases/${kbId}/sections`]: () => Response.json(sections),
     [`GET /knowledge-bases/${kbId}/review-queue`]: () => Response.json({ knowledge_base_id: kbId, pending_concepts: 1, pending_misconceptions: 1 }),
     [`GET /jobs/${job}`]: () => Response.json(jobOut()),
+    [`GET /schools/${school}/knowledge-bases?limit=100`]: () => Response.json(kbList),
+    [`GET /missions/${draft}/versions/1`]: () => Response.json(versionOut()),
     'POST /publications': () => Response.json({ publication_id: publication, run_id: school, run_status: 'scheduled' }, { status: 201 }),
     ...overrides,
   }
@@ -137,7 +146,7 @@ describe('signed-in teacher pages', () => {
     open(`${base}/missions`, backend())
     const ready = within(await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?' }))
     expect(ready.getByRole('link', { name: 'Terbitkan ke kelas' })).toHaveAttribute('href', `${base}/missions/${mission}/publish`)
-    expect(within(screen.getByRole('listitem', { name: 'Tekanan Zat' })).queryByRole('link')).not.toBeInTheDocument()
+    expect(within(screen.getByRole('listitem', { name: 'Tekanan Zat' })).queryByRole('link', { name: 'Terbitkan ke kelas' })).not.toBeInTheDocument()
   })
 
   it('publishes a live session to the chosen class once, only after a class is picked and the lock is confirmed', async () => {
@@ -218,5 +227,50 @@ describe('signed-in teacher pages', () => {
     await screen.findByText(/milik rekan guru/)
     for (const name of ['Setujui', 'Tolak', 'Edit', 'Susun Bab 1 Tekanan']) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
     expect(screen.queryByLabelText(/Tambah materi/)).not.toBeInTheDocument()
+  })
+
+  it('creates a mission once, asks for its draft and opens the generated version', async () => {
+    const request = backend({
+      'POST /missions': () => Response.json({ mission_id: draft }, { status: 201 }),
+      [`POST /missions/${draft}/generate`]: () => Response.json({ job_id: job, status: 'queued' }, { status: 202 }),
+      [`GET /jobs/${job}`]: () => Response.json(jobOut({ kind: 'mission_generate', generation_result: { version_id: draft, version_number: 1, ungrounded_concept_ids: [] } })),
+    })
+    open(`${base}/missions/new`, request)
+    await screen.findByRole('option', { name: /Tekanan Zat/ })
+    fireEvent.change(screen.getByLabelText(/Judul misi/), { target: { value: ' Tekanan Zat ' } })
+    fireEvent.change(screen.getByLabelText(/Tujuan pembelajaran/), { target: { value: 'Siswa menjelaskan tekanan hidrostatis.' } })
+    const create = screen.getByRole('button', { name: 'Buat misi' })
+    fireEvent.click(create)
+    fireEvent.click(create)
+    expect(await screen.findByText('Draf misi selesai disusun')).toBeInTheDocument()
+    expect(await screen.findByText('Kenapa kelereng melambat?')).toBeInTheDocument()
+    const posts = request.mock.calls.filter(([, init]) => init?.method === 'POST')
+    expect(posts.map(([url]) => String(url))).toEqual(['/api/v1/missions', `/api/v1/missions/${draft}/generate`])
+    expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ knowledge_base_id: kbId, title: 'Tekanan Zat', learning_objective: 'Siswa menjelaskan tekanan hidrostatis.' })
+  })
+
+  it('saves an edit as a new version that carries the rest of the draft over', async () => {
+    const request = backend({
+      [`POST /missions/${draft}/versions`]: () => Response.json({ version_id: version, version_number: 2, status: 'draft' }, { status: 201 }),
+      [`GET /missions/${draft}/versions/2`]: () => Response.json(versionOut({ id: version, version_number: 2, anchor_problem: 'Kenapa bola melambat?' })),
+    })
+    open(`${base}/missions/${draft}`, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit soal dan acuan' }))
+    fireEvent.change(screen.getByLabelText(/Soal pembuka ·/), { target: { value: ' Kenapa bola melambat? ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Simpan sebagai versi baru' }))
+    await screen.findByText(/Anda melihat versi 2/)
+    const body = JSON.parse(String(request.mock.calls.find(([, init]) => init?.method === 'POST')![1]?.body))
+    expect(body).toMatchObject({ base_version_id: draft, anchor_problem: 'Kenapa bola melambat?', reference_reasoning: 'Gaya gesek memperlambat kelereng.', target_concept_ids: [concept], misconception_ids: [misconception], max_turns: 6, max_duration_minutes: 20 })
+    expect(body.question_bank).toEqual(versionOut().question_bank)
+  })
+
+  it('says which rules a draft breaks when it cannot be marked as reviewed', async () => {
+    open(`${base}/missions/${draft}`, backend({
+      [`POST /missions/${draft}/versions/1/review`]: () => Response.json({ error: { code: 'MISSION_VERSION_INVALID', message: 'rahasia', details: { problems: [{ code: 'ITEM_NOT_APPROVED', detail: concept }] } }, request_id: 'r' }, { status: 422 }),
+    }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Tandai sudah ditinjau' }))
+    expect(await screen.findByText('Versi ini belum bisa dipakai.')).toBeInTheDocument()
+    expect(screen.getByText(/belum disetujui di basis pengetahuan/)).toBeInTheDocument()
+    expect(screen.queryByText('rahasia')).not.toBeInTheDocument()
   })
 })
