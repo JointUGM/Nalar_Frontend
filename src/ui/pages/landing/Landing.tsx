@@ -1,477 +1,889 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
-import nalaAsk from '@/ui/assets/nala-ask.svg'
-import { useEffect, useRef, useState } from 'react'
+import { NalaMascot, type MascotPose } from '@/ui/components/mascot/NalaMascot'
 import styles from './Landing.module.css'
 
-/* ─────────────────────────────────────────────
-   Scroll-reveal hook
-   Gracefully falls back to visible=true when
-   IntersectionObserver is unavailable (jsdom).
-───────────────────────────────────────────── */
-function useInView(threshold = 0.12) {
-  const ref = useRef<HTMLElement>(null)
-  // When IntersectionObserver is unavailable (jsdom/SSR) start visible so content
-  // renders immediately and tests pass without needing a polyfill.
-  const [visible, setVisible] = useState(() => typeof IntersectionObserver === 'undefined')
-
-  useEffect(() => {
-    if (visible) return          // already visible — nothing to observe
-    const el = ref.current
-    if (!el) return
-
-    const io = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); io.disconnect() } },
-      { threshold },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [threshold, visible])
-
-  return { ref, visible }
+/* ─────────────────────────────────────────────────────────
+   Simulated Socratic Dialog Data across multiple subjects
+   ───────────────────────────────────────────────────────── */
+interface DialogTurn {
+  speaker: 'nala' | 'siswa'
+  text: string
+  mascotPose?: MascotPose
 }
 
-/* ─────────────────────────────────────────────
-   Reusable animated wrappers
-───────────────────────────────────────────── */
-type AnimProps = {
-  children: React.ReactNode
-  className?: string
-  delay?: number
-  id?: string
+const DIALOG_SUBJECTS: Record<string, { label: string; topic: string; turns: DialogTurn[] }> = {
+  fisika: {
+    label: 'Fisika · Gaya & Gerak',
+    topic: 'Hukum Newton I',
+    turns: [
+      {
+        speaker: 'nala',
+        text: 'Kamu bilang dorongannya habis ketika kelereng berhenti di lantai. Kenapa pesawat antariksa tetap melaju kencang meski mesinnya sudah dimatikan?',
+        mascotPose: 'asking',
+      },
+      {
+        speaker: 'siswa',
+        text: 'Hmm, di luar angkasa tidak ada udara. Mungkin bukan dorongannya yang habis, tapi ada sesuatu di lantai atau udara yang melawan gerak kelereng?',
+      },
+      {
+        speaker: 'nala',
+        text: 'Menarik! Apa nama "sesuatu yang melawan" itu, dan bagaimana cara kerjanya pada permukaan yang berbeda?',
+        mascotPose: 'thinking',
+      },
+      {
+        speaker: 'siswa',
+        text: 'Gaya gesek! Di lantai halus dia lebih kecil makanya kelereng menggelinding lebih jauh.',
+      },
+      {
+        speaker: 'nala',
+        text: 'Hebat! Jadi jika tidak ada gesekan sama sekali di alam semesta, apa yang akan terjadi pada benda yang sedang bergerak?',
+        mascotPose: 'proud',
+      },
+    ],
+  },
+  biologi: {
+    label: 'Biologi · Ekosistem',
+    topic: 'Aliran Energi Tumbuhan',
+    turns: [
+      {
+        speaker: 'nala',
+        text: 'Kamu menyebut tanaman mendapat makanan langsung dari dalam tanah. Mengapa tanaman di dalam ruangan tertutup tanpa cahaya tetap mati meski tanahnya selalu disiram pupuk?',
+        mascotPose: 'asking',
+      },
+      {
+        speaker: 'siswa',
+        text: 'Karena tanaman butuh sinar matahari buat fotosintesis untuk memasak makanannya sendiri.',
+      },
+      {
+        speaker: 'nala',
+        text: 'Tepat sekali. Berarti apa perbedaan mendasar antara "unsur hara dari tanah" dan "makanan hasil fotosintesis"?',
+        mascotPose: 'thinking',
+      },
+      {
+        speaker: 'siswa',
+        text: 'Air dan hara itu bahan bakunya, sedangkan makanan utamanya glukosa yang dihasilkan daun pakai energi cahaya!',
+      },
+    ],
+  },
+  matematika: {
+    label: 'Matematika · Pola Bilangan',
+    topic: 'Pertumbuhan Eksponensial',
+    turns: [
+      {
+        speaker: 'nala',
+        text: 'Jika selembar kertas dilipat dua kali menjadi 4 lapisan, berapa lapisan yang terbentuk setelah 6 kali lipatan? Apakah cukup dikalikan 6?',
+        mascotPose: 'asking',
+      },
+      {
+        speaker: 'siswa',
+        text: 'Bukan dikali 6! Setiap lipatan menggandakan yang sebelumnya: 1, 2, 4, 8, 16, 32, jadi 64 lapisan!',
+      },
+      {
+        speaker: 'nala',
+        text: 'Luar biasa! Mengapa pelipatgandaan ini tumbuh jauh lebih cepat dibanding penjumlahan biasa?',
+        mascotPose: 'proud',
+      },
+    ],
+  },
 }
 
-function FadeSection({ children, className = '', delay = 0, id }: AnimProps) {
-  const { ref, visible } = useInView()
-  return (
-    <section
-      ref={ref as React.RefObject<HTMLElement>}
-      id={id}
-      className={`${styles.fadeBlock} ${visible ? styles.fadeVisible : ''} ${className}`}
-      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
-    >
-      {children}
-    </section>
-  )
-}
-
-function FadeArticle({ children, className = '', delay = 0 }: Omit<AnimProps, 'id'>) {
-  const { ref, visible } = useInView()
-  return (
-    <article
-      ref={ref as React.RefObject<HTMLElement>}
-      className={`${styles.fadeBlock} ${visible ? styles.fadeVisible : ''} ${className}`}
-      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
-    >
-      {children}
-    </article>
-  )
-}
-
-/* ─────────────────────────────────────────────
-   Stat counter card
-───────────────────────────────────────────── */
-function StatCard({ value, label, sub, delay }: { value: string; label: string; sub: string; delay: number }) {
-  const { ref, visible } = useInView()
-  return (
-    <div
-      ref={ref as React.RefObject<HTMLDivElement>}
-      className={`${styles.statCard} ${visible ? styles.statVisible : ''}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      <span className={styles.statValue}>{value}</span>
-      <span className={styles.statLabel}>{label}</span>
-      <span className={styles.statSub}>{sub}</span>
-    </div>
-  )
-}
-
-/* ─────────────────────────────────────────────
-   Live dialog replay
-───────────────────────────────────────────── */
-const DIALOG_TURNS = [
-  { speaker: 'nala' as const, text: 'Kamu bilang dorongannya hilang ketika kelereng berhenti. Kenapa pesawat luar angkasa tetap melaju setelah mesinnya dimatikan?' },
-  { speaker: 'siswa' as const, text: 'Hmm, di luar angkasa tidak ada udara yang menahan. Mungkin bukan dorongannya yang habis, tapi ada sesuatu yang melawan kalau di bumi?' },
-  { speaker: 'nala' as const, text: 'Menarik! Apa nama "sesuatu yang melawan" itu, dan dari mana asalnya?' },
-  { speaker: 'siswa' as const, text: 'Mungkin… gesekan? Dari udara dan lantai? Tanpa itu, benda terus bergerak?' },
+/* ─────────────────────────────────────────────────────────
+   The 4 Core Cards (Directly matching the reference layout)
+   ───────────────────────────────────────────────────────── */
+const CORE_FEATURE_CARDS = [
+  {
+    id: 'guru',
+    title: 'Kontrol Penuh Guru',
+    desc: 'Sistem menghitung, AI menafsirkan, guru yang memutuskan. Ubah skor kapan saja dengan catatan alasan tersimpan aman.',
+    bubbleClass: styles.bubbleBlue,
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <path d="m9 12 2 2 4-4" />
+      </svg>
+    ),
+    mascotPose: 'teacher' as MascotPose,
+    linkTarget: '#guru',
+  },
+  {
+    id: 'bukti',
+    title: 'Skor Berbasis Bukti',
+    desc: 'Setiap indikator penalaran merujuk langsung ke kalimat dialog siswa, tanpa tebakan dan tanpa halusinasi AI.',
+    bubbleClass: styles.bubbleAmber,
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
+      </svg>
+    ),
+    mascotPose: 'thinking' as MascotPose,
+    linkTarget: '#guru',
+  },
+  {
+    id: 'dialog',
+    title: 'Dialog Sokratik Alami',
+    desc: 'Nala memandu lewat 4–6 pertanyaan lanjutan. Tidak pernah memberi tahu benar atau salah, hanya memancing alasan.',
+    bubbleClass: styles.bubbleGreen,
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        <line x1="9" y1="10" x2="9.01" y2="10" />
+        <line x1="12" y1="10" x2="12.01" y2="10" />
+        <line x1="15" y1="10" x2="15.01" y2="10" />
+      </svg>
+    ),
+    mascotPose: 'asking' as MascotPose,
+    linkTarget: '#dialog',
+  },
+  {
+    id: 'peta',
+    title: 'Peta Pemahaman Kelas',
+    desc: 'Distribusi cara berpikir 30+ siswa tampak seketika dalam satu layar. Temukan miskonsepsi sebelum jam mengajar berakhir.',
+    bubbleClass: styles.bubbleIndigo,
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      </svg>
+    ),
+    mascotPose: 'waving' as MascotPose,
+    linkTarget: '#peta-kelas',
+  },
 ]
 
-function DialogReplay() {
-  const [count, setCount] = useState(1)
-  const startedRef = useRef(false)
-  const { ref, visible } = useInView(0.25)
-
-  useEffect(() => {
-    if (!visible || startedRef.current) return
-    startedRef.current = true
-
-    let idx = 1
-    const schedule = () => {
-      if (idx >= DIALOG_TURNS.length) return
-      const delay = 1400 + DIALOG_TURNS[idx].text.length * 14
-      setTimeout(() => {
-        idx++
-        setCount(idx)
-        schedule()
-      }, delay)
-    }
-    setTimeout(schedule, 600)
-  }, [visible])
-
-  return (
-    <figure
-      ref={ref as React.RefObject<HTMLElement>}
-      className={styles.dialogBox}
-      aria-label="Contoh percakapan"
-    >
-      <figcaption className={styles.dialogBoxCaption}>
-        <span className={styles.liveDot} aria-hidden="true" />
-        Dialog aktif · Gaya &amp; Gerak
-      </figcaption>
-      <div className={styles.dialogFeed}>
-        {DIALOG_TURNS.slice(0, count).map((t, i) => (
-          <div
-            key={i}
-            className={`${styles.turn} ${t.speaker === 'siswa' ? styles.turnRight : ''} ${i === count - 1 ? styles.turnNew : ''}`}
-          >
-            {t.speaker === 'nala' && (
-              <img src={nalaAsk} width="32" height="33" alt="Nala" className={styles.turnAvatar} />
-            )}
-            <div className={styles.turnBody}>
-              <span className={styles.turnLabel}>
-                {t.speaker === 'nala' ? 'Nala (AI Assessor)' : 'Siswa'}
-              </span>
-              <p className={t.speaker === 'nala' ? styles.bubbleNala : styles.bubbleSiswa}>
-                {t.text}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </figure>
-  )
-}
-
-/* ─────────────────────────────────────────────
-   Static data
-───────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────
+   4 Step Timeline
+   ───────────────────────────────────────────────────────── */
 const STEPS = [
-  { num: '01', title: 'Guru menyiapkan misi',        time: '5 menit',     text: 'Unggah materi dan tujuan pembelajaran. Nala AI menyusun soal pembuka dan bank pertanyaan untuk Anda periksa sebelum tayang.' },
-  { num: '02', title: 'Siswa berdialog',             time: '≤ 15 menit',  text: 'Satu soal pembuka, lalu 4–6 pertanyaan lanjutan. Nala tidak pernah memberi tahu benar atau salah — hanya meminta alasan.' },
-  { num: '03', title: 'Guru membaca peta kelas',     time: '5 menit',     text: 'Jumlah siswa per miskonsepsi dihitung sistem, bukan ditebak AI. Setiap skor menunjuk kalimat siswa yang mendukungnya.' },
-  { num: '04', title: 'Orang tua menerima ringkasan', time: 'Mingguan',   text: 'Setelah guru merilis, orang tua melihat apa yang sudah dipahami anak dan apa yang masih berkembang. Tanpa angka.' },
+  {
+    num: '01',
+    title: 'Guru Menyiapkan Misi',
+    time: '5 Menit',
+    pose: 'teacher' as MascotPose,
+    desc: 'Unggah capaian dan materi ajar. Nala menyusun pemantik dan bank pertanyaan yang wajib disetujui guru sebelum tayang.',
+  },
+  {
+    num: '02',
+    title: 'Siswa Berdialog Sokratik',
+    time: '≤ 15 Menit',
+    pose: 'asking' as MascotPose,
+    desc: 'Satu soal pembuka, lalu 4–6 pertanyaan adaptif. Nala tidak pernah memberi nilai angka atau bocoran jawaban.',
+  },
+  {
+    num: '03',
+    title: 'Guru Membaca Peta Kelas',
+    time: 'Seketika',
+    pose: 'thinking' as MascotPose,
+    desc: 'Sistem menghitung sebaran miskonsepsi secara deterministik. Setiap skor menunjukkan kalimat verbatim siswa.',
+  },
+  {
+    num: '04',
+    title: 'Orang Tua Menerima Narasi',
+    time: 'Mingguan',
+    pose: 'calm' as MascotPose,
+    desc: 'Setelah guru menyetujui, orang tua menerima ringkasan pemahaman tanpa ranking dan tanpa tekanan angka.',
+  },
 ]
 
-const TEACHER_CARDS = [
-  { icon: '📌', title: 'Skor dengan bukti',            text: 'Setiap skor rubrik mengutip giliran dialog yang mendukungnya, bukan tebakan AI.' },
-  { icon: '✏️', title: 'Anda bisa mengubah skor',      text: 'Skor orisinal AI tetap tersimpan bersama alasan perubahan Anda.' },
-  { icon: '🔍', title: 'Catatan "perlu verifikasi"',   text: 'Tempel teks besar, pindah tab, atau jawaban yang runtuh setelah ditanya. Anda yang menilai.' },
+/* ─────────────────────────────────────────────────────────
+   Main Component
+   ───────────────────────────────────────────────────────── */
+const NALA_EXPRESSIONS: { pose: MascotPose; speech: string }[] = [
+  {
+    pose: 'waving',
+    speech: 'Halo! Aku Nala 👋 Siap berdialog?',
+  },
+  {
+    pose: 'thinking',
+    speech: 'Hmm… apa alasan di balik argumenmu? 🤔',
+  },
+  {
+    pose: 'asking',
+    speech: 'Apa yang membuatmu yakin dengan hal itu? ❓',
+  },
+  {
+    pose: 'proud',
+    speech: 'Penalaranmu runtut dan mandiri! 🌟',
+  },
+  {
+    pose: 'calm',
+    speech: 'Tenang, fokus pada alur logikamu ya 🧘',
+  },
 ]
 
-const STATS = [
-  { value: '4–6',  label: 'pertanyaan lanjutan per siswa', sub: 'Disesuaikan dari jawaban sebelumnya' },
-  { value: '30',   label: 'siswa dalam 1 jam pelajaran',   sub: 'Satu sesi, semua terassesment' },
-  { value: '0',    label: 'skor angka untuk siswa',        sub: 'Penilaian tanpa tekanan' },
+const NAV_ITEMS = [
+  { id: 'beranda', label: 'Beranda' },
+  { id: 'cara-kerja', label: 'Cara Kerja' },
+  { id: 'dialog', label: 'Dialog Sokratik' },
+  { id: 'guru', label: 'Untuk Guru' },
+  { id: 'maskot', label: 'Kenalan Nala' },
+  { id: 'faq', label: 'Tanya Jawab' },
 ]
 
-const MAP_COLORS = ['#2447D1', '#2447D1', '#F2B23A', '#DFF1E9', '#2447D1', '#F2B23A']
-
-/* ─────────────────────────────────────────────
-   Landing page
-───────────────────────────────────────────── */
 export function Landing() {
   const [scrolled, setScrolled] = useState(false)
+  const [activeNav, setActiveNav] = useState('beranda')
+  const [expressionIndex, setExpressionIndex] = useState(0)
+  const [activeSubject, setActiveSubject] = useState<'fisika' | 'biologi' | 'matematika'>('fisika')
+  const [dialogStep, setDialogStep] = useState(2)
+  const [selectedStudentDot, setSelectedStudentDot] = useState<number | null>(4)
 
+  // Smooth scroll handler with offset for sticky navbar
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault()
+    setActiveNav(targetId)
+    const target = document.getElementById(targetId)
+    if (target) {
+      const navbarHeight = 74
+      const targetTop = target.getBoundingClientRect().top + window.scrollY - navbarHeight
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: 'smooth',
+      })
+      window.history.pushState(null, '', `#${targetId}`)
+    }
+  }
+
+  // Scrollspy to automatically highlight active navbar item on scroll
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    const handleScrollSpy = () => {
+      const scrollY = window.scrollY
+      setScrolled(scrollY > 15)
+
+      const sectionIds = ['beranda', 'cara-kerja', 'dialog', 'guru', 'maskot', 'faq']
+      const navOffset = 140
+
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const el = document.getElementById(sectionIds[i])
+        if (el) {
+          const top = el.offsetTop - navOffset
+          if (scrollY >= top) {
+            setActiveNav(sectionIds[i])
+            break
+          }
+        }
+      }
+    }
+
+    window.addEventListener('scroll', handleScrollSpy, { passive: true })
+    handleScrollSpy()
+    return () => window.removeEventListener('scroll', handleScrollSpy)
   }, [])
+
+  // Otomatis berganti ekspresi Nala setiap 4 detik
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setExpressionIndex((prev) => (prev + 1) % NALA_EXPRESSIONS.length)
+    }, 4000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const currentExpression = NALA_EXPRESSIONS[expressionIndex]
+
+  const handleNextExpression = () => {
+    setExpressionIndex((prev) => (prev + 1) % NALA_EXPRESSIONS.length)
+  }
+
+  const currentSubjectData = DIALOG_SUBJECTS[activeSubject]
 
   return (
     <div className={styles.page}>
-      <a className={styles.skip} href="#konten">Lewati ke konten</a>
+      <a className={styles.skip} href="#konten-utama">
+        Lewati ke konten utama
+      </a>
 
-      {/* ── Navbar ── */}
+      {/* ── TOP NAVIGATION (SEHATIKU-STYLE FLOATING ISLAND MORPH) ── */}
       <header className={`${styles.navbar} ${scrolled ? styles.navbarScrolled : ''}`}>
         <div className={styles.navInner}>
-          <Link to="/" className={styles.navBrand} aria-label="NALAR, beranda">
-            <BrandMark size={22} />
-            <span>nalar</span>
+          <Link
+            to="/"
+            className={styles.navBrand}
+            aria-label="NALAR — beranda"
+            onClick={(e) => scrollToSection(e, 'beranda')}
+          >
+            <BrandMark size={scrolled ? 24 : 26} />
+            <span>
+              nalar<span className={styles.brandDot}>.</span>
+            </span>
           </Link>
 
-          <nav className={styles.navLinks} aria-label="Bagian halaman">
-            <a href="#cara-kerja">Cara kerja</a>
-            <a href="#dialog">Dialog AI</a>
-            <a href="#guru">Untuk guru</a>
-          </nav>
+          <div className={styles.navRightGroup}>
+            <nav className={styles.navLinks} aria-label="Navigasi halaman">
+              {NAV_ITEMS.map((item) => {
+                const isActive = activeNav === item.id
+                return (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
+                    onClick={(e) => scrollToSection(e, item.id)}
+                  >
+                    {item.label}
+                  </a>
+                )
+              })}
+            </nav>
 
-          <Link className={styles.navLogin} to="/login">
-            Masuk
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
-      </header>
-
-      <main id="konten">
-
-        {/* ══ HERO ══════════════════════════════════════ */}
-        <section className={styles.hero} aria-labelledby="h-hero">
-          {/* decorative background */}
-          <div className={styles.heroBg} aria-hidden="true">
-            <div className={styles.blob1} />
-            <div className={styles.blob2} />
-            <div className={styles.blob3} />
-            <div className={styles.grid} />
-          </div>
-
-          <div className={styles.heroText}>
-            {/* live badge */}
-            <div className={styles.heroBadge}>
-              <span className={styles.heroBadgePulse} aria-hidden="true" />
-              <img src={nalaAsk} width="22" height="23" alt="Nala" />
-              Penilaian formatif berbasis dialog AI
-            </div>
-
-            <h1 id="h-hero" className={styles.heroH1}>
-              Ukur cara siswa{' '}
-              <span className={styles.heroHighlight}>
-                berpikir
-                <svg className={styles.heroWave} viewBox="0 0 200 12" fill="none" aria-hidden="true">
-                  <path d="M2 8C30 2 60 10 90 6C120 2 150 10 178 6C188 4 196 6 198 8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                </svg>
-              </span>
-              ,{' '}bukan hanya jawabannya.
-            </h1>
-
-            <p className={styles.heroLead}>
-              NALAR mengajak setiap siswa berdialog dengan AI yang tidak pernah memberi jawaban. Guru mendapat bukti penalaran nyata dalam satu jam pelajaran.
-            </p>
-
-            <div className={styles.heroCta}>
-              <Link className={styles.btnPrimary} to="/login">
-                Masuk ke NALAR
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </Link>
-              <a className={styles.btnGhost} href="#cara-kerja">Lihat cara kerja</a>
-            </div>
-
-            <p className={styles.heroHint}>
-              Akun dibuat oleh sekolah Anda. Belum punya kata sandi? Hubungi pengelola akun sekolah.
-            </p>
-          </div>
-
-          {/* floating Nala illustration */}
-          <div className={styles.heroIllus} aria-hidden="true">
-            <div className={styles.nalaWrap}>
-              <div className={styles.bubble1}>Apa yang membuatmu yakin?</div>
-              <div className={styles.bubble2}>Hmm, mungkin gesekan?</div>
-              <img src={nalaAsk} className={styles.nalaImg} width="220" height="240" alt="" />
-              <div className={styles.nalaGlow} />
-            </div>
-          </div>
-
-          <div className={styles.scrollCue} aria-hidden="true">
-            <div className={styles.scrollMouse}><div className={styles.scrollWheel} /></div>
-          </div>
-        </section>
-
-        {/* ══ STATS BAND ════════════════════════════════ */}
-        <div className={styles.statsBand} aria-label="Angka kunci">
-          <div className={styles.statsRow}>
-            {STATS.map((s, i) => <StatCard key={s.label} {...s} delay={i * 100} />)}
-          </div>
-        </div>
-
-        {/* ══ HOW IT WORKS ══════════════════════════════ */}
-        <FadeSection className={styles.sectionPad} id="cara-kerja" aria-labelledby="h-cara-kerja">
-          <div className={styles.sectionWrap}>
-            <p className={styles.eyebrow}><span aria-hidden="true" />Cara kerja</p>
-            <h2 id="h-cara-kerja" className={styles.sectionH2}>
-              Satu jam pelajaran, dari soal pembuka sampai keputusan mengajar.
-            </h2>
-            <p className={styles.sectionLead}>
-              Setiap langkah yang dibuat Nala AI melewati persetujuan guru sebelum sampai ke siswa.
-            </p>
-
-            <ol className={styles.timeline} aria-label="Langkah-langkah NALAR">
-              {STEPS.map((s, i) => (
-                <li key={s.title} className={styles.tlItem}>
-                  <div className={styles.tlLeft}>
-                    <div className={styles.tlNum}>{s.num}</div>
-                    {i < STEPS.length - 1 && <div className={styles.tlLine} aria-hidden="true" />}
-                  </div>
-                  <div className={styles.tlBody}>
-                    <div className={styles.tlHeader}>
-                      <h3 className={styles.tlTitle}>{s.title}</h3>
-                      <span className={styles.tlBadge}>{s.time}</span>
-                    </div>
-                    <p className={styles.tlText}>{s.text}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </FadeSection>
-
-        {/* ══ DIALOG SHOWCASE ═══════════════════════════ */}
-        <section id="dialog" className={styles.dialogSection} aria-labelledby="h-dialog">
-          <div className={styles.dialogWrap}>
-            <div className={styles.dialogLeft}>
-              <p className={styles.eyebrow}><span aria-hidden="true" />AI yang tidak pernah memberi jawaban</p>
-              <h2 id="h-dialog" className={styles.sectionH2}>Nala hanya bertanya.</h2>
-              <p className={styles.sectionLead}>
-                Menggunakan kata-kata siswa sendiri, Nala membantu mereka menemukan inkonsistensi dalam pemikiran — tanpa menghakimi.
-              </p>
-              <ul className={styles.featureList}>
-                {[
-                  ['↩', 'Minta alasan di balik setiap jawaban'],
-                  ['⚖', 'Ajukan contoh pembanding yang memancing pikiran'],
-                  ['🌐', 'Uji pemahaman dengan situasi baru'],
-                  ['🔒', 'Tidak pernah memberi jawaban atau nilai'],
-                ].map(([icon, text]) => (
-                  <li key={text} className={styles.featureItem}>
-                    <span className={styles.featureIcon} aria-hidden="true">{icon}</span>
-                    {text}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className={styles.dialogRight}>
-              <DialogReplay />
-            </div>
-          </div>
-        </section>
-
-        {/* ══ TEACHER ═══════════════════════════════════ */}
-        <FadeSection className={styles.teacherSection} id="guru" aria-labelledby="h-guru">
-          <div className={styles.sectionWrap}>
-            <p className={styles.eyebrow}><span aria-hidden="true" />Untuk guru</p>
-            <h2 id="h-guru" className={styles.sectionH2}>
-              Sistem menghitung. AI menafsirkan. <em className={styles.accent}>Anda</em> memutuskan.
-            </h2>
-            <p className={styles.sectionLead}>
-              Kontrol penuh ada di tangan guru — AI hanya menyiapkan bahan untuk Anda tinjau.
-            </p>
-
-            <div className={styles.teacherGrid}>
-              {TEACHER_CARDS.map((c, i) => (
-                <FadeArticle key={c.title} className={styles.tCard} delay={i * 80}>
-                  <span className={styles.tCardIcon} aria-hidden="true">{c.icon}</span>
-                  <h3 className={styles.tCardTitle}>{c.title}</h3>
-                  <p className={styles.tCardText}>{c.text}</p>
-                </FadeArticle>
-              ))}
-
-              <FadeArticle className={`${styles.tCard} ${styles.tCardMap}`} delay={240}>
-                <p className={styles.eyebrow} style={{ marginBottom: 8 }}><span aria-hidden="true" />Peta kelas</p>
-                <h3 className={styles.tCardTitle}>Lihat distribusi pemahaman seluruh kelas sekaligus.</h3>
-                <p className={styles.tCardText}>
-                  Berapa siswa sudah paham, berapa yang masih berkembang, berapa yang perlu tindak lanjut — dalam satu layar.
-                </p>
-                <div className={styles.mapGrid} aria-hidden="true">
-                  {Array.from({ length: 30 }, (_, i) => (
-                    <div
-                      key={i}
-                      className={styles.mapDot}
-                      style={{
-                        background: MAP_COLORS[i % MAP_COLORS.length],
-                        opacity: 0.55 + (i % 4) * 0.1,
-                        animationDelay: `${i * 60}ms`,
-                      }}
-                    />
-                  ))}
-                </div>
-              </FadeArticle>
-            </div>
-          </div>
-        </FadeSection>
-
-        {/* ══ PARENT ════════════════════════════════════ */}
-        <FadeSection className={styles.parentSection} aria-labelledby="h-ortu">
-          <div className={styles.parentWrap}>
-            <div className={styles.parentText}>
-              <p className={styles.eyebrow}><span aria-hidden="true" />Untuk orang tua</p>
-              <h2 id="h-ortu" className={styles.sectionH2}>
-                Kabar tentang cara anak berpikir, dari gurunya.
-              </h2>
-              <p className={styles.sectionLead}>
-                Orang tua hanya melihat ringkasan yang sudah dirilis guru. Tidak ada skor, tidak ada perbandingan dengan teman sekelas.
-              </p>
-              <div className={styles.parentPill}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
-                Privasi anak dijaga. Tidak ada data siswa di ringkasan orang tua.
-              </div>
-            </div>
-
-            <div className={styles.parentCard} aria-hidden="true">
-              <div className={styles.parentCardHead}>
-                <img src={nalaAsk} width="40" height="42" alt="" className={styles.parentNala} />
-                <div>
-                  <p className={styles.parentCardTitle}>Ringkasan perkembangan</p>
-                  <p className={styles.parentCardSub}>IPA · Minggu ini</p>
-                </div>
-              </div>
-              <ul className={styles.progressList}>
-                {[
-                  { label: 'Hukum Newton I', pct: 78 },
-                  { label: 'Gaya gesek', pct: 55 },
-                  { label: 'Momentum', pct: 38 },
-                ].map((r) => (
-                  <li key={r.label} className={styles.progressItem}>
-                    <span>{r.label}</span>
-                    <div className={styles.progressBar}>
-                      <div className={styles.progressFill} style={{ width: `${r.pct}%` }} />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <p className={styles.parentCardNote}>Dirilis oleh Bu Sari · 30 Sep 2026</p>
-            </div>
-          </div>
-        </FadeSection>
-
-        {/* ══ CTA ═══════════════════════════════════════ */}
-        <section className={styles.cta} aria-labelledby="h-cta">
-          <div className={styles.ctaBlob1} aria-hidden="true" />
-          <div className={styles.ctaBlob2} aria-hidden="true" />
-          <div className={styles.ctaInner}>
-            <div className={styles.ctaNalaRing}>
-              <img src={nalaAsk} width="64" height="67" alt="Nala" className={styles.ctaNala} />
-            </div>
-            <h2 id="h-cta" className={styles.ctaH2}>Sudah punya akun NALAR?</h2>
-            <p className={styles.ctaText}>
-              Masuk dengan email akun Anda. Anda langsung diarahkan ke halaman sesuai peran Anda.
-            </p>
-            <Link className={styles.ctaBtn} to="/login">
-              Masuk sekarang
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <Link to="/login" className={styles.navCtaPill}>
+              <span>Masuk ke NALAR</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </Link>
           </div>
+        </div>
+      </header>
+
+      <main id="konten-utama">
+        {/* ═════════════════════════════════════════════════════════════
+            HERO SECTION
+            ═════════════════════════════════════════════════════════════ */}
+        <section id="beranda" className={styles.hero} aria-labelledby="hero-title">
+          {/* Ambient soft brand glows */}
+          <div className={styles.heroBg} aria-hidden="true">
+            <div className={styles.ambientBlobBlue} />
+            <div className={styles.ambientBlobAmber} />
+          </div>
+
+          {/* Left Column: Heading & Copy */}
+          <div className={styles.heroLeft}>
+
+            {/* Modern geometric heading in Plus Jakarta Sans */}
+            <h1 id="hero-title" className={styles.heroHeading}>
+              Ukur cara siswa{' '}
+              <span className={styles.heroItalicAccent}>
+                berpikir
+                <svg className={styles.heroWaveDoodle} viewBox="0 0 160 10" fill="none" aria-hidden="true">
+                  <path d="M2 7C25 2 50 8 75 5C100 2 125 8 150 5C155 4 158 6 158 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                </svg>
+              </span>
+              , bukan hanya jawabannya.
+              <span className={styles.doodleRaysTitle} aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="12" y1="2" x2="12" y2="7" />
+                  <line x1="4.93" y1="4.93" x2="8.46" y2="8.46" />
+                  <line x1="2" y1="12" x2="7" y2="12" />
+                </svg>
+              </span>
+            </h1>
+
+            <p className={styles.heroLead}>
+              NALAR mengajak setiap siswa berdialog dengan AI yang tidak pernah memberi kunci jawaban. Guru memegang kendali penuh, mendapatkan bukti penalaran nyata dalam satu jam pelajaran tanpa tekanan skor angka.
+            </p>
+
+            {/* Main CTA with Doodle Rays and Ghost Link */}
+            <div className={styles.heroCtaRow}>
+              <Link to="/login" className={styles.btnCtaPill}>
+                <span>Masuk ke NALAR</span>
+                <span className={styles.btnArrowCircle} aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </span>
+              </Link>
+
+              {/* Amber Doodle Rays beside button */}
+              <div className={styles.doodleRaysCta} aria-hidden="true">
+                <svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+                  <line x1="6" y1="16" x2="1" y2="16" />
+                  <line x1="8" y1="8" x2="3" y2="3" />
+                  <line x1="16" y1="6" x2="16" y2="1" />
+                </svg>
+              </div>
+
+              <a
+                href="#cara-kerja"
+                className={styles.btnGhostAction}
+                onClick={(e) => scrollToSection(e, 'cara-kerja')}
+              >
+                Lihat cara kerja ↓
+              </a>
+            </div>
+
+            {/* Social Proof Strip with Overlapping Avatars & Rating */}
+            <div className={styles.heroSocialProof} aria-label="Ulasan Guru dan Sekolah">
+              <div className={styles.avatarGroup} aria-hidden="true">
+                <div className={`${styles.avatarPill} ${styles.avatar1}`}>BS</div>
+                <div className={`${styles.avatarPill} ${styles.avatar2}`}>AR</div>
+                <div className={`${styles.avatarPill} ${styles.avatar3}`}>DP</div>
+                <div className={styles.ratingScore}>
+                  <span>4.9</span>
+                  <small>★</small>
+                </div>
+              </div>
+              <div className={styles.reviewText}>
+                <span className={styles.reviewTitle}>Umpan Balik Guru &amp; Sekolah</span>
+                <span className={styles.reviewSub}>Berdasarkan lebih dari 10.000+ sesi dialog nalar</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Clean, spacious Mascot Stage with Zero Clutter */}
+          <div className={styles.heroRight}>
+            <div className={styles.heroVisualStage}>
+              {/* Harmonious brand circle backdrop */}
+              <div className={styles.backdropCircle} aria-hidden="true" />
+
+              {/* Floating Badge 1 (Top Left) */}
+              <div className={`${styles.floatingBadge} ${styles.badgeTopLeft}`}>
+                <div className={`${styles.badgeIconBox} ${styles.badgeIconBlue}`} aria-hidden="true">
+                  📖
+                </div>
+                <div className={styles.badgeContent}>
+                  <span className={styles.badgeNumber}>1.200+</span>
+                  <span className={styles.badgeLabel}>Sesi &amp; Misi Aktif</span>
+                </div>
+              </div>
+
+              {/* Floating Badge 2 (Bottom Left) */}
+              <div className={`${styles.floatingBadge} ${styles.badgeBottomLeft}`}>
+                <div className={`${styles.badgeIconBox} ${styles.badgeIconAmber}`} aria-hidden="true">
+                  👥
+                </div>
+                <div className={styles.badgeContent}>
+                  <span className={styles.badgeNumber}>30.000+</span>
+                  <span className={styles.badgeLabel}>Siswa Berdialog</span>
+                </div>
+              </div>
+
+              {/* Floating Badge 3 (Middle Right) */}
+              <div className={`${styles.floatingBadge} ${styles.badgeRight}`}>
+                <div className={`${styles.badgeIconBox} ${styles.badgeIconGreen}`} aria-hidden="true">
+                  🛡️
+                </div>
+                <div className={styles.badgeContent}>
+                  <span className={styles.badgeNumber}>100%</span>
+                  <span className={styles.badgeLabel}>Kontrol Penuh Guru</span>
+                </div>
+              </div>
+
+              {/* The Mascot Nala Centerpiece */}
+              <div className={styles.mascotStageWrap}>
+                <NalaMascot
+                  pose={currentExpression.pose}
+                  size={320}
+                  floating={true}
+                  interactive={true}
+                  speechBubble={currentExpression.speech}
+                  onMascotClick={handleNextExpression}
+                  alt="Nala, maskot interaktif asisten penalaran siswa. Klik untuk ganti ekspresi!"
+                />
+              </div>
+            </div>
+          </div>
         </section>
 
+        {/* ═════════════════════════════════════════════════════════════
+            THE 4 FEATURE CARDS (DIRECTLY MATCHING REFERENCE BOTTOM)
+            ═════════════════════════════════════════════════════════════ */}
+        <section className={styles.cardsSection} aria-label="Keunggulan Utama NALAR">
+          <div className={styles.cardsGrid}>
+            {CORE_FEATURE_CARDS.map((card) => (
+              <article key={card.id} className={styles.refFeatureCard}>
+                <div>
+                  <div className={styles.cardIconHeader}>
+                    <div className={`${styles.cardIconBubble} ${card.bubbleClass}`} aria-hidden="true">
+                      {card.icon}
+                    </div>
+                    <div className={styles.cardMiniMascot} aria-hidden="true">
+                      <NalaMascot pose={card.mascotPose} size={36} floating={false} />
+                    </div>
+                  </div>
+                  <h2 className={styles.cardTitle}>{card.title}</h2>
+                  <p className={styles.cardDesc}>{card.desc}</p>
+                </div>
+                <div className={styles.cardBottomAction}>
+                  <a
+                    href={card.linkTarget}
+                    className={styles.roundArrowBtn}
+                    aria-label={`Pelajari lebih lanjut tentang ${card.title}`}
+                    onClick={(e) => scrollToSection(e, card.linkTarget.replace('#', ''))}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* ═════════════════════════════════════════════════════════════
+            SECTION: CARA KERJA (HOW IT WORKS IN 1 LESSON HOUR)
+            ═════════════════════════════════════════════════════════════ */}
+        <section id="cara-kerja" className={styles.sectionPad} aria-labelledby="how-heading">
+          <div className={styles.sectionHeaderCenter}>
+            <span className={styles.sectionPillTag}>Alur Kerja Efisien</span>
+            <h2 id="how-heading" className={styles.sectionTitleH2}>
+              Satu jam pelajaran, dari soal pembuka hingga keputusan mengajar.
+            </h2>
+            <p className={styles.sectionSubtitle}>
+              Dirancang untuk ritme kelas SMP di Indonesia. Tanpa beban koreksi berlebih, setiap langkah tetap dalam kendali guru.
+            </p>
+          </div>
+
+          <div className={styles.howItWorksGrid}>
+            {STEPS.map((s) => (
+              <div key={s.num} className={styles.stepCard}>
+                <div className={styles.stepHead}>
+                  <span className={styles.stepNumber}>{s.num}</span>
+                  <span className={styles.stepTimeBadge}>{s.time}</span>
+                </div>
+                <div className={styles.stepMascotPreview} aria-hidden="true">
+                  <NalaMascot pose={s.pose} size={64} floating={false} />
+                </div>
+                <h3 className={styles.stepTitle}>{s.title}</h3>
+                <p className={styles.stepText}>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ═════════════════════════════════════════════════════════════
+            SECTION: DIALOG SHOWCASE (INTERACTIVE SOCRATIC SIMULATION)
+            ═════════════════════════════════════════════════════════════ */}
+        <section id="dialog" className={styles.dialogSection} aria-labelledby="dialog-heading">
+          <div className={styles.dialogInner}>
+            {/* Left text description */}
+            <div>
+              <span className={styles.sectionPillTag}>Kecerdasan Sokratik</span>
+              <h2 id="dialog-heading" className={styles.sectionTitleH2}>
+                Nala tidak pernah memberi jawaban. Nala hanya memancing alasan.
+              </h2>
+              <p className={styles.sectionSubtitle}>
+                Menggunakan kata-kata siswa sendiri, Nala membantu mereka menemukan celah logika dan menyusun kesimpulan mandiri tanpa rasa takut dihakimi.
+              </p>
+
+              <ul className={styles.dialogFeatureList}>
+                <li className={styles.dialogFeatureItem}>
+                  <span className={styles.dialogFeatureCheck} aria-hidden="true">✓</span>
+                  <span>Minta argumen di balik setiap pernyataan siswa</span>
+                </li>
+                <li className={styles.dialogFeatureItem}>
+                  <span className={styles.dialogFeatureCheck} aria-hidden="true">✓</span>
+                  <span>Ajukan analogi situasi baru untuk menguji konsistensi</span>
+                </li>
+                <li className={styles.dialogFeatureItem}>
+                  <span className={styles.dialogFeatureCheck} aria-hidden="true">✓</span>
+                  <span>Tidak pernah melabeli benar atau salah selama sesi berlangsung</span>
+                </li>
+                <li className={styles.dialogFeatureItem}>
+                  <span className={styles.dialogFeatureCheck} aria-hidden="true">✓</span>
+                  <span>Pagar keselamatan ketat: menolak topik di luar materi ajar</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Right Interactive Mockup with Subject Switcher */}
+            <div className={styles.dialogMockupFrame}>
+              {/* Subject Tabs */}
+              <div className={styles.dialogSubjectTabs} role="tablist" aria-label="Pilih topik simulasi dialog">
+                {(['fisika', 'biologi', 'matematika'] as const).map((subKey) => (
+                  <button
+                    key={subKey}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeSubject === subKey}
+                    className={`${styles.subjectTabBtn} ${activeSubject === subKey ? styles.subjectTabBtnActive : ''}`}
+                    onClick={() => {
+                      setActiveSubject(subKey)
+                      setDialogStep(DIALOG_SUBJECTS[subKey].turns.length)
+                    }}
+                  >
+                    {DIALOG_SUBJECTS[subKey].label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Chat Feed */}
+              <div className={styles.dialogChatFeed} aria-live="polite">
+                {currentSubjectData.turns.slice(0, dialogStep).map((turn, idx) => (
+                  <div
+                    key={idx}
+                    className={`${styles.chatTurn} ${turn.speaker === 'siswa' ? styles.chatTurnStudent : ''}`}
+                  >
+                    {turn.speaker === 'nala' && (
+                      <div aria-hidden="true">
+                        <NalaMascot pose={turn.mascotPose || 'asking'} size={40} floating={false} />
+                      </div>
+                    )}
+                    <div className={turn.speaker === 'nala' ? styles.chatBubbleNala : styles.chatBubbleStudent}>
+                      <div className={`${styles.chatSpeakerLabel} ${turn.speaker === 'nala' ? styles.speakerNala : styles.speakerStudent}`}>
+                        {turn.speaker === 'nala' ? 'Nala (AI Assessor)' : 'Siswa SMP'}
+                      </div>
+                      <div>{turn.text}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═════════════════════════════════════════════════════════════
+            SECTION: TEACHER EVIDENCE & CLASSROOM MAP
+            ═════════════════════════════════════════════════════════════ */}
+        <section id="guru" className={styles.teacherSection} aria-labelledby="teacher-heading">
+          <div className={styles.sectionHeaderCenter}>
+            <span className={styles.sectionPillTag}>Wawasan Pengajaran</span>
+            <h2 id="teacher-heading" className={styles.sectionTitleH2}>
+              Sistem menghitung. AI menafsirkan. <em>Anda</em> memutuskan.
+            </h2>
+            <p className={styles.sectionSubtitle}>
+              Guru bukanlah penonton. Anda memiliki wewenang penuh meninjau bukti kutipan siswa, mengubah skor rubrik, dan menandai catatan verifikasi.
+            </p>
+          </div>
+
+          <div id="peta-kelas" className={styles.teacherGridWrapper}>
+            {/* Class Map Visual */}
+            <div className={styles.teacherCardFeature}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--color-ink)' }}>Distribusi Penalaran Kelas VIII-B</h3>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--color-success-strong)', background: 'var(--color-success-bg)', padding: '4px 10px', borderRadius: 999 }}>
+                  30 Siswa Selesai
+                </span>
+              </div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', margin: '8px 0 0' }}>
+                Klik pada nomor siswa untuk melihat giliran dialog dan kutipan bukti penalaran.
+              </p>
+
+              <div className={styles.classMapSimulation}>
+                <div className={styles.classMapHeader}>
+                  <span className={styles.classMapTitle}>Peta Pemahaman: Gaya &amp; Gerak</span>
+                  <div className={styles.classMapLegend}>
+                    <span><span className={`${styles.legendDot} ${styles.dotGreen}`} />Paham (18)</span>
+                    <span><span className={`${styles.legendDot} ${styles.dotAmber}`} />Miskonsepsi (8)</span>
+                    <span><span className={`${styles.legendDot} ${styles.dotBlue}`} />Verifikasi (4)</span>
+                  </div>
+                </div>
+
+                <div className={styles.classDotsGrid}>
+                  {Array.from({ length: 30 }, (_, i) => {
+                    const studentNum = i + 1
+                    let bg = '#185D46'
+                    if (studentNum % 4 === 0) bg = '#D98200'
+                    if (studentNum === 4 || studentNum === 17 || studentNum === 23) bg = '#2447D1'
+                    const isSelected = selectedStudentDot === studentNum
+
+                    return (
+                      <button
+                        key={studentNum}
+                        type="button"
+                        className={styles.studentDot}
+                        style={{
+                          background: bg,
+                          outline: isSelected ? '3px solid var(--color-primary)' : 'none',
+                          outlineOffset: 2,
+                          border: 'none',
+                          minBlockSize: 'unset',
+                          padding: 0,
+                        }}
+                        onClick={() => setSelectedStudentDot(studentNum)}
+                        aria-label={`Siswa nomor ${studentNum}`}
+                      >
+                        {studentNum}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Evidence Card */}
+            <div className={styles.teacherEvidenceCard}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <NalaMascot pose="teacher" size={40} floating={false} />
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--color-ink)' }}>
+                      Kutipan Bukti Siswa #{selectedStudentDot || 4}
+                    </h4>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 600 }}>
+                      Miskonsepsi: Kehabisan Dorongan
+                    </span>
+                  </div>
+                </div>
+
+                <p style={{ fontSize: '0.84rem', color: 'var(--color-text-secondary)', margin: 0 }}>
+                  AI menyarankan tindak lanjut karena jawaban siswa runtuh ketika dihadapkan pada pertanyaan pembanding pesawat luar angkasa:
+                </p>
+
+                <div className={styles.quoteProofBox}>
+                  &ldquo;Awalnya saya kira dorongannya habis, tapi setelah ditanya Nala tentang luar angkasa, saya baru sadar ada gaya gesek yang menghambat.&rdquo;
+                </div>
+
+                <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', margin: 0 }}>
+                  ✓ Skor AI: <strong>Perlu Penguatan</strong> · Rekomendasi Guru: <strong>Siswa sudah mampu mengoreksi diri</strong>
+                </p>
+              </div>
+
+              <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
+                <Link to="/login" className={styles.btnCtaPill} style={{ padding: '10px 20px', fontSize: '0.875rem' }}>
+                  Masuk ke Ruang Guru
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═════════════════════════════════════════════════════════════
+            SECTION: KENALAN LEBIH DEKAT DENGAN MASKOT NALA
+            ═════════════════════════════════════════════════════════════ */}
+        <section id="maskot" className={styles.mascotGallerySection} aria-labelledby="mascot-gallery-heading">
+          <div className={styles.mascotGalleryInner}>
+            <div className={styles.sectionHeaderCenter}>
+              <span className={styles.sectionPillTag}>Maskot &amp; Teman Berpikir</span>
+              <h2 id="mascot-gallery-heading" className={styles.sectionTitleH2}>
+                Mengenal Nala Lebih Dekat
+              </h2>
+              <p className={styles.sectionSubtitle}>
+                Nala bukan sekadar ikon lucu. Setiap pose dan ekspresi Nala dirancang untuk menopang pedagogi sokratik yang ramah anak dan bebas tekanan.
+              </p>
+            </div>
+
+            <div className={styles.posesShowcaseGrid}>
+              <div className={styles.poseShowcaseCard}>
+                <NalaMascot pose="waving" size={100} floating={true} />
+                <h3 className={styles.poseCardName}>Melambai (Menyambut)</h3>
+                <p className={styles.poseCardDesc}>
+                  Membuka sesi dengan sapaan hangat agar siswa rileks dan siap mengutarakan argumen tanpa cemas dinilai buruk.
+                </p>
+              </div>
+
+              <div className={styles.poseShowcaseCard}>
+                <NalaMascot pose="thinking" size={100} floating={true} />
+                <h3 className={styles.poseCardName}>Berpikir (Menggali)</h3>
+                <p className={styles.poseCardDesc}>
+                  Mengajak siswa merenungkan celah logika dan mempertanyakan kembali asumsi awal secara mandiri.
+                </p>
+              </div>
+
+              <div className={styles.poseShowcaseCard}>
+                <NalaMascot pose="asking" size={100} floating={true} />
+                <h3 className={styles.poseCardName}>Bertanya (Menantang)</h3>
+                <p className={styles.poseCardDesc}>
+                  Menyodorkan situasi pembanding baru untuk memastikan pemahaman konsep tidak sekadar hafalan rumus.
+                </p>
+              </div>
+
+              <div className={styles.poseShowcaseCard}>
+                <NalaMascot pose="proud" size={100} floating={true} />
+                <h3 className={styles.poseCardName}>Bangga (Merayakan)</h3>
+                <p className={styles.poseCardDesc}>
+                  Mengapresiasi keberanian siswa dalam menyusun alur penalaran orisinal dengan kata-kata mereka sendiri.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═════════════════════════════════════════════════════════════
+            SECTION: FAQ ACCORDION
+            ═════════════════════════════════════════════════════════════ */}
+        <section id="faq" className={styles.faqSection} aria-labelledby="faq-heading">
+          <div className={styles.sectionHeaderCenter}>
+            <span className={styles.sectionPillTag}>Pertanyaan Umum</span>
+            <h2 id="faq-heading" className={styles.sectionTitleH2}>
+              Hal yang Sering Ditanyakan
+            </h2>
+          </div>
+
+          <details className={styles.faqItem} open>
+            <summary className={styles.faqSummary}>
+              <span>Apakah Nala menggantikan peran guru di kelas?</span>
+              <span aria-hidden="true">+</span>
+            </summary>
+            <div className={styles.faqContent}>
+              Sama sekali tidak. Nala bertindak sebagai asisten wawancara formatif. Seluruh penyusunan misi, penentuan rubrik, dan keputusan nilai akhir 100% berada di tangan guru.
+            </div>
+          </details>
+
+          <details className={styles.faqItem}>
+            <summary className={styles.faqSummary}>
+              <span>Bagaimana NALA menjaga privasi dan keamanan siswa?</span>
+              <span aria-hidden="true">+</span>
+            </summary>
+            <div className={styles.faqContent}>
+              Akun siswa dikelola secara tertutup oleh pihak sekolah. Nala tidak pernah meminta atau menyimpan data sensitif pribadi di luar kebutuhan pembelajaran formatif.
+            </div>
+          </details>
+
+          <details className={styles.faqItem}>
+            <summary className={styles.faqSummary}>
+              <span>Bagaimana cara guru atau siswa masuk ke NALAR?</span>
+              <span aria-hidden="true">+</span>
+            </summary>
+            <div className={styles.faqContent}>
+              Akun pengguna disiapkan langsung oleh pihak sekolah. Anda cukup menggunakan alamat email dari sekolah Anda untuk masuk ke portal peran masing-masing.
+            </div>
+          </details>
+        </section>
+
+        {/* ═════════════════════════════════════════════════════════════
+            SECTION: FINAL CTA BANNER
+            ═════════════════════════════════════════════════════════════ */}
+        <section className={styles.ctaBannerSection} aria-labelledby="cta-heading">
+          <div className={styles.ctaCard}>
+            <div className={styles.ctaLeft}>
+              <div className={styles.ctaEyebrow}>
+                <span>✨ Siap Memulai Petualangan Menalar?</span>
+              </div>
+              <h2 id="cta-heading" className={styles.ctaHeadingH2}>
+                Sudah memiliki akun sekolah di NALAR?
+              </h2>
+              <p className={styles.ctaText}>
+                Masuk sekarang untuk membuka dasbor guru, mengelola sesi formatif kelas, atau mengikuti misi eksplorasi pemikiran sokratik bersama Nala.
+              </p>
+              <Link to="/login" className={styles.ctaBtnPrimary}>
+                <span>Masuk ke NALAR</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </Link>
+              <div className={styles.ctaNote}>
+                Akun dibuat oleh pengelola sekolah. Hubungi admin sekolah jika memerlukan akses.
+              </div>
+            </div>
+
+            <div className={styles.ctaRightMascot}>
+              <NalaMascot
+                pose="waving"
+                size={280}
+                floating={true}
+                speechBubble="Sampai jumpa di kelas! 👋"
+                alt="Nala melambaikan tangan menyambut pengguna"
+              />
+            </div>
+          </div>
+        </section>
       </main>
 
-      {/* ── Footer ── */}
+      {/* ── FOOTER ── */}
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
-          <Link to="/" className={styles.footerBrand} aria-label="NALAR beranda">
-            <BrandMark size={18} />
-            <span>nalar</span>
+          <Link to="/" className={styles.footerBrand} aria-label="NALAR — beranda">
+            <BrandMark size={22} />
+            <span>nalar.</span>
           </Link>
-          <span className={styles.footerTag}>Instrumen penalaran untuk SMP Indonesia</span>
-          <div className={styles.footerEnd}>
-            <Link to="/login" className={styles.footerLogin}>Masuk</Link>
+          <span className={styles.footerTag}>
+            Instrumen Asesmen Penalaran Formatif untuk SMP Indonesia
+          </span>
+          <div className={styles.footerLinks}>
+            <Link to="/login" className={styles.footerLink}>
+              Masuk ke NALAR
+            </Link>
             {import.meta.env.DEV && (
-              <a href="/review/platform/schools" className={styles.footerDev}>
+              <a href="/review/platform/schools" className={styles.footerLink} style={{ color: 'var(--color-text-muted)' }}>
                 Pratinjau (dev)
               </a>
             )}
