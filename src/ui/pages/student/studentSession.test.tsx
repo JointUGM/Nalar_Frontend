@@ -20,6 +20,7 @@ describe('countdown', () => {
     session()
     expect(screen.getByText('Tarik napas. Tidak ada jawaban yang salah.')).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Sesi akan dimulai sebentar lagi.')
+    expect(screen.getByRole('heading', { level: 1, name: 'Kenapa kelereng berhenti?' })).toBeInTheDocument()
     // One tick per second; each tick schedules the next one after React re-renders.
     wait(1000); wait(1000)
     expect(screen.queryByRole('textbox', { name: 'Jawabanmu' })).not.toBeInTheDocument()

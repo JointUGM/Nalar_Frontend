@@ -80,7 +80,7 @@ export function Landing() {
         </div>
         <figure className={styles.parentCard}>
           <figcaption>Contoh tampilan · data fiktif</figcaption>
-          <p className={styles.child}><span aria-hidden="true">R</span><strong>Raka</strong>8B · SMPN 5 Yogyakarta</p>
+          <p className={styles.child}><span aria-hidden="true">R</span><strong>Raka</strong>8B · SMP contoh</p>
           <dl>
             <div><dt>Sudah dipahami</dt><dd><span>Gaya gesek</span><span>Kelembaman</span></dd></div>
             <div><dt>Masih berkembang</dt><dd><span data-growing="true">Resultan gaya</span></dd></div>

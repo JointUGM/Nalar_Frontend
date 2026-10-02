@@ -26,7 +26,7 @@
 .topbar { position: sticky; inset-block-start: 0; z-index: 1; block-size: 56px; padding: 0 24px; display: flex; align-items: center; gap: 12px; background: var(--color-surface); border-block-end: 1px solid var(--color-role-border); }
 .roleTitle { font-size: 15px; font-weight: 600; flex: 1; white-space: nowrap; }
 .reviewLabel { font-size: 11px; color: var(--color-text-secondary); white-space: nowrap; }
-.search { display: flex; align-items: center; gap: 8px; flex: 0 1 280px; min-inline-size: 120px; block-size: 36px; padding: 0 10px; border: 1px solid var(--color-control-border); border-radius: 10px; color: var(--color-text-muted); }
+.search { display: flex; align-items: center; gap: 8px; flex: 0 1 280px; min-inline-size: 120px; min-block-size: 44px; padding: 0 10px; border: 1px solid var(--color-control-border); border-radius: 10px; color: var(--color-text-muted); }
 .search input { inline-size: 100%; min-inline-size: 0; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--color-ink); font-size: 13px; }
 .search input:disabled { opacity: .65; }
 .notifications, .menuButton { display: flex; align-items: center; justify-content: center; flex-shrink: 0; inline-size: 44px; block-size: 44px; padding: 0; border: 1px solid var(--color-role-border); border-radius: 50%; background: var(--color-surface); color: var(--color-ink); }

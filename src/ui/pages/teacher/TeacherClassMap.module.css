@@ -31,7 +31,7 @@
 .legend li[data-kind="misconception"]::before { background: var(--color-misconception-text); }
 .system { display: flex; flex-wrap: wrap; gap: 4px 8px; margin: 12px 0 0; padding: 8px 12px; border-radius: 8px; background: var(--color-success-bg); font-size: 12px; color: var(--color-text-secondary); }
 .system strong { letter-spacing: .04em; color: var(--color-success-strong); }
-.mapRegion { margin-block-start: 12px; overflow-x: auto; border-radius: 10px; }
+.mapRegion { position: relative; margin-block-start: 12px; overflow-x: auto; border-radius: 10px; }
 .map { position: relative; block-size: 360px; min-inline-size: 520px; border-radius: 10px; background: var(--color-canvas) radial-gradient(var(--color-border) 1px, transparent 1px) 0 0 / 16px 16px; }
 .map svg { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; }
 .map path { fill: none; stroke: var(--color-text-muted); stroke-width: 1.25; opacity: .5; vector-effect: non-scaling-stroke; }
@@ -53,7 +53,7 @@
 .table { margin-block-start: 16px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); overflow: hidden; }
 .table h2 { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-block-end: 1px solid var(--color-role-border); }
 .table h2 span { padding: 1px 7px; border: 1px solid var(--color-role-border); border-radius: 999px; font-size: 11px; font-weight: 600; }
-.tableRegion { overflow-x: auto; }
+.tableRegion { position: relative; overflow-x: auto; }
 .tableRegion table { inline-size: 100%; min-inline-size: 720px; border-collapse: collapse; font-size: 13px; }
 .tableRegion caption { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
 .tableRegion thead th { padding: 10px 16px; background: var(--color-canvas); text-align: start; font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--color-text-muted); }
