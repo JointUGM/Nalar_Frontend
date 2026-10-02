@@ -9,15 +9,22 @@ export class ReferencePlatformRepository implements PlatformRepository {
       { id: 'sleman', name: 'SMP Muhammadiyah 2', city: 'Kab. Sleman', npsn: '20401877', admin: 'Nur Azizah', users: 846, status: 'active' as const },
       { id: 'bantul', name: 'SMPN 3 Bantul', city: 'Kab. Bantul', npsn: '20400932', admin: 'Andi Setiawan', users: 1383, status: 'active' as const },
       { id: 'semarang', name: 'SMPN 12 Semarang', city: 'Kota Semarang', npsn: '20328914', admin: 'operator@smpn12smg…', users: 0, status: 'invited' as const },
+      { id: 'surakarta', name: 'SMPN 1 Surakarta', city: 'Kota Surakarta', npsn: '20327710', admin: 'Budi Raharjo', users: 940, status: 'active' as const },
+      { id: 'alazhar', name: 'SMP Islam Al-Azhar 26', city: 'Kab. Sleman', npsn: '20409921', admin: 'Siti Aminah', users: 620, status: 'active' as const },
+      { id: 'magelang', name: 'SMPN 2 Magelang', city: 'Kota Magelang', npsn: '20330112', admin: 'Rahmat Hidayat', users: 710, status: 'active' as const },
+      { id: 'wonosari', name: 'SMPN 1 Wonosari', city: 'Kab. Gunungkidul', npsn: '20402214', admin: 'operator@smpn1wns…', users: 0, status: 'invited' as const },
+      { id: 'ssn4', name: 'SMP Standard Nasional 4', city: 'Kota Yogyakarta', npsn: '20401188', admin: 'Tono Sudiro', users: 520, status: 'suspended' as const },
+      { id: 'wates', name: 'SMPN 1 Wates', city: 'Kab. Kulon Progo', npsn: '20404100', admin: 'Sri Wahyuni', users: 690, status: 'active' as const },
     ]
     const term = query.toLocaleLowerCase('id-ID')
     const matching = schools.filter((school) => `${school.name} ${school.city} ${school.npsn}`.toLocaleLowerCase('id-ID').includes(term))
     const parsed = cursor?.match(/^review:(\d+)$/)
     const offset = parsed ? Number(parsed[1]) : 0
     const start = Number.isSafeInteger(offset) && offset >= 0 ? offset : 0
-    const page = matching.slice(start, start + 2)
+    const pageSize = 5
+    const page = matching.slice(start, start + pageSize)
     return {
-      summary: { activeSchools: 3, users: 3412, curriculum: '046/2025' },
+      summary: { activeSchools: 7, users: 6889, curriculum: '046/2025' },
       schools: page,
       nextCursor: start + page.length < matching.length ? `review:${start + page.length}` : null,
     }

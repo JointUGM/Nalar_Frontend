@@ -242,6 +242,7 @@ describe('PlatformSchools', () => {
     expect(screen.queryByRole('button', { name: 'Ganti admin sekolah' })).not.toBeInTheDocument()
     expect(menu).toHaveFocus()
   })
+
   it('sends search to the read and keeps supplied platform totals', async () => {
     const user = userEvent.setup()
     const calls: Array<[string, string | null]> = []
@@ -316,5 +317,38 @@ describe('PlatformSchools', () => {
     expect(screen.queryByRole('table', { name: 'Metadata sekolah pada halaman ini' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Hapus pencarian' }))
     expect(await screen.findByText('Sekolah Yogyakarta')).toBeInTheDocument()
+  })
+
+  it('opens reversible suspension modal for an active school and restores focus on cancellation', async () => {
+    const user = userEvent.setup()
+    render(<Fixture listSchools={{ execute: async () => overview }} />)
+    await screen.findByText('Sekolah Yogyakarta')
+    await user.click(screen.getByRole('button', { name: 'Tindakan Sekolah Yogyakarta' }))
+    const trigger = screen.getByRole('button', { name: 'Tangguhkan' })
+    await user.click(trigger)
+    const dialog = screen.getByRole('dialog', { name: 'Tangguhkan Sekolah Yogyakarta?' })
+    expect(dialog).toHaveTextContent('Penangguhan bersifat sementara. Data sekolah tetap tersimpan.')
+    expect(screen.getByRole('textbox', { name: 'Alasan' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Tangguhkan' })).toBeDisabled()
+    await user.click(within(dialog).getByRole('button', { name: 'Batal' }))
+    expect(trigger).toHaveFocus()
+  })
+
+  it('opens reactivation modal for a suspended school and presents explicit activation text', async () => {
+    const user = userEvent.setup()
+    const suspendedOverview: PlatformOverview = {
+      ...overview,
+      schools: [{ id: 'c', name: 'Sekolah Bandung', city: 'Bandung', npsn: '11223344', admin: 'Admin C', users: 5, status: 'suspended' }],
+    }
+    render(<Fixture listSchools={{ execute: async () => suspendedOverview }} />)
+    await screen.findByText('Sekolah Bandung')
+    await user.click(screen.getByRole('button', { name: 'Tindakan Sekolah Bandung' }))
+    const trigger = screen.getByRole('button', { name: 'Aktifkan kembali' })
+    await user.click(trigger)
+    const dialog = screen.getByRole('dialog', { name: 'Aktifkan kembali Sekolah Bandung?' })
+    expect(dialog).toHaveTextContent('Pengaktifan kembali memulihkan akses administrasi dan kelas sekolah.')
+    expect(within(dialog).getByRole('button', { name: 'Aktifkan kembali' })).toBeDisabled()
+    await user.click(within(dialog).getByRole('button', { name: 'Batal' }))
+    expect(trigger).toHaveFocus()
   })
 })

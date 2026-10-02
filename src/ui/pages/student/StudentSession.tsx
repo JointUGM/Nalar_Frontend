@@ -1,108 +1,261 @@
-import { useEffect, useRef } from 'react'
-import type { KeyboardEvent, ReactNode } from 'react'
-import { Link } from 'react-router'
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router'
 import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
-import { Icon } from '@/ui/components/icon/Icon'
-import { Nala } from '@/ui/components/nala/Nala'
-import { StudentFocusShell } from '@/ui/components/student-focus-shell/StudentFocusShell'
-import { SessionEnd } from './SessionEnd'
-import { SessionFinish } from './SessionFinish'
-import { SessionPause } from './SessionPause'
-import { StepTrack } from './StepTrack'
-import { formatClock, homePath, lobbyExample, resumeExample, sessionExample, studentUser } from './studentExamples'
-import { useStudentSessionViewModel } from './useStudentSessionViewModel'
-import type { Connection } from './useStudentSessionViewModel'
-import styles from './StudentSession.module.css'
+import { StatusBadge } from '@/ui/components/status-badge/StatusBadge'
+import { StudentShell } from './StudentShell'
+import styles from './StudentPages.module.css'
 
-const connections: readonly (readonly [Connection, string])[] = [['online', 'Tersambung'], ['offline', 'Terputus'], ['stale', 'Layar sudah usang']]
+type SendState = 'idle' | 'pending' | 'processing' | 'saved' | 'error'
 
-function Progress({ step, total, elapsed }: { step: number; total: number; elapsed: number }) {
-  return <>
-    <StepTrack step={step} total={total} />
-    <span className={styles.time}><Icon name="clock" size={14} />{formatClock(elapsed)}<span className={styles.hidden}> waktu berjalan, contoh</span></span>
-  </>
+/** Format seconds as MM:SS */
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
+const PROMPT_TEXT =
+  'Bagaimana kamu menjelaskan hubungan antara gaya dan perubahan gerak sebuah benda? Berikan contoh dari kehidupan sehari-hari.'
+
 export function StudentSession() {
-  const view = useStudentSessionViewModel()
-  const question = useRef<HTMLDivElement>(null)
-  const { mission, phase } = view
-  const closes = mission?.kind === 'resume' ? resumeExample.closes : sessionExample.closes
-  // A new question (and the first one) takes focus so assistive technology reads it before the composer.
-  useEffect(() => { if (phase === 'writing') question.current?.focus() }, [phase, view.step])
+  const location = useLocation()
 
-  const shell = (title: string, content: ReactNode, center?: ReactNode) => <StudentFocusShell title={title} user={studentUser} klass={lobbyExample.klass} center={center}>{content}</StudentFocusShell>
-  if (!mission) return shell('Sesi kelas', <div className={styles.page}>
-    <Feedback title="Sesi ini tidak bisa dimulai" announce>Pilih misi yang terbuka dari halaman Misi saya.</Feedback>
-    <Link className={styles.back} to={homePath}>Kembali ke Misi saya</Link>
-  </div>)
+  const base = location.pathname.replace(/\/+$/, '').replace(/\/sessions\/[^/]+$/, '')
+  const reflectionPath = location.pathname.replace(/\/+$/, '') + '/reflection'
 
-  if (phase === 'countdown') return <main className={styles.countdown}>
-    <span className={styles.circle}><Nala mood="calm" size={104} /></span>
-    <h1 className={styles.countTitle}>{mission.title}</h1>
-    <p role="status" className={styles.hidden}>Sesi akan dimulai sebentar lagi.</p>
-    <div className={styles.count} aria-hidden="true">{view.count}</div>
-    <p className={styles.calm}>Tarik napas. Tidak ada jawaban yang salah.</p>
-    <Button variant="student" tone="secondary" onClick={view.skipCountdown}>Mulai sekarang</Button>
-  </main>
+  // ── Answer state ──────────────────────────────────────────────
+  const [answer, setAnswer] = useState('')
+  const [sendState, setSendState] = useState<SendState>('idle')
+  const [sendError, setSendError] = useState<string | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  if (phase === 'paused') return <SessionPause onContinue={view.backToSession} />
-  if (phase === 'timedOut' || phase === 'ended') return shell(mission.title, <SessionEnd kind={phase} onBack={view.backToSession} />)
+  // ── Timer (server-supplied in production) ─────────────────────
+  const [secondsLeft, setSecondsLeft] = useState(8 * 60 + 42) // 8:42
+  const timerUrgent = secondsLeft <= 60
 
-  if (phase === 'finished') return shell(mission.title, <SessionFinish missionId={mission.id} steps={view.total} lastAnswer={view.lastAnswer} warmPick={view.warmPick} />)
+  useEffect(() => {
+    if (sendState === 'saved') return // freeze timer after submission for demo
+    if (secondsLeft <= 0) return
 
-  const sending = phase === 'sending'
-  const failed = phase === 'failed'
-  const connected = view.connection === 'online'
-  const canSend = view.draft.trim().length > 0 && connected
-  function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); view.submit() }
+    const id = setTimeout(() => setSecondsLeft((s) => Math.max(0, s - 1)), 1000)
+    return () => clearTimeout(id)
+  }, [secondsLeft, sendState])
+
+  // ── Auto-resize textarea ──────────────────────────────────────
+  function handleChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    setAnswer(e.target.value)
+    setSendError(null)
+    // Auto-grow
+    const el = textareaRef.current
+    if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` }
   }
 
-  return shell(mission.title, <div className={styles.page}>
-    <p className={styles.note}>Pratinjau lokal · pertanyaannya tetap (tidak dibuat AI), jawabanmu tidak dikirim ke mana pun, dan tidak ada penilaian.</p>
-    {view.connection === 'offline' && <div className={styles.notice}><Feedback tone="warning" variant="student" title="Koneksimu terputus" announce>Tulisanmu tetap ada di layar ini. Kamu bisa mengirimnya begitu tersambung lagi.</Feedback></div>}
-    {view.connection === 'stale' && <div className={styles.notice}><Feedback variant="student" title="Layar ini perlu disegarkan" announce>Sesi sudah bergerak sejak layar ini dibuka. Muat ulang dulu supaya jawabanmu masuk ke pertanyaan yang tepat. Tulisanmu tidak hilang.</Feedback><Button variant="student" tone="secondary" onClick={() => view.setConnection('online')}><Icon name="refresh" size={18} />Muat ulang</Button></div>}
-    <div className={styles.grid}>
-      <section className={styles.ask} aria-labelledby="ask-title">
-        <div className={styles.askHead}>
-          <span className={styles.nalaBox}><Nala mood={sending ? 'think' : 'ask'} size={50} head /></span>
-          <span id="ask-title" className={styles.askName}>Nala bertanya</span>
-          <span className={styles.turn}>{view.step === 0 ? 'Soal pembuka' : `Pertanyaan ${view.step} dari ${view.total - 1}`}</span>
-        </div>
-        <div ref={question} tabIndex={-1} className={styles.question}>
-          <h1>{view.question}</h1>
-          {sending && <p role="status" className={styles.thinking}>NALAR sedang berpikir…</p>}
-        </div>
-        {view.previous && <div className={styles.previous}><h2>Jawabanmu tadi</h2><p>{view.previous}</p></div>}
-      </section>
+  // ── Submit ────────────────────────────────────────────────────
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    if (!answer.trim() || sendState === 'pending' || sendState === 'processing') return
 
-      <section className={styles.composer} aria-labelledby="answer-label">
-        <div className={styles.composerHead}><label id="answer-label" htmlFor="answer">Jawabanmu</label><span>Pakai kata-katamu sendiri</span></div>
-        <textarea id="answer" value={view.draft} readOnly={sending} aria-busy={sending || undefined} aria-describedby="answer-hint" placeholder="Tulis alasanmu di sini…" autoComplete="off" spellCheck onChange={(event) => view.setDraft(event.target.value)} onKeyDown={onKeyDown} />
-        {failed && <div className={styles.failure}><Feedback tone="danger" title="Jawabanmu belum terkirim" announce>Tulisanmu masih ada di sini. Coba kirim lagi.</Feedback></div>}
-        <div className={styles.foot}>
-          <span id="answer-hint">Ctrl + Enter untuk kirim</span>
-          <Button variant="student" pending={sending} pendingLabel="Mengirim…" disabled={!canSend} onClick={view.submit}>{failed ? 'Coba kirim lagi' : 'Kirim'}<Icon name="send" size={18} /></Button>
-        </div>
-      </section>
-    </div>
+    setSendState('pending')
+    setSendError(null)
 
-    <section className={styles.preview} aria-label="Kontrol pratinjau">
-      <p>Kontrol pratinjau · bukan bagian layar siswa. Waktu di bagan atas adalah contoh tetap; misi ditutup {closes} WIB.</p>
-      <label>Sambungan
-        <select disabled={sending} value={view.connection} onChange={(event) => view.setConnection(connections.find(([value]) => value === event.target.value)?.[0] ?? 'online')}>{connections.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
-      </label>
-      <label>Hasil pengiriman
-        <select disabled={sending} value={view.outcome} onChange={(event) => view.setOutcome(event.target.value === 'failure' ? 'failure' : 'success')}><option value="success">Berhasil</option><option value="failure">Gagal (tulisan tetap di layar)</option></select>
-      </label>
-      <Button tone="secondary" disabled={sending} onClick={view.fillSample}>Isi jawaban contoh</Button>
-      <div className={styles.scenarios} role="group" aria-label="Kejadian dari kelas">
-        <Button tone="secondary" onClick={() => view.interrupt('paused')}>Jeda keselamatan</Button>
-        <Button tone="secondary" onClick={() => view.interrupt('timedOut')}>Waktu habis</Button>
-        <Button tone="secondary" onClick={() => view.interrupt('ended')}>Guru mengakhiri sesi</Button>
+    try {
+      // Simulate POST /student/answers → 202 accepted → poll state ~700 ms
+      await new Promise<void>((resolve) => setTimeout(resolve, 700))
+      setSendState('processing')
+      await new Promise<void>((resolve) => setTimeout(resolve, 1200))
+      setSendState('saved')
+    } catch {
+      setSendState('error')
+      setSendError('Jawaban belum terkirim. Periksa koneksimu dan coba kirim ulang dengan jawaban yang sama.')
+    }
+  }
+
+  const wordCount = answer.trim().split(/\s+/).filter(Boolean).length
+  const canSend = answer.trim().length > 0 && sendState !== 'pending' && sendState !== 'processing' && sendState !== 'saved'
+
+  return (
+    <StudentShell base={base} schoolName="SMP Nusantara" initials="A">
+      <div className={styles.page}>
+        <div className={styles.shell}>
+
+          {/* ── Session header card ───────────────────────────── */}
+          <section
+            className={`${styles.card} ${styles.heroCard}`}
+            aria-labelledby="session-title"
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
+              <div>
+                <p className={styles.eyebrow}>Siswa · soal aktif</p>
+                <h1 id="session-title" style={{ marginTop: 'var(--space-1)' }}>Soal 1 dari 1</h1>
+              </div>
+
+              {/* Timer */}
+              <div
+                className={`${styles.timerBlock} ${timerUrgent ? styles.timerUrgent : ''}`}
+                aria-label={`Waktu tersisa ${formatTime(secondsLeft)}`}
+                aria-live="off"
+              >
+                <span className={styles.timerLabel}>Sisa waktu</span>
+                <span className={styles.timerValue}>{formatTime(secondsLeft)}</span>
+              </div>
+            </div>
+
+            <div className={styles.meta}>
+              <StatusBadge variant="student" tone="info">Sesi aktif</StatusBadge>
+              <StatusBadge variant="student">Gaya dan Gerak</StatusBadge>
+              {secondsLeft === 0 && (
+                <StatusBadge variant="student">Waktu habis</StatusBadge>
+              )}
+            </div>
+          </section>
+
+          {/* ── Main: prompt + answer ─────────────────────────── */}
+          <div className={styles.grid}>
+            <section className={styles.card} aria-labelledby="prompt-title">
+              <p className={styles.eyebrow}>Pertanyaan</p>
+              <h2 id="prompt-title" className={styles.prompt} style={{ fontSize: 'clamp(1.125rem, 2vw, 1.4rem)' }}>
+                {PROMPT_TEXT}
+              </h2>
+
+              <hr className={styles.divider} />
+
+              <form onSubmit={handleSubmit} noValidate>
+                {/* Answer label + count */}
+                <div className={styles.answerLabel}>
+                  <label htmlFor="session-answer">Jawabanmu</label>
+                  {answer.length > 0 && (
+                    <span className={styles.answerCount}>
+                      {wordCount} kata
+                    </span>
+                  )}
+                </div>
+
+                <textarea
+                  ref={textareaRef}
+                  id="session-answer"
+                  className={styles.answerArea}
+                  placeholder="Tuliskan alasanmu di sini…"
+                  value={answer}
+                  onChange={handleChange}
+                  disabled={sendState === 'saved' || sendState === 'pending' || sendState === 'processing' || secondsLeft === 0}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  rows={6}
+                  aria-describedby="answer-help answer-error"
+                  aria-invalid={sendError ? true : undefined}
+                />
+
+                <p id="answer-help" className={styles.answerHelp}>
+                  Jawabanmu hanya dibagikan sebagai bagian dari sesi belajar.
+                  Tidak ada tanda benar atau salah dari sistem.
+                </p>
+
+                {sendError && (
+                  <p id="answer-error" className={styles.answerHelp} style={{ color: 'var(--color-danger-text)', fontWeight: 600, marginTop: 'var(--space-2)' }}>
+                    {sendError}
+                  </p>
+                )}
+
+                {/* Actions */}
+                <div className={styles.actions}>
+                  {sendState !== 'saved' ? (
+                    <Button
+                      type="submit"
+                      variant="student"
+                      pending={sendState === 'pending' || sendState === 'processing'}
+                      pendingLabel={sendState === 'processing' ? 'NALAR sedang berpikir…' : 'Mengirim…'}
+                      disabled={!canSend}
+                    >
+                      Kirim jawaban
+                    </Button>
+                  ) : (
+                    <Link to={reflectionPath}>
+                      <Button variant="student">Lanjut ke refleksi</Button>
+                    </Link>
+                  )}
+                </div>
+              </form>
+
+              {/* Feedback after send */}
+              {sendState === 'processing' && (
+                <Feedback variant="student" title="NALAR sedang berpikir…" tone="info">
+                  Jawabanmu sedang diproses. Tetap di halaman ini.
+                </Feedback>
+              )}
+              {sendState === 'saved' && (
+                <Feedback variant="student" title="Jawaban tersimpan" tone="success">
+                  Jawabanmu telah diterima. Lanjutkan ke refleksi untuk menutup sesi.
+                </Feedback>
+              )}
+              {sendState === 'error' && (
+                <Feedback variant="student" title="Jawaban belum terkirim" tone="danger" announce>
+                  Periksa koneksimu. Kamu dapat mencoba mengirim ulang — gunakan jawaban yang sama.
+                </Feedback>
+              )}
+              {secondsLeft === 0 && sendState !== 'saved' && (
+                <Feedback variant="student" title="Waktu habis" tone="warning" announce>
+                  Batas waktu telah habis. Jika jawabanmu sudah dikirim, guru dapat melihatnya.
+                </Feedback>
+              )}
+
+              {sendState === 'idle' && (
+                <Feedback variant="student" title="Fokus pada alasanmu">
+                  Jawaban tidak diberi label benar atau salah. Tulis dengan detail dan percaya diri.
+                </Feedback>
+              )}
+            </section>
+
+            {/* ── Sidebar: session info ─────────────────────────── */}
+            <aside className={styles.card} aria-labelledby="session-info-title">
+              <p className={styles.eyebrow}>Info sesi</p>
+              <h2 id="session-info-title">Ringkasan</h2>
+
+              <div className={styles.stack}>
+                <p className={styles.statusText}>
+                  <span className={styles.kicker}>Tipe:</span> jawaban terbuka
+                </p>
+                <p className={styles.statusText}>
+                  <span className={styles.kicker}>Batas:</span> 18.30 WIB
+                </p>
+                <p className={styles.statusText}>
+                  <span className={styles.kicker}>Soal:</span> 1 dari 1
+                </p>
+                <p className={styles.statusText}>
+                  <span className={styles.kicker}>Status:</span>{' '}
+                  {sendState === 'saved' ? 'Terkirim ✓' : sendState === 'processing' ? 'Diproses…' : 'Menunggu jawaban'}
+                </p>
+              </div>
+
+              {/* Progress */}
+              <div className={styles.progress} style={{ marginTop: 'var(--space-5)' }}>
+                <div className={styles.progressBar} aria-hidden="true">
+                  <div
+                    className={styles.progressFill}
+                    style={{ inlineSize: sendState === 'saved' ? '100%' : '0%' }}
+                  />
+                </div>
+                <span className={styles.progressLabel}>
+                  {sendState === 'saved' ? '1/1' : '0/1'}
+                </span>
+              </div>
+
+              <div className={styles.actions}>
+                {sendState === 'saved' && (
+                  <Link to={reflectionPath}>
+                    <Button variant="student">Lanjut ke refleksi</Button>
+                  </Link>
+                )}
+                <Link to={base}>
+                  <Button variant="student" tone="secondary">Dashboard</Button>
+                </Link>
+              </div>
+            </aside>
+          </div>
+
+        </div>
       </div>
-    </section>
-  </div>, <Progress step={view.step} total={view.total} elapsed={view.elapsed} />)
+    </StudentShell>
+  )
 }

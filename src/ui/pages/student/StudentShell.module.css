@@ -1,0 +1,264 @@
+/* StudentShell — persistent navigation shell for student POV */
+
+.shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-block-size: 100dvh;
+  background: var(--color-canvas);
+}
+
+/* ── Topbar ─────────────────────────────────────────────────── */
+.topbar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 clamp(var(--space-4), 4vw, var(--space-8));
+  block-size: 60px;
+  background: rgba(246, 244, 239, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-block-end: 3px solid var(--color-ink);
+}
+
+.brand {
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.07em;
+  color: var(--color-ink);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.brand span {
+  color: var(--color-primary);
+}
+
+.topbarSpacer {
+  flex: 1;
+}
+
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* School name chip */
+.schoolChip {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-info-bg);
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-meta);
+  font-weight: 600;
+  color: var(--color-primary-hover);
+  white-space: nowrap;
+}
+
+/* Avatar / identity */
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  inline-size: 40px;
+  block-size: 40px;
+  border: 2.5px solid var(--color-ink);
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-ink);
+  font-size: var(--font-size-meta);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  transition: box-shadow var(--motion-fast);
+}
+
+.avatar:hover {
+  box-shadow: 0 2px 0 var(--color-ink);
+}
+
+/* ── Bottom nav (mobile) ────────────────────────────────────── */
+.bottomNav {
+  display: none;
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: 20;
+  background: var(--color-paper);
+  border-block-start: 3px solid var(--color-ink);
+  padding-block-end: env(safe-area-inset-bottom);
+}
+
+.bottomNavInner {
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+}
+
+.bottomNavLink {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-block-size: 60px;
+  padding-block: var(--space-2);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: color var(--motion-fast), background-color var(--motion-fast);
+}
+
+.bottomNavLink.active {
+  color: var(--color-primary);
+  background: var(--color-info-bg);
+}
+
+.bottomNavLink svg {
+  flex-shrink: 0;
+}
+
+/* ── Sidebar (desktop) ──────────────────────────────────────── */
+.withSidebar {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  min-block-size: calc(100dvh - 60px);
+}
+
+.sidebar {
+  position: sticky;
+  inset-block-start: 60px;
+  block-size: calc(100dvh - 60px);
+  overflow-y: auto;
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--color-paper);
+  border-inline-end: 3px solid var(--color-ink);
+}
+
+.sidebarSection {
+  margin-block-start: var(--space-4);
+}
+
+.sidebarLabel {
+  padding: 0 var(--space-3) var(--space-2);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.sidebarLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 46px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-card);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+.sidebarLink:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-ink);
+}
+
+.sidebarLink.active {
+  background: var(--color-info-bg);
+  color: var(--color-primary-hover);
+  font-weight: 700;
+}
+
+.sidebarLink svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: color var(--motion-fast);
+}
+
+.sidebarLink:hover svg,
+.sidebarLink.active svg {
+  color: var(--color-primary);
+}
+
+.sidebarSpacer {
+  flex: 1;
+  min-block-size: var(--space-4);
+}
+
+.sidebarNote {
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: var(--font-size-meta);
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+/* ── Content area ───────────────────────────────────────────── */
+.content {
+  min-inline-size: 0;
+}
+
+/* ── Skip link ──────────────────────────────────────────────── */
+.skipLink {
+  position: fixed;
+  inset-block-start: var(--space-2);
+  inset-inline-start: var(--space-2);
+  z-index: 30;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-button);
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform var(--motion-fast);
+}
+
+.skipLink:focus {
+  transform: translateY(0);
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .schoolChip {
+    display: flex;
+  }
+}
+
+@media (max-width: 767px) {
+  .withSidebar {
+    display: block;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .bottomNav {
+    display: block;
+  }
+
+  .content {
+    padding-block-end: 72px; /* space for bottom nav */
+  }
+}
