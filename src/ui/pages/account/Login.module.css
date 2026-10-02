@@ -11,6 +11,8 @@
 .fields input { padding: 14px 16px; border-radius: 8px; }
 .submit { margin-block-start: var(--space-2); border-radius: 8px; padding: 14px 24px; font-weight: 600; }
 .content > .help { margin-block-start: var(--space-8); font-size: .9375rem; line-height: 1.6; }
+.content > .previewLinks { display: flex; align-items: center; flex-wrap: wrap; gap: 0 12px; margin-block-start: var(--space-4); font-size: .8125rem; line-height: 1.5; color: var(--color-text-muted); }
+.previewLinks a { display: inline-flex; align-items: center; min-block-size: 44px; }
 .locale { color: var(--color-text-muted); font-size: .8125rem; }
 .error { margin-block-start: var(--space-6); }
 .sessionAction { margin-block-start: var(--space-8); }
