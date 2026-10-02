@@ -4,14 +4,22 @@ import type { ParentChild } from '@/ui/components/parent-shell/ParentContext'
 
 export const parentUser = 'Bambang Wicaksono'
 export const homePath = '/review/parent/home'
-export const week = '21–27 September 2026'
+export const weekShort = '21–27 September'
+export const week = `${weekShort} 2026`
 
 export interface ChildNews {
   kpis: readonly { label: string; value: string; caption: string; trend: readonly number[] }[]
   summary: { released: string; subject: string; teacher: string; mission: string; reflection: string; text: string; tryAtHome: string }
   concepts: readonly { name: string; status: 'Sudah dipahami' | 'Berkembang'; from: string }[]
   talk: readonly { question: string; from: string }[]
+  /** The shorter wording of the weekly email. */
+  email: { teacher: string; text: string; tryAtHome: string }
 }
+
+export const settingsPath = '/review/parent/settings'
+export const emailSamplePath = '/review/parent/settings/email'
+// Fictional contact. The weekly email is a preview only: nothing is ever sent.
+export const account = { email: 'bambang.w@gmail.com', greeting: 'Bapak Bambang', schedule: 'Senin, 07.00', sender: 'kabar@nalar.id' }
 
 export const reflectionsPath = '/review/parent/reflections'
 export const reflectionPath = (id: string) => `${reflectionsPath}/${id}`
@@ -73,6 +81,11 @@ export const news: Readonly<Record<string, ChildNews>> = {
       { name: 'Kelembaman', status: 'Berkembang', from: 'Kenapa kelereng berhenti?' },
       { name: 'Resultan gaya', status: 'Berkembang', from: 'Tarik tambang' },
     ],
+    email: {
+      teacher: 'Bu Sari',
+      text: 'Raka awalnya berpikir dorongan bisa habis, lalu mengubah pendapatnya sendiri. Ia sudah bisa menyebut gaya yang melawan gerak benda.',
+      tryAtHome: 'gelindingkan bola di lantai lalu di karpet, dan tanyakan bedanya.',
+    },
     talk: [
       { question: 'Kalau tidak ada gesekan sama sekali, apa yang akan terjadi pada kelereng itu?', from: 'Kenapa kelereng berhenti? · 24 Sep' },
       { question: 'Di titik paling tinggi, apakah bola itu sedang diberi gaya?', from: 'Bola yang dilempar ke atas · 17 Sep' },

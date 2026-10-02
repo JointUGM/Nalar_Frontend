@@ -21,6 +21,9 @@ export interface ParentContextValue {
   /** The child whose released summaries are shown; null when none is linked. */
   child: ParentChild | null
   selectChild: (id: string) => void
+  /** An account preference, not a per-child one, so it stays when the selected child changes. */
+  weeklyEmail: boolean
+  setWeeklyEmail: (value: boolean) => void
 }
 
 export const ParentContext = createContext<ParentContextValue | null>(null)
