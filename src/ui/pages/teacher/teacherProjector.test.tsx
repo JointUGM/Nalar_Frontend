@@ -10,7 +10,7 @@ import { TeacherProjector } from './TeacherProjector'
 import { useTeacherProjectorViewModel } from './useTeacherProjectorViewModel'
 
 const schools = teacherSchools.map((item) => item.name)
-const route = (children: ReactNode, query = 'kelas=8B', id = generatedMissionId) => <MemoryRouter initialEntries={[`${missionsPath}/${id}/projector?${query}`]}><TeacherContextProvider schools={schools}><Routes><Route path={`${missionsPath}/:missionId/projector`} element={children} /></Routes></TeacherContextProvider></MemoryRouter>
+const route = (children: ReactNode, query = 'kelas=8B', id = generatedMissionId) => <MemoryRouter initialEntries={[`${missionsPath}/${id}/projector?${query}`]}><TeacherContextProvider schools={schools}><Routes><Route path={`${missionsPath}/:missionId/projector`} element={children} /><Route path={`${missionsPath}/:missionId/monitor`} element={<p>Pemantauan kelas</p>} /></Routes></TeacherContextProvider></MemoryRouter>
 const hook = (query?: string, id?: string) => renderHook(() => useTeacherProjectorViewModel(), { wrapper: ({ children }: { children: ReactNode }) => route(children, query, id) })
 // One act per step: React re-renders (and schedules the next timer) only when act exits.
 const tick = (ms: number, times = 1) => { for (let i = 0; i < times; i++) act(() => { vi.advanceTimersByTime(ms) }) }
@@ -99,7 +99,7 @@ describe('projector page', () => {
     expect(screen.getByText('Contoh layar proyektor belum tersedia')).toBeInTheDocument()
   })
 
-  it('keeps the lobby distinct from the session and confirms start and close before changing', () => {
+  it('keeps the lobby distinct from the session and opens monitoring once the start is confirmed', () => {
     vi.useFakeTimers()
     render(route(<TeacherProjector />))
     expect(screen.getByRole('heading', { name: 'Siap mulai, Bu Sari?' })).toBeInTheDocument()
@@ -122,19 +122,7 @@ describe('projector page', () => {
     fireEvent.change(dialog().getByLabelText('Hasil skenario'), { target: { value: 'success' } })
     fireEvent.click(dialog().getByRole('button', { name: 'Coba lagi' }))
     tick(650)
-    fireEvent.click(dialog().getByRole('button', { name: 'Tutup' }))
-    expect(screen.getByText('Langsung')).toBeInTheDocument()
-    expect(screen.queryByText(/Belum ada soal yang dibuka/)).not.toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Tutup penerimaan' }))
-    expect(dialog().getByText(/20 menit setelah penerimaan ditutup; batas waktu mereka tidak berubah/)).toBeInTheDocument()
-    fireEvent.click(dialog().getByRole('button', { name: 'Tutup penerimaan' }))
-    tick(650)
-    fireEvent.click(dialog().getByRole('button', { name: 'Tutup' }))
-    expect(screen.getByText('Penerimaan ditutup')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Tutup penerimaan' })).not.toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Atur ulang contoh' }))
-    expect(screen.getByRole('button', { name: 'Buka lobi' })).toBeInTheDocument()
+    expect(screen.getByText('Pemantauan kelas')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })
