@@ -2,8 +2,10 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { MemoryRouter } from 'react-router'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { Identity } from '@/domain/model/Identity'
+import { KnowledgeBaseUseCases } from '@/application/knowledge-base-use-cases'
 import { TeacherUseCases } from '@/application/teacher-use-cases'
 import { HttpApi } from '@/infrastructure/services/HttpApi'
+import { HttpKnowledgeBaseService } from '@/infrastructure/services/HttpKnowledgeBaseService'
 import { HttpTeacherService } from '@/infrastructure/services/HttpTeacherService'
 import { AppRoutes } from '@/ui/routes'
 import { ProtectedRole } from '@/ui/pages/account/ProtectedRole'
@@ -47,6 +49,18 @@ const klass = '00000000-0000-4000-8000-000000000011'
 const missions = { items: [{ id: mission, title: 'Kenapa kelereng berhenti?', knowledge_base_id: school, created_by: school, can_edit: true, latest_version: { id: version, version_number: 2, status: 'reviewed' } }, { id: draft, title: 'Tekanan Zat', knowledge_base_id: school, created_by: school, can_edit: true, latest_version: { id: draft, version_number: 1, status: 'draft' } }], next_cursor: null }
 const assignments = { items: [{ school_id: school, class_id: klass, class_name: '8B', grade_level: 8, school_subject_id: school, subject_name: 'IPA' }] }
 const preview = (extra: Record<string, unknown> = {}) => ({ ready: true, blockers: [], eligible_count: 1, ineligible_count: 2, summaries: [{ student_id: student, name: 'Raka Pratama', summary_text: 'Raka mengubah pendapatnya sendiri.' }], released_at: null, ...extra })
+const kbId = '00000000-0000-4000-8000-000000000012'
+const job = '00000000-0000-4000-8000-000000000013'
+const section = '00000000-0000-4000-8000-000000000014'
+const kbPath = `${base}/knowledge-base/${kbId}`
+const kbDetail = (conceptStatus = 'pending', can_edit = true) => ({
+  id: kbId, topic_title: 'Tekanan Zat', owner_teacher_id: identity.userId, can_edit, prerequisites: [],
+  materials: [{ id: school, title: 'IPA Kelas 8.pdf', page_count: 42, pages_without_text: [], archived_at: null }],
+  concepts: [{ id: concept, name: 'Tekanan hidrostatis', description: 'Tekanan zat cair bergantung pada kedalaman.', review_status: conceptStatus, cp_learning_outcome_id: null, source_chunk_ids: [] }],
+  misconceptions: [{ id: misconception, concept_id: concept, statement: 'Tekanan bergantung pada jumlah air', correct_understanding: 'Tekanan bergantung pada kedalaman.', detection_cues: ['airnya lebih banyak'], counter_examples: ['Dua wadah beda lebar'], review_status: 'pending', source_chunk_ids: [] }],
+})
+const sections = { items: [{ id: section, material_id: school, parent_section_id: null, title: 'Bab 1 Tekanan', level: 1, ordinal: 1, page_start: 1, page_end: 20, suggested: true, build_status: 'pending', built_at: null }] }
+const jobOut = (extra: Record<string, unknown> = {}) => ({ id: job, kind: 'kb_detect_sections', status: 'succeeded', entity_type: 'materials', entity_id: school, error_code: null, updated_at: '2026-10-02T03:00:00+00:00', ...extra })
 
 type Reply = () => Response
 function backend(overrides: Record<string, Reply> = {}) {
@@ -56,6 +70,10 @@ function backend(overrides: Record<string, Reply> = {}) {
     [`GET /publications/${publication}/release-preview`]: () => Response.json(preview()),
     [`GET /schools/${school}/missions?limit=100`]: () => Response.json(missions),
     'GET /teacher/assignments': () => Response.json(assignments),
+    [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail()),
+    [`GET /knowledge-bases/${kbId}/sections`]: () => Response.json(sections),
+    [`GET /knowledge-bases/${kbId}/review-queue`]: () => Response.json({ knowledge_base_id: kbId, pending_concepts: 1, pending_misconceptions: 1 }),
+    [`GET /jobs/${job}`]: () => Response.json(jobOut()),
     'POST /publications': () => Response.json({ publication_id: publication, run_id: school, run_status: 'scheduled' }, { status: 201 }),
     ...overrides,
   }
@@ -67,8 +85,10 @@ function backend(overrides: Record<string, Reply> = {}) {
   })
 }
 function open(path: string, request: typeof fetch) {
-  const service = new TeacherUseCases(new HttpTeacherService(new HttpApi({ apiBaseUrl: '/api/v1', fetch: request })))
-  return render(<MemoryRouter initialEntries={[path]}><AppRoutes accountEntry={<h1>Masuk</h1>} privateEntry={<ProtectedRole dependencies={account} renderRole={(verified) => <TeacherRoutes service={service} identity={verified} />} />} /></MemoryRouter>)
+  const api = new HttpApi({ apiBaseUrl: '/api/v1', fetch: request })
+  const service = new TeacherUseCases(new HttpTeacherService(api))
+  const kb = new KnowledgeBaseUseCases(new HttpKnowledgeBaseService(api))
+  return render(<MemoryRouter initialEntries={[path]}><AppRoutes accountEntry={<h1>Masuk</h1>} privateEntry={<ProtectedRole dependencies={account} renderRole={(verified) => <TeacherRoutes service={service} kb={kb} identity={verified} />} />} /></MemoryRouter>)
 }
 
 describe('signed-in teacher pages', () => {
@@ -133,5 +153,70 @@ describe('signed-in teacher pages', () => {
     await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1))
     const [, init] = request.mock.calls.find(([, options]) => options?.method === 'POST')!
     expect(JSON.parse(String(init?.body))).toEqual({ class_id: klass, mission_version_id: version, run: { mode: 'live' } })
+  })
+
+  it('uploads a PDF as multipart and follows the reading job on the topic page', async () => {
+    const request = backend({ [`POST /schools/${school}/knowledge-bases`]: () => Response.json({ knowledge_base_id: kbId, material_id: school, job_id: job, status: 'queued' }, { status: 202 }) })
+    open(`${base}/knowledge-base/upload`, request)
+    await screen.findByRole('option', { name: 'IPA' })
+    fireEvent.change(screen.getByLabelText(/Nama topik/), { target: { value: ' Tekanan Zat ' } })
+    fireEvent.change(screen.getByLabelText(/Berkas PDF/), { target: { files: [new File(['%PDF-1.7'], 'ipa.pdf', { type: 'application/pdf' })] } })
+    fireEvent.click(screen.getByRole('button', { name: 'Unggah materi' }))
+    expect(await screen.findByText('Materi selesai dibaca')).toBeInTheDocument()
+    const form = request.mock.calls.find(([, init]) => init?.method === 'POST')![1]?.body as FormData
+    expect([form.get('school_subject_id'), form.get('topic_title'), (form.get('file') as File).name]).toEqual([school, 'Tekanan Zat', 'ipa.pdf'])
+  })
+
+  it('approves the concept before its misconception, sending the decision once', async () => {
+    let status = 'pending'
+    const request = backend({
+      [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail(status)),
+      [`POST /concepts/${concept}/review`]: () => { status = 'approved'; return Response.json({ id: concept, review_status: status, reviewed_at: '2026-10-02T04:00:00+00:00' }) },
+    })
+    open(kbPath, request)
+    const approve = within(await screen.findByRole('region', { name: 'Konsep: Tekanan hidrostatis' })).getByRole('button', { name: 'Setujui' })
+    const misconceptionCard = within(screen.getByRole('region', { name: /^Miskonsepsi:/ }))
+    expect(misconceptionCard.getByRole('button', { name: 'Setujui' })).toBeDisabled()
+    fireEvent.click(approve)
+    fireEvent.click(approve)
+    await waitFor(() => expect(misconceptionCard.getByRole('button', { name: 'Setujui' })).toBeEnabled())
+    const posts = request.mock.calls.filter(([, init]) => init?.method === 'POST')
+    expect(posts).toHaveLength(1)
+    expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ review_status: 'approved' })
+  })
+
+  it('saves an edited misconception with one cue per line and blank lines dropped', async () => {
+    const request = backend({ [`PATCH /misconceptions/${misconception}`]: () => Response.json({}) })
+    open(kbPath, request)
+    const card = within(await screen.findByRole('region', { name: /^Miskonsepsi:/ }))
+    fireEvent.click(card.getByRole('button', { name: 'Edit' }))
+    fireEvent.change(card.getByLabelText(/Contoh ucapan siswa/), { target: { value: 'airnya lebih banyak\n\n  wadahnya besar ' } })
+    fireEvent.click(card.getByRole('button', { name: 'Simpan' }))
+    await waitFor(() => expect(request.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(true))
+    expect(JSON.parse(String(request.mock.calls.find(([, init]) => init?.method === 'PATCH')![1]?.body))).toEqual({
+      statement: 'Tekanan bergantung pada jumlah air', correct_understanding: 'Tekanan bergantung pada kedalaman.',
+      detection_cues: ['airnya lebih banyak', 'wadahnya besar'], counter_examples: ['Dua wadah beda lebar'],
+    })
+  })
+
+  it('builds a chapter once and says why its job failed', async () => {
+    const request = backend({
+      [`POST /knowledge-bases/${kbId}/sections/${section}/build`]: () => Response.json({ job_id: job, section_id: section, status: 'queued' }, { status: 202 }),
+      [`GET /jobs/${job}`]: () => Response.json(jobOut({ kind: 'kb_build_section', status: 'failed', error_code: 'SECTION_HAS_NO_TEXT' })),
+    })
+    open(kbPath, request)
+    const build = await screen.findByRole('button', { name: 'Susun Bab 1 Tekanan' })
+    fireEvent.click(build)
+    fireEvent.click(build)
+    expect(await screen.findByText('Bab gagal disusun')).toBeInTheDocument()
+    expect(screen.getByText(/tidak punya teks/)).toBeInTheDocument()
+    expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1)
+  })
+
+  it('shows a colleague’s knowledge base without any way to change it', async () => {
+    open(kbPath, backend({ [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail('pending', false)) }))
+    await screen.findByText(/milik rekan guru/)
+    for (const name of ['Setujui', 'Tolak', 'Edit', 'Susun Bab 1 Tekanan']) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/Tambah materi/)).not.toBeInTheDocument()
   })
 })
