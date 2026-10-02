@@ -20,10 +20,10 @@ export const openMissions: readonly OpenMission[] = [
     blurb: 'Jawabanmu sampai pertanyaan 2 sudah tersimpan. Lanjutkan sebelum 14.30.', progress: { done: 2, total: 5 } },
 ]
 
-export interface MissionRow { title: string; topic: string; when: string }
+export interface MissionRow { title: string; topic: string; when: string; reflection?: string }
 export const missionRows: Readonly<{ upcoming: readonly MissionRow[]; done: readonly MissionRow[] }> = {
   upcoming: [{ title: 'Mendorong lemari', topic: 'Gaya dan Gerak', when: 'Sen, 28 Sep' }, { title: 'Pisau tumpul, pisau tajam', topic: 'Tekanan Zat', when: 'Kam, 1 Okt' }],
-  done: [{ title: 'Bola yang dilempar ke atas', topic: 'Gaya dan Gerak', when: '17 Sep' }, { title: 'Tarik tambang', topic: 'Gaya dan Gerak', when: '10 Sep' }, { title: 'Mendorong mobil mogok', topic: 'Gaya dan Gerak', when: '3 Sep' }],
+  done: [{ title: 'Bola yang dilempar ke atas', topic: 'Gaya dan Gerak', when: '17 Sep', reflection: 'bola' }, { title: 'Tarik tambang', topic: 'Gaya dan Gerak', when: '10 Sep', reflection: 'tarik-tambang' }, { title: 'Mendorong mobil mogok', topic: 'Gaya dan Gerak', when: '3 Sep', reflection: 'mobil-mogok' }],
 }
 
 export interface StudentKpi { label: string; value: string; caption: string; trend?: readonly number[] }
@@ -67,6 +67,7 @@ export const introExample = {
   notes: ['Tidak ada jawaban yang dinilai benar atau salah di sini. Yang penting alasanmu.', 'Boleh berubah pikiran. Itu tanda kamu sedang berpikir.', 'Tetap di halaman ini sampai selesai, ya.'] as const,
 }
 
+export const warmLetters = ['A', 'B', 'C'] as const
 export const lobbyPath = (id: string) => `/review/student/missions/${id}/lobby`
 
 // Supplied waiting room and warm-up. The warm-up question is unscored: no option is marked right or wrong and nothing is revealed.
@@ -127,3 +128,38 @@ export const endExample: Readonly<Record<EndKind, { badge: string; title: string
   timedOut: { badge: 'Misi ditutup', title: 'Waktu mengerjakan sudah habis.', message: () => 'Jawaban yang sudah kamu kirim tetap tersimpan. Tidak ada yang perlu kamu lakukan lagi.' },
   ended: { badge: 'Sesi selesai', title: 'Sesi kelas ini sudah diakhiri.', message: (teacher) => `${teacher} mengakhiri sesi ini. Jawaban yang sudah kamu kirim tetap tersimpan.` },
 }
+
+// Supplied finish screen. The counts are fixed examples (the review session does not detect a change of mind or time the student).
+export const finishExample = { minutes: 12, shifts: 1 }
+
+export const reflectionsPath = '/review/student/reflections'
+export const reflectionPath = (id: string) => `${reflectionsPath}/${id}`
+
+// Supplied reflections: kind, specific words about the student's own thinking, and one question to take home. Never a score or a verdict.
+export interface Reflection {
+  id: string; topic: string; date: string; title: string; excerpt: string; question: string
+  detail?: { meta: string; shift: { story: string; before: string; after: string }; concepts: readonly string[] }
+}
+export const reflections: readonly Reflection[] = [
+  { id: 'kelereng', topic: 'Gaya dan Gerak', date: '24 Sep 2026', title: 'Kenapa kelereng berhenti?',
+    excerpt: 'Kamu memakai contoh es dan karpet untuk menjelaskan kenapa gesekan penting.',
+    question: 'Kalau tidak ada gesekan sama sekali, apa yang akan terjadi pada kelereng itu?',
+    detail: {
+      meta: 'Gaya dan Gerak · 24 September 2026, 10.52 · 12 menit',
+      shift: {
+        story: 'Awalnya kamu bilang kelereng berhenti karena dorongannya habis. Setelah memikirkan pesawat luar angkasa, kamu menyadari ada gaya yang melawan gerak kelereng.',
+        before: 'dorongan dari tangan Raka sudah habis', after: 'bukan dorongannya yang habis, tapi ada yang melawan',
+      },
+      concepts: ['Gaya gesek', 'Kelembaman'],
+    } },
+  { id: 'bola', topic: 'Gaya dan Gerak', date: '17 Sep 2026', title: 'Bola yang dilempar ke atas',
+    excerpt: 'Kamu menjelaskan arah gaya gravitasi dengan jelas, bahkan saat bola sedang naik.',
+    question: 'Di titik paling tinggi, apakah bola itu sedang diberi gaya?' },
+  { id: 'tarik-tambang', topic: 'Gaya dan Gerak', date: '10 Sep 2026', title: 'Tarik tambang',
+    excerpt: 'Kamu berubah pikiran soal tim yang “lebih kuat” setelah membandingkan dua gaya yang sama besar.',
+    question: 'Kalau dua tim sama kuat, apakah talinya diam atau bergerak?' },
+  { id: 'mobil-mogok', topic: 'Gaya dan Gerak', date: '3 Sep 2026', title: 'Mendorong mobil mogok',
+    excerpt: 'Kamu mulai memakai kata “resultan” dengan maksud yang tepat.',
+    question: 'Kenapa mobil lebih sulit didorong saat mulai bergerak daripada saat sudah melaju?' },
+]
+export const reflectionTerm = 'semester ganjil 2026/2027'
