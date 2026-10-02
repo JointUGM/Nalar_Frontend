@@ -3,7 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { ParentHome } from './ParentHome'
 import { ParentLayout } from './ParentLayout'
-import { homePath, news, reflectionPath, reflectionsPath } from './parentExamples'
+import { homePath, news, reflectionPath, reflectionsPath, settingsPath } from './parentExamples'
 
 const page = () => render(<MemoryRouter initialEntries={[homePath]}><Routes><Route element={<ParentLayout />}><Route path={homePath} element={<ParentHome />} /></Route></Routes></MemoryRouter>)
 const sidebar = () => screen.getByRole('complementary')
@@ -12,7 +12,7 @@ const setLinked = (value: string) => fireEvent.change(screen.getByLabelText('Ana
 const setScenario = (value: string) => fireEvent.change(screen.getByLabelText('Keadaan halaman (pratinjau)'), { target: { value } })
 
 describe('parent shell and child context', () => {
-  it('opens on the first child with both children selectable, the privacy note and a menu that opens the reflections', () => {
+  it('opens on the first child with both children selectable, the privacy note and a menu that opens the reflections and the settings', () => {
     page()
     expect(screen.getByRole('heading', { level: 1, name: 'Kabar Raka minggu ini' })).toBeInTheDocument()
     expect(kid(/Raka Pratama/)).toHaveAttribute('aria-pressed', 'true')
@@ -20,7 +20,7 @@ describe('parent shell and child context', () => {
     expect(within(sidebar()).getByRole('note', { name: 'Privasi anak' })).toHaveTextContent('Tanpa skor dan tanpa perbandingan')
     expect(within(sidebar()).getByRole('link', { name: /Ringkasan/ })).toHaveAttribute('aria-current', 'page')
     expect(within(sidebar()).getByRole('link', { name: 'Refleksi' })).toHaveAttribute('href', reflectionsPath)
-    expect(within(sidebar()).getByRole('button', { name: 'Pengaturan' })).toBeDisabled()
+    expect(within(sidebar()).getByRole('link', { name: 'Pengaturan' })).toHaveAttribute('href', settingsPath)
   })
 
   it('switches child, shows only that child, and clears what was open for the previous one', () => {
