@@ -16,7 +16,8 @@ const items: readonly NavItem[] = [
 ]
 const unavailable = 'Belum tersedia di pratinjau'
 
-export function StudentShell({ title, user, detail, children }: { title: string; user: string; detail: string; children: ReactNode }) {
+// The defaults are the example-data review pages; a signed-in student passes the real paths and review={false}.
+export function StudentShell({ title, user, detail, nav = items, home = '/review/student/home', join = '/review/student/join', review = true, children }: { title: string; user: string; detail: string; nav?: readonly NavItem[]; home?: string; join?: string; review?: boolean; children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
@@ -25,17 +26,17 @@ export function StudentShell({ title, user, detail, children }: { title: string;
   useEffect(() => { if (focusContent) contentRef.current?.focus() }, [focusContent, location.key])
   const close = () => setDrawerOpen(false)
   const initials = user.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
-  const navigation = <nav className={styles.navigation} aria-label="Navigasi siswa">{items.map((entry) => entry.to
+  const navigation = <nav className={styles.navigation} aria-label="Navigasi siswa">{nav.map((entry) => entry.to
     ? <NavLink key={entry.label} to={entry.to} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</NavLink>
     : <button key={entry.label} type="button" disabled title={unavailable}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span></button>)}</nav>
 
   // On a phone the sidebar is hidden, so signing out has to live in the drawer too.
-  const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label="Keluar dari pratinjau" onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
+  const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label={review ? 'Keluar dari pratinjau' : 'Keluar'} onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
   return <div className={styles.shell} data-collapsed={collapsed}>
     <a className={styles.skipLink} href="#student-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>
       <div className={styles.brandRow}>
-        <Link to="/review/student/home" className={styles.brand}><BrandMark /><span className={styles.label}>nalar</span></Link>
+        <Link to={home} className={styles.brand}><BrandMark /><span className={styles.label}>nalar</span></Link>
         <button type="button" className={styles.collapse} aria-expanded={!collapsed} aria-label={collapsed ? 'Perluas navigasi' : 'Ciutkan navigasi'} onClick={() => setCollapsed((value) => !value)}><Icon name={collapsed ? 'chevronRight' : 'chevronLeft'} size={12} /></button>
       </div>
       <p className={styles.group}>Belajar</p>
@@ -48,15 +49,15 @@ export function StudentShell({ title, user, detail, children }: { title: string;
       <div className={styles.user}>
         <span className={styles.avatar} aria-hidden="true">{initials}</span>
         <span className={[styles.who, styles.label].join(' ')}><strong>{user}</strong><small>{detail}</small></span>
-        <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label="Keluar dari pratinjau"><Icon name="logout" size={16} /></Link>
+        <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label={review ? 'Keluar dari pratinjau' : 'Keluar'}><Icon name="logout" size={16} /></Link>
       </div>
     </aside>
     <div className={styles.workspace}>
       <header className={styles.topbar}>
         <button type="button" className={styles.menuButton} aria-label="Buka navigasi" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Icon name="menu" /></button>
         <span className={styles.title}>{title}</span>
-        <span className={styles.reviewLabel}>Pratinjau · data contoh</span>
-        <Link className={styles.join} to="/review/student/join"><span aria-hidden="true"><Icon name="monitor" size={12} /></span>Gabung sesi kelas</Link>
+        {review && <span className={styles.reviewLabel}>Pratinjau · data contoh</span>}
+        <Link className={styles.join} to={join}><span aria-hidden="true"><Icon name="monitor" size={12} /></span>Gabung sesi kelas</Link>
         <button type="button" className={styles.bell} disabled aria-label="Notifikasi belum tersedia"><Icon name="bell" size={16} /></button>
       </header>
       <main ref={contentRef} className={styles.main} id="student-content" tabIndex={-1}>{children}</main>
