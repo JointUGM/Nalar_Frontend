@@ -80,6 +80,9 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
     <Route path="/review/student/missions/:missionId/lobby" element={<StudentLobby />} />
     <Route path="/review/student/missions/:missionId/session" element={<StudentSession />} />
     <Route path="/review/student/missions/:missionId/resume" element={<StudentResume />} />
+    <Route path="/review/student/runs/:runId/lobby" element={<StudentLobby />} />
+    <Route path="/review/student/sessions/:sessionId" element={<StudentSession />} />
+    <Route path="/review/student/sessions/:sessionId/reflection" element={<StudentReflection />} />
     <Route path="/review/student/reflections" element={<StudentReflections />} />
     <Route path="/review/student/reflections/:reflectionId" element={<StudentReflection />} />
     <Route element={<ParentLayout />}>

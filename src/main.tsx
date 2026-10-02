@@ -36,8 +36,9 @@ const accountEntry = createElement(lazy(async () => {
 const privateEntry = createElement(lazy(async () => {
   try {
     const [created, { ProtectedRole }, { LiveRoutes }, dev] = await Promise.all([getDependencies(), import('./ui/pages/account/ProtectedRole'), import('./ui/pages/live/LiveRoutes'), import.meta.env.DEV ? import('./ui/devDashboards') : null])
-    // The role home (/teacher/<school>) opens its dashboard when one exists; live pages own only the deeper paths.
-    const isLivePath = (path: string) => /^\/(student|teacher)\//.test(path) && !(dev && /^\/(student|teacher)\/[^/]+\/?$/.test(path))
+    // Live pages own only the paths they know; every other role path opens its dashboard when one exists (dev review pages).
+    const livePath = /^\/(teacher\/[^/]+\/publications\/|student\/[^/]+\/(join|runs\/|sessions\/))/
+    const isLivePath = (path: string) => /^\/(student|teacher)\//.test(path) && (!dev || livePath.test(path))
     return { default: () => <ProtectedRole dependencies={created.account} dashboardFor={dev?.devDashboardPath} renderRole={(identity, path) => created.live && isLivePath(path) ? <LiveRoutes service={created.live} identity={identity} /> : null} /> }
   } catch {
     return { default: AccountLoadFailure }

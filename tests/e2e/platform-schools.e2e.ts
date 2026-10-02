@@ -52,13 +52,13 @@ test('review school pages retain cursor for detail and reset it on search', asyn
   await page.setViewportSize({ width: 320, height: 700 })
   await page.goto('/review/platform/schools')
   await expect(page.getByRole('link', { name: 'SMPN 5 Yogyakarta' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'SMPN 3 Bantul' })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'SMP Islam Al-Azhar 26' })).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Halaman berikutnya' }).click()
-  await expect(page.getByRole('link', { name: 'SMPN 3 Bantul' })).toBeVisible()
-  await page.getByRole('link', { name: 'SMPN 3 Bantul' }).click()
-  await expect(page.getByRole('dialog', { name: 'SMPN 3 Bantul' })).toBeVisible()
-  await page.getByRole('dialog', { name: 'SMPN 3 Bantul' }).press('Escape')
+  await expect(page.getByRole('link', { name: 'SMP Islam Al-Azhar 26' })).toBeVisible()
+  await page.getByRole('link', { name: 'SMP Islam Al-Azhar 26' }).click()
+  await expect(page.getByRole('dialog', { name: 'SMP Islam Al-Azhar 26' })).toBeVisible()
+  await page.getByRole('dialog', { name: 'SMP Islam Al-Azhar 26' }).press('Escape')
 
   await page.getByRole('textbox', { name: 'Cari sekolah' }).fill('Sleman')
   await expect(page).not.toHaveURL(/cursor=/)

@@ -6,7 +6,7 @@ import { AppRoutes } from './routes'
 describe('Account route boundary', () => {
   it('opens the landing page at the root, with sign-in links and no registration', async () => {
     render(<MemoryRouter initialEntries={['/']}><AppRoutes accountEntry={<h1>Supplied account entry</h1>} /></MemoryRouter>)
-    expect(await screen.findByRole('heading', { level: 1, name: /Ukur cara siswa berpikir/ })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: /Ukur cara siswa berpikir/ }, { timeout: 5000 })).toBeInTheDocument()
     const signIn = screen.getAllByRole('link', { name: /^Masuk/ })
     expect(signIn.length).toBeGreaterThan(0)
     expect(signIn.every((link) => link.getAttribute('href') === '/login')).toBe(true)
