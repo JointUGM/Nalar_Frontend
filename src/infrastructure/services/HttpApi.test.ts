@@ -16,6 +16,17 @@ describe('shared HTTP client', () => {
     expect(JSON.parse(String(write?.body))).toEqual({ weekly_digest_enabled: false })
   })
 
+  it('sends an upload as multipart, leaving the Content-Type and its boundary to the browser', async () => {
+    const request = vi.fn<typeof fetch>().mockImplementation(async () => Response.json({ ok: true }, { status: 202 }))
+    const form = new FormData()
+    form.set('file', new File(['%PDF-1.7'], 'materi.pdf', { type: 'application/pdf' }))
+    await new HttpApi({ apiBaseUrl: '/api/v1', fetch: request }).request('/knowledge-bases/x/materials', { method: 'POST', form })
+    const [, init] = request.mock.calls[0]
+    expect(init?.body).toBe(form)
+    expect(new Headers(init?.headers).has('Content-Type')).toBe(false)
+    expect(new Headers(init?.headers).get('X-Nalar-CSRF')).toBe('1')
+  })
+
   it('reports the envelope code and a safe request reference, never the backend message', async () => {
     const request = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ error: { code: 'RELEASE_NOT_READY', message: 'rahasia' }, request_id: 'x' }, { status: 409, headers: { 'X-Request-Id': 'req_1' } }))
     await expect(new HttpApi({ apiBaseUrl: '/api/v1', fetch: request }).request('/x')).rejects.toMatchObject({ status: 409, code: 'RELEASE_NOT_READY', requestId: 'req_1', message: 'Data sudah berubah. Muat ulang lalu coba lagi.' })
