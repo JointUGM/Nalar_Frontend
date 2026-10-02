@@ -33,14 +33,14 @@ const child = { id: 'a', name: 'Anak Satu', initials: 'A', detail: '8B · Sekola
 const shells: readonly (readonly [string, ReactNode])[] = [
   ['Guru', <TeacherContextProvider schools={['Sekolah']}><TeacherShell title="Beranda" user="Bu Guru"><p>Isi</p></TeacherShell></TeacherContextProvider>],
   ['Siswa', <StudentShell title="Misi saya" user="Raka Pratama" detail="Kelas 8B"><p>Isi</p></StudentShell>],
-  ['Orang tua', <ParentContextProvider all={[child]}><ParentShell title="Ringkasan" user="Pak Orang" nav={[{ label: 'Ringkasan', icon: 'home', to: '/x' }]}><p>Isi</p></ParentShell></ParentContextProvider>],
+  ['Orang tua', <ParentContextProvider all={[child]}><ParentShell title="Ringkasan" user="Pak Orang" home="/x" nav={[{ label: 'Ringkasan', icon: 'home', to: '/x' }]}><p>Isi</p></ParentShell></ParentContextProvider>],
 ]
 
 describe.each(shells)('%s shell', (_name, element) => {
   it('can sign out from the menu drawer, where the sidebar is hidden on a phone', () => {
     render(<MemoryRouter initialEntries={['/x']}><Routes><Route path="/login" element={<Login />} /><Route path="*" element={element} /></Routes></MemoryRouter>)
     fireEvent.click(screen.getByRole('button', { name: 'Buka navigasi' }))
-    fireEvent.click(within(screen.getByRole('dialog')).getByRole('link', { name: 'Keluar dari pratinjau' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('link', { name: /^Keluar/ }))
     expect(screen.getByText('Masuk · keluar diminta: true')).toBeInTheDocument()
   })
 })

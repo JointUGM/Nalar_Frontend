@@ -5,7 +5,6 @@ import { LiveFrame } from './LiveFrame'
 import { LiveStudentJoin } from './LiveStudentJoin'
 import { LiveStudentLobby } from './LiveStudentLobby'
 import { LiveStudentSession } from './LiveStudentSession'
-import { LiveTeacherHome } from './LiveTeacherHome'
 import { LiveTeacherRun } from './LiveTeacherRun'
 import type { TelemetryBatch } from '@/domain/model/Student'
 
@@ -21,7 +20,6 @@ export function LiveRoutes({ service, identity, telemetry }: { service: LiveServ
     else if (segments.length === 0 || segments[0] === 'join' && segments.length === 1) page = <LiveStudentJoin service={service} base={base} />
   } else if (role === 'teacher') {
     if (segments[0] === 'publications' && ['projector', 'monitor'].includes(segments[2]) && segments.length === 3) page = <LiveTeacherRun key={`${segments[1]}-${segments[2]}`} service={service} publicationId={segments[1]} base={base} projector={segments[2] === 'projector'} />
-    else if (segments.length === 0) page = <LiveTeacherHome service={service} base={base} />
   }
   return <LiveFrame title={role === 'student' ? 'Sesi kelas' : 'Sesi langsung'} user={identity.fullName} home={base}><Routes><Route path="*" element={page ?? <h1>Halaman tidak tersedia</h1>} /></Routes></LiveFrame>
 }

@@ -12,7 +12,7 @@ interface NavItem { label: string; icon: IconName; to?: string; badge?: string }
 
 const unavailable = 'Belum tersedia di pratinjau'
 
-export function ParentShell({ title, user, nav, home = '/review/parent/home', review = true, children }: { title: string; user: string; nav: readonly NavItem[]; home?: string; review?: boolean; children: ReactNode }) {
+export function ParentShell({ title, user, nav, home, children }: { title: string; user: string; nav: readonly NavItem[]; home: string; children: ReactNode }) {
   const { linkedChildren, child, selectChild } = useParentContext()
   const [collapsed, setCollapsed] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -22,7 +22,6 @@ export function ParentShell({ title, user, nav, home = '/review/parent/home', re
   useEffect(() => { if (focusContent) contentRef.current?.focus() }, [focusContent, location.key])
   const close = () => setDrawerOpen(false)
   const initials = user.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
-  const exitLabel = review ? 'Keluar dari pratinjau' : 'Keluar'
   // The backend gives a parent the child's school, not the class, so the class part is shown only when there is one.
   const chip = child ? [child.name.split(' ')[0], child.klass].filter(Boolean).join(' · ') : ''
 
@@ -46,7 +45,7 @@ export function ParentShell({ title, user, nav, home = '/review/parent/home', re
   </>
 
   // On a phone the sidebar is hidden, so signing out has to live in the drawer too.
-  const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label={exitLabel} onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
+  const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label="Keluar" onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
   return <div className={styles.shell} data-collapsed={collapsed}>
     <a className={styles.skipLink} href="#parent-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>
@@ -63,14 +62,13 @@ export function ParentShell({ title, user, nav, home = '/review/parent/home', re
       <div className={styles.user}>
         <span className={styles.avatar} aria-hidden="true">{initials}</span>
         <span className={[styles.who, styles.label].join(' ')}><strong>{user}</strong><small>Orang tua</small></span>
-        <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label={exitLabel}><Icon name="logout" size={16} /></Link>
+        <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label="Keluar"><Icon name="logout" size={16} /></Link>
       </div>
     </aside>
     <div className={styles.workspace}>
       <header className={styles.topbar}>
         <button type="button" className={styles.menuButton} aria-label="Buka navigasi" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Icon name="menu" /></button>
         <span className={styles.title}>{title}</span>
-        {review && <span className={styles.reviewLabel}>Pratinjau · data contoh</span>}
         {child && <span className={styles.chip} data-switchable={linkedChildren.length > 1}><span data-tone={child.tone} aria-hidden="true">{child.initials}</span>{chip}</span>}
         {/* On a phone the sidebar is a drawer, so the child can be changed straight from the bar. */}
         {child && linkedChildren.length > 1 && <button type="button" className={[styles.chip, styles.chipButton].join(' ')} aria-label={`Anak: ${child.name}. Ganti anak`} aria-haspopup="dialog" onClick={() => setDrawerOpen(true)}><span data-tone={child.tone} aria-hidden="true">{child.initials}</span>{chip}<Icon name="chevronDown" size={14} /></button>}
