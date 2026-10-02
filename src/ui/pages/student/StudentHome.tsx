@@ -1,17 +1,15 @@
-import { Button } from '@/ui/components/button/Button'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { Sparkline } from '@/ui/components/sparkline/Sparkline'
 import { StudentShell } from '@/ui/components/student-shell/StudentShell'
-import { missionStartPath, openMissions, resumePath, studentDetail, studentUser } from './studentExamples'
+import { missionStartPath, openMissions, reflectionPath, reflectionsPath, resumePath, studentDetail, studentUser } from './studentExamples'
 import { missionTabs, useStudentHomeViewModel } from './useStudentHomeViewModel'
 import type { HomeScenario } from './useStudentHomeViewModel'
 import styles from './StudentHome.module.css'
 
 const scenarios: readonly (readonly [HomeScenario, string])[] = [['normal', 'Ada misi'], ['loading', 'Sedang memuat'], ['empty', 'Belum ada misi']]
-const unavailable = 'Belum tersedia di pratinjau'
 
 export function StudentHome() {
   const view = useStudentHomeViewModel()
@@ -76,7 +74,7 @@ export function StudentHome() {
                   <thead><tr><th scope="col">MISI</th><th scope="col">TOPIK</th><th scope="col">WAKTU</th><th scope="col"><span className={styles.hidden}>Tindakan</span></th></tr></thead>
                   <tbody>{view.rows.map((row) => <tr key={row.title}>
                     <th scope="row">{row.title}</th><td>{row.topic}</td><td>{row.when}</td>
-                    <td>{view.tab === 'done' ? <Button tone="secondary" disabled title={unavailable} aria-label={`Refleksi: ${row.title}`}>Refleksi</Button> : <span className={styles.tag}>Belum dibuka</span>}</td>
+                    <td>{view.tab === 'done' ? (row.reflection ? <ButtonLink tone="secondary" to={reflectionPath(row.reflection)} aria-label={`Refleksi: ${row.title}`}>Refleksi</ButtonLink> : <span className={styles.tag}>Belum ada refleksi</span>) : <span className={styles.tag}>Belum dibuka</span>}</td>
                   </tr>)}</tbody>
                 </table>
               </div>
@@ -93,7 +91,7 @@ export function StudentHome() {
               <p className={styles.before}><span className={styles.hidden}>Sebelumnya: </span>“{shift.before}”</p>
               <p className={styles.after}><span className={styles.hidden}>Sesudahnya: </span>“{shift.after}”</p>
             </li>)}</ol>
-            <Button tone="secondary" disabled title={unavailable}>Lihat semua refleksi</Button>
+            <ButtonLink tone="secondary" to={reflectionsPath}>Lihat semua refleksi</ButtonLink>
           </section>
         </div>
       </>}
