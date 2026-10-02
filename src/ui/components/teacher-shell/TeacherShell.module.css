@@ -36,8 +36,7 @@
 .assistant { block-size: 36px; padding: 0 14px; border: 1px solid var(--color-control-border); border-radius: 999px; background: var(--color-surface); font: inherit; font-size: 13px; font-weight: 600; color: var(--color-ink); white-space: nowrap; }
 .theme { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--color-role-border); border-radius: 999px; }
 .theme button { display: flex; align-items: center; justify-content: center; inline-size: 28px; block-size: 28px; min-block-size: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--color-text-secondary); }
-.theme button:first-child { background: var(--color-ink); color: var(--color-accent); }
-.assistant:disabled, .theme button:disabled, .bell:disabled { opacity: .65; cursor: not-allowed; }
+.theme button[aria-pressed='true'] { background: var(--color-ink); color: var(--color-canvas); }
 .bell, .menuButton { display: flex; align-items: center; justify-content: center; flex-shrink: 0; inline-size: 44px; block-size: 44px; padding: 0; border: 1px solid var(--color-role-border); border-radius: 50%; background: var(--color-surface); color: var(--color-ink); }
 .menuButton { display: none; border-radius: 10px; }
 .main { min-inline-size: 0; padding: 24px 32px 64px; overflow-wrap: anywhere; }
@@ -47,6 +46,7 @@
 .shell[data-collapsed='true'] .sidebar .label, .shell[data-collapsed='true'] .sidebar .badge { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
 .shell[data-collapsed='true'] .sidebar { padding-inline: 8px; }
 .shell[data-collapsed='true'] .sidebar .brandRow { flex-direction: column; padding: 0; }
+.shell[data-collapsed='true'] .sidebar .brand { flex: none; justify-content: center; }
 .shell[data-collapsed='true'] .sidebar .group { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
 .shell[data-collapsed='true'] .sidebar .navigation a, .shell[data-collapsed='true'] .sidebar .navigation button { justify-content: center; padding-inline: 0; }
 .shell[data-collapsed='true'] .sidebar .user { justify-content: center; padding: 8px 0; border: 0; flex-direction: column; }
@@ -60,6 +60,7 @@
   .sidebar .label, .sidebar .badge, .sidebar .group { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
   .sidebar { padding-inline: 8px; }
   .sidebar .brandRow { padding: 0; justify-content: center; }
+  .sidebar .brand { flex: none; justify-content: center; }
   .sidebar .navigation a, .sidebar .navigation button { justify-content: center; padding-inline: 0; }
   .sidebar .user { justify-content: center; padding: 8px 0; border: 0; flex-direction: column; }
   .sidebar .exit { margin: 0; }
