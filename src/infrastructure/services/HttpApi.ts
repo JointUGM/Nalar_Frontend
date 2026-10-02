@@ -35,7 +35,8 @@ export class HttpApi {
   constructor(private readonly options: { apiBaseUrl: string; fetch?: typeof globalThis.fetch }) {}
 
   // `form` sends a multipart upload: the browser writes its own Content-Type with the boundary, and a file of up to 50 MB gets two minutes instead of ten seconds.
-  async request(path: string, init: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH'; body?: unknown; form?: FormData; signal?: AbortSignal } = {}): Promise<{ status: number; data: unknown }> {
+  // `timeoutMs` is for the few calls that wait on the AI before answering.
+  async request(path: string, init: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH'; body?: unknown; form?: FormData; timeoutMs?: number; signal?: AbortSignal } = {}): Promise<{ status: number; data: unknown }> {
     const method = init.method ?? 'GET'
     let response: Response
     try {
@@ -43,14 +44,20 @@ export class HttpApi {
         method, credentials: 'include', cache: 'no-store',
         headers: { Accept: 'application/json', ...(method === 'GET' ? {} : { 'X-Nalar-CSRF': '1' }), ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }) },
         body: init.form ?? (init.body === undefined ? undefined : JSON.stringify(init.body)),
-        signal: AbortSignal.any([...(init.signal ? [init.signal] : []), AbortSignal.timeout(init.form ? 120_000 : 10_000)]),
+        signal: AbortSignal.any([...(init.signal ? [init.signal] : []), AbortSignal.timeout(init.timeoutMs ?? (init.form ? 120_000 : 10_000))]),
       })
     } catch { throw new ApiError(0, 'UNAVAILABLE') }
     if (!response.ok) {
       let code = 'HTTP_ERROR'
-      try { const error = record(record(await response.json()).error); if (typeof error.code === 'string') code = error.code } catch { /* The status is authoritative when the error body is unreadable. */ }
+      let problems: string[] = []
+      try {
+        const error = record(record(await response.json()).error)
+        if (typeof error.code === 'string') code = error.code
+        // A validation refusal lists what is wrong; only the codes are kept, never the backend's text.
+        problems = list(record(error.details).problems).map((item) => text(record(item).code))
+      } catch { /* The status is authoritative when the error body is unreadable. */ }
       const reference = response.headers.get('X-Request-Id')
-      throw new ApiError(response.status, code, reference && /^[A-Za-z0-9_-]{1,64}$/.test(reference) ? reference : undefined)
+      throw new ApiError(response.status, code, reference && /^[A-Za-z0-9_-]{1,64}$/.test(reference) ? reference : undefined, undefined, problems)
     }
     if (response.status === 204) return { status: 204, data: null }
     try { return { status: response.status, data: await response.json() } } catch { throw invalid() }
