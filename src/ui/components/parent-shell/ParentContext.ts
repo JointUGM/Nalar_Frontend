@@ -11,8 +11,8 @@ export interface ParentChild {
   tone: 'warm' | 'info'
 }
 
-/** How many children the signed-in parent has linked. A review scenario, not an account setting. */
-export type LinkedChildren = 'two' | 'one' | 'none'
+/** How many children are shown. 'all' is the signed-in parent's real list; the others are review scenarios. */
+export type LinkedChildren = 'all' | 'two' | 'one' | 'none'
 
 export interface ParentContextValue {
   linked: LinkedChildren

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { ApiError } from '@/domain/model/ApiError'
 import { LiveError } from '@/domain/model/Live'
 
 export const sessionPollMs = (state: { status: string; reflection_ready: boolean } | null) => {
@@ -8,9 +9,10 @@ export const sessionPollMs = (state: { status: string; reflection_ready: boolean
 }
 export const lobbyPollMs = (state: { session_id: string | null; participant_status: string } | null) => state?.session_id || state?.participant_status === 'cancelled' ? null : 3000
 export const regularPollMs = () => 3000
+export const noPollMs = () => null
 
 export function useLiveResource<T>(read: (signal: AbortSignal) => Promise<T | null>, pollMsFor: (data: T | null) => number | null = regularPollMs) {
-  const [resource, setResource] = useState<{ data: T | null; error: LiveError | null; lastUpdated: number | null; requestStartedAt: number; clock: { serverMs: number; localMs: number } | null }>({ data: null, error: null, lastUpdated: null, requestStartedAt: -Infinity, clock: null })
+  const [resource, setResource] = useState<{ data: T | null; error: ApiError | null; lastUpdated: number | null; requestStartedAt: number; clock: { serverMs: number; localMs: number } | null }>({ data: null, error: null, lastUpdated: null, requestStartedAt: -Infinity, clock: null })
   const [online, setOnline] = useState(navigator.onLine)
   const refreshRef = useRef<() => void>(() => {})
   const refresh = useCallback(() => refreshRef.current(), [])
@@ -54,7 +56,7 @@ export function useLiveResource<T>(read: (signal: AbortSignal) => Promise<T | nu
         setResource({ data, error: null, lastUpdated: Date.now(), requestStartedAt: sent, clock: sample })
       } catch (cause) {
         if (!active) return
-        const error = cause instanceof LiveError ? cause : new LiveError(0, 'UNAVAILABLE')
+        const error = cause instanceof ApiError ? cause : new LiveError(0, 'UNAVAILABLE')
         blocked = [401, 403, 404].includes(error.status)
         if (blocked) current = null
         setResource((previous) => ({ ...previous, data: blocked ? null : previous.data, error }))

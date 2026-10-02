@@ -1,3 +1,5 @@
+import { ApiError } from './ApiError'
+
 export interface LiveClock { server_now: string }
 export interface LiveJoin {
   run_id: string
@@ -59,16 +61,17 @@ export interface LiveReflection {
 }
 export interface LiveAnswer { turn_index: number; answer_text: string; client_submission_id: string }
 
-export class LiveError extends Error {
-  constructor(readonly status: number, readonly code: string, readonly requestId?: string) {
-    const messages: Record<number, string> = {
-      401: 'Sesi masuk berakhir. Silakan masuk kembali.',
-      404: 'Sesi tidak tersedia untuk akun ini.',
-      409: 'Sesi sudah berubah. Periksa pembaruan sebelum mencoba lagi.',
-      422: 'Periksa kembali isianmu.',
-      429: 'Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.',
-    }
-    super(messages[status] ?? 'Pembaruan belum berhasil. Periksa koneksi dan coba lagi.')
+const liveMessages: Record<number, string> = {
+  401: 'Sesi masuk berakhir. Silakan masuk kembali.',
+  404: 'Sesi tidak tersedia untuk akun ini.',
+  409: 'Sesi sudah berubah. Periksa pembaruan sebelum mencoba lagi.',
+  422: 'Periksa kembali isianmu.',
+  429: 'Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.',
+}
+
+export class LiveError extends ApiError {
+  constructor(status: number, code: string, requestId?: string) {
+    super(status, code, requestId, liveMessages[status] ?? 'Pembaruan belum berhasil. Periksa koneksi dan coba lagi.')
     this.name = 'LiveError'
   }
 }

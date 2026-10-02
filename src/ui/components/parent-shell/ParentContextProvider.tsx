@@ -3,10 +3,10 @@ import type { ReactNode } from 'react'
 import { ParentContext } from './ParentContext'
 import type { LinkedChildren, ParentChild } from './ParentContext'
 
-const visibleCount: Readonly<Record<LinkedChildren, number>> = { two: 2, one: 1, none: 0 }
+const visibleCount: Readonly<Record<LinkedChildren, number>> = { all: Infinity, two: 2, one: 1, none: 0 }
 
-export function ParentContextProvider({ all, children }: { all: readonly ParentChild[]; children: ReactNode }) {
-  const [linked, setLinked] = useState<LinkedChildren>('two')
+export function ParentContextProvider({ all, initialLinked = 'two', children }: { all: readonly ParentChild[]; initialLinked?: LinkedChildren; children: ReactNode }) {
+  const [linked, setLinked] = useState<LinkedChildren>(initialLinked)
   const [selectedId, setSelectedId] = useState(all[0]?.id ?? '')
   const [weeklyEmail, setWeeklyEmail] = useState(true)
   const value = useMemo(() => {

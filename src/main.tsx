@@ -37,7 +37,13 @@ const privateEntry = createElement(lazy(async () => {
     const [created, { ProtectedRole }, { LiveRoutes }, dev] = await Promise.all([getDependencies(), import('./ui/pages/account/ProtectedRole'), import('./ui/pages/live/LiveRoutes'), import('./ui/devDashboards')])
     // Live pages own only the paths they know; every other role path opens its dashboard (the example-data review pages).
     const livePath = /^\/(teacher\/[^/]+\/publications\/|student\/[^/]+\/(join|runs\/|sessions\/))/
-    return { default: () => <ProtectedRole dependencies={created.account} dashboardFor={dev.devDashboardPath} renderRole={(identity, path) => created.live && livePath.test(path) ? <LiveRoutes service={created.live} identity={identity} /> : null} /> }
+    // Its own chunk, so only a parent downloads the parent pages.
+    const ParentRoutes = lazy(() => import('./ui/pages/parent/app/ParentRoutes').then((module) => ({ default: module.ParentRoutes })))
+    return { default: () => <ProtectedRole dependencies={created.account} dashboardFor={dev.devDashboardPath} renderRole={(identity, path) => {
+      // A role with real pages is served here; the rest still open their example dashboard.
+      if (created.parent && /^\/parent(\/|$)/.test(path)) return <ParentRoutes service={created.parent} identity={identity} />
+      return created.live && livePath.test(path) ? <LiveRoutes service={created.live} identity={identity} /> : null
+    }} /> }
   } catch {
     return { default: AccountLoadFailure }
   }

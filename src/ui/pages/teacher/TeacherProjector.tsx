@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
@@ -19,6 +19,7 @@ const announcements: Record<SessionPhase, string> = { idle: '', lobby: 'Lobi dib
 
 export function TeacherProjector() {
   const view = useTeacherProjectorViewModel()
+  const navigate = useNavigate()
   const [pending, setPending] = useState<'start' | 'close' | null>(null)
   const { mission, klass, phase } = view
   if (!mission || !klass) return <main className={styles.unavailable}>
@@ -29,7 +30,8 @@ export function TeacherProjector() {
   const code = projectorExample.joinCode.join(' ')
   const summary: [string, string][] = [['Misi', mission.title], ['Kelas', klass.name], ['Sudah bergabung', `${view.joined} dari ${view.total} siswa`]]
   const actions: Record<'start' | 'close', SessionAction> = { start: startSessionAction(summary), close: closeAdmissionAction(summary) }
-  const monitor = <Link className={styles.monitorLink} to={`${missionsPath}/${mission.id}/monitor?kelas=${encodeURIComponent(klass.name)}`}><Icon name="grid" size={16} />Buka pemantauan</Link>
+  const monitorPath = `${missionsPath}/${mission.id}/monitor?kelas=${encodeURIComponent(klass.name)}`
+  const monitor = <Link className={styles.monitorLink} to={monitorPath}><Icon name="grid" size={16} />Buka pemantauan</Link>
 
   return <div className={styles.screen} data-phase={phase}>
     <header className={styles.header}>
@@ -65,6 +67,6 @@ export function TeacherProjector() {
     </main>
     <p className={styles.note}>Pratinjau lokal · kode, alamat, dan kedatangan siswa adalah contoh yang disimulasikan. Tidak ada sesi nyata, jawaban siswa, atau skor di layar ini.</p>
     <p role="status" className={styles.hidden}>{announcements[phase]}</p>
-    {pending && <SessionActionDialog action={actions[pending]} onApply={pending === 'start' ? view.start : view.close} onClose={() => setPending(null)} />}
+    {pending && <SessionActionDialog action={actions[pending]} onApply={pending === 'start' ? () => navigate(monitorPath) : view.close} onClose={() => setPending(null)} />}
   </div>
 }
