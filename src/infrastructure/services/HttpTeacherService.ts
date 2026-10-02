@@ -1,4 +1,4 @@
-import type { ClassMap, Released, ReleasePreview, TeacherPublication } from '@/domain/model/Teacher'
+import type { ClassMap, MissionSummary, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
@@ -22,6 +22,32 @@ export class HttpTeacherService implements TeacherService {
         counts: { started: count(counts.started), completed: count(counts.completed), timed_out: count(counts.timed_out), evaluated: count(counts.evaluated) },
       } satisfies Schemas['PublicationOut']
     })
+  }
+
+  async assignments(signal?: AbortSignal): Promise<TeacherAssignment[]> {
+    const { data } = await this.api.request('/teacher/assignments', { signal })
+    return list(record(data).items).map((item) => {
+      const value = record(item)
+      return { school_id: text(value.school_id), class_id: text(value.class_id), class_name: text(value.class_name), grade_level: count(value.grade_level), school_subject_id: text(value.school_subject_id), subject_name: text(value.subject_name) } satisfies Schemas['AssignmentOut']
+    })
+  }
+
+  // ponytail: one page of 100 missions per school; follow next_cursor when a school can have more.
+  async missions(schoolId: string, signal?: AbortSignal): Promise<MissionSummary[]> {
+    const { data } = await this.api.request(`/schools/${encodeURIComponent(schoolId)}/missions?limit=100`, { signal })
+    return list(record(data).items).map((item) => {
+      const value = record(item)
+      return {
+        id: text(value.id), title: text(value.title), knowledge_base_id: text(value.knowledge_base_id), can_edit: flag(value.can_edit),
+        latest_version: nullable(value.latest_version, (raw) => { const version = record(raw); return { id: text(version.id), version_number: count(version.version_number), status: text(version.status) } }),
+      }
+    })
+  }
+
+  async publish(input: PublishInput, signal?: AbortSignal): Promise<Published> {
+    const body: Schemas['PublishIn'] = { class_id: input.class_id, mission_version_id: input.mission_version_id, run: { mode: input.mode, ...(input.mode === 'window' ? { opens_at: input.opens_at, closes_at: input.closes_at } : {}) } }
+    const value = record((await this.api.request('/publications', { method: 'POST', body, signal })).data)
+    return { publication_id: text(value.publication_id), run_id: text(value.run_id), run_status: text(value.run_status) } satisfies Schemas['PublishOut']
   }
 
   async classMap(publicationId: string, signal?: AbortSignal): Promise<ClassMap> {
