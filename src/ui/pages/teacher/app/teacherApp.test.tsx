@@ -72,8 +72,8 @@ const kbPath = `${base}/knowledge-base/${kbId}`
 const kbDetail = (conceptStatus = 'pending', can_edit = true) => ({
   id: kbId, topic_title: 'Tekanan Zat', owner_teacher_id: identity.userId, can_edit, prerequisites: [],
   materials: [{ id: school, title: 'IPA Kelas 8.pdf', page_count: 42, pages_without_text: [], archived_at: null }],
-  concepts: [{ id: concept, name: 'Tekanan hidrostatis', description: 'Tekanan zat cair bergantung pada kedalaman.', review_status: conceptStatus, cp_learning_outcome_id: null, source_chunk_ids: [] }],
-  misconceptions: [{ id: misconception, concept_id: concept, statement: 'Tekanan bergantung pada jumlah air', correct_understanding: 'Tekanan bergantung pada kedalaman.', detection_cues: ['airnya lebih banyak'], counter_examples: ['Dua wadah beda lebar'], review_status: 'pending', source_chunk_ids: [] }],
+  concepts: [{ id: concept, name: 'Tekanan hidrostatis', description: 'Tekanan zat cair bergantung pada kedalaman.', review_status: conceptStatus, cp_learning_outcome_id: null, source_chunk_ids: [], sources: [{ page_start: 3, page_end: 5 }, { page_start: 12, page_end: 12 }] }],
+  misconceptions: [{ id: misconception, concept_id: concept, statement: 'Tekanan bergantung pada jumlah air', correct_understanding: 'Tekanan bergantung pada kedalaman.', detection_cues: ['airnya lebih banyak'], counter_examples: ['Dua wadah beda lebar'], review_status: 'pending', source_chunk_ids: [], sources: [] }],
 })
 const sections = { items: [{ id: section, material_id: school, parent_section_id: null, title: 'Bab 1 Tekanan', level: 1, ordinal: 1, page_start: 1, page_end: 20, suggested: true, build_status: 'pending', built_at: null }] }
 const jobOut = (extra: Record<string, unknown> = {}) => ({ id: job, kind: 'kb_detect_sections', status: 'succeeded', entity_type: 'materials', entity_id: school, error_code: null, updated_at: '2026-10-02T03:00:00+00:00', ...extra })
@@ -271,6 +271,7 @@ describe('signed-in teacher pages', () => {
   it('saves an edited misconception with one cue per line and blank lines dropped', async () => {
     const request = backend({ [`PATCH /misconceptions/${misconception}`]: () => Response.json({}) })
     open(kbPath, request)
+    expect(await screen.findByText('Sumber: hlm. 3–5, 12')).toBeInTheDocument()
     const card = within(await screen.findByRole('region', { name: /^Miskonsepsi:/ }))
     fireEvent.click(card.getByRole('button', { name: 'Edit' }))
     fireEvent.change(card.getByLabelText(/Contoh ucapan siswa/), { target: { value: 'airnya lebih banyak\n\n  wadahnya besar ' } })
