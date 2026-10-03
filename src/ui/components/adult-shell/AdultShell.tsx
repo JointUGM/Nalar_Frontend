@@ -21,7 +21,6 @@ export function AdultShell({ children, search = '', onSearch, schoolContext, nav
   const base = location.pathname.startsWith('/review/') ? '/review/platform' : '/platform'
   const navigation = nav ? <nav className={styles.navigation} aria-label="Navigasi Admin Sekolah">{nav.map((item) => <NavLink key={item.to} to={item.to} end state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name={item.icon} /><span>{item.label}</span></NavLink>)}</nav>
   : schoolContext ? <nav className={styles.navigation} aria-label="Navigasi Admin Sekolah">
-    <NavLink to="/review/school/import" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="upload" /><span>Impor data</span></NavLink>
     <NavLink to="/review/school/people" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="users" /><span>Orang</span></NavLink>
     <NavLink to="/review/school/classes" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="grid" /><span>Kelas</span></NavLink>
     <NavLink to="/review/school/subjects" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="book" /><span>Mata pelajaran</span></NavLink>
@@ -34,7 +33,7 @@ export function AdultShell({ children, search = '', onSearch, schoolContext, nav
   </nav>
 
   const pages: SearchTarget[] = (nav ? nav.map((item): [string, string] => [item.label, item.to]) : schoolContext
-    ? [['Impor data', '/review/school/import'], ['Orang', '/review/school/people'], ['Kelas', '/review/school/classes'], ['Mata pelajaran', '/review/school/subjects'], ['Penugasan guru', '/review/school/assignments'], ['Basis pengetahuan', '/review/school/kb-owners'], ['Tahun ajaran', '/review/school/year']]
+    ? [['Orang', '/review/school/people'], ['Kelas', '/review/school/classes'], ['Mata pelajaran', '/review/school/subjects'], ['Penugasan guru', '/review/school/assignments'], ['Basis pengetahuan', '/review/school/kb-owners'], ['Tahun ajaran', '/review/school/year']]
     : [['Sekolah', `${base}/schools`], ['Capaian Pembelajaran', `${base}/cp-versions`]]
   ).map(([label, to]) => ({ label, hint: 'Halaman', to }))
 
