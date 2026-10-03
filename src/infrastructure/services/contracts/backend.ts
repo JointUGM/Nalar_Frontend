@@ -1,5 +1,22 @@
 // Generated from contracts/backend.openapi.json. Do not edit.
 export interface paths {
+    "/api/v1/auth/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate */
+        post: operations["activate_api_v1_auth_activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -579,6 +596,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{school_id}/account-invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Invitations */
+        get: operations["list_invitations_api_v1_schools__school_id__account_invitations_get"];
+        put?: never;
+        /** Request Invitations */
+        post: operations["request_invitations_api_v1_schools__school_id__account_invitations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{school_id}/knowledge-bases": {
         parameters: {
             query?: never;
@@ -907,6 +942,24 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivateIn */
+        ActivateIn: {
+            /**
+             * Activation Id
+             * Format: uuid
+             */
+            activation_id: string;
+            /**
+             * Password
+             * Format: password
+             */
+            password: string;
+            /**
+             * Token Hash
+             * Format: password
+             */
+            token_hash: string;
+        };
         /** AnswerAccepted */
         AnswerAccepted: {
             /** Next Prompt Url */
@@ -1173,6 +1226,77 @@ export interface components {
             generated_at: string;
             /** Narrative */
             narrative: string;
+        };
+        /** InvitationAdmissionOut */
+        InvitationAdmissionOut: {
+            /** Notification Id */
+            notification_id: string | null;
+            /** Queued */
+            queued: boolean;
+            /** Reason */
+            reason: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /** InvitationPageOut */
+        InvitationPageOut: {
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Items */
+            items: components["schemas"]["InvitationStatusOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Total */
+            total: number;
+        };
+        /** InvitationRequestIn */
+        InvitationRequestIn: {
+            /**
+             * Resend
+             * @default false
+             */
+            resend: boolean;
+            /** User Ids */
+            user_ids: string[];
+        };
+        /** InvitationStatusOut */
+        InvitationStatusOut: {
+            /** Created At */
+            created_at: string | null;
+            /** Expires At */
+            expires_at: string | null;
+            /** Notification Id */
+            notification_id: string | null;
+            /** Reason */
+            reason: string | null;
+            /** Sent At */
+            sent_at: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "not_requested" | "requires_assistance" | "active" | "pending" | "sent" | "failed" | "expired" | "activated" | "superseded";
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /** InvitationsQueuedOut */
+        InvitationsQueuedOut: {
+            /** Items */
+            items: components["schemas"]["InvitationAdmissionOut"][];
+            /** Notification Ids */
+            notification_ids: string[];
+            /** Queued */
+            queued: number;
+            /** Skipped */
+            skipped: number;
         };
         /** JobOut */
         JobOut: {
@@ -2498,6 +2622,37 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    activate_api_v1_auth_activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActivateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     login_api_v1_auth_login_post: {
         parameters: {
             query?: never;
@@ -3560,6 +3715,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StartedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_invitations_api_v1_schools__school_id__account_invitations_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationPageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_invitations_api_v1_schools__school_id__account_invitations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvitationRequestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationsQueuedOut"];
                 };
             };
             /** @description Validation Error */
