@@ -14,7 +14,7 @@ function card(item: unknown): MissionCard {
     mode: text(value.mode), run_status: text(value.run_status), attempt_status: text(value.attempt_status),
     opens_at: nullable(value.opens_at, instant), closes_at: nullable(value.closes_at, instant),
     target_duration_minutes: value.target_duration_minutes === undefined ? 15 : count(value.target_duration_minutes),
-    max_duration_minutes: count(value.max_duration_minutes),
+    max_duration_minutes: count(value.max_duration_minutes), session_id: nullable(value.session_id, text),
   } satisfies Schemas['MissionCardOut']
 }
 

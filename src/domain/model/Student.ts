@@ -6,6 +6,8 @@ export interface MissionCard {
   mode: string
   run_status: string
   attempt_status: string
+  // The student's latest session for this mission, if any: a finished one reopens its reflection.
+  session_id: string | null
   opens_at: string | null
   closes_at: string | null
   target_duration_minutes: number
