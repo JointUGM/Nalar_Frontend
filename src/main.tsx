@@ -53,6 +53,7 @@ const privateEntry = createElement(lazy(async () => {
     // Its own chunk, so only a parent downloads the parent pages.
     const ParentRoutes = lazy(() => import('./ui/pages/parent/app/ParentRoutes').then((module) => ({ default: module.ParentRoutes })))
     const StudentRoutes = lazy(() => import('./ui/pages/student/app/StudentRoutes').then((module) => ({ default: module.StudentRoutes })))
+    const SchoolRoutes = lazy(() => import('./ui/pages/school-admin/app/SchoolRoutes').then((module) => ({ default: module.SchoolRoutes })))
     const TeacherRoutes = lazy(() => import('./ui/pages/teacher/app/TeacherRoutes').then((module) => ({ default: module.TeacherRoutes })))
     const { student, teacher, knowledgeBase } = created
     // Telemetry is best effort: the session page works the same without it.
@@ -62,6 +63,7 @@ const privateEntry = createElement(lazy(async () => {
       if (created.parent && /^\/parent(\/|$)/.test(path)) return <ParentRoutes service={created.parent} identity={identity} />
       if (created.live && livePath.test(path)) return <LiveRoutes service={created.live} identity={identity} telemetry={telemetry} />
       // Every other student path is the real home or a mission start page.
+      if (created.school && path.startsWith('/school/')) return <SchoolRoutes service={created.school} identity={identity} />
       if (student && path.startsWith('/student/')) return <StudentRoutes service={student} identity={identity} />
       // Every other teacher path is a real teacher page: sessions, results, missions or the knowledge base.
       return teacher && knowledgeBase && path.startsWith('/teacher/') ? <TeacherRoutes service={teacher} kb={knowledgeBase} identity={identity} /> : null
