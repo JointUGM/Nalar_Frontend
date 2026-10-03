@@ -14,6 +14,7 @@ const stateWord: readonly [string, string][] = [
   ['not_requested', 'Belum diundang'], ['pending', 'Dalam antrean'], ['sent', 'Terkirim, belum diaktivasi'], ['activated', 'Sudah diaktivasi'],
   ['active', 'Sudah aktif'], ['expired', 'Tautan kedaluwarsa'], ['failed', 'Gagal terkirim'], ['requires_assistance', 'Perlu dibantu sekolah'], ['superseded', 'Diganti undangan baru'],
 ]
+const roleWord: Readonly<Record<string, string>> = { student: 'Siswa', teacher: 'Guru', parent: 'Orang tua', school_admin: 'Admin sekolah' }
 const skipWord: Readonly<Record<string, string>> = { requires_assistance: 'tanpa email yang bisa dipakai', identity_changed: 'email akunnya berubah', already_active: 'akunnya sudah aktif' }
 
 export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAdminUseCases; schoolId: string }) {
@@ -67,6 +68,13 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
         <div className={styles.actions}><Button tone="secondary" disabled={pending || waiting.retry === 0} onClick={() => setConfirming('retry')}><Icon name="refresh" size={14} />Kirim ulang ke {waiting.retry} akun</Button></div>
       </section>
     </div>
+    {data.items.length > 0 && <section className={styles.card} aria-labelledby="invite-people">
+      <div className={styles.cardHeading}><h2 id="invite-people">Akun</h2>{data.total > data.items.length && <span>{data.items.length} dari {data.total} ditampilkan</span>}</div>
+      <div className={styles.tableRegion} role="region" aria-label="Status undangan per akun" tabIndex={0}><table>
+        <thead><tr><th scope="col">Nama</th><th scope="col">Peran</th><th scope="col">Status</th></tr></thead>
+        <tbody>{data.items.map((item) => <tr key={item.user_id}><td>{item.full_name}</td><td>{roleWord[item.role] ?? item.role}</td><td>{stateWord.find(([state]) => state === item.state)?.[1] ?? item.state}</td></tr>)}</tbody>
+      </table></div>
+    </section>}
     <Dialog open={confirming !== null} title={confirming === 'retry' ? 'Kirim ulang undangan?' : 'Kirim undangan?'} description={`Email dikirim ke ${confirming ? waiting[confirming] : 0} akun dan tidak bisa ditarik kembali.`} onClose={() => { if (!pending) setConfirming(null) }} dismissible={!pending}>
       <div className={styles.actions}>
         <Button tone="secondary" disabled={pending} onClick={() => setConfirming(null)}>Batal</Button>
