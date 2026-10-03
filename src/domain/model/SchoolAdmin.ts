@@ -25,7 +25,10 @@ export interface PeoplePage { items: Person[]; next_cursor: string | null; total
 export interface PersonEdit { full_name?: string; class_id?: string }
 export interface SchoolClass { class_id: string; name: string; grade_level: number; academic_year_id: string; homeroom_teacher_id: string | null; student_count: number }
 export interface ClassDraft { name: string; grade_level: number; homeroom_teacher_id: string | null }
-export interface SchoolSubject { school_subject_id: string; name: string; cp_version_id: string | null; kb_owner_name: string | null }
+export interface SubjectKnowledgeBase { knowledge_base_id: string; topic_title: string; owner_teacher_id: string; owner_name: string | null }
+export interface SchoolSubject { school_subject_id: string; name: string; cp_version_id: string | null; cp_subject_id: string | null; knowledge_bases: SubjectKnowledgeBase[] }
+// A published CP version a school subject can be mapped to, with the subjects (and phases) it offers.
+export interface CurriculumChoice { id: string; name: string; decree_code: string; is_current: boolean; subjects: { id: string; name: string; phase: string }[] }
 // One row per assigned teacher; a class and subject without a row has nobody assigned.
 export interface Assignment { class_id: string; school_subject_id: string; teacher_id: string | null; teacher_name: string }
 export interface NewAcademicYear { name: string; starts_on: string; ends_on: string; copy_classes_from: string | null }

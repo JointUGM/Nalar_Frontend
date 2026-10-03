@@ -21,7 +21,7 @@ export function SchoolRoutes({ service, identity }: { service: SchoolAdminUseCas
     { label: 'Mata pelajaran', icon: 'book', to: `${base}/subjects` }, { label: 'Penugasan guru', icon: 'link', to: `${base}/assignments` },
     { label: 'Tahun ajaran', icon: 'calendar', to: `${base}/year` }, { label: 'Impor data', icon: 'upload', to: `${base}/import` },
   ] as const
-  return <AdultShell schoolContext={{ name: school, admin: identity.fullName }} nav={nav} review={false}>
+  return <AdultShell schoolContext={{ name: school, admin: identity.fullName }} nav={nav}>
     <Routes>
       <Route path=":schoolId" element={<SchoolInvitationsPage service={service} schoolId={schoolId} />} />
       <Route path=":schoolId/people" element={<SchoolPeoplePage service={service} schoolId={schoolId} />} />

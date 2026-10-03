@@ -91,4 +91,41 @@ describe('school administration', () => {
     await waitFor(() => expect(sent(request, 'POST')).toHaveLength(3))
     expect(new Headers(sent(request, 'POST')[2][1]?.headers).get('Idempotency-Key')).not.toBe(first)
   })
+  it('maps a subject to a chosen CP subject and transfers a knowledge base to a teacher of that subject', async () => {
+    const [subject, oldVersion, newVersion, oldIpa, newIpa, newIpaF, kb, owner, teacher, other] = ['31', '32', '33', '34', '35', '36', '37', '38', '39', '40'].map((end) => `00000000-0000-4000-8000-0000000000${end}`)
+    let transfers = 0
+    const request = open(`/school/${school}/subjects`, (key) => {
+      if (key === `GET /schools/${school}/subjects`) return Response.json([{ school_subject_id: subject, name: 'IPA', cp_version_id: oldVersion, cp_subject_id: oldIpa, kb_owner_name: 'Sari Wulandari', knowledge_bases: [{ knowledge_base_id: kb, topic_title: 'Gaya dan Gerak', owner_teacher_id: owner, owner_name: 'Sari Wulandari', status: 'approved' }] }])
+      if (key === `GET /schools/${school}/curriculum-versions`) return Response.json([
+        { id: oldVersion, name: 'CP 2022', decree_code: 'BSKAP 008/2022', effective_on: '2022-07-01', published_at: null, is_current: false, subjects: [{ id: oldIpa, name: 'IPA', phase: 'D' }] },
+        { id: newVersion, name: 'CP 2025', decree_code: 'BSKAP 046/2025', effective_on: '2025-07-14', published_at: null, is_current: true, subjects: [{ id: newIpaF, name: 'IPA', phase: 'F' }, { id: newIpa, name: 'IPA', phase: 'D' }] },
+      ])
+      if (key === `GET /schools/${school}/academic-years`) return Response.json(years)
+      if (key === `GET /schools/${school}/assignments?academic_year_id=${year}`) return Response.json([
+        { class_id: classA, class_name: '8A', academic_year_id: year, school_subject_id: subject, subject_name: 'IPA', teacher_id: owner, teacher_name: 'Sari Wulandari' },
+        { class_id: classB, class_name: '8B', academic_year_id: year, school_subject_id: subject, subject_name: 'IPA', teacher_id: teacher, teacher_name: 'Agus Salim' },
+        { class_id: classB, class_name: '8B', academic_year_id: year, school_subject_id: other, subject_name: 'IPS', teacher_id: other, teacher_name: 'Hari Purnomo' },
+      ])
+      if (key === `PUT /schools/${school}/subjects/${subject}/curriculum`) return new Response(null, { status: 204 })
+      if (key === `POST /knowledge-bases/${kb}/owner`) return (transfers += 1) === 1 ? Response.json({ error: { code: 'NOT_FOUND' } }, { status: 404 }) : new Response(null, { status: 204 })
+    })
+    expect(await screen.findByText('IPA · Fase D · CP 2022')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Ubah pemetaan IPA' }))
+    let dialog = screen.getByRole('dialog')
+    fireEvent.change(within(dialog).getByRole('combobox', { name: 'Versi CP' }), { target: { value: newVersion } })
+    fireEvent.change(within(dialog).getByRole('combobox', { name: 'Mata pelajaran CP' }), { target: { value: newIpa } })
+    expect(within(dialog).getByText('Konsep perlu dicocokkan ulang')).toBeInTheDocument()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Simpan pemetaan' }))
+    expect(await screen.findByText('IPA dipetakan ke CP 2025.')).toBeInTheDocument()
+    expect(JSON.parse(String(sent(request, 'PUT')[0][1]?.body))).toEqual({ cp_version_id: newVersion, cp_subject_id: newIpa })
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Alihkan pemilik Gaya dan Gerak' }))
+    dialog = screen.getByRole('dialog')
+    expect(within(dialog).getAllByRole('option').map((option) => option.textContent)).toEqual(['Agus Salim'])
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Alihkan pemilik' }))
+    expect(await within(dialog).findByText(/belum ditugaskan mengajar mata pelajaran ini/)).toBeInTheDocument()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Alihkan pemilik' }))
+    expect(await screen.findByText('Agus Salim sekarang pemilik Gaya dan Gerak.')).toBeInTheDocument()
+    expect(JSON.parse(String(sent(request, 'POST')[1][1]?.body))).toEqual({ teacher_id: teacher })
+  })
 })

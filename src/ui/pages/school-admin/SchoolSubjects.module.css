@@ -23,5 +23,5 @@
   .table td:last-child { grid-column: 2; grid-row: 1 / span 3; }
   .kb::before { content: 'Basis pengetahuan: '; color: var(--color-text-secondary); font-size: 13px; }
 }
-.table.readOnly tr { grid-template-columns: minmax(0, 1.4fr) minmax(0, 2fr) minmax(0, 1.2fr); }
-@media (max-width: 767px) { .table.readOnly tr { grid-template-columns: minmax(0, 1fr); } }
+.kbList { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.kbList li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
