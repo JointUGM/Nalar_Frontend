@@ -1,4 +1,5 @@
-import type { ClassMap, FlagDecision, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import type { AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import { ApiError } from '@/domain/model/ApiError'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
@@ -8,6 +9,7 @@ type Schemas = components['schemas']
 const publication = (id: string) => `/publications/${encodeURIComponent(id)}`
 const mission = (id: string) => `/missions/${encodeURIComponent(id)}`
 const texts = (value: unknown) => list(value).map((entry) => text(entry))
+const seconds = (value: unknown) => { if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new ApiError(502, 'INVALID_RESPONSE'); return value }
 
 export class HttpTeacherService implements TeacherService {
   constructor(private readonly api: HttpApi) {}
@@ -40,7 +42,7 @@ export class HttpTeacherService implements TeacherService {
     return list(record(data).items).map((item) => {
       const value = record(item)
       return {
-        id: text(value.id), title: text(value.title), knowledge_base_id: text(value.knowledge_base_id), can_edit: flag(value.can_edit),
+        id: text(value.id), title: text(value.title), knowledge_base_id: text(value.knowledge_base_id), can_edit: flag(value.can_edit), created_by_name: nullable(value.created_by_name, text),
         latest_version: nullable(value.latest_version, (raw) => { const version = record(raw); return { id: text(version.id), version_number: count(version.version_number), status: text(version.status) } }),
       }
     })
@@ -101,7 +103,8 @@ export class HttpTeacherService implements TeacherService {
           mastered_count: count(concept.mastered_count), developing_count: count(concept.developing_count), not_observed_count: count(concept.not_observed_count),
           misconceptions: list(concept.misconceptions).map((entry) => {
             const misconception = record(entry)
-            return { misconception_id: text(misconception.misconception_id), statement: text(misconception.statement), count: count(misconception.count), resolved_count: count(misconception.resolved_count), student_ids: list(misconception.student_ids).map((id) => text(id)) }
+            return { misconception_id: text(misconception.misconception_id), statement: text(misconception.statement), count: count(misconception.count), resolved_count: count(misconception.resolved_count), student_ids: list(misconception.student_ids).map((id) => text(id)),
+              students: list(misconception.students).map((entry) => { const holder = record(entry); return { student_id: text(holder.student_id), name: text(holder.name), session_id: text(holder.session_id) } }) }
           }),
         }
       }),
@@ -113,6 +116,8 @@ export class HttpTeacherService implements TeacherService {
     const value = record((await this.api.request(`/sessions/${encodeURIComponent(sessionId)}/report`, { signal })).data), student = record(value.student), session = record(value.session)
     return {
       student: { id: text(student.id), name: text(student.name) },
+      mission: (() => { const mission = record(value.mission); return { mission_id: text(mission.mission_id), title: text(mission.title), version_number: count(mission.version_number) } })(),
+      rubric: (() => { const rubric = record(value.rubric); return { claim: texts(rubric.claim), evidence: texts(rubric.evidence), mechanism: texts(rubric.mechanism), transfer: texts(rubric.transfer) } })(),
       session: { status: text(session.status), attempt_number: count(session.attempt_number), started_at: instant(session.started_at), ended_at: nullable(session.ended_at, instant) },
       evaluation: nullable(value.evaluation, (raw) => { const evaluation = record(raw); return { status: text(evaluation.status), summary: nullable(evaluation.summary, text) } }),
       scores: list(value.scores).map((entry) => {
@@ -127,9 +132,71 @@ export class HttpTeacherService implements TeacherService {
       flags: list(value.flags).map((entry) => { const item = record(entry); return { id: text(item.id), flag_type: text(item.flag_type), severity: text(item.severity), status: text(item.status) } }),
       turns: list(value.turns).map((entry) => {
         const turn = record(entry)
-        return { turn_id: text(turn.turn_id), turn_index: count(turn.turn_index), kind: text(turn.kind), prompt: text(turn.prompt), answer: nullable(turn.answer, text), move: nullable(turn.move, text), safety_paused: flag(turn.safety_paused) }
+        return { turn_id: text(turn.turn_id), turn_index: count(turn.turn_index), kind: text(turn.kind), prompt: text(turn.prompt), answer: nullable(turn.answer, text), move: nullable(turn.move, text), safety_paused: flag(turn.safety_paused),
+          activity: (() => { const activity = record(turn.activity); return { paste_chars: count(activity.paste_chars), away_seconds: seconds(activity.away_seconds), typing_ms: count(activity.typing_ms) } })() }
       }),
     }
+  }
+
+  async attention(schoolId: string, signal?: AbortSignal): Promise<AttentionPage> {
+    // ponytail: the first 50 items; the counts cover everything, follow next_cursor when a teacher has more open at once.
+    const value = record((await this.api.request(`/teacher/attention?school_id=${encodeURIComponent(schoolId)}&limit=50`, { signal })).data), counts = record(value.counts)
+    return {
+      counts: { safety: count(counts.safety), flag: count(counts.flag), kb_review: count(counts.kb_review), release_ready: count(counts.release_ready), total: count(counts.total) },
+      // An item of a kind this page does not know yet is skipped rather than shown half.
+      items: list(value.items).flatMap((entry): AttentionItem[] => {
+        const item = record(entry), base = { item_id: text(item.item_id), created_at: instant(item.created_at) }
+        if (item.kind === 'safety') return [{ ...base, kind: 'safety', session_id: text(item.session_id), publication_id: text(item.publication_id), student_name: text(item.student_name), paused_at: nullable(item.paused_at, instant) }]
+        if (item.kind === 'flag') return [{ ...base, kind: 'flag', flag_id: text(item.flag_id), flag_type: text(item.flag_type), severity: text(item.severity), session_id: text(item.session_id), publication_id: text(item.publication_id), student_name: text(item.student_name) }]
+        if (item.kind === 'kb_review') return [{ ...base, kind: 'kb_review', knowledge_base_id: text(item.knowledge_base_id), topic_title: text(item.topic_title), pending_concepts: count(item.pending_concepts), pending_misconceptions: count(item.pending_misconceptions) }]
+        if (item.kind === 'release_ready') return [{ ...base, kind: 'release_ready', publication_id: text(item.publication_id), class_name: text(item.class_name), mission_title: text(item.mission_title), eligible_count: count(item.eligible_count) }]
+        return []
+      }),
+    }
+  }
+
+  async classStudents(classId: string, publicationId: string | null, signal?: AbortSignal): Promise<ClassStudent[]> {
+    const query = publicationId ? `?publication_id=${encodeURIComponent(publicationId)}` : ''
+    const value = record((await this.api.request(`/teacher/classes/${encodeURIComponent(classId)}/students${query}`, { signal })).data)
+    return list(value.items).map((entry) => {
+      const item = record(entry), counts = record(item.concept_counts)
+      return {
+        student_id: text(item.student_id), full_name: text(item.full_name), session_id: nullable(item.session_id, text), status: nullable(item.status, text), completed_at: nullable(item.completed_at, instant),
+        evaluation_status: nullable(item.evaluation_status, text), open_flag_count: count(item.open_flag_count),
+        concept_counts: { mastered: count(counts.mastered), developing: count(counts.developing), misconception: count(counts.misconception) },
+      }
+    })
+  }
+
+  async dashboard(schoolId: string, signal?: AbortSignal): Promise<TeacherDashboard> {
+    const value = record((await this.api.request(`/teacher/dashboard?school_id=${encodeURIComponent(schoolId)}`, { signal })).data)
+    const week = (raw: unknown) => {
+      const item = record(raw)
+      return {
+        week_start: instant(item.week_start), week_end: instant(item.week_end), sessions_completed: count(item.sessions_completed), students: count(item.students),
+        active_misconceptions: count(item.active_misconceptions), concepts_with_misconceptions: count(item.concepts_with_misconceptions), open_flags: count(item.open_flags),
+        changed_mind_rate: nullable(item.changed_mind_rate, (rate) => { if (typeof rate !== 'number' || rate < 0 || rate > 1) throw new ApiError(502, 'INVALID_RESPONSE'); return rate }),
+      }
+    }
+    return {
+      as_of: instant(value.as_of), timezone: text(value.timezone), this_week: week(value.this_week), last_week: week(value.last_week),
+      trend: list(value.trend).map((entry) => { const item = record(entry); return { week_start: instant(item.week_start), mastered: count(item.mastered), developing: count(item.developing), misconception: count(item.misconception) } }),
+      top_changed: list(value.top_changed).map((entry) => { const item = record(entry); return { misconception_id: text(item.misconception_id), statement: text(item.statement), held: count(item.held), resolved: count(item.resolved) } }),
+    }
+  }
+
+  async missionVersions(missionId: string, signal?: AbortSignal): Promise<VersionHistory[]> {
+    const { data } = await this.api.request(`${mission(missionId)}/versions`, { signal })
+    return list(data).map((entry) => {
+      const item = record(entry)
+      return { version_number: count(item.version_number), status: text(item.status), created_at: instant(item.created_at), created_by_name: nullable(item.created_by_name, text), reviewed_at: nullable(item.reviewed_at, instant), locked_at: nullable(item.locked_at, instant) }
+    })
+  }
+
+  async grantAttempt(publicationId: string, input: AttemptGrantInput, idempotencyKey: string, signal?: AbortSignal): Promise<{ run_id: string }> {
+    const body: Schemas['AttemptGrantIn'] = input
+    const value = record((await this.api.request(`${publication(publicationId)}/attempt-grants`, { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey }, signal })).data)
+    return { run_id: text(value.run_id) }
   }
 
   async overrideScore(scoreId: string, level: number, reason: string, signal?: AbortSignal): Promise<void> {

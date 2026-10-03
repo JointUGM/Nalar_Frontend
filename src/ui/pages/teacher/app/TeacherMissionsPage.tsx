@@ -26,7 +26,7 @@ export function TeacherMissionsPage({ service, base, schoolId }: { service: Teac
       return <li key={mission.id} className={styles.card} aria-label={mission.title}>
         <div className={styles.meta}>
           <span className={[styles.tag, publishable(mission) ? styles.version : styles.draft].join(' ')}>{version ? `${versionWord[version.status] ?? version.status} · v${version.version_number}` : 'Belum ada versi'}</span>
-          <span className={styles.topic}>{mission.can_edit ? 'Misi Anda' : 'Dari rekan guru'}</span>
+          <span className={styles.topic}>{mission.can_edit ? 'Misi Anda' : `Dari ${mission.created_by_name ?? 'rekan guru'}`}</span>
         </div>
         <h2><Link className={styles.name} to={`${base}/missions/${mission.id}`}>{mission.title}</Link></h2>
         {publishable(mission)

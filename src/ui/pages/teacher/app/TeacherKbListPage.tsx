@@ -24,7 +24,7 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
     {data && data.length > 0 && <ul className={styles.grid} aria-label="Topik basis pengetahuan">{data.map((topic) => {
       const [tone, label] = state(topic)
       return <li key={topic.id} className={[styles.card, styles.linked].join(' ')}>
-        <div className={styles.meta}><span className={[styles.tag, styles[tone]].join(' ')}>{label}</span><span className={styles.when}>{topic.can_edit ? 'Milik Anda' : 'Dari rekan guru'}</span></div>
+        <div className={styles.meta}><span className={[styles.tag, styles[tone]].join(' ')}>{label}</span><span className={styles.when}>{topic.can_edit ? 'Milik Anda' : `Dari ${topic.owner_name ?? 'rekan guru'}`}</span></div>
         <h2><Link className={styles.cover} to={`${base}/knowledge-base/${topic.id}`}>{topic.topic_title}</Link></h2>
         <dl className={styles.stats}>
           <div><dt>Konsep disetujui</dt><dd>{topic.approved_concept_count}</dd></div>

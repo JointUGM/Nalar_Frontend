@@ -14,3 +14,12 @@ test-results/
 
 # Local documentation and plans
 *.md
+
+# Local agent tooling (skills, hooks, agents)
+.agents/
+.claude/
+.codex/
+.github/agents/
+.github/hooks/
+.github/skills/
+skills-lock.json

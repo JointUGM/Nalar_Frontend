@@ -175,6 +175,159 @@
         "title": "AssignmentsOut",
         "type": "object"
       },
+      "AttemptGrantIn": {
+        "additionalProperties": false,
+        "properties": {
+          "closes_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closes At"
+          },
+          "opens_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opens At"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "student_id": {
+            "format": "uuid",
+            "title": "Student Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "student_id",
+          "reason"
+        ],
+        "title": "AttemptGrantIn",
+        "type": "object"
+      },
+      "AttemptGrantOut": {
+        "properties": {
+          "grant_id": {
+            "format": "uuid",
+            "title": "Grant Id",
+            "type": "string"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "grant_id",
+          "run_id"
+        ],
+        "title": "AttemptGrantOut",
+        "type": "object"
+      },
+      "AttentionCountsOut": {
+        "properties": {
+          "flag": {
+            "title": "Flag",
+            "type": "integer"
+          },
+          "kb_review": {
+            "title": "Kb Review",
+            "type": "integer"
+          },
+          "release_ready": {
+            "title": "Release Ready",
+            "type": "integer"
+          },
+          "safety": {
+            "title": "Safety",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "safety",
+          "flag",
+          "kb_review",
+          "release_ready",
+          "total"
+        ],
+        "title": "AttentionCountsOut",
+        "type": "object"
+      },
+      "AttentionPageOut": {
+        "properties": {
+          "counts": {
+            "$ref": "#/components/schemas/AttentionCountsOut"
+          },
+          "items": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "flag": "#/components/schemas/FlagAttentionOut",
+                  "kb_review": "#/components/schemas/KbReviewAttentionOut",
+                  "release_ready": "#/components/schemas/ReleaseReadyAttentionOut",
+                  "safety": "#/components/schemas/SafetyAttentionOut"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SafetyAttentionOut"
+                },
+                {
+                  "$ref": "#/components/schemas/FlagAttentionOut"
+                },
+                {
+                  "$ref": "#/components/schemas/KbReviewAttentionOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ReleaseReadyAttentionOut"
+                }
+              ]
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "counts",
+          "next_cursor"
+        ],
+        "title": "AttentionPageOut",
+        "type": "object"
+      },
       "BankQuestionIn": {
         "additionalProperties": false,
         "properties": {
@@ -327,6 +480,35 @@
         "title": "BuildQueuedOut",
         "type": "object"
       },
+      "ChangedMisconceptionOut": {
+        "properties": {
+          "held": {
+            "title": "Held",
+            "type": "integer"
+          },
+          "misconception_id": {
+            "format": "uuid",
+            "title": "Misconception Id",
+            "type": "string"
+          },
+          "resolved": {
+            "title": "Resolved",
+            "type": "integer"
+          },
+          "statement": {
+            "title": "Statement",
+            "type": "string"
+          }
+        },
+        "required": [
+          "misconception_id",
+          "statement",
+          "held",
+          "resolved"
+        ],
+        "title": "ChangedMisconceptionOut",
+        "type": "object"
+      },
       "ClassMapOut": {
         "properties": {
           "concepts": {
@@ -361,6 +543,127 @@
           "concepts"
         ],
         "title": "ClassMapOut",
+        "type": "object"
+      },
+      "ClassStudentOut": {
+        "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "concept_counts": {
+            "$ref": "#/components/schemas/StudentConceptCountsOut"
+          },
+          "evaluation_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "pending",
+                  "completed",
+                  "failed",
+                  "no_answer"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Status"
+          },
+          "full_name": {
+            "title": "Full Name",
+            "type": "string"
+          },
+          "open_flag_count": {
+            "title": "Open Flag Count",
+            "type": "integer"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "not_started",
+                  "in_progress",
+                  "paused_safety",
+                  "completed",
+                  "timed_out",
+                  "ended_safety"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "student_id": {
+            "format": "uuid",
+            "title": "Student Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "student_id",
+          "full_name",
+          "session_id",
+          "status",
+          "completed_at",
+          "concept_counts",
+          "open_flag_count",
+          "evaluation_status"
+        ],
+        "title": "ClassStudentOut",
+        "type": "object"
+      },
+      "ClassStudentsOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ClassStudentOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "publication_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publication Id"
+          }
+        },
+        "required": [
+          "items",
+          "publication_id"
+        ],
+        "title": "ClassStudentsOut",
         "type": "object"
       },
       "ClosedOut": {
@@ -574,6 +877,92 @@
         "title": "CountsOut",
         "type": "object"
       },
+      "DashboardTrendOut": {
+        "properties": {
+          "developing": {
+            "title": "Developing",
+            "type": "integer"
+          },
+          "mastered": {
+            "title": "Mastered",
+            "type": "integer"
+          },
+          "misconception": {
+            "title": "Misconception",
+            "type": "integer"
+          },
+          "week_start": {
+            "format": "date-time",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "week_start",
+          "mastered",
+          "developing",
+          "misconception"
+        ],
+        "title": "DashboardTrendOut",
+        "type": "object"
+      },
+      "DashboardWeekOut": {
+        "properties": {
+          "active_misconceptions": {
+            "title": "Active Misconceptions",
+            "type": "integer"
+          },
+          "changed_mind_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changed Mind Rate"
+          },
+          "concepts_with_misconceptions": {
+            "title": "Concepts With Misconceptions",
+            "type": "integer"
+          },
+          "open_flags": {
+            "title": "Open Flags",
+            "type": "integer"
+          },
+          "sessions_completed": {
+            "title": "Sessions Completed",
+            "type": "integer"
+          },
+          "students": {
+            "title": "Students",
+            "type": "integer"
+          },
+          "week_end": {
+            "format": "date-time",
+            "title": "Week End",
+            "type": "string"
+          },
+          "week_start": {
+            "format": "date-time",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "week_start",
+          "week_end",
+          "sessions_completed",
+          "students",
+          "active_misconceptions",
+          "concepts_with_misconceptions",
+          "changed_mind_rate",
+          "open_flags"
+        ],
+        "title": "DashboardWeekOut",
+        "type": "object"
+      },
       "EvidenceOut": {
         "properties": {
           "quote": {
@@ -591,6 +980,65 @@
           "quote"
         ],
         "title": "EvidenceOut",
+        "type": "object"
+      },
+      "FlagAttentionOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "flag_id": {
+            "format": "uuid",
+            "title": "Flag Id",
+            "type": "string"
+          },
+          "flag_type": {
+            "title": "Flag Type",
+            "type": "string"
+          },
+          "item_id": {
+            "format": "uuid",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "flag",
+            "title": "Kind",
+            "type": "string"
+          },
+          "publication_id": {
+            "format": "uuid",
+            "title": "Publication Id",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "severity": {
+            "title": "Severity",
+            "type": "string"
+          },
+          "student_name": {
+            "title": "Student Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "created_at",
+          "kind",
+          "flag_id",
+          "flag_type",
+          "severity",
+          "session_id",
+          "publication_id",
+          "student_name"
+        ],
+        "title": "FlagAttentionOut",
         "type": "object"
       },
       "FlagReviewIn": {
@@ -1202,6 +1650,53 @@
         "title": "KbPageOut",
         "type": "object"
       },
+      "KbReviewAttentionOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "item_id": {
+            "format": "uuid",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "kb_review",
+            "title": "Kind",
+            "type": "string"
+          },
+          "knowledge_base_id": {
+            "format": "uuid",
+            "title": "Knowledge Base Id",
+            "type": "string"
+          },
+          "pending_concepts": {
+            "title": "Pending Concepts",
+            "type": "integer"
+          },
+          "pending_misconceptions": {
+            "title": "Pending Misconceptions",
+            "type": "integer"
+          },
+          "topic_title": {
+            "title": "Topic Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "created_at",
+          "kind",
+          "knowledge_base_id",
+          "topic_title",
+          "pending_concepts",
+          "pending_misconceptions"
+        ],
+        "title": "KbReviewAttentionOut",
+        "type": "object"
+      },
       "KbSummaryOut": {
         "properties": {
           "approved_concept_count": {
@@ -1224,6 +1719,17 @@
           "material_count": {
             "title": "Material Count",
             "type": "integer"
+          },
+          "owner_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Name"
           },
           "owner_teacher_id": {
             "format": "uuid",
@@ -1249,6 +1755,7 @@
           }
         },
         "required": [
+          "owner_name",
           "id",
           "topic_key",
           "topic_title",
@@ -1478,11 +1985,19 @@
             "type": "string"
           },
           "student_ids": {
+            "deprecated": true,
             "items": {
               "format": "uuid",
               "type": "string"
             },
             "title": "Student Ids",
+            "type": "array"
+          },
+          "students": {
+            "items": {
+              "$ref": "#/components/schemas/MisconceptionStudentOut"
+            },
+            "title": "Students",
             "type": "array"
           }
         },
@@ -1491,7 +2006,8 @@
           "statement",
           "count",
           "resolved_count",
-          "student_ids"
+          "student_ids",
+          "students"
         ],
         "title": "MisconceptionCountOut",
         "type": "object"
@@ -1631,8 +2147,37 @@
         "title": "MisconceptionPatchIn",
         "type": "object"
       },
+      "MisconceptionStudentOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "student_id": {
+            "format": "uuid",
+            "title": "Student Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "student_id",
+          "name",
+          "session_id"
+        ],
+        "title": "MisconceptionStudentOut",
+        "type": "object"
+      },
       "MissionCardOut": {
         "properties": {
+          "attempt_number": {
+            "title": "Attempt Number",
+            "type": "integer"
+          },
           "attempt_status": {
             "title": "Attempt Status",
             "type": "string"
@@ -1648,6 +2193,10 @@
               }
             ],
             "title": "Closes At"
+          },
+          "is_granted_attempt": {
+            "title": "Is Granted Attempt",
+            "type": "boolean"
           },
           "max_duration_minutes": {
             "title": "Max Duration Minutes",
@@ -1678,6 +2227,11 @@
             "title": "Publication Id",
             "type": "string"
           },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
           "run_status": {
             "title": "Run Status",
             "type": "string"
@@ -1705,6 +2259,9 @@
           }
         },
         "required": [
+          "run_id",
+          "attempt_number",
+          "is_granted_attempt",
           "publication_id",
           "session_id",
           "mission_title",
@@ -1848,6 +2405,17 @@
             "title": "Created By",
             "type": "string"
           },
+          "created_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Name"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -1874,6 +2442,7 @@
           }
         },
         "required": [
+          "created_by_name",
           "id",
           "title",
           "knowledge_base_id",
@@ -2362,6 +2931,83 @@
         "title": "ParentSummaryOut",
         "type": "object"
       },
+      "PasswordChangeIn": {
+        "additionalProperties": false,
+        "properties": {
+          "current_password": {
+            "format": "password",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Current Password",
+            "type": "string",
+            "writeOnly": true
+          },
+          "new_password": {
+            "format": "password",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "New Password",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "title": "PasswordChangeIn",
+        "type": "object"
+      },
+      "PasswordResetConfirmIn": {
+        "additionalProperties": false,
+        "properties": {
+          "password": {
+            "format": "password",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string",
+            "writeOnly": true
+          },
+          "reset_id": {
+            "format": "uuid",
+            "title": "Reset Id",
+            "type": "string"
+          },
+          "token_hash": {
+            "format": "password",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Token Hash",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "reset_id",
+          "token_hash",
+          "password"
+        ],
+        "title": "PasswordResetConfirmIn",
+        "type": "object"
+      },
+      "PasswordResetIn": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "maxLength": 320,
+            "minLength": 3,
+            "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "PasswordResetIn",
+        "type": "object"
+      },
       "PasteEvent": {
         "additionalProperties": false,
         "properties": {
@@ -2670,6 +3316,53 @@
         "title": "ReleasePreviewOut",
         "type": "object"
       },
+      "ReleaseReadyAttentionOut": {
+        "properties": {
+          "class_name": {
+            "title": "Class Name",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "eligible_count": {
+            "title": "Eligible Count",
+            "type": "integer"
+          },
+          "item_id": {
+            "format": "uuid",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "release_ready",
+            "title": "Kind",
+            "type": "string"
+          },
+          "mission_title": {
+            "title": "Mission Title",
+            "type": "string"
+          },
+          "publication_id": {
+            "format": "uuid",
+            "title": "Publication Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "created_at",
+          "kind",
+          "publication_id",
+          "class_name",
+          "mission_title",
+          "eligible_count"
+        ],
+        "title": "ReleaseReadyAttentionOut",
+        "type": "object"
+      },
       "ReleasedOut": {
         "properties": {
           "released_to_parents_at": {
@@ -2687,6 +3380,29 @@
           "summary_count"
         ],
         "title": "ReleasedOut",
+        "type": "object"
+      },
+      "ReportActivityOut": {
+        "properties": {
+          "away_seconds": {
+            "title": "Away Seconds",
+            "type": "number"
+          },
+          "paste_chars": {
+            "title": "Paste Chars",
+            "type": "integer"
+          },
+          "typing_ms": {
+            "title": "Typing Ms",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "paste_chars",
+          "away_seconds",
+          "typing_ms"
+        ],
+        "title": "ReportActivityOut",
         "type": "object"
       },
       "ReportConceptResultOut": {
@@ -2780,6 +3496,30 @@
         "title": "ReportFlagOut",
         "type": "object"
       },
+      "ReportMissionOut": {
+        "properties": {
+          "mission_id": {
+            "format": "uuid",
+            "title": "Mission Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version_number": {
+            "title": "Version Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mission_id",
+          "title",
+          "version_number"
+        ],
+        "title": "ReportMissionOut",
+        "type": "object"
+      },
       "ReportOut": {
         "properties": {
           "concept_results": {
@@ -2806,6 +3546,12 @@
             "title": "Flags",
             "type": "array"
           },
+          "mission": {
+            "$ref": "#/components/schemas/ReportMissionOut"
+          },
+          "rubric": {
+            "$ref": "#/components/schemas/ReportRubricOut"
+          },
           "scores": {
             "items": {
               "$ref": "#/components/schemas/ReportScoreOut"
@@ -2828,6 +3574,8 @@
           }
         },
         "required": [
+          "mission",
+          "rubric",
           "student",
           "session",
           "evaluation",
@@ -2837,6 +3585,54 @@
           "flags"
         ],
         "title": "ReportOut",
+        "type": "object"
+      },
+      "ReportRubricOut": {
+        "properties": {
+          "claim": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 5,
+            "title": "Claim",
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 5,
+            "title": "Evidence",
+            "type": "array"
+          },
+          "mechanism": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 5,
+            "title": "Mechanism",
+            "type": "array"
+          },
+          "transfer": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 5,
+            "title": "Transfer",
+            "type": "array"
+          }
+        },
+        "required": [
+          "claim",
+          "evidence",
+          "mechanism",
+          "transfer"
+        ],
+        "title": "ReportRubricOut",
         "type": "object"
       },
       "ReportScoreOut": {
@@ -2966,6 +3762,9 @@
       },
       "ReportTurnOut": {
         "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/ReportActivityOut"
+          },
           "answer": {
             "anyOf": [
               {
@@ -3077,7 +3876,8 @@
           "reason",
           "guard_result",
           "answer_state",
-          "safety_paused"
+          "safety_paused",
+          "activity"
         ],
         "title": "ReportTurnOut",
         "type": "object"
@@ -3501,6 +4301,62 @@
         "title": "SafetyActionOut",
         "type": "object"
       },
+      "SafetyAttentionOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "item_id": {
+            "format": "uuid",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "safety",
+            "title": "Kind",
+            "type": "string"
+          },
+          "paused_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused At"
+          },
+          "publication_id": {
+            "format": "uuid",
+            "title": "Publication Id",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "student_name": {
+            "title": "Student Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "created_at",
+          "kind",
+          "session_id",
+          "publication_id",
+          "student_name",
+          "paused_at"
+        ],
+        "title": "SafetyAttentionOut",
+        "type": "object"
+      },
       "SectionItemOut": {
         "properties": {
           "build_status": {
@@ -3715,6 +4571,29 @@
         "title": "StateOut",
         "type": "object"
       },
+      "StudentConceptCountsOut": {
+        "properties": {
+          "developing": {
+            "title": "Developing",
+            "type": "integer"
+          },
+          "mastered": {
+            "title": "Mastered",
+            "type": "integer"
+          },
+          "misconception": {
+            "title": "Misconception",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mastered",
+          "developing",
+          "misconception"
+        ],
+        "title": "StudentConceptCountsOut",
+        "type": "object"
+      },
       "StudentLobbyOut": {
         "properties": {
           "deadline_at": {
@@ -3902,6 +4781,49 @@
           "summary_text"
         ],
         "title": "SummaryPreviewOut",
+        "type": "object"
+      },
+      "TeacherDashboardOut": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "last_week": {
+            "$ref": "#/components/schemas/DashboardWeekOut"
+          },
+          "this_week": {
+            "$ref": "#/components/schemas/DashboardWeekOut"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "top_changed": {
+            "items": {
+              "$ref": "#/components/schemas/ChangedMisconceptionOut"
+            },
+            "title": "Top Changed",
+            "type": "array"
+          },
+          "trend": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardTrendOut"
+            },
+            "title": "Trend",
+            "type": "array"
+          }
+        },
+        "required": [
+          "this_week",
+          "last_week",
+          "trend",
+          "top_changed",
+          "as_of",
+          "timezone"
+        ],
+        "title": "TeacherDashboardOut",
         "type": "object"
       },
       "TelemetryAccepted": {
@@ -4099,6 +5021,68 @@
           "version_number"
         ],
         "title": "VersionCreatedOut",
+        "type": "object"
+      },
+      "VersionHistoryOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Name"
+          },
+          "locked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locked At"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "version_number": {
+            "title": "Version Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version_number",
+          "status",
+          "created_at",
+          "created_by_name",
+          "reviewed_at",
+          "locked_at"
+        ],
+        "title": "VersionHistoryOut",
         "type": "object"
       },
       "VersionIn": {
@@ -4478,6 +5462,25 @@
         "title": "WindowSessionOut",
         "type": "object"
       },
+      "WindowStartIn": {
+        "additionalProperties": false,
+        "properties": {
+          "run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          }
+        },
+        "title": "WindowStartIn",
+        "type": "object"
+      },
       "nalar__presentation__api__schemas__missions__WarmupChoiceIn": {
         "additionalProperties": false,
         "properties": {
@@ -4616,6 +5619,113 @@
           }
         },
         "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/password": {
+      "post": {
+        "operationId": "change_password_api_v1_auth_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChangeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Change Password",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/password-reset": {
+      "post": {
+        "operationId": "request_password_reset_api_v1_auth_password_reset_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Password Reset",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/password-reset/confirm": {
+      "post": {
+        "operationId": "confirm_password_reset_api_v1_auth_password_reset_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetConfirmIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Password Reset",
         "tags": [
           "auth"
         ]
@@ -5392,6 +6502,56 @@
       }
     },
     "/api/v1/missions/{mission_id}/versions": {
+      "get": {
+        "operationId": "list_versions_api_v1_missions__mission_id__versions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mission_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Mission Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VersionHistoryOut"
+                  },
+                  "title": "Response List Versions Api V1 Missions  Mission Id  Versions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "List Versions",
+        "tags": [
+          "missions"
+        ]
+      },
       "post": {
         "operationId": "create_version_api_v1_missions__mission_id__versions_post",
         "parameters": [
@@ -5864,6 +7024,74 @@
           }
         ],
         "summary": "Publish",
+        "tags": [
+          "teacher"
+        ]
+      }
+    },
+    "/api/v1/publications/{publication_id}/attempt-grants": {
+      "post": {
+        "operationId": "grant_attempt_api_v1_publications__publication_id__attempt_grants_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "publication_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Publication Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttemptGrantIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptGrantOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Grant Attempt",
         "tags": [
           "teacher"
         ]
@@ -6980,6 +8208,23 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/WindowStartIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "content": {
@@ -7467,6 +8712,196 @@
           }
         ],
         "summary": "Assignments",
+        "tags": [
+          "teacher"
+        ]
+      }
+    },
+    "/api/v1/teacher/attention": {
+      "get": {
+        "operationId": "attention_api_v1_teacher_attention_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "School Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttentionPageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Attention",
+        "tags": [
+          "teacher"
+        ]
+      }
+    },
+    "/api/v1/teacher/classes/{class_id}/students": {
+      "get": {
+        "operationId": "class_students_api_v1_teacher_classes__class_id__students_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "class_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Class Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "publication_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Publication Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClassStudentsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Class Students",
+        "tags": [
+          "teacher"
+        ]
+      }
+    },
+    "/api/v1/teacher/dashboard": {
+      "get": {
+        "operationId": "dashboard_api_v1_teacher_dashboard_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "School Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherDashboardOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "summary": "Dashboard",
         "tags": [
           "teacher"
         ]

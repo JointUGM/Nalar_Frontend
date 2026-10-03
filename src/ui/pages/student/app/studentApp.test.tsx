@@ -39,7 +39,7 @@ afterAll(() => {
   else Reflect.deleteProperty(HTMLDialogElement.prototype, 'close')
 })
 
-const card = (publication_id: string, mission_title: string, extra: Record<string, unknown> = {}) => ({ publication_id, mission_title, subject_name: 'IPA', mode: 'window', run_status: 'open', attempt_status: 'not_started', opens_at: '2026-10-02T00:30:00+00:00', closes_at: '2026-10-02T08:00:00+00:00', target_duration_minutes: 15, max_duration_minutes: 20, ...extra })
+const card = (publication_id: string, mission_title: string, extra: Record<string, unknown> = {}) => ({ publication_id, run_id: publication_id, attempt_number: 1, is_granted_attempt: false, mission_title, subject_name: 'IPA', mode: 'window', run_status: 'open', attempt_status: 'not_started', opens_at: '2026-10-02T00:30:00+00:00', closes_at: '2026-10-02T08:00:00+00:00', target_duration_minutes: 15, max_duration_minutes: 20, ...extra })
 const missions = {
   open: [card(windowMission, 'Kenapa kelereng berhenti?'), card(liveMission, 'Tekanan Zat', { mode: 'live', run_status: 'lobby', opens_at: null, closes_at: null })],
   upcoming: [card(upcomingMission, 'Mendorong lemari', { run_status: 'scheduled', opens_at: '2026-10-05T00:30:00+00:00' })],

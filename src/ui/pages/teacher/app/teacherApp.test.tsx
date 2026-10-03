@@ -43,7 +43,7 @@ afterAll(() => {
 })
 
 const publications = { items: [{ id: publication, class_id: school, class_name: '8B', mission_title: 'Kenapa kelereng berhenti?', released_to_parents_at: null, run: { id: school, mode: 'live', status: 'closed', join_code: null, opens_at: null, closes_at: null }, counts: { started: 30, completed: 28, timed_out: 2, evaluated: 28 } }], next_cursor: null }
-const classMap = { denominator: 28, incomplete_count: 2, concepts: [{ concept_id: concept, name: 'Gaya gesek', mastered_count: 10, developing_count: 6, not_observed_count: 0, misconceptions: [{ misconception_id: misconception, statement: 'Gaya bisa habis', count: 18, resolved_count: 11, student_ids: [student] }] }], insight: { narrative: 'Sebanyak 18 siswa mengira gaya bisa habis.', generated_at: '2026-10-02T03:00:00+00:00' } }
+const classMap = { denominator: 28, incomplete_count: 2, concepts: [{ concept_id: concept, name: 'Gaya gesek', mastered_count: 10, developing_count: 6, not_observed_count: 0, misconceptions: [{ misconception_id: misconception, statement: 'Gaya bisa habis', count: 18, resolved_count: 11, student_ids: [student], students: [{ student_id: student, name: 'Raka Pratama', session_id: student }] }] }], insight: { narrative: 'Sebanyak 18 siswa mengira gaya bisa habis.', generated_at: '2026-10-02T03:00:00+00:00' } }
 const mission = '00000000-0000-4000-8000-00000000000e'
 const version = '00000000-0000-4000-8000-00000000000f'
 const draft = '00000000-0000-4000-8000-000000000010'
@@ -56,13 +56,16 @@ const scoreId = '00000000-0000-4000-8000-000000000016'
 const flagId = '00000000-0000-4000-8000-000000000017'
 const turnId = '00000000-0000-4000-8000-000000000018'
 const reportPath = `${base}/publications/${publication}/sessions/${sessionId}`
+const levels = ['Tidak ada', 'Awal', 'Sebagian', 'Jelas', 'Lengkap']
 const reportOut = (extra: Record<string, unknown> = {}) => ({
-  student: { id: student, name: 'Raka Pratama' }, session: { status: 'paused_safety', attempt_number: 1, started_at: '2026-10-02T03:00:00Z', ended_at: null, end_reason: null },
+  student: { id: student, name: 'Raka Pratama' }, mission: { mission_id: mission, title: 'Kenapa kelereng berhenti?', version_number: 2 },
+  rubric: { claim: ['Tidak ada klaim', 'Klaim kabur', 'Klaim cukup', 'Klaim jelas', 'Klaim tajam'], evidence: levels, mechanism: levels, transfer: levels },
+  session: { status: 'paused_safety', attempt_number: 1, started_at: '2026-10-02T03:00:00Z', ended_at: null, end_reason: null },
   evaluation: { status: 'completed', summary: null },
   scores: [{ score_id: scoreId, dimension: 'claim', ai_level: 2, final_level: 2, rationale: 'Klaim jelas', evidence: [{ turn_id: turnId, quote: 'gaya gesek' }], overrides: [] }],
   concept_results: [{ concept_id: concept, misconception_id: misconception, outcome: 'developing', resolved_in_session: true }],
   flags: [{ id: flagId, flag_type: 'large_paste', severity: 'medium', status: 'open' }],
-  turns: [{ turn_id: turnId, turn_index: 0, kind: 'opening', prompt: 'Kenapa kelereng berhenti?', answer: 'Karena gaya gesek.', answer_state: 'accepted', guard_result: null, move: null, move_source: null, reason: null, reason_code: null, safety_paused: false }],
+  turns: [{ turn_id: turnId, turn_index: 0, kind: 'opening', prompt: 'Kenapa kelereng berhenti?', answer: 'Karena gaya gesek.', answer_state: 'accepted', guard_result: null, move: null, move_source: null, reason: null, reason_code: null, safety_paused: false, activity: { paste_chars: 120, away_seconds: 4.5, typing_ms: 30000 } }],
   ...extra,
 })
 const kbId = '00000000-0000-4000-8000-000000000012'
@@ -77,7 +80,6 @@ const kbDetail = (conceptStatus = 'pending', can_edit = true) => ({
 })
 const sections = { items: [{ id: section, material_id: school, parent_section_id: null, title: 'Bab 1 Tekanan', level: 1, ordinal: 1, page_start: 1, page_end: 20, suggested: true, build_status: 'pending', built_at: null }] }
 const jobOut = (extra: Record<string, unknown> = {}) => ({ id: job, kind: 'kb_detect_sections', status: 'succeeded', entity_type: 'materials', entity_id: school, error_code: null, updated_at: '2026-10-02T03:00:00+00:00', ...extra })
-const levels = ['Tidak ada', 'Awal', 'Sebagian', 'Jelas', 'Lengkap']
 const versionOut = (extra: Record<string, unknown> = {}) => ({
   id: draft, version_number: 1, status: 'draft', can_edit: true, anchor_problem: 'Kenapa kelereng melambat?', reference_reasoning: 'Gaya gesek memperlambat kelereng.',
   rubric: { claim: levels, evidence: levels, mechanism: levels, transfer: levels }, target_concept_ids: [concept], misconception_ids: [misconception], source_chunk_ids: [],
@@ -107,6 +109,20 @@ function backend(overrides: Record<string, Reply> = {}) {
       ],
     }),
     [`GET /sessions/${sessionId}/report`]: () => Response.json(reportOut()),
+    [`GET /missions/${draft}/versions`]: () => Response.json([{ version_number: 1, status: 'draft', created_at: '2026-10-02T02:00:00Z', created_by_name: 'Sari Wulandari', reviewed_at: null, locked_at: null }]),
+    [`GET /teacher/attention?school_id=${school}&limit=50`]: () => Response.json({ next_cursor: null, counts: { safety: 1, flag: 0, kb_review: 1, release_ready: 0, total: 2 }, items: [
+      { kind: 'safety', item_id: sessionId, created_at: '2026-10-02T03:10:00Z', session_id: sessionId, publication_id: publication, student_name: 'Raka Pratama', paused_at: '2026-10-02T03:10:00Z' },
+      { kind: 'kb_review', item_id: kbId, created_at: '2026-10-02T01:00:00Z', knowledge_base_id: kbId, topic_title: 'Tekanan Zat', pending_concepts: 1, pending_misconceptions: 2 },
+      { kind: 'something_new', item_id: kbId, created_at: '2026-10-02T01:00:00Z' },
+    ] }),
+    [`GET /teacher/dashboard?school_id=${school}`]: () => Response.json({
+      as_of: '2026-10-02T05:00:00Z', timezone: 'Asia/Jakarta',
+      this_week: { week_start: '2026-09-28T00:00:00+07:00', week_end: '2026-10-05T00:00:00+07:00', sessions_completed: 12, students: 30, active_misconceptions: 5, concepts_with_misconceptions: 2, changed_mind_rate: 0.4, open_flags: 1 },
+      last_week: { week_start: '2026-09-21T00:00:00+07:00', week_end: '2026-09-28T00:00:00+07:00', sessions_completed: 10, students: 30, active_misconceptions: 6, concepts_with_misconceptions: 3, changed_mind_rate: null, open_flags: 0 },
+      trend: [{ week_start: '2026-09-28T00:00:00+07:00', mastered: 10, developing: 6, misconception: 4 }],
+      top_changed: [{ misconception_id: misconception, statement: 'Gaya bisa habis', held: 8, resolved: 5 }],
+    }),
+    [`GET /teacher/classes/${klass}/students`]: () => Response.json({ publication_id: null, items: [{ student_id: student, full_name: 'Raka Pratama', session_id: sessionId, status: 'completed', completed_at: '2026-10-02T04:00:00Z', evaluation_status: 'completed', open_flag_count: 1, concept_counts: { mastered: 2, developing: 1, misconception: 1 } }] }),
     'POST /publications': () => Response.json({ publication_id: publication, run_id: school, run_status: 'scheduled' }, { status: 201 }),
     ...overrides,
   }
@@ -127,7 +143,7 @@ function open(path: string, request: typeof fetch) {
 
 describe('signed-in teacher pages', () => {
   it('lists published missions with their counts and links to projector, monitor, class map and release', async () => {
-    open(base, backend())
+    open(`${base}/sessions`, backend())
     const card = within(await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?, kelas 8B' }))
     expect(card.getAllByText('28')).toHaveLength(2)
     for (const [name, page] of [['Proyektor', 'projector'], ['Pantau', 'monitor'], ['Peta kelas', 'class-map'], ['Rilis ke orang tua', 'release']]) expect(card.getByRole('link', { name })).toHaveAttribute('href', `${base}/publications/${publication}/${page}`)
@@ -212,13 +228,33 @@ describe('signed-in teacher pages', () => {
     fireEvent.click(screen.getByRole('radio', { name: '3' }))
     const save = screen.getByRole('button', { name: 'Simpan skor' })
     expect(save).toBeDisabled()
-    fireEvent.change(screen.getByLabelText(/Alasan/), { target: { value: ' Arah gesekan benar ' } })
+    fireEvent.change(screen.getByRole('textbox', { name: /Alasan/ }), { target: { value: ' Arah gesekan benar ' } })
     fireEvent.click(save)
     fireEvent.click(save)
     expect(await screen.findByText(/dari 2 menjadi 3/)).toBeInTheDocument()
     const posts = request.mock.calls.filter(([, init]) => init?.method === 'POST')
     expect(posts).toHaveLength(1)
     expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ final_level: 3, reason: 'Arah gesekan benar' })
+  })
+
+  it('shows the rubric meaning and activity, and grants one extra attempt with an idempotency key', async () => {
+    const request = backend({
+      [`GET /sessions/${sessionId}/report`]: () => Response.json(reportOut({ session: { status: 'completed', attempt_number: 1, started_at: '2026-10-02T03:00:00Z', ended_at: '2026-10-02T03:15:00Z', end_reason: null } })),
+      [`POST /publications/${publication}/attempt-grants`]: () => Response.json({ grant_id: school, run_id: school }, { status: 201 }),
+    })
+    open(reportPath, request)
+    expect(await screen.findByText(/Klaim cukup/)).toBeInTheDocument()
+    expect(screen.getByText('120 karakter ditempel · 5 detik di luar halaman · 30 detik mengetik')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Beri kesempatan lagi' }))
+    fireEvent.change(screen.getByRole('textbox', { name: /Alasan/ }), { target: { value: 'Sakit saat sesi' } })
+    const grant = screen.getByRole('button', { name: 'Beri kesempatan' })
+    fireEvent.click(grant)
+    fireEvent.click(grant)
+    expect(await screen.findByText('Kesempatan lagi diberikan', { selector: 'p' })).toBeInTheDocument()
+    const posts = request.mock.calls.filter(([, init]) => init?.method === 'POST')
+    expect(posts).toHaveLength(1)
+    expect(new Headers(posts[0][1]?.headers).get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/)
+    expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ student_id: student, reason: 'Sakit saat sesi' })
   })
 
   it('reviews a flag and resumes a paused session only after confirming', async () => {
@@ -236,6 +272,24 @@ describe('signed-in teacher pages', () => {
     await waitFor(() => expect(request.mock.calls.filter(([url]) => String(url).endsWith('/safety-actions'))).toHaveLength(1))
     const bodies = request.mock.calls.filter(([, init]) => init?.method === 'POST').map(([, init]) => JSON.parse(String(init?.body)))
     expect(bodies).toEqual([{ decision: 'cleared', note: null }, { action: 'resume', note: null }])
+  })
+
+  it('opens on the weekly dashboard and badges what needs attention, each item linking to where it is handled', async () => {
+    open(base, backend())
+    expect(await screen.findByText('+2 dari minggu lalu')).toBeInTheDocument()
+    expect(screen.getByText('40%')).toBeInTheDocument()
+    expect(screen.getByText('“Gaya bisa habis”')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getAllByRole('link', { name: /Perlu perhatian/ })[0]).toHaveTextContent('2'))
+    fireEvent.click(screen.getAllByRole('link', { name: /Perlu perhatian/ })[0])
+    expect(await screen.findByRole('link', { name: /Raka Pratama/ })).toHaveAttribute('href', `${base}/publications/${publication}/sessions/${sessionId}`)
+    expect(screen.getByRole('link', { name: /Tekanan Zat/ })).toHaveAttribute('href', `${base}/knowledge-base/${kbId}`)
+  })
+
+  it('lists a class with each student’s latest attempt and concept results', async () => {
+    open(`${base}/classes`, backend())
+    const row = within((await screen.findByRole('rowheader', { name: 'Raka Pratama' })).closest('tr')!)
+    expect(row.getByText('Selesai · 1 perlu verifikasi')).toBeInTheDocument()
+    expect(row.getByText('2 paham · 1 berkembang · 1 miskonsepsi')).toBeInTheDocument()
   })
 
   it('uploads a PDF as multipart and follows the reading job on the topic page', async () => {

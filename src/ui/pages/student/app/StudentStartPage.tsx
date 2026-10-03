@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
 import type { StudentService } from '@/domain/services/StudentService'
 import { Button } from '@/ui/components/button/Button'
@@ -30,6 +30,8 @@ function refusal(error: ApiError): string | null {
 
 export function StudentStartPage({ service, base }: { service: StudentService; base: string }) {
   const { publicationId = '' } = useParams()
+  // A granted retake shares the publication with the first attempt, so its card is told apart by its run.
+  const run = useSearchParams()[0].get('run')
   const navigate = useNavigate()
   const read = useCallback((signal: AbortSignal) => service.missions(signal), [service])
   const { data, error, online, refresh } = useLiveResource(read, startPollMs)
@@ -41,7 +43,7 @@ export function StudentStartPage({ service, base }: { service: StudentService; b
 
   if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <p role="status">Memuat misi…</p>}</div>
   // Only a mission in the student's own list has a start page; anything else is simply not found.
-  const find = (list: typeof data.open) => list.find((item) => item.publication_id === publicationId)
+  const find = (list: typeof data.open) => list.find((item) => item.publication_id === publicationId && (run ? item.run_id === run : !item.is_granted_attempt))
   const mission = find(data.open) ?? find(data.upcoming) ?? find(data.completed)
   if (!mission) return <div className={styles.content}>{back}<Feedback title="Misi ini tidak bisa dimulai" announce>Pilih misi yang terbuka dari halaman Misi saya.</Feedback></div>
 
@@ -60,7 +62,7 @@ export function StudentStartPage({ service, base }: { service: StudentService; b
     busy.current = true; setPending(true); setFailure(null)
     const signal = commandSignal()
     try {
-      const started = await service.startWindowSession(publicationId, signal)
+      const started = await service.startWindowSession(publicationId, run, signal)
       if (!signal?.aborted) navigate(`${base}/sessions/${started.session_id}`)
     } catch (cause) {
       if (!signal?.aborted) { setFailure(cause instanceof ApiError ? cause : new ApiError(0, 'UNAVAILABLE')); setPending(false) }

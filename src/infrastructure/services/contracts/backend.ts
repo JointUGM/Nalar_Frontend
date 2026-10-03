@@ -51,6 +51,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change Password */
+        post: operations["change_password_api_v1_auth_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request Password Reset */
+        post: operations["request_password_reset_api_v1_auth_password_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/password-reset/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Password Reset */
+        post: operations["confirm_password_reset_api_v1_auth_password_reset_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/refresh": {
         parameters: {
             query?: never;
@@ -330,7 +381,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** List Versions */
+        get: operations["list_versions_api_v1_missions__mission_id__versions_get"];
         put?: never;
         /** Create Version */
         post: operations["create_version_api_v1_missions__mission_id__versions_post"];
@@ -454,6 +506,23 @@ export interface paths {
         put?: never;
         /** Publish */
         post: operations["publish_api_v1_publications_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/publications/{publication_id}/attempt-grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Grant Attempt */
+        post: operations["grant_attempt_api_v1_publications__publication_id__attempt_grants_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -921,6 +990,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teacher/attention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Attention */
+        get: operations["attention_api_v1_teacher_attention_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teacher/classes/{class_id}/students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Class Students */
+        get: operations["class_students_api_v1_teacher_classes__class_id__students_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teacher/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dashboard */
+        get: operations["dashboard_api_v1_teacher_dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teacher/publications": {
         parameters: {
             query?: never;
@@ -1068,6 +1188,54 @@ export interface components {
             /** Items */
             items: components["schemas"]["AssignmentOut"][];
         };
+        /** AttemptGrantIn */
+        AttemptGrantIn: {
+            /** Closes At */
+            closes_at?: string | null;
+            /** Opens At */
+            opens_at?: string | null;
+            /** Reason */
+            reason: string;
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+        };
+        /** AttemptGrantOut */
+        AttemptGrantOut: {
+            /**
+             * Grant Id
+             * Format: uuid
+             */
+            grant_id: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+        };
+        /** AttentionCountsOut */
+        AttentionCountsOut: {
+            /** Flag */
+            flag: number;
+            /** Kb Review */
+            kb_review: number;
+            /** Release Ready */
+            release_ready: number;
+            /** Safety */
+            safety: number;
+            /** Total */
+            total: number;
+        };
+        /** AttentionPageOut */
+        AttentionPageOut: {
+            counts: components["schemas"]["AttentionCountsOut"];
+            /** Items */
+            items: (components["schemas"]["SafetyAttentionOut"] | components["schemas"]["FlagAttentionOut"] | components["schemas"]["KbReviewAttentionOut"] | components["schemas"]["ReleaseReadyAttentionOut"])[];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
         /** BankQuestionIn */
         BankQuestionIn: {
             /**
@@ -1136,6 +1304,20 @@ export interface components {
              */
             status: string;
         };
+        /** ChangedMisconceptionOut */
+        ChangedMisconceptionOut: {
+            /** Held */
+            held: number;
+            /**
+             * Misconception Id
+             * Format: uuid
+             */
+            misconception_id: string;
+            /** Resolved */
+            resolved: number;
+            /** Statement */
+            statement: string;
+        };
         /** ClassMapOut */
         ClassMapOut: {
             /** Concepts */
@@ -1145,6 +1327,34 @@ export interface components {
             /** Incomplete Count */
             incomplete_count: number;
             insight?: components["schemas"]["InsightOut"] | null;
+        };
+        /** ClassStudentOut */
+        ClassStudentOut: {
+            /** Completed At */
+            completed_at: string | null;
+            concept_counts: components["schemas"]["StudentConceptCountsOut"];
+            /** Evaluation Status */
+            evaluation_status: ("pending" | "completed" | "failed" | "no_answer") | null;
+            /** Full Name */
+            full_name: string;
+            /** Open Flag Count */
+            open_flag_count: number;
+            /** Session Id */
+            session_id: string | null;
+            /** Status */
+            status: ("not_started" | "in_progress" | "paused_safety" | "completed" | "timed_out" | "ended_safety") | null;
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+        };
+        /** ClassStudentsOut */
+        ClassStudentsOut: {
+            /** Items */
+            items: components["schemas"]["ClassStudentOut"][];
+            /** Publication Id */
+            publication_id: string | null;
         };
         /** ClosedOut */
         ClosedOut: {
@@ -1225,6 +1435,45 @@ export interface components {
             /** Timed Out */
             timed_out: number;
         };
+        /** DashboardTrendOut */
+        DashboardTrendOut: {
+            /** Developing */
+            developing: number;
+            /** Mastered */
+            mastered: number;
+            /** Misconception */
+            misconception: number;
+            /**
+             * Week Start
+             * Format: date-time
+             */
+            week_start: string;
+        };
+        /** DashboardWeekOut */
+        DashboardWeekOut: {
+            /** Active Misconceptions */
+            active_misconceptions: number;
+            /** Changed Mind Rate */
+            changed_mind_rate: number | null;
+            /** Concepts With Misconceptions */
+            concepts_with_misconceptions: number;
+            /** Open Flags */
+            open_flags: number;
+            /** Sessions Completed */
+            sessions_completed: number;
+            /** Students */
+            students: number;
+            /**
+             * Week End
+             * Format: date-time
+             */
+            week_end: string;
+            /**
+             * Week Start
+             * Format: date-time
+             */
+            week_start: string;
+        };
         /** EvidenceOut */
         EvidenceOut: {
             /** Quote */
@@ -1234,6 +1483,45 @@ export interface components {
              * Format: uuid
              */
             turn_id: string;
+        };
+        /** FlagAttentionOut */
+        FlagAttentionOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Flag Id
+             * Format: uuid
+             */
+            flag_id: string;
+            /** Flag Type */
+            flag_type: string;
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "flag";
+            /**
+             * Publication Id
+             * Format: uuid
+             */
+            publication_id: string;
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /** Severity */
+            severity: string;
+            /** Student Name */
+            student_name: string;
         };
         /** FlagReviewIn */
         FlagReviewIn: {
@@ -1454,6 +1742,35 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** KbReviewAttentionOut */
+        KbReviewAttentionOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "kb_review";
+            /**
+             * Knowledge Base Id
+             * Format: uuid
+             */
+            knowledge_base_id: string;
+            /** Pending Concepts */
+            pending_concepts: number;
+            /** Pending Misconceptions */
+            pending_misconceptions: number;
+            /** Topic Title */
+            topic_title: string;
+        };
         /** KbSummaryOut */
         KbSummaryOut: {
             /** Approved Concept Count */
@@ -1469,6 +1786,8 @@ export interface components {
             id: string;
             /** Material Count */
             material_count: number;
+            /** Owner Name */
+            owner_name: string | null;
             /**
              * Owner Teacher Id
              * Format: uuid
@@ -1583,8 +1902,13 @@ export interface components {
             resolved_count: number;
             /** Statement */
             statement: string;
-            /** Student Ids */
+            /**
+             * Student Ids
+             * @deprecated
+             */
             student_ids: string[];
+            /** Students */
+            students: components["schemas"]["MisconceptionStudentOut"][];
         };
         /** MisconceptionOut */
         MisconceptionOut: {
@@ -1624,12 +1948,31 @@ export interface components {
             /** Statement */
             statement?: string | null;
         };
+        /** MisconceptionStudentOut */
+        MisconceptionStudentOut: {
+            /** Name */
+            name: string;
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+        };
         /** MissionCardOut */
         MissionCardOut: {
+            /** Attempt Number */
+            attempt_number: number;
             /** Attempt Status */
             attempt_status: string;
             /** Closes At */
             closes_at: string | null;
+            /** Is Granted Attempt */
+            is_granted_attempt: boolean;
             /** Max Duration Minutes */
             max_duration_minutes: number;
             /** Mission Title */
@@ -1643,6 +1986,11 @@ export interface components {
              * Format: uuid
              */
             publication_id: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
             /** Run Status */
             run_status: string;
             /** Session Id */
@@ -1716,6 +2064,8 @@ export interface components {
              * Format: uuid
              */
             created_by: string;
+            /** Created By Name */
+            created_by_name: string | null;
             /**
              * Id
              * Format: uuid
@@ -1916,6 +2266,42 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** PasswordChangeIn */
+        PasswordChangeIn: {
+            /**
+             * Current Password
+             * Format: password
+             */
+            current_password: string;
+            /**
+             * New Password
+             * Format: password
+             */
+            new_password: string;
+        };
+        /** PasswordResetConfirmIn */
+        PasswordResetConfirmIn: {
+            /**
+             * Password
+             * Format: password
+             */
+            password: string;
+            /**
+             * Reset Id
+             * Format: uuid
+             */
+            reset_id: string;
+            /**
+             * Token Hash
+             * Format: password
+             */
+            token_hash: string;
+        };
+        /** PasswordResetIn */
+        PasswordResetIn: {
+            /** Email */
+            email: string;
+        };
         /** PasteEvent */
         PasteEvent: {
             /**
@@ -2040,6 +2426,35 @@ export interface components {
             /** Summaries */
             summaries: components["schemas"]["SummaryPreviewOut"][];
         };
+        /** ReleaseReadyAttentionOut */
+        ReleaseReadyAttentionOut: {
+            /** Class Name */
+            class_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Eligible Count */
+            eligible_count: number;
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "release_ready";
+            /** Mission Title */
+            mission_title: string;
+            /**
+             * Publication Id
+             * Format: uuid
+             */
+            publication_id: string;
+        };
         /** ReleasedOut */
         ReleasedOut: {
             /**
@@ -2049,6 +2464,15 @@ export interface components {
             released_to_parents_at: string;
             /** Summary Count */
             summary_count: number;
+        };
+        /** ReportActivityOut */
+        ReportActivityOut: {
+            /** Away Seconds */
+            away_seconds: number;
+            /** Paste Chars */
+            paste_chars: number;
+            /** Typing Ms */
+            typing_ms: number;
         };
         /** ReportConceptResultOut */
         ReportConceptResultOut: {
@@ -2085,6 +2509,18 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** ReportMissionOut */
+        ReportMissionOut: {
+            /**
+             * Mission Id
+             * Format: uuid
+             */
+            mission_id: string;
+            /** Title */
+            title: string;
+            /** Version Number */
+            version_number: number;
+        };
         /** ReportOut */
         ReportOut: {
             /** Concept Results */
@@ -2092,12 +2528,25 @@ export interface components {
             evaluation: components["schemas"]["ReportEvaluationOut"] | null;
             /** Flags */
             flags: components["schemas"]["ReportFlagOut"][];
+            mission: components["schemas"]["ReportMissionOut"];
+            rubric: components["schemas"]["ReportRubricOut"];
             /** Scores */
             scores: components["schemas"]["ReportScoreOut"][];
             session: components["schemas"]["ReportSessionOut"];
             student: components["schemas"]["ReportStudentOut"];
             /** Turns */
             turns: components["schemas"]["ReportTurnOut"][];
+        };
+        /** ReportRubricOut */
+        ReportRubricOut: {
+            /** Claim */
+            claim: string[];
+            /** Evidence */
+            evidence: string[];
+            /** Mechanism */
+            mechanism: string[];
+            /** Transfer */
+            transfer: string[];
         };
         /** ReportScoreOut */
         ReportScoreOut: {
@@ -2147,6 +2596,7 @@ export interface components {
         };
         /** ReportTurnOut */
         ReportTurnOut: {
+            activity: components["schemas"]["ReportActivityOut"];
             /** Answer */
             answer: string | null;
             /** Answer State */
@@ -2330,6 +2780,38 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** SafetyAttentionOut */
+        SafetyAttentionOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "safety";
+            /** Paused At */
+            paused_at: string | null;
+            /**
+             * Publication Id
+             * Format: uuid
+             */
+            publication_id: string;
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /** Student Name */
+            student_name: string;
+        };
         /** SectionItemOut */
         SectionItemOut: {
             /** Build Status */
@@ -2419,6 +2901,15 @@ export interface components {
             /** Turn Index */
             turn_index: number;
         };
+        /** StudentConceptCountsOut */
+        StudentConceptCountsOut: {
+            /** Developing */
+            developing: number;
+            /** Mastered */
+            mastered: number;
+            /** Misconception */
+            misconception: number;
+        };
         /** StudentLobbyOut */
         StudentLobbyOut: {
             /** Deadline At */
@@ -2484,6 +2975,22 @@ export interface components {
             /** Summary Text */
             summary_text: string;
         };
+        /** TeacherDashboardOut */
+        TeacherDashboardOut: {
+            /**
+             * As Of
+             * Format: date-time
+             */
+            as_of: string;
+            last_week: components["schemas"]["DashboardWeekOut"];
+            this_week: components["schemas"]["DashboardWeekOut"];
+            /** Timezone */
+            timezone: string;
+            /** Top Changed */
+            top_changed: components["schemas"]["ChangedMisconceptionOut"][];
+            /** Trend */
+            trend: components["schemas"]["DashboardTrendOut"][];
+        };
         /** TelemetryAccepted */
         TelemetryAccepted: {
             /** Accepted Client Seq */
@@ -2546,6 +3053,24 @@ export interface components {
              * Format: uuid
              */
             version_id: string;
+            /** Version Number */
+            version_number: number;
+        };
+        /** VersionHistoryOut */
+        VersionHistoryOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By Name */
+            created_by_name: string | null;
+            /** Locked At */
+            locked_at: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Status */
+            status: string;
             /** Version Number */
             version_number: number;
         };
@@ -2700,6 +3225,11 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** WindowStartIn */
+        WindowStartIn: {
+            /** Run Id */
+            run_id?: string | null;
+        };
         /** WarmupChoiceIn */
         nalar__presentation__api__schemas__missions__WarmupChoiceIn: {
             /** Id */
@@ -2800,6 +3330,99 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    change_password_api_v1_auth_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChangeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_password_reset_api_v1_auth_password_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_password_reset_api_v1_auth_password_reset_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetConfirmIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };
@@ -3293,6 +3916,37 @@ export interface operations {
             };
         };
     };
+    list_versions_api_v1_missions__mission_id__versions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mission_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionHistoryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_version_api_v1_missions__mission_id__versions_post: {
         parameters: {
             query?: never;
@@ -3562,6 +4216,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublishOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    grant_attempt_api_v1_publications__publication_id__attempt_grants_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                publication_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttemptGrantIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptGrantOut"];
                 };
             };
             /** @description Validation Error */
@@ -4198,7 +4889,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WindowStartIn"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             201: {
@@ -4506,6 +5201,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssignmentsOut"];
+                };
+            };
+        };
+    };
+    attention_api_v1_teacher_attention_get: {
+        parameters: {
+            query: {
+                school_id: string;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttentionPageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    class_students_api_v1_teacher_classes__class_id__students_get: {
+        parameters: {
+            query?: {
+                publication_id?: string | null;
+            };
+            header?: never;
+            path: {
+                class_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassStudentsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dashboard_api_v1_teacher_dashboard_get: {
+        parameters: {
+            query: {
+                school_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherDashboardOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

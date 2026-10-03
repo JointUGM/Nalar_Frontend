@@ -72,7 +72,7 @@ function useTeacherRun(service: LiveService, publicationId: string) {
   }
 }
 
-const notLive = (base: string) => <><h1>Sesi ini bukan sesi langsung</h1><Link to={base}>Kembali ke daftar sesi</Link></>
+const notLive = (base: string) => <><h1>Sesi ini bukan sesi langsung</h1><Link to={`${base}/sessions`}>Kembali ke daftar sesi</Link></>
 
 // The class screen: the join code and how many have joined, never answers, scores or names.
 export function LiveTeacherProjector({ service, publicationId, base }: { service: LiveService; publicationId: string; base: string }) {

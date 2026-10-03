@@ -1,5 +1,6 @@
 import { SignInUseCase } from '@/application/sign-in-use-case'
 import { ActivateAccountUseCase } from '@/application/activate-account-use-case'
+import { ChangePasswordUseCase, RequestPasswordResetUseCase, ResetPasswordUseCase } from '@/application/password-use-cases'
 import { SignOutUseCase } from '@/application/sign-out-use-case'
 import { ObserveAuthSessionUseCase } from '@/application/observe-auth-session-use-case'
 import { GetCurrentIdentityUseCase } from '@/application/get-current-identity-use-case'
@@ -46,6 +47,7 @@ export async function createDependencies(config: PublicAppConfig): Promise<{ acc
     school: new SchoolAdminUseCases(new HttpSchoolAdminService(api)),
     account: {
       activate: new ActivateAccountUseCase(auth),
+      requestReset: new RequestPasswordResetUseCase(auth), reset: new ResetPasswordUseCase(auth), changePassword: new ChangePasswordUseCase(auth),
       signIn: new SignInUseCase(auth), signOut: new SignOutUseCase(auth), session: new ObserveAuthSessionUseCase(auth),
       identity: new GetCurrentIdentityUseCase(new HttpIdentityRepository({ apiBaseUrl })),
     },

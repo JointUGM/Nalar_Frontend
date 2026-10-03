@@ -29,7 +29,7 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
     return list(record(data).items).map((entry) => {
       const value = record(entry)
       return {
-        id: text(value.id), topic_title: text(value.topic_title), school_subject_id: text(value.school_subject_id), can_edit: flag(value.can_edit),
+        id: text(value.id), topic_title: text(value.topic_title), owner_name: nullable(value.owner_name, text), school_subject_id: text(value.school_subject_id), can_edit: flag(value.can_edit),
         material_count: count(value.material_count), built_section_count: count(value.built_section_count), pending_count: count(value.pending_count), approved_concept_count: count(value.approved_concept_count),
       }
     })

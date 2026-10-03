@@ -1,4 +1,4 @@
-export interface KbSummary { id: string; topic_title: string; school_subject_id: string; material_count: number; built_section_count: number; pending_count: number; approved_concept_count: number; can_edit: boolean }
+export interface KbSummary { id: string; topic_title: string; owner_name: string | null; school_subject_id: string; material_count: number; built_section_count: number; pending_count: number; approved_concept_count: number; can_edit: boolean }
 export interface KbMaterial { id: string; title: string; page_count: number | null; pages_without_text: number[]; archived_at: string | null }
 // Where in the materials an item was drafted from, as page ranges.
 export interface KbSource { page_start: number; page_end: number }

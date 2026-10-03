@@ -13,7 +13,8 @@ const forbidImports = (layers) => ['error', {
 }]
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'coverage/**', 'node_modules/**'] },
+  // Local agent tooling is git-ignored and not part of the app.
+  { ignores: ['dist/**', 'coverage/**', 'node_modules/**', '.agents/**', '.claude/**', '.codex/**', '.github/agents/**', '.github/hooks/**', '.github/skills/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

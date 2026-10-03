@@ -11,8 +11,10 @@ import { useActivateAccountViewModel } from './useActivateAccountViewModel'
 import login from './Login.module.css'
 import styles from './ActivateAccount.module.css'
 
-export function ActivateAccount({ proof, dependencies }: { proof: ActivationProof | null; dependencies: AccountDependencies | null }) {
-  const view = useActivateAccountViewModel(proof, dependencies?.activate)
+// `reset` serves the emailed password-reset link with the same form; only the wording and the call differ.
+export function ActivateAccount({ proof, dependencies, mode = 'activate' }: { proof: ActivationProof | null; dependencies: AccountDependencies | null; mode?: 'activate' | 'reset' }) {
+  const send = mode === 'reset' ? dependencies?.reset : dependencies?.activate
+  const view = useActivateAccountViewModel(proof, send)
   const errorSummary = useRef<HTMLDivElement>(null)
   useEffect(() => { if (view.error) errorSummary.current?.focus() }, [view.error])
   const pending = view.status === 'pending'
@@ -21,13 +23,13 @@ export function ActivateAccount({ proof, dependencies }: { proof: ActivationProo
 
   return <AccountLayout illustration={<NalaLoginStage />}>
     <div className={login.cardHeader}>
-      <h1 className={login.title}>Buat kata sandi</h1>
-      <p className={login.subtitle}>Siapkan kata sandi untuk akun NALAR yang diberikan sekolah.</p>
+      <h1 className={login.title}>{mode === 'reset' ? 'Buat kata sandi baru' : 'Buat kata sandi'}</h1>
+      <p className={login.subtitle}>{mode === 'reset' ? 'Kata sandi lama tidak berlaku lagi setelah ini.' : 'Siapkan kata sandi untuk akun NALAR yang diberikan sekolah.'}</p>
     </div>
     <div className={styles.body}>
-      {invalid ? <Feedback tone="warning" title="Tautan tidak dapat digunakan">Tautan mungkin kedaluwarsa atau sudah digunakan. Minta tautan baru kepada admin sekolah. Jika sudah membuat kata sandi, masuk dengan email dari sekolah.</Feedback>
+      {invalid ? <Feedback tone="warning" title="Tautan tidak dapat digunakan">{mode === 'reset' ? <>Tautan mungkin kedaluwarsa atau sudah digunakan. <Link to="/reset-password">Minta tautan baru</Link>.</> : "Tautan mungkin kedaluwarsa atau sudah digunakan. Minta tautan baru kepada admin sekolah. Jika sudah membuat kata sandi, masuk dengan email dari sekolah."}</Feedback>
         : view.status === 'done' ? <Feedback tone="success" title="Kata sandi tersimpan" announce>Masuk menggunakan email dari sekolah dan kata sandi yang baru dibuat.</Feedback>
-          : !dependencies?.activate ? <Feedback tone="warning" title="Aktivasi belum tersedia">Coba buka kembali tautan dari email nanti atau hubungi admin sekolah.</Feedback>
+          : !send ? <Feedback tone="warning" title="Aktivasi belum tersedia">Coba buka kembali tautan dari email nanti atau hubungi admin sekolah.</Feedback>
             : <>
               {view.error && <div ref={errorSummary} tabIndex={-1} className={styles.error}>
                 <Feedback tone="danger" title="Kata sandi belum dapat dikonfirmasi" announce>

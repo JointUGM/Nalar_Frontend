@@ -57,7 +57,37 @@ export class HttpAuthService implements AuthService {
     const body: paths['/api/v1/auth/activate']['post']['requestBody']['content']['application/json'] = {
       activation_id: activation.activationId, token_hash: activation.tokenHash, password: activation.password,
     }
-    const response = await this.request('POST', '/auth/activate', body, 30_000)
+    await this.setPassword('/auth/activate', body)
+  }
+
+  async resetPassword(reset: AccountActivation): Promise<void> {
+    const body: paths['/api/v1/auth/password-reset/confirm']['post']['requestBody']['content']['application/json'] = {
+      reset_id: reset.activationId, token_hash: reset.tokenHash, password: reset.password,
+    }
+    await this.setPassword('/auth/password-reset/confirm', body)
+  }
+
+  // Every 202 means the same: if the address has an account, a link is on its way.
+  async requestPasswordReset(email: string): Promise<void> {
+    const body: paths['/api/v1/auth/password-reset']['post']['requestBody']['content']['application/json'] = { email }
+    const response = await this.request('POST', '/auth/password-reset', body)
+    if (response.status === 202) return
+    throw this.error(response, response.status === 429 ? 'rate_limited' : response.ok ? 'invalid_response' : 'unavailable')
+  }
+
+  // A change ends every session of the account, so the caller returns to the login page afterwards.
+  async changePassword(current: string, next: string): Promise<void> {
+    const body: paths['/api/v1/auth/password']['post']['requestBody']['content']['application/json'] = { current_password: current, new_password: next }
+    const response = await this.request('POST', '/auth/password', body, 30_000)
+    if (response.status === 204) return
+    if (response.status === 401) throw this.error(response, 'invalid_credentials')
+    if (response.status === 429) throw this.error(response, 'rate_limited')
+    if (response.status === 400) throw this.error(response, 'weak_password')
+    throw this.error(response, response.ok ? 'invalid_response' : 'unavailable')
+  }
+
+  private async setPassword(path: string, body: unknown): Promise<void> {
+    const response = await this.request('POST', path, body, 30_000)
     if (response.status === 204) return
     if (response.status === 429) throw this.error(response, 'rate_limited')
     if (response.status === 400) {
