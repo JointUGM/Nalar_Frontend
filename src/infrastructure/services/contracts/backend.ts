@@ -596,6 +596,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{school_id}/academic-years": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Academic Years */
+        get: operations["academic_years_api_v1_schools__school_id__academic_years_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{school_id}/account-invitations": {
         parameters: {
             query?: never;
@@ -745,6 +762,23 @@ export interface paths {
         put?: never;
         /** Window Session */
         post: operations["window_session_api_v1_student_publications__publication_id__window_session_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/student/reflections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reflections */
+        get: operations["reflections_api_v1_student_reflections_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -942,6 +976,28 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AcademicYearOut */
+        AcademicYearOut: {
+            /**
+             * Ends On
+             * Format: date
+             */
+            ends_on: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Current */
+            is_current: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Starts On
+             * Format: date
+             */
+            starts_on: string;
+        };
         /** ActivateIn */
         ActivateIn: {
             /**
@@ -1135,6 +1191,8 @@ export interface components {
             review_status: string;
             /** Source Chunk Ids */
             source_chunk_ids: string[];
+            /** Sources */
+            sources: components["schemas"]["PageSourceOut"][];
         };
         /** ConceptPatchIn */
         ConceptPatchIn: {
@@ -1270,10 +1328,14 @@ export interface components {
             created_at: string | null;
             /** Expires At */
             expires_at: string | null;
+            /** Full Name */
+            full_name: string;
             /** Notification Id */
             notification_id: string | null;
             /** Reason */
             reason: string | null;
+            /** Role */
+            role: string;
             /** Sent At */
             sent_at: string | null;
             /**
@@ -1546,6 +1608,8 @@ export interface components {
             review_status: string;
             /** Source Chunk Ids */
             source_chunk_ids: string[];
+            /** Sources */
+            sources: components["schemas"]["PageSourceOut"][];
             /** Statement */
             statement: string;
         };
@@ -1581,6 +1645,8 @@ export interface components {
             publication_id: string;
             /** Run Status */
             run_status: string;
+            /** Session Id */
+            session_id: string | null;
             /** Subject Name */
             subject_name: string;
             /**
@@ -1707,6 +1773,8 @@ export interface components {
             open_flag_count: number;
             /** Safety Paused */
             safety_paused: boolean;
+            /** Session Id */
+            session_id: string | null;
             /** Status */
             status: string;
             /**
@@ -1759,6 +1827,13 @@ export interface components {
              * Format: uuid
              */
             score_id: string;
+        };
+        /** PageSourceOut */
+        PageSourceOut: {
+            /** Page End */
+            page_end: number;
+            /** Page Start */
+            page_start: number;
         };
         /** ParentChildOut */
         ParentChildOut: {
@@ -2372,6 +2447,30 @@ export interface components {
             open: components["schemas"]["MissionCardOut"][];
             /** Upcoming */
             upcoming: components["schemas"]["MissionCardOut"][];
+        };
+        /** StudentReflectionOut */
+        StudentReflectionOut: {
+            /**
+             * Completed At
+             * Format: date-time
+             */
+            completed_at: string;
+            /** Content */
+            content: string;
+            /** Mission Title */
+            mission_title: string;
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+        };
+        /** StudentReflectionsOut */
+        StudentReflectionsOut: {
+            /** Items */
+            items: components["schemas"]["StudentReflectionOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
         };
         /** SummaryPreviewOut */
         SummaryPreviewOut: {
@@ -3728,11 +3827,43 @@ export interface operations {
             };
         };
     };
+    academic_years_api_v1_schools__school_id__academic_years_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcademicYearOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_invitations_api_v1_schools__school_id__account_invitations_get: {
         parameters: {
             query?: {
                 cursor?: string | null;
                 limit?: number;
+                state?: ("not_requested" | "requires_assistance" | "active" | "pending" | "sent" | "failed" | "expired" | "activated" | "superseded") | null;
             };
             header?: never;
             path: {
@@ -4076,6 +4207,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WindowSessionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reflections_api_v1_student_reflections_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentReflectionsOut"];
                 };
             };
             /** @description Validation Error */
