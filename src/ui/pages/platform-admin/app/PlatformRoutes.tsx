@@ -6,7 +6,7 @@ import { PlatformSchoolsPage } from './PlatformSchoolsPage'
 
 // ProtectedRole has already checked that this account is a platform admin.
 export function PlatformRoutes({ service }: { service: PlatformAdminUseCases }) {
-  return <AdultShell review={false}>
+  return <AdultShell>
     <Routes>
       <Route path="/platform" element={<Navigate to="/platform/schools" replace />} />
       <Route path="/platform/schools" element={<PlatformSchoolsPage service={service} />} />

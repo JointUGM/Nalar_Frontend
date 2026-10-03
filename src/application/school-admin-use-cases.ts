@@ -69,6 +69,12 @@ export class SchoolAdminUseCases {
     return classId ? this.service.editClass(resourceId(schoolId), resourceId(classId), clean, signal) : this.service.createClass(resourceId(schoolId), resourceId(academicYearId), clean, signal)
   }
   subjects(schoolId: string, signal?: AbortSignal) { return this.service.subjects(resourceId(schoolId), signal) }
+  curriculumVersions(schoolId: string, signal?: AbortSignal) { return this.service.curriculumVersions(resourceId(schoolId), signal) }
+  // The CP subject is always sent, so the backend never has to guess it from the name.
+  setCurriculum(schoolId: string, subjectId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal) {
+    return this.service.setCurriculum(resourceId(schoolId), resourceId(subjectId), resourceId(versionId), resourceId(cpSubjectId), signal)
+  }
+  transferKnowledgeBase(knowledgeBaseId: string, teacherId: string, signal?: AbortSignal) { return this.service.transferKnowledgeBase(resourceId(knowledgeBaseId), resourceId(teacherId), signal) }
   assignments(schoolId: string, academicYearId: string, signal?: AbortSignal) { return this.service.assignments(resourceId(schoolId), resourceId(academicYearId), signal) }
   assignTeacher(schoolId: string, classId: string, subjectId: string, teacherId: string | null, signal?: AbortSignal) {
     return this.service.assignTeacher(resourceId(schoolId), resourceId(classId), resourceId(subjectId), teacherId && resourceId(teacherId), signal)

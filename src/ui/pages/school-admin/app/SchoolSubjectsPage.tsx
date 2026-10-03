@@ -1,26 +1,109 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import type { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
+import type { CurriculumChoice, SchoolSubject, SubjectKnowledgeBase } from '@/domain/model/SchoolAdmin'
+import { Button } from '@/ui/components/button/Button'
+import { Dialog } from '@/ui/components/dialog/Dialog'
+import { Feedback } from '@/ui/components/feedback/Feedback'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
-import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
+import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
+import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import styles from '@/ui/pages/school-admin/SchoolSubjects.module.css'
 
-// ponytail: read-only. Remapping needs the published CP versions and a knowledge-base transfer needs the KB ids; neither list is open to a school admin yet.
+const refusals: Readonly<Record<string, string>> = {
+  CURRICULUM_SUBJECT_REQUIRED: 'Pilih mata pelajaran CP yang sesuai.',
+  CURRICULUM_PHASE_MISMATCH: 'Fase mata pelajaran CP ini berbeda dari pemetaan sekarang. Pilih yang fasenya sama.',
+  NOT_FOUND: 'Guru ini belum ditugaskan mengajar mata pelajaran ini. Atur di Penugasan guru.',
+}
+type Editing = { kind: 'cp'; subject: SchoolSubject } | { kind: 'owner'; subject: SchoolSubject; kb: SubjectKnowledgeBase }
+
 export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdminUseCases; schoolId: string }) {
-  const read = useCallback((signal: AbortSignal) => service.subjects(schoolId, signal), [service, schoolId])
+  const read = useCallback(async (signal: AbortSignal) => {
+    const [subjects, versions, years] = await Promise.all([service.subjects(schoolId, signal), service.curriculumVersions(schoolId, signal), service.academicYears(schoolId, signal)])
+    // A new owner must teach the subject, so the candidates are this year's teachers of it.
+    const year = years.find((item) => item.is_current)
+    const assignments = year ? await service.assignments(schoolId, year.id, signal) : []
+    return { subjects, versions, assignments }
+  }, [service, schoolId])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
+  const [editing, setEditing] = useState<Editing | null>(null)
+  const [message, setMessage] = useState('')
+  const mapping = (subject: SchoolSubject) => {
+    const version = data?.versions.find((item) => item.id === subject.cp_version_id)
+    const cp = version?.subjects.find((item) => item.id === subject.cp_subject_id)
+    return version ? `${cp ? `${cp.name} · Fase ${cp.phase} · ` : ''}${version.name}` : subject.cp_version_id ? 'Versi CP lama' : null
+  }
+  const close = (done?: string) => { setEditing(null); if (done) { setMessage(done); refresh() } }
+
   return <div className={styles.content}>
     <h1>Mata pelajaran</h1>
-    <p className={styles.lead}>Setiap mata pelajaran sekolah dipetakan ke Capaian Pembelajaran nasional.</p>
+    <p className={styles.lead}>Setiap mata pelajaran sekolah dipetakan ke Capaian Pembelajaran nasional. Hanya pemilik basis pengetahuan yang bisa menyetujui dan mengubahnya.</p>
+    {message && <Feedback tone="success" title={message} announce />}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <p role="status">Memuat mata pelajaran…</p>}
-    {data && (data.length === 0 ? <p className={styles.note}>Belum ada mata pelajaran di sekolah ini.</p> : <div className={styles.card}><table className={[styles.table, styles.readOnly].join(' ')}>
-      <caption className={styles.hidden}>Mata pelajaran, pemetaan CP, dan pemilik basis pengetahuan</caption>
-      <thead><tr><th scope="col">Mata pelajaran</th><th scope="col">Capaian Pembelajaran</th><th scope="col">Basis pengetahuan</th></tr></thead>
-      <tbody>{data.map((subject) => <tr key={subject.school_subject_id}>
+    {data && (data.subjects.length === 0 ? <p className={styles.note}>Belum ada mata pelajaran di sekolah ini.</p> : <div className={styles.card}><table className={styles.table}>
+      <caption className={styles.hidden}>Mata pelajaran, pemetaan CP, dan basis pengetahuan</caption>
+      <thead><tr><th scope="col">Mata pelajaran</th><th scope="col">Capaian Pembelajaran</th><th scope="col">Basis pengetahuan</th><th scope="col"><span className={styles.hidden}>Tindakan</span></th></tr></thead>
+      <tbody>{data.subjects.map((subject) => { const mapped = mapping(subject); return <tr key={subject.school_subject_id}>
         <td className={styles.name}>{subject.name}</td>
-        <td className={[styles.cp, subject.cp_version_id ? '' : styles.unmapped].join(' ')}>{subject.cp_version_id ? 'Sudah dipetakan' : 'Belum dipetakan'}</td>
-        <td className={styles.kb}>{subject.kb_owner_name ?? 'Belum ada'}</td>
-      </tr>)}</tbody>
+        <td className={[styles.cp, mapped ? '' : styles.unmapped].join(' ')}>{mapped ?? 'Belum dipetakan'}</td>
+        <td className={styles.kb}>{subject.knowledge_bases.length ? <ul className={styles.kbList}>{subject.knowledge_bases.map((kb) => <li key={kb.knowledge_base_id}>
+          <span>{kb.topic_title} · {kb.owner_name ?? 'tanpa pemilik'}</span>
+          <Button tone="ghost" className={styles.edit} aria-label={`Alihkan pemilik ${kb.topic_title}`} onClick={() => { setMessage(''); setEditing({ kind: 'owner', subject, kb }) }}>Alihkan</Button>
+        </li>)}</ul> : 'Belum ada'}</td>
+        <td><Button tone="ghost" className={styles.edit} aria-label={`Ubah pemetaan ${subject.name}`} disabled={!data.versions.length} onClick={() => { setMessage(''); setEditing({ kind: 'cp', subject }) }}>Ubah</Button></td>
+      </tr> })}</tbody>
     </table></div>)}
+    {data && editing?.kind === 'cp' && <CurriculumDialog service={service} schoolId={schoolId} subject={editing.subject} versions={data.versions} onClose={close} />}
+    {data && editing?.kind === 'owner' && <OwnerDialog service={service} subject={editing.subject} kb={editing.kb} teachers={[...new Map(data.assignments.filter((row) => row.school_subject_id === editing.subject.school_subject_id && row.teacher_id && row.teacher_id !== editing.kb.owner_teacher_id).map((row) => [row.teacher_id ?? '', row.teacher_name])).entries()]} onClose={close} />}
   </div>
+}
+
+function CurriculumDialog({ service, schoolId, subject, versions, onClose }: { service: SchoolAdminUseCases; schoolId: string; subject: SchoolSubject; versions: CurriculumChoice[]; onClose: (done?: string) => void }) {
+  const [versionId, setVersionId] = useState(versions.some((item) => item.id === subject.cp_version_id) ? subject.cp_version_id ?? '' : versions.find((item) => item.is_current)?.id ?? versions[0].id)
+  const version = versions.find((item) => item.id === versionId) ?? versions[0]
+  // Keep the current CP subject, else the one named like the school subject.
+  const suggested = version.subjects.find((item) => item.id === subject.cp_subject_id) ?? version.subjects.find((item) => item.name.toLocaleLowerCase('id-ID') === subject.name.toLocaleLowerCase('id-ID')) ?? version.subjects[0]
+  const [picked, setPicked] = useState('')
+  const cpSubjectId = version.subjects.some((item) => item.id === picked) ? picked : suggested?.id ?? ''
+  const command = useCommand()
+  const said = command.failure && (refusals[command.failure.code] ?? command.failure.message)
+  const unchanged = versionId === subject.cp_version_id && cpSubjectId === subject.cp_subject_id
+  async function save() {
+    if (await command.run((signal) => service.setCurriculum(schoolId, subject.school_subject_id, versionId, cpSubjectId, signal))) onClose(`${subject.name} dipetakan ke ${version.name}.`)
+  }
+  return <Dialog open onClose={() => onClose()} dismissible={!command.pending} title={`Pemetaan CP · ${subject.name}`} description="Misi yang sudah diterbitkan tidak berubah.">
+    <div className={shared.form}>
+      <label className={shared.field}>Versi CP
+        <select value={versionId} disabled={command.pending} onChange={(event) => { command.reset(); setPicked(''); setVersionId(event.target.value) }}>{versions.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.decree_code}{item.is_current ? ' · berlaku' : ''}</option>)}</select>
+      </label>
+      <label className={shared.field}>Mata pelajaran CP
+        <select value={cpSubjectId} disabled={command.pending || !version.subjects.length} onChange={(event) => { command.reset(); setPicked(event.target.value) }}>{version.subjects.map((item) => <option key={item.id} value={item.id}>{item.name} · Fase {item.phase}</option>)}</select>
+      </label>
+      {subject.knowledge_bases.length > 0 && !unchanged && <Feedback tone="warning" title="Konsep perlu dicocokkan ulang">Pemilik basis pengetahuan {subject.name} perlu mencocokkan konsepnya dengan Capaian Pembelajaran yang baru.</Feedback>}
+      {said && <Feedback tone="warning" title={said} announce>{command.failure?.requestId && <small>Referensi: {command.failure.requestId}</small>}</Feedback>}
+      <div className={shared.actions}><Button tone="secondary" disabled={command.pending} onClick={() => onClose()}>Batal</Button><Button disabled={unchanged || !cpSubjectId} pending={command.pending} pendingLabel="Menyimpan…" onClick={() => void save()}>Simpan pemetaan</Button></div>
+    </div>
+  </Dialog>
+}
+
+function OwnerDialog({ service, subject, kb, teachers, onClose }: { service: SchoolAdminUseCases; subject: SchoolSubject; kb: SubjectKnowledgeBase; teachers: [string, string][]; onClose: (done?: string) => void }) {
+  const [teacherId, setTeacherId] = useState(teachers[0]?.[0] ?? '')
+  const command = useCommand()
+  const said = command.failure && (refusals[command.failure.status === 404 ? 'NOT_FOUND' : command.failure.code] ?? command.failure.message)
+  const name = teachers.find(([id]) => id === teacherId)?.[1] ?? ''
+  async function save() {
+    if (await command.run((signal) => service.transferKnowledgeBase(kb.knowledge_base_id, teacherId, signal))) onClose(`${name} sekarang pemilik ${kb.topic_title}.`)
+  }
+  return <Dialog open onClose={() => onClose()} dismissible={!command.pending} title={`Alihkan pemilik · ${kb.topic_title}`} description={`Pemilik saat ini: ${kb.owner_name ?? 'tidak ada'}. Penulis misi lama dan versi yang terkunci tidak berubah.`}>
+    <div className={shared.form}>
+      {teachers.length ? <>
+        <label className={shared.field}>Pemilik baru
+          <select value={teacherId} disabled={command.pending} onChange={(event) => { command.reset(); setTeacherId(event.target.value) }}>{teachers.map(([id, full]) => <option key={id} value={id}>{full}</option>)}</select>
+        </label>
+        <p>{name} menjadi satu-satunya yang bisa menyetujui dan mengubah basis pengetahuan ini{kb.owner_name ? `; ${kb.owner_name} tidak lagi bisa mengubahnya` : ''}.</p>
+      </> : <Feedback tone="warning" title="Belum ada guru lain yang mengajar">Tugaskan guru {subject.name} di Penugasan guru, lalu alihkan pemiliknya.</Feedback>}
+      {said && <Feedback tone="warning" title={said} announce>{command.failure?.requestId && <small>Referensi: {command.failure.requestId}</small>}</Feedback>}
+      <div className={shared.actions}><Button tone="secondary" disabled={command.pending} onClick={() => onClose()}>Batal</Button><Button disabled={!teacherId} pending={command.pending} pendingLabel="Mengalihkan…" onClick={() => void save()}>Alihkan pemilik</Button></div>
+    </div>
+  </Dialog>
 }

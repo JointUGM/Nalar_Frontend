@@ -26,17 +26,17 @@ function Login() {
   return <p>Masuk · keluar diminta: {String(state?.signOut === true)}</p>
 }
 
-const shell = (schoolContext?: typeof school) => render(<MemoryRouter initialEntries={['/review/school/kb-owners']}>
+const shell = (schoolContext?: typeof school) => render(<MemoryRouter initialEntries={['/platform/schools']}>
   <Routes>
     <Route path="/login" element={<Login />} />
-    <Route path="*" element={<AdultShell schoolContext={schoolContext}><p>Isi halaman</p></AdultShell>} />
+    <Route path="*" element={<AdultShell schoolContext={schoolContext} nav={schoolContext ? [{ label: 'Orang', icon: 'users', to: '/school/x/people' }] : undefined}><p>Isi halaman</p></AdultShell>} />
   </Routes>
 </MemoryRouter>)
 
 describe.each([['Admin Sekolah', school], ['Admin Platform', undefined]])('%s shell', (_name, context) => {
   it('can sign out from the sidebar', () => {
     shell(context)
-    const link = within(screen.getByRole('complementary')).getByRole('link', { name: 'Keluar dari pratinjau' })
+    const link = within(screen.getByRole('complementary')).getByRole('link', { name: 'Keluar' })
     fireEvent.click(link)
     expect(screen.getByText('Masuk · keluar diminta: true')).toBeInTheDocument()
   })
@@ -45,7 +45,7 @@ describe.each([['Admin Sekolah', school], ['Admin Platform', undefined]])('%s sh
     shell(context)
     fireEvent.click(screen.getByRole('button', { name: 'Buka navigasi' }))
     const drawer = screen.getByRole('dialog')
-    fireEvent.click(within(drawer).getByRole('link', { name: 'Keluar dari pratinjau' }))
+    fireEvent.click(within(drawer).getByRole('link', { name: 'Keluar' }))
     expect(screen.getByText('Masuk · keluar diminta: true')).toBeInTheDocument()
   })
 })

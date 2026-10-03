@@ -1,4 +1,4 @@
-import type { AcademicYear, Assignment, ClassDraft, InvitationAdmission, InvitationPage, LinkedPerson, NewAcademicYear, PeoplePage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
+import type { AcademicYear, Assignment, ClassDraft, CurriculumChoice, InvitationAdmission, InvitationPage, LinkedPerson, NewAcademicYear, PeoplePage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
@@ -100,8 +100,28 @@ export class HttpSchoolAdminService implements SchoolAdminService {
   async subjects(schoolId: string, signal?: AbortSignal): Promise<SchoolSubject[]> {
     return list((await this.api.request(`${school(schoolId)}/subjects`, { signal })).data).map((entry) => {
       const item = record(entry)
-      return { school_subject_id: text(item.school_subject_id), name: text(item.name), cp_version_id: nullable(item.cp_version_id, text), kb_owner_name: nullable(item.kb_owner_name, text) }
+      return {
+        school_subject_id: text(item.school_subject_id), name: text(item.name), cp_version_id: nullable(item.cp_version_id, text), cp_subject_id: nullable(item.cp_subject_id, text),
+        knowledge_bases: list(item.knowledge_bases).map((entry) => { const kb = record(entry); return { knowledge_base_id: text(kb.knowledge_base_id), topic_title: text(kb.topic_title), owner_teacher_id: text(kb.owner_teacher_id), owner_name: nullable(kb.owner_name, text) } }),
+      }
     })
+  }
+
+  async curriculumVersions(schoolId: string, signal?: AbortSignal): Promise<CurriculumChoice[]> {
+    return list((await this.api.request(`${school(schoolId)}/curriculum-versions`, { signal })).data).map((entry) => {
+      const item = record(entry)
+      return { id: text(item.id), name: text(item.name), decree_code: text(item.decree_code), is_current: flag(item.is_current), subjects: list(item.subjects).map((value) => { const subject = record(value); return { id: text(subject.id), name: text(subject.name), phase: text(subject.phase) } }) }
+    })
+  }
+
+  async setCurriculum(schoolId: string, subjectId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal): Promise<void> {
+    const body: Schemas['CurriculumMappingIn'] = { cp_version_id: versionId, cp_subject_id: cpSubjectId }
+    await this.api.request(`${school(schoolId)}/subjects/${encodeURIComponent(subjectId)}/curriculum`, { method: 'PUT', body, signal })
+  }
+
+  async transferKnowledgeBase(knowledgeBaseId: string, teacherId: string, signal?: AbortSignal): Promise<void> {
+    const body: Schemas['KbOwnerIn'] = { teacher_id: teacherId }
+    await this.api.request(`/knowledge-bases/${encodeURIComponent(knowledgeBaseId)}/owner`, { method: 'POST', body, signal })
   }
 
   async assignments(schoolId: string, academicYearId: string, signal?: AbortSignal): Promise<Assignment[]> {

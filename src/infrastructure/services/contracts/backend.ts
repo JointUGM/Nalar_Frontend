@@ -858,6 +858,23 @@ export interface paths {
         patch: operations["edit_class_api_v1_schools__school_id__classes__class_id__patch"];
         trace?: never;
     };
+    "/api/v1/schools/{school_id}/curriculum-versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** School Curriculum Versions */
+        get: operations["school_curriculum_versions_api_v1_schools__school_id__curriculum_versions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{school_id}/knowledge-bases": {
         parameters: {
             query?: never;
@@ -1446,10 +1463,34 @@ export interface components {
             /** Teacher Id */
             teacher_id: string | null;
         };
+        /** AssignmentOut */
+        AssignmentOut: {
+            /**
+             * Class Id
+             * Format: uuid
+             */
+            class_id: string;
+            /** Class Name */
+            class_name: string;
+            /** Grade Level */
+            grade_level: number;
+            /**
+             * School Id
+             * Format: uuid
+             */
+            school_id: string;
+            /**
+             * School Subject Id
+             * Format: uuid
+             */
+            school_subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+        };
         /** AssignmentsOut */
         AssignmentsOut: {
             /** Items */
-            items: components["schemas"]["nalar__presentation__api__schemas__teacher__AssignmentOut"][];
+            items: components["schemas"]["AssignmentOut"][];
         };
         /** AttemptGrantIn */
         AttemptGrantIn: {
@@ -1808,6 +1849,18 @@ export interface components {
              * Format: uuid
              */
             cp_version_id: string;
+        };
+        /** CurriculumSubjectChoiceOut */
+        CurriculumSubjectChoiceOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Phase */
+            phase: string;
         };
         /** CurriculumSubjectIn */
         CurriculumSubjectIn: {
@@ -3335,6 +3388,32 @@ export interface components {
              */
             user_id: string;
         };
+        /** SchoolAssignmentOut */
+        SchoolAssignmentOut: {
+            /**
+             * Academic Year Id
+             * Format: uuid
+             */
+            academic_year_id: string;
+            /**
+             * Class Id
+             * Format: uuid
+             */
+            class_id: string;
+            /** Class Name */
+            class_name: string;
+            /**
+             * School Subject Id
+             * Format: uuid
+             */
+            school_subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+            /** Teacher Id */
+            teacher_id: string | null;
+            /** Teacher Name */
+            teacher_name: string;
+        };
         /** SchoolCreatedOut */
         SchoolCreatedOut: {
             /** Pending Activation */
@@ -3344,6 +3423,29 @@ export interface components {
              * Format: uuid
              */
             school_id: string;
+        };
+        /** SchoolCurriculumVersionOut */
+        SchoolCurriculumVersionOut: {
+            /** Decree Code */
+            decree_code: string;
+            /**
+             * Effective On
+             * Format: date
+             */
+            effective_on: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Current */
+            is_current: boolean;
+            /** Name */
+            name: string;
+            /** Published At */
+            published_at: string | null;
+            /** Subjects */
+            subjects: components["schemas"]["CurriculumSubjectChoiceOut"][];
         };
         /** SchoolIn */
         SchoolIn: {
@@ -3549,6 +3651,25 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** SubjectKnowledgeBaseOut */
+        SubjectKnowledgeBaseOut: {
+            /**
+             * Knowledge Base Id
+             * Format: uuid
+             */
+            knowledge_base_id: string;
+            /** Owner Name */
+            owner_name: string | null;
+            /**
+             * Owner Teacher Id
+             * Format: uuid
+             */
+            owner_teacher_id: string;
+            /** Status */
+            status: string;
+            /** Topic Title */
+            topic_title: string;
+        };
         /** SubjectOut */
         SubjectOut: {
             /** Cp Subject Id */
@@ -3557,6 +3678,8 @@ export interface components {
             cp_version_id: string | null;
             /** Kb Owner Name */
             kb_owner_name: string | null;
+            /** Knowledge Bases */
+            knowledge_bases: components["schemas"]["SubjectKnowledgeBaseOut"][];
             /** Name */
             name: string;
             /**
@@ -3832,32 +3955,6 @@ export interface components {
             /** Run Id */
             run_id?: string | null;
         };
-        /** AssignmentOut */
-        nalar__presentation__api__schemas__administration__AssignmentOut: {
-            /**
-             * Academic Year Id
-             * Format: uuid
-             */
-            academic_year_id: string;
-            /**
-             * Class Id
-             * Format: uuid
-             */
-            class_id: string;
-            /** Class Name */
-            class_name: string;
-            /**
-             * School Subject Id
-             * Format: uuid
-             */
-            school_subject_id: string;
-            /** Subject Name */
-            subject_name: string;
-            /** Teacher Id */
-            teacher_id: string | null;
-            /** Teacher Name */
-            teacher_name: string;
-        };
         /** WarmupChoiceIn */
         nalar__presentation__api__schemas__missions__WarmupChoiceIn: {
             /** Id */
@@ -3869,30 +3966,6 @@ export interface components {
         nalar__presentation__api__schemas__student__WarmupChoiceIn: {
             /** Choice Id */
             choice_id: string;
-        };
-        /** AssignmentOut */
-        nalar__presentation__api__schemas__teacher__AssignmentOut: {
-            /**
-             * Class Id
-             * Format: uuid
-             */
-            class_id: string;
-            /** Class Name */
-            class_name: string;
-            /** Grade Level */
-            grade_level: number;
-            /**
-             * School Id
-             * Format: uuid
-             */
-            school_id: string;
-            /**
-             * School Subject Id
-             * Format: uuid
-             */
-            school_subject_id: string;
-            /** Subject Name */
-            subject_name: string;
         };
     };
     responses: never;
@@ -5584,7 +5657,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["nalar__presentation__api__schemas__administration__AssignmentOut"][];
+                    "application/json": components["schemas"]["SchoolAssignmentOut"][];
                 };
             };
             /** @description Validation Error */
@@ -5722,6 +5795,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClassOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_curriculum_versions_api_v1_schools__school_id__curriculum_versions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolCurriculumVersionOut"][];
                 };
             };
             /** @description Validation Error */
