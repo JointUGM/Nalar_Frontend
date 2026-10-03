@@ -6,14 +6,13 @@ import { teacherSchools } from './teacherHomeExamples'
 import { generatedMissionId, missionReviews, missionsPath } from './teacherMissionExamples'
 import { reportExample } from './teacherReportExamples'
 import { monitorExample, studentNames } from './teacherSessionExamples'
-import { TeacherMonitor } from './TeacherMonitor'
 import { TeacherReport } from './TeacherReport'
 import { buildScoreViews, splitQuote } from './useTeacherReportViewModel'
 import type { ReportScenario } from './useTeacherReportViewModel'
 
 const schools = teacherSchools.map((item) => item.name)
 const rubric = missionReviews[generatedMissionId].rubric
-const at = (page: 'monitor' | 'class-map/report', element: React.ReactNode, query = 'kelas=8B') => render(<MemoryRouter initialEntries={[`${missionsPath}/${generatedMissionId}/${page}?${query}`]}><TeacherContextProvider schools={schools}><Routes><Route path={`${missionsPath}/:missionId/${page}`} element={element} /></Routes></TeacherContextProvider></MemoryRouter>)
+const at = (page: 'class-map/report', element: React.ReactNode, query = 'kelas=8B') => render(<MemoryRouter initialEntries={[`${missionsPath}/${generatedMissionId}/${page}?${query}`]}><TeacherContextProvider schools={schools}><Routes><Route path={`${missionsPath}/:missionId/${page}`} element={element} /></Routes></TeacherContextProvider></MemoryRouter>)
 const originals = { showModal: Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal'), close: Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close') }
 beforeAll(() => {
   // jsdom lacks the native modal API; modal focus containment is verified in a browser.
@@ -233,15 +232,5 @@ describe('report page', () => {
     expect(screen.getByRole('tab', { name: 'Percobaan (1)' })).toHaveAttribute('aria-selected', 'true')
     fireEvent.keyDown(screen.getByRole('tab', { name: 'Percobaan (1)' }), { key: 'ArrowRight' })
     expect(screen.getByRole('tab', { name: 'Dialog' })).toHaveAttribute('aria-selected', 'true')
-  })
-})
-
-describe('opening a report from the monitor', () => {
-  it('links only the student who has an example report', () => {
-    at('monitor', <TeacherMonitor />)
-    fireEvent.click(screen.getByRole('button', { name: /^Adinda Putri/ }))
-    expect(screen.getByRole('button', { name: 'Buka laporan siswa' })).toBeDisabled()
-    fireEvent.click(screen.getByRole('button', { name: /^Raka Pratama/ }))
-    expect(screen.getByRole('link', { name: 'Buka laporan siswa' })).toHaveAttribute('href', `${missionsPath}/${generatedMissionId}/class-map/report?kelas=8B`)
   })
 })

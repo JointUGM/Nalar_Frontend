@@ -49,7 +49,7 @@ const privateEntry = createElement(lazy(async () => {
   try {
     const [created, { ProtectedRole }, { LiveRoutes }, dev] = await Promise.all([getDependencies(), import('./ui/pages/account/ProtectedRole'), import('./ui/pages/live/LiveRoutes'), import('./ui/devDashboards')])
     // Live pages own the projector, monitor, join, lobby and session paths; admin roles still open their example dashboard.
-    const livePath = /^\/(teacher\/[^/]+\/publications\/[^/]+\/(projector|monitor)\/?$|student\/[^/]+\/(join|runs\/|sessions\/))/
+    const livePath = /^\/(teacher\/[^/]+\/publications\/[^/]+\/projector\/?$|student\/[^/]+\/(join|runs\/|sessions\/))/
     // Its own chunk, so only a parent downloads the parent pages.
     const ParentRoutes = lazy(() => import('./ui/pages/parent/app/ParentRoutes').then((module) => ({ default: module.ParentRoutes })))
     const StudentRoutes = lazy(() => import('./ui/pages/student/app/StudentRoutes').then((module) => ({ default: module.StudentRoutes })))
@@ -66,7 +66,7 @@ const privateEntry = createElement(lazy(async () => {
       if (created.school && path.startsWith('/school/')) return <SchoolRoutes service={created.school} identity={identity} />
       if (student && path.startsWith('/student/')) return <StudentRoutes service={student} identity={identity} />
       // Every other teacher path is a real teacher page: sessions, results, missions or the knowledge base.
-      return teacher && knowledgeBase && path.startsWith('/teacher/') ? <TeacherRoutes service={teacher} kb={knowledgeBase} identity={identity} /> : null
+      return teacher && knowledgeBase && created.live && path.startsWith('/teacher/') ? <TeacherRoutes service={teacher} kb={knowledgeBase} live={created.live} identity={identity} /> : null
     }} /> }
   } catch {
     return { default: AccountLoadFailure }

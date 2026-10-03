@@ -79,7 +79,7 @@ describe('protected live routes', () => {
     expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(0)
     const controls = screen.getAllByRole('button', { name: 'Mulai sesi' })
     fireEvent.click(controls[controls.length - 1])
-    await waitFor(() => expect(screen.getByText(/Sesi berlangsung/)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/^Langsung/)).toBeInTheDocument())
     expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1)
   })
 })
