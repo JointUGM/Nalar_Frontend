@@ -7,6 +7,7 @@ const whole = (value: number, max: number) => Number.isInteger(value) && value >
 export class StudentUseCases implements StudentService {
   constructor(private readonly service: StudentService) {}
   missions(signal?: AbortSignal) { return this.service.missions(signal) }
+  reflections(signal?: AbortSignal) { return this.service.reflections(signal) }
   startWindowSession(publicationId: string, signal?: AbortSignal) { return this.service.startWindowSession(resourceId(publicationId), signal) }
   telemetry(sessionId: string, batch: TelemetryBatch, signal?: AbortSignal) {
     // The backend accepts at most 200 events per batch and a 32-bit sequence number.

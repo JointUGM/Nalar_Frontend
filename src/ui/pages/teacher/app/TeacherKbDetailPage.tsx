@@ -23,6 +23,7 @@ const pollMs = (data: Loaded | null) => data?.sections.some(building) ? 3000 : n
 const patchOf = (draft: Draft): KbItemPatch => draft.kind === 'concept'
   ? { kind: 'concept', name: draft.name, description: draft.description }
   : { kind: 'misconception', statement: draft.statement, correct_understanding: draft.correct, detection_cues: draft.cues.split('\n'), counter_examples: draft.counters.split('\n') }
+const pages = (list: { page_start: number; page_end: number }[]) => list.length ? <p className={styles.note}>Sumber: hlm. {list.map((source) => source.page_start === source.page_end ? source.page_start : `${source.page_start}–${source.page_end}`).join(', ')}</p> : null
 const tag = (status: string) => <span className={[styles.tag, status === 'approved' ? styles.approved : status === 'pending' ? styles.review : ''].join(' ')}>{reviewWord[status] ?? status}</span>
 
 export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; base: string }) {
@@ -130,6 +131,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
           </> : <>
             <h3>{selected.name}</h3>
             {selected.description && <p>{selected.description}</p>}
+            {pages(selected.sources)}
             <dl className={styles.relations}>
               <div><dt>Dipelajari lebih dulu</dt><dd>{detail.prerequisites.filter((link) => link.concept_id === selected.id).map((link) => nameOf(link.prerequisite_concept_id)).join(', ') || '—'}</dd></div>
               <div><dt>Dilanjutkan ke</dt><dd>{detail.prerequisites.filter((link) => link.prerequisite_concept_id === selected.id).map((link) => nameOf(link.concept_id)).join(', ') || '—'}</dd></div>
@@ -150,6 +152,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
             <p>{item.correct_understanding}</p>
             {item.detection_cues.length > 0 && <ul className={styles.cues} aria-label="Contoh ucapan siswa">{item.detection_cues.map((cue) => <li key={cue}>{cue}</li>)}</ul>}
             {item.counter_examples.map((example) => <p key={example} className={styles.counter}><strong>Contoh pembanding · </strong>{example}</p>)}
+            {pages(item.sources)}
             {actions('misconception', item, selected.review_status !== 'approved', () => setDraft({ id: item.id, kind: 'misconception', statement: item.statement, correct: item.correct_understanding, cues: item.detection_cues.join('\n'), counters: item.counter_examples.join('\n') }))}
           </>}
         </section>)}

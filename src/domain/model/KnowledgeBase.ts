@@ -1,7 +1,9 @@
 export interface KbSummary { id: string; topic_title: string; school_subject_id: string; material_count: number; built_section_count: number; pending_count: number; approved_concept_count: number; can_edit: boolean }
 export interface KbMaterial { id: string; title: string; page_count: number | null; pages_without_text: number[]; archived_at: string | null }
-export interface KbConcept { id: string; name: string; description: string | null; review_status: string }
-export interface KbMisconception { id: string; concept_id: string; statement: string; correct_understanding: string; detection_cues: string[]; counter_examples: string[]; review_status: string }
+// Where in the materials an item was drafted from, as page ranges.
+export interface KbSource { page_start: number; page_end: number }
+export interface KbConcept { id: string; name: string; description: string | null; review_status: string; sources: KbSource[] }
+export interface KbMisconception { id: string; concept_id: string; statement: string; correct_understanding: string; detection_cues: string[]; counter_examples: string[]; review_status: string; sources: KbSource[] }
 export interface KbDetail { id: string; topic_title: string; can_edit: boolean; materials: KbMaterial[]; concepts: KbConcept[]; prerequisites: { concept_id: string; prerequisite_concept_id: string }[]; misconceptions: KbMisconception[] }
 export interface KbSection { id: string; material_id: string; title: string; level: number; page_start: number; page_end: number; suggested: boolean; build_status: string; built_at: string | null }
 export interface KbReviewQueue { pending_concepts: number; pending_misconceptions: number }

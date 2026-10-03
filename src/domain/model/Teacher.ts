@@ -43,3 +43,18 @@ export interface MissionVersion {
 }
 // A saved edit is always a new version: everything the teacher did not change is carried over from the base.
 export type MissionVersionDraft = Omit<MissionVersion, 'id' | 'version_number' | 'status' | 'can_edit'> & { base_version_id: string }
+
+// One student's session as the teacher sees it. Scores are AI levels 0-4 that the teacher may change, never the student's view.
+export interface ReportScore { score_id: string; dimension: string; ai_level: number; final_level: number; rationale: string | null; evidence: { turn_id: string; quote: string }[]; overrides: { previous_level: number; new_level: number; reason: string; created_at: string }[] }
+export interface ReportTurn { turn_id: string; turn_index: number; kind: string; prompt: string; answer: string | null; move: string | null; safety_paused: boolean }
+export interface SessionReport {
+  student: { id: string; name: string }
+  session: { status: string; attempt_number: number; started_at: string; ended_at: string | null }
+  evaluation: { status: string; summary: string | null } | null
+  scores: ReportScore[]
+  concept_results: { concept_id: string; misconception_id: string | null; outcome: string; resolved_in_session: boolean }[]
+  flags: { id: string; flag_type: string; severity: string; status: string }[]
+  turns: ReportTurn[]
+}
+export type FlagDecision = 'cleared' | 'concern_confirmed'
+export type SafetyAction = 'resume' | 'end'

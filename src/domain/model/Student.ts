@@ -22,3 +22,6 @@ export type TelemetryEvent =
   | { type: 'disconnect' | 'reconnect'; at: string }
   | { type: 'typing'; at: string; value: { chars: number; duration_ms: number } }
 export interface TelemetryBatch { client_seq: number; turn_index: number | null; events: TelemetryEvent[] }
+
+// A finished mission's reflection, written for the student; it never carries a score.
+export interface StudentReflection { session_id: string; mission_title: string; completed_at: string; content: string }

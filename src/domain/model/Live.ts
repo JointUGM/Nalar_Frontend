@@ -39,6 +39,8 @@ export interface LiveStudent {
   deadline_at: string | null
   open_flag_count: number
   safety_paused: boolean
+  // The student's latest session in this run; it opens the teacher report.
+  session_id: string | null
 }
 export interface LiveMonitor extends LiveClock {
   run: { id: string; mode: string; status: string; join_code: string | null; started_at: string | null }

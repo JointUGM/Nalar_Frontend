@@ -70,6 +70,12 @@ const posts = (request: ReturnType<typeof backend>) => request.mock.calls.filter
 const startPath = (publication: string) => `${base}/missions/${publication}/start`
 
 describe('signed-in student pages', () => {
+  it('lists past reflections, each opening its finished session, without any score', async () => {
+    open(`${base}/reflections`, backend({ 'GET /student/reflections?limit=100': () => Response.json({ items: [{ session_id: session, mission_title: 'Kenapa kelereng berhenti?', completed_at: '2026-10-01T04:00:00Z', content: 'Kamu mengubah pendapatmu setelah melihat contoh lantai licin.', score: 3 }], next_cursor: null }) }))
+    expect(await screen.findByRole('link', { name: /Kenapa kelereng berhenti\?/ })).toHaveAttribute('href', `${base}/sessions/${session}`)
+    expect(screen.queryByText('3')).not.toBeInTheDocument()
+  })
+
   it('lists real missions: a window mission to start, a live one to join by code, and the other tabs', async () => {
     open(base, backend())
     await screen.findByRole('heading', { name: 'Halo, Raka' })

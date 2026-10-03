@@ -1,4 +1,4 @@
-import type { ClassMap, MissionInput, MissionSummary, MissionVersion, MissionVersionDraft, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import type { ClassMap, FlagDecision, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
@@ -107,6 +107,44 @@ export class HttpTeacherService implements TeacherService {
       }),
       insight: nullable(value.insight, (raw) => { const insight = record(raw); return { narrative: text(insight.narrative), generated_at: instant(insight.generated_at) } }),
     } satisfies Schemas['ClassMapOut']
+  }
+
+  async report(sessionId: string, signal?: AbortSignal): Promise<SessionReport> {
+    const value = record((await this.api.request(`/sessions/${encodeURIComponent(sessionId)}/report`, { signal })).data), student = record(value.student), session = record(value.session)
+    return {
+      student: { id: text(student.id), name: text(student.name) },
+      session: { status: text(session.status), attempt_number: count(session.attempt_number), started_at: instant(session.started_at), ended_at: nullable(session.ended_at, instant) },
+      evaluation: nullable(value.evaluation, (raw) => { const evaluation = record(raw); return { status: text(evaluation.status), summary: nullable(evaluation.summary, text) } }),
+      scores: list(value.scores).map((entry) => {
+        const score = record(entry)
+        return {
+          score_id: text(score.score_id), dimension: text(score.dimension), ai_level: count(score.ai_level), final_level: count(score.final_level), rationale: nullable(score.rationale, text),
+          evidence: list(score.evidence).map((item) => { const evidence = record(item); return { turn_id: text(evidence.turn_id), quote: text(evidence.quote) } }),
+          overrides: list(score.overrides).map((item) => { const change = record(item); return { previous_level: count(change.previous_level), new_level: count(change.new_level), reason: text(change.reason), created_at: instant(change.created_at) } }),
+        }
+      }),
+      concept_results: list(value.concept_results).map((entry) => { const result = record(entry); return { concept_id: text(result.concept_id), misconception_id: nullable(result.misconception_id, text), outcome: text(result.outcome), resolved_in_session: flag(result.resolved_in_session) } }),
+      flags: list(value.flags).map((entry) => { const item = record(entry); return { id: text(item.id), flag_type: text(item.flag_type), severity: text(item.severity), status: text(item.status) } }),
+      turns: list(value.turns).map((entry) => {
+        const turn = record(entry)
+        return { turn_id: text(turn.turn_id), turn_index: count(turn.turn_index), kind: text(turn.kind), prompt: text(turn.prompt), answer: nullable(turn.answer, text), move: nullable(turn.move, text), safety_paused: flag(turn.safety_paused) }
+      }),
+    }
+  }
+
+  async overrideScore(scoreId: string, level: number, reason: string, signal?: AbortSignal): Promise<void> {
+    const body: Schemas['OverrideIn'] = { final_level: level, reason }
+    await this.api.request(`/scores/${encodeURIComponent(scoreId)}/overrides`, { method: 'POST', body, signal })
+  }
+
+  async reviewFlag(flagId: string, decision: FlagDecision, note: string | null, signal?: AbortSignal): Promise<void> {
+    const body: Schemas['FlagReviewIn'] = { decision, note }
+    await this.api.request(`/flags/${encodeURIComponent(flagId)}/review`, { method: 'POST', body, signal })
+  }
+
+  async safetyAction(sessionId: string, action: SafetyAction, note: string | null, signal?: AbortSignal): Promise<void> {
+    const body: Schemas['SafetyActionIn'] = { action, note }
+    await this.api.request(`/sessions/${encodeURIComponent(sessionId)}/safety-actions`, { method: 'POST', body, signal })
   }
 
   async releasePreview(publicationId: string, signal?: AbortSignal): Promise<ReleasePreview> {

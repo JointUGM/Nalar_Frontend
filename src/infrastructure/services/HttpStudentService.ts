@@ -1,4 +1,4 @@
-import type { MissionCard, StudentMissions, TelemetryBatch, WindowSession } from '@/domain/model/Student'
+import type { MissionCard, StudentMissions, StudentReflection, TelemetryBatch, WindowSession } from '@/domain/model/Student'
 import type { StudentService } from '@/domain/services/StudentService'
 import { count, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
@@ -20,6 +20,15 @@ function card(item: unknown): MissionCard {
 
 export class HttpStudentService implements StudentService {
   constructor(private readonly api: HttpApi) {}
+
+  // ponytail: the latest 100 reflections; follow next_cursor when a student can have more.
+  async reflections(signal?: AbortSignal): Promise<StudentReflection[]> {
+    const { data } = await this.api.request('/student/reflections?limit=100', { signal })
+    return list(record(data).items).map((entry) => {
+      const value = record(entry)
+      return { session_id: text(value.session_id), mission_title: text(value.mission_title), completed_at: instant(value.completed_at), content: text(value.content) } satisfies Schemas['StudentReflectionOut']
+    })
+  }
 
   async missions(signal?: AbortSignal): Promise<StudentMissions> {
     const value = record((await this.api.request('/student/missions', { signal })).data)

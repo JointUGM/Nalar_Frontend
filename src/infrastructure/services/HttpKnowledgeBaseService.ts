@@ -8,6 +8,7 @@ type Schemas = components['schemas']
 const kb = (id: string) => `/knowledge-bases/${encodeURIComponent(id)}`
 const item = (kind: KbItemKind, id: string) => `/${kind}s/${encodeURIComponent(id)}`
 const texts = (value: unknown) => list(value).map((entry) => text(entry))
+const sources = (value: unknown) => list(value).map((entry) => { const source = record(entry); return { page_start: count(source.page_start), page_end: count(source.page_end) } })
 function queued(data: unknown): KbQueued {
   const value = record(data)
   return { knowledge_base_id: text(value.knowledge_base_id), material_id: text(value.material_id), job_id: text(value.job_id) }
@@ -49,7 +50,7 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
       }),
       concepts: list(value.concepts).map((entry) => {
         const concept = record(entry)
-        return { id: text(concept.id), name: text(concept.name), description: nullable(concept.description, text), review_status: text(concept.review_status) }
+        return { id: text(concept.id), name: text(concept.name), description: nullable(concept.description, text), review_status: text(concept.review_status), sources: sources(concept.sources) }
       }),
       prerequisites: list(value.prerequisites).map((entry) => {
         const link = record(entry)
@@ -59,7 +60,7 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
         const misconception = record(entry)
         return {
           id: text(misconception.id), concept_id: text(misconception.concept_id), statement: text(misconception.statement), correct_understanding: text(misconception.correct_understanding),
-          detection_cues: texts(misconception.detection_cues), counter_examples: texts(misconception.counter_examples), review_status: text(misconception.review_status),
+          detection_cues: texts(misconception.detection_cues), counter_examples: texts(misconception.counter_examples), review_status: text(misconception.review_status), sources: sources(misconception.sources),
         }
       }),
     }
