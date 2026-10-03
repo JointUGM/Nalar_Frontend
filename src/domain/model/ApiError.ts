@@ -11,7 +11,8 @@ const messages: Record<number, string> = {
 
 // The message is chosen here from the status; the backend's own text never reaches the screen.
 export class ApiError extends Error {
-  constructor(readonly status: number, readonly code: string, readonly requestId?: string, message?: string) {
+  /** `problems` holds the problem codes of a validation refusal (which rules the input broke). */
+  constructor(readonly status: number, readonly code: string, readonly requestId?: string, message?: string, readonly problems: readonly string[] = []) {
     super(message ?? messages[status] ?? 'Permintaan belum berhasil. Periksa koneksi dan coba lagi.')
     this.name = 'ApiError'
   }

@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
-import { jobEnded } from '@/domain/model/KnowledgeBase'
-import type { Job, KbDetail, KbItemKind, KbItemPatch, KbReviewQueue, KbSection } from '@/domain/model/KnowledgeBase'
+import type { KbDetail, KbItemKind, KbItemPatch, KbReviewQueue, KbSection } from '@/domain/model/KnowledgeBase'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
 import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
@@ -11,7 +10,8 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherKbReview.module.css'
-import { buildWord, jobFailure, kbRefusal, reviewWord } from './kbText'
+import { JobNotice } from './JobNotice'
+import { buildWord, kbRefusal, reviewWord } from './kbText'
 
 interface Loaded { detail: KbDetail; sections: KbSection[]; queue: KbReviewQueue }
 // Lists are edited one entry per line.
@@ -20,24 +20,10 @@ type Draft = { id: string; kind: 'concept'; name: string; description: string } 
 const building = (section: KbSection) => section.build_status === 'queued' || section.build_status === 'building'
 // A chapter being built changes on its own, so the page keeps reading until none is.
 const pollMs = (data: Loaded | null) => data?.sections.some(building) ? 3000 : null
-const jobPollMs = (job: Job | null) => job && jobEnded(job) ? null : 3000
 const patchOf = (draft: Draft): KbItemPatch => draft.kind === 'concept'
   ? { kind: 'concept', name: draft.name, description: draft.description }
   : { kind: 'misconception', statement: draft.statement, correct_understanding: draft.correct, detection_cues: draft.cues.split('\n'), counter_examples: draft.counters.split('\n') }
 const tag = (status: string) => <span className={[styles.tag, status === 'approved' ? styles.approved : status === 'pending' ? styles.review : ''].join(' ')}>{reviewWord[status] ?? status}</span>
-
-// Follows one background job (reading an upload, or building a chapter) and reloads the page when it ends.
-function JobNotice({ kb, jobId, onDone }: { kb: KnowledgeBaseService; jobId: string; onDone: () => void }) {
-  const read = useCallback((signal: AbortSignal) => kb.job(jobId, signal), [kb, jobId])
-  const { data } = useLiveResource(read, jobPollMs)
-  const ended = data ? jobEnded(data) : false
-  useEffect(() => { if (ended) onDone() }, [ended, onDone])
-  if (!data) return null
-  const build = data.kind === 'kb_build_section'
-  if (data.status === 'failed') return <Feedback tone="danger" title={build ? 'Bab gagal disusun' : 'Materi gagal dibaca'} announce>{jobFailure[data.error_code ?? ''] ?? 'Coba lagi. Jika tetap gagal, periksa berkas PDF-nya.'}</Feedback>
-  if (data.status === 'succeeded') return <Feedback tone="success" title={build ? 'Bab selesai disusun' : 'Materi selesai dibaca'} announce>{build ? 'Tinjau konsep dan miskonsepsi barunya.' : 'Pilih bab yang ingin disusun menjadi konsep.'}</Feedback>
-  return <p role="status" className={styles.note}>{build ? 'Menyusun konsep dan miskonsepsi dari bab ini, biasanya beberapa menit.' : 'Membaca materi dan daftar babnya.'} Halaman ini memperbarui sendiri.</p>
-}
 
 export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; base: string }) {
   const { kbId = '' } = useParams()

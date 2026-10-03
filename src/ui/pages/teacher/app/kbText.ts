@@ -19,4 +19,7 @@ export const kbRefusal = (error: ApiError) => refusals[error.code] ?? null
 
 export const jobFailure: Readonly<Record<string, string>> = {
   SECTION_HAS_NO_TEXT: 'Bab ini tidak punya teks yang bisa dibaca (mungkin hasil pindai).',
+  MISSION_TARGETS_UNAVAILABLE: 'Basis pengetahuan ini perlu sedikitnya dua konsep yang disetujui.',
+  MISSION_ITEMS_CHANGED: 'Basis pengetahuan berubah saat draf disusun. Coba lagi.',
+  MISSION_SOURCES_CHANGED: 'Materi berubah saat draf disusun. Coba lagi.',
 }
