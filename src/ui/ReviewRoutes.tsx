@@ -28,7 +28,7 @@ const TeacherMonitor = lazy(() => import('@/ui/pages/teacher/TeacherMonitor').th
 const TeacherReport = lazy(() => import('@/ui/pages/teacher/TeacherReport').then((module) => ({ default: module.TeacherReport })))
 const SchoolImport = lazy(() => import('@/ui/pages/school-admin/SchoolImport').then((module) => ({ default: module.SchoolImport })))
 
-export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: ReactNode; privateEntry?: ReactNode }) {
+export function ReviewRoutes({ accountEntry, activationEntry, privateEntry }: { accountEntry: ReactNode; activationEntry?: ReactNode; privateEntry?: ReactNode }) {
   return <Suspense fallback={<p role="status">Memuat halaman…</p>}><Routes>
     <Route path="/review/platform/schools" element={<PlatformSchools />} />
     <Route path="/review/platform/schools/:schoolId" element={<PlatformSchools />} />
@@ -56,6 +56,6 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
     <Route path="/review/account/reset" element={<AccountReset />} />
     <Route path="/review/account/password" element={<AccountPassword />} />
     <Route path="/review/school/import" element={<SchoolImport />} />
-    <Route path="*" element={<AppRoutes accountEntry={accountEntry} privateEntry={privateEntry} />} />
+    <Route path="*" element={<AppRoutes accountEntry={accountEntry} activationEntry={activationEntry} privateEntry={privateEntry} />} />
   </Routes></Suspense>
 }
