@@ -21,7 +21,6 @@ const StudentReflections = lazy(() => import('@/ui/pages/student/StudentReflecti
 const StudentResume = lazy(() => import('@/ui/pages/student/StudentResume').then((module) => ({ default: module.StudentResume })))
 const StudentSession = lazy(() => import('@/ui/pages/student/StudentSession').then((module) => ({ default: module.StudentSession })))
 const StudentLobby = lazy(() => import('@/ui/pages/student/StudentLobby').then((module) => ({ default: module.StudentLobby })))
-const StudentJoin = lazy(() => import('@/ui/pages/student/StudentJoin').then((module) => ({ default: module.StudentJoin })))
 const TeacherAttention = lazy(() => import('@/ui/pages/teacher/TeacherAttention').then((module) => ({ default: module.TeacherAttention })))
 const TeacherClasses = lazy(() => import('@/ui/pages/teacher/TeacherClasses').then((module) => ({ default: module.TeacherClasses })))
 const TeacherProjector = lazy(() => import('@/ui/pages/teacher/TeacherProjector').then((module) => ({ default: module.TeacherProjector })))
@@ -48,7 +47,6 @@ export function ReviewRoutes({ accountEntry, privateEntry }: { accountEntry: Rea
       <Route path="/review/teacher/missions/:missionId/monitor" element={<TeacherMonitor />} />
       <Route path="/review/teacher/missions/:missionId/class-map/report" element={<TeacherReport />} />
     </Route>
-    <Route path="/review/student/join" element={<StudentJoin />} />
     <Route path="/review/student/missions/:missionId/lobby" element={<StudentLobby />} />
     <Route path="/review/student/missions/:missionId/session" element={<StudentSession />} />
     <Route path="/review/student/missions/:missionId/resume" element={<StudentResume />} />
