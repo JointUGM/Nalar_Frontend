@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import type { MissionCard } from '@/domain/model/Student'
 import type { StudentService } from '@/domain/services/StudentService'
+import { Link } from 'react-router'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
@@ -88,7 +89,7 @@ export function StudentHomePage({ service, base, user }: { service: StudentServi
                 <tbody>
                   {rows.length === 0 && <tr><td colSpan={4}>{tab === 'completed' ? 'Belum ada misi yang selesai.' : 'Belum ada misi yang dijadwalkan.'}</td></tr>}
                   {rows.map((row) => <tr key={row.publication_id}>
-                    <th scope="row">{row.mission_title}</th><td>{row.subject_name}</td>
+                    <th scope="row">{tab === 'completed' && row.session_id && row.attempt_status === 'completed' ? <Link to={`${base}/sessions/${row.session_id}`}>{row.mission_title}</Link> : row.mission_title}</th><td>{row.subject_name}</td>
                     <td>{tab === 'upcoming' ? (row.opens_at ? formatDayTime(row.opens_at) : 'Menunggu guru') : row.closes_at ? formatDayTime(row.closes_at) : '—'}</td>
                     <td><span className={styles.tag}>{tab === 'upcoming' ? 'Belum dibuka' : row.attempt_status === 'completed' ? 'Selesai' : 'Belum selesai'}</span></td>
                   </tr>)}
