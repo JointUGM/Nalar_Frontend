@@ -20,7 +20,6 @@ const StudentReflection = lazy(() => import('@/ui/pages/student/StudentReflectio
 const StudentReflections = lazy(() => import('@/ui/pages/student/StudentReflections').then((module) => ({ default: module.StudentReflections })))
 const TeacherAttention = lazy(() => import('@/ui/pages/teacher/TeacherAttention').then((module) => ({ default: module.TeacherAttention })))
 const TeacherClasses = lazy(() => import('@/ui/pages/teacher/TeacherClasses').then((module) => ({ default: module.TeacherClasses })))
-const TeacherReport = lazy(() => import('@/ui/pages/teacher/TeacherReport').then((module) => ({ default: module.TeacherReport })))
 const SchoolImport = lazy(() => import('@/ui/pages/school-admin/SchoolImport').then((module) => ({ default: module.SchoolImport })))
 
 export function ReviewRoutes({ accountEntry, activationEntry, privateEntry }: { accountEntry: ReactNode; activationEntry?: ReactNode; privateEntry?: ReactNode }) {
@@ -38,7 +37,6 @@ export function ReviewRoutes({ accountEntry, activationEntry, privateEntry }: { 
       <Route path="/review/teacher/home" element={<TeacherHome />} />
       <Route path="/review/teacher/classes" element={<TeacherClasses />} />
       <Route path="/review/teacher/attention" element={<TeacherAttention />} />
-      <Route path="/review/teacher/missions/:missionId/class-map/report" element={<TeacherReport />} />
     </Route>
     <Route path="/review/student/reflections" element={<StudentReflections />} />
     <Route path="/review/student/reflections/:reflectionId" element={<StudentReflection />} />
