@@ -1,7 +1,9 @@
-export type OperationErrorCode = 'invalid_credentials' | 'unauthenticated' | 'forbidden' | 'not_found' | 'rate_limited' | 'unavailable' | 'invalid_response'
+export type OperationErrorCode = 'invalid_credentials' | 'invalid_activation' | 'weak_password' | 'unauthenticated' | 'forbidden' | 'not_found' | 'rate_limited' | 'unavailable' | 'invalid_response'
 
 const messages: Record<OperationErrorCode, string> = {
   invalid_credentials: 'Email atau kata sandi tidak dapat digunakan untuk masuk.',
+  invalid_activation: 'Tautan tidak dapat digunakan. Minta tautan baru kepada admin sekolah.',
+  weak_password: 'Kata sandi belum memenuhi syarat. Gunakan kata sandi yang lebih panjang dan sulit ditebak.',
   unauthenticated: 'Silakan masuk terlebih dahulu.',
   forbidden: 'Akses tidak tersedia untuk akun ini.',
   not_found: 'Data tidak tersedia.',

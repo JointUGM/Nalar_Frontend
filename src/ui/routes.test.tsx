@@ -4,6 +4,12 @@ import { describe, expect, it } from 'vitest'
 import { AppRoutes } from './routes'
 
 describe('Account route boundary', () => {
+  it('opens activation independently of login and protected identity', () => {
+    render(<MemoryRouter initialEntries={['/activate']}><AppRoutes accountEntry={<h1>Login entry</h1>} activationEntry={<h1>Password setup</h1>} privateEntry={<h1>Private entry</h1>} /></MemoryRouter>)
+    expect(screen.getByRole('heading', { name: 'Password setup' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Login entry' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Private entry' })).not.toBeInTheDocument()
+  })
   it('opens the landing page at the root, with sign-in links and no registration', async () => {
     render(<MemoryRouter initialEntries={['/']}><AppRoutes accountEntry={<h1>Supplied account entry</h1>} /></MemoryRouter>)
     expect(await screen.findByRole('heading', { level: 1, name: /Ukur cara siswa berpikir/ }, { timeout: 5000 })).toBeInTheDocument()

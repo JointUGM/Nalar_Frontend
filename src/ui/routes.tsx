@@ -18,10 +18,11 @@ function PrivateEntryBoundary({ entry }: { entry: ReactNode }) {
   return <Suspense key={location.pathname} fallback={<main className={styles.page}><h1>Memeriksa akses…</h1><p role="status">Tunggu sebentar.</p></main>}>{entry}</Suspense>
 }
 
-export function AppRoutes({ accountEntry, privateEntry }: { accountEntry: ReactNode; privateEntry?: ReactNode }) {
+export function AppRoutes({ accountEntry, activationEntry, privateEntry }: { accountEntry: ReactNode; activationEntry?: ReactNode; privateEntry?: ReactNode }) {
   return <Routes>
     <Route path="/" element={<Suspense fallback={<main className={styles.page}><h1>Membuka NALAR…</h1><p role="status">Tunggu sebentar.</p></main>}><Landing /></Suspense>} />
     <Route path="/login" element={<Suspense fallback={<main className={styles.page}><h1>Membuka halaman masuk…</h1><p role="status">Tunggu sebentar.</p></main>}>{accountEntry}</Suspense>} />
+    <Route path="/activate" element={<Suspense fallback={<main className={styles.page}><h1>Membuka aktivasi…</h1><p role="status">Tunggu sebentar.</p></main>}>{activationEntry ?? <AccountLoadFailure />}</Suspense>} />
     {['platform', 'school', 'parent', 'teacher', 'student'].map((role) => <Route key={role} path={`/${role}/*`} element={privateEntry ? <PrivateEntryBoundary entry={privateEntry} /> : <AccessBoundary />} />)}
     <Route path="*" element={<main className={styles.page}><h1>Halaman tidak tersedia</h1><Link to="/">Kembali ke NALAR</Link></main>} />
   </Routes>

@@ -12,6 +12,34 @@ function service(fetch: typeof globalThis.fetch, storage = { removeItem: vi.fn()
 afterEach(() => { instances.forEach((auth) => auth.dispose()); instances.length = 0 })
 
 describe('Redis cookie authentication', () => {
+  it('submits activation with CSRF and returns no session or listener notification', async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(null, { status: 204 }))
+    const { auth } = service(fetch)
+    const listener = vi.fn()
+    auth.subscribe(listener)
+    await auth.activateAccount({ activationId: userId, tokenHash: 'recipient-proof', password: 'Long-password-123' })
+    const [url, init] = fetch.mock.calls[0]
+    expect(url).toBe('/api/v1/auth/activate')
+    expect(init).toMatchObject({ method: 'POST', credentials: 'include', cache: 'no-store' })
+    expect(new Headers(init?.headers).get('X-Nalar-CSRF')).toBe('1')
+    expect(new Headers(init?.headers).has('Authorization')).toBe(false)
+    expect(JSON.parse(String(init?.body))).toEqual({ activation_id: userId, token_hash: 'recipient-proof', password: 'Long-password-123' })
+    expect(listener).not.toHaveBeenCalled()
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    [400, 'INVALID_ACTIVATION', 'invalid_activation'],
+    [400, 'WEAK_PASSWORD', 'weak_password'],
+    [400, 'UNEXPECTED_PROVIDER_ERROR', 'unavailable'],
+    [429, 'RATE_LIMITED', 'rate_limited'],
+    [503, 'DEPENDENCY_UNAVAILABLE', 'unavailable'],
+    [200, 'JWT_RESPONSE', 'invalid_response'],
+  ])('maps activation status %s/%s without exposing provider content', async (status, code, expected) => {
+    const { auth } = service(async () => Response.json({ error: { code, message: 'private-provider-content' }, access_token: 'private-token' }, { status }))
+    await expect(auth.activateAccount({ activationId: userId, tokenHash: 'recipient-proof', password: 'Long-password-123' })).rejects.toMatchObject({ code: expected })
+  })
+
   it('removes legacy tokens and signs in with credentials included and CSRF protection', async () => {
     const { auth, storage } = service(async (input, init) => {
       expect(input).toBe('/api/v1/auth/login')

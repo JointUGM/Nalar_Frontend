@@ -1,5 +1,7 @@
 import type { AuthSession, SignInCredentials } from '@/domain/model/AuthSession'
 import { OperationError } from '@/domain/model/OperationError'
+import type { OperationErrorCode } from '@/domain/model/OperationError'
+import type { AccountActivation } from '@/domain/model/AccountActivation'
 import type { AuthService } from '@/domain/services/AuthService'
 import type { paths } from './contracts/backend'
 
@@ -51,6 +53,22 @@ export class HttpAuthService implements AuthService {
     return session
   }
 
+  async activateAccount(activation: AccountActivation): Promise<void> {
+    const body: paths['/api/v1/auth/activate']['post']['requestBody']['content']['application/json'] = {
+      activation_id: activation.activationId, token_hash: activation.tokenHash, password: activation.password,
+    }
+    const response = await this.request('POST', '/auth/activate', body, 30_000)
+    if (response.status === 204) return
+    if (response.status === 429) throw this.error(response, 'rate_limited')
+    if (response.status === 400) {
+      let code: unknown
+      try { code = (await response.json())?.error?.code } catch { /* Only recognized error codes reach the form. */ }
+      if (code === 'INVALID_ACTIVATION') throw this.error(response, 'invalid_activation')
+      if (code === 'WEAK_PASSWORD') throw this.error(response, 'weak_password')
+    }
+    throw this.error(response, response.ok ? 'invalid_response' : 'unavailable')
+  }
+
   async signOut(): Promise<void> {
     ++this.generation
     const response = await this.request('POST', '/auth/logout')
@@ -90,7 +108,7 @@ export class HttpAuthService implements AuthService {
     if (!this.disposed) this.listeners.forEach((listener) => listener(session))
   }
 
-  private async request(method: 'GET' | 'POST', path: string, body?: unknown): Promise<Response> {
+  private async request(method: 'GET' | 'POST', path: string, body?: unknown, timeoutMs = 10_000): Promise<Response> {
     if (this.disposed) throw new OperationError('unavailable')
     const headers: Record<string, string> = { Accept: 'application/json' }
     if (method === 'POST') headers['X-Nalar-CSRF'] = '1'
@@ -100,13 +118,13 @@ export class HttpAuthService implements AuthService {
     try {
       return await (this.options.fetch ?? globalThis.fetch)(`${this.options.apiBaseUrl.replace(/\/+$/, '')}${path}`, {
         method, headers, body: body === undefined ? undefined : JSON.stringify(body),
-        cache: 'no-store', credentials: 'include', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(10_000)]),
+        cache: 'no-store', credentials: 'include', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(timeoutMs)]),
       })
     } catch { throw new OperationError('unavailable') }
     finally { this.controllers.delete(controller) }
   }
 
-  private error(response: Response, code: 'invalid_credentials' | 'rate_limited' | 'unavailable' | 'invalid_response'): OperationError {
+  private error(response: Response, code: OperationErrorCode): OperationError {
     const reference = response.headers.get('X-Request-Id')
     const requestId = reference && /^[A-Za-z0-9_-]{1,64}$/.test(reference) ? reference : undefined
     return new OperationError(code, { status: response.status, requestId })

@@ -1,4 +1,5 @@
 import { createElement, lazy, StrictMode } from 'react'
+import { captureActivationLink } from './activation-link'
 import type { ReactNode } from 'react'
 import type { TelemetryBatch } from './domain/model/Student'
 import { createRoot } from 'react-dom/client'
@@ -6,6 +7,8 @@ import { BrowserRouter } from 'react-router'
 import { DependenciesProvider } from './ui/components/dependencies/DependenciesProvider'
 import { AccountLoadFailure } from './ui/routes'
 import './index.css'
+
+const activationProof = captureActivationLink(window.location, window.history)
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Missing root element in index.html')
@@ -30,6 +33,15 @@ const accountEntry = createElement(lazy(async () => {
     return { default: () => <Login dependencies={created.account} /> }
   } catch {
     return { default: AccountLoadFailure }
+  }
+}))
+
+const activationEntry = createElement(lazy(async () => {
+  try {
+    const [created, { ActivateAccount }] = await Promise.all([getDependencies(), import('./ui/pages/account/ActivateAccount')])
+    return { default: () => <ActivateAccount proof={activationProof} dependencies={created.account} /> }
+  } catch {
+    return { default: () => <main><h1>Aktivasi belum dapat dibuka</h1><p>Buka kembali tautan dari email atau hubungi admin sekolah.</p><a href="/login">Masuk ke NALAR</a></main> }
   }
 }))
 
@@ -63,6 +75,6 @@ if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('prev
   void import('./ui/pages/foundation-preview/FoundationPreview').then(({ FoundationPreview }) => render(<FoundationPreview />))
 } else {
   void Promise.all([import('./review-di'), import('./ui/ReviewRoutes')]).then(([{ createReviewDependencies }, { ReviewRoutes }]) => {
-    render(<BrowserRouter><DependenciesProvider value={createReviewDependencies()}><ReviewRoutes accountEntry={accountEntry} privateEntry={privateEntry} /></DependenciesProvider></BrowserRouter>)
+    render(<BrowserRouter><DependenciesProvider value={createReviewDependencies()}><ReviewRoutes accountEntry={accountEntry} activationEntry={activationEntry} privateEntry={privateEntry} /></DependenciesProvider></BrowserRouter>)
   })
 }
