@@ -1,10 +1,19 @@
-import { resourceId } from '@/domain/model/ApiError'
-import { invitationBatchSize, invitationTargetStates } from '@/domain/model/SchoolAdmin'
+import { ApiError, resourceId } from '@/domain/model/ApiError'
+import { invitationBatchSize, invitationTargetStates, rosterMaxBytes } from '@/domain/model/SchoolAdmin'
 import type { InvitationSummary, InvitationTarget } from '@/domain/model/SchoolAdmin'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 
 export class SchoolAdminUseCases {
   constructor(private readonly service: SchoolAdminService) {}
+
+  academicYears(schoolId: string, signal?: AbortSignal) { return this.service.academicYears(resourceId(schoolId), signal) }
+  // The backend checks the size and every row again; this only spares sending a file it cannot take.
+  uploadRoster(schoolId: string, academicYearId: string, file: File, signal?: AbortSignal) {
+    if (file.size > rosterMaxBytes) throw new ApiError(422, 'FILE_TOO_LARGE')
+    if (file.size === 0 || !/\.csv$/i.test(file.name)) throw new ApiError(422, 'FILE_NOT_CSV')
+    return this.service.uploadRoster(resourceId(schoolId), resourceId(academicYearId), file, signal)
+  }
+  rosterImport(importId: string, signal?: AbortSignal) { return this.service.rosterImport(resourceId(importId), signal) }
 
   invitations(schoolId: string, signal?: AbortSignal) { return this.service.invitations(resourceId(schoolId), null, signal) }
 
