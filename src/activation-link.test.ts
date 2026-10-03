@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { captureActivationLink } from './activation-link'
+import { captureActivationLink, captureResetLink } from './activation-link'
 
 const activationId = '00000000-0000-4000-8000-000000000001'
 
@@ -20,6 +20,13 @@ describe('Activation link capture', () => {
     const history = { state: null, replaceState: vi.fn() }
     expect(captureActivationLink({ pathname: '/activate', search, hash }, history)).toBeNull()
     expect(history.replaceState).toHaveBeenCalledWith(null, '', '/activate')
+  })
+
+  it('captures a password reset link by its reset id and strips it the same way', () => {
+    const history = { state: null, replaceState: vi.fn() }
+    expect(captureResetLink({ pathname: '/reset-password', search: `?reset_id=${activationId}`, hash: '#token_hash=reset-proof' }, history)).toEqual({ activationId, tokenHash: 'reset-proof' })
+    expect(history.replaceState).toHaveBeenCalledWith(null, '', '/reset-password')
+    expect(captureActivationLink({ pathname: '/reset-password', search: `?reset_id=${activationId}`, hash: '#token_hash=reset-proof' }, { state: null, replaceState: vi.fn() })).toBeNull()
   })
 
   it('preserves queries and anchors on other pages', () => {

@@ -3,6 +3,9 @@ import type { AccountActivation } from '@/domain/model/AccountActivation'
 
 export interface AuthService {
   activateAccount(activation: AccountActivation): Promise<void>
+  requestPasswordReset(email: string): Promise<void>
+  resetPassword(reset: AccountActivation): Promise<void>
+  changePassword(current: string, next: string): Promise<void>
   signIn(credentials: SignInCredentials): Promise<AuthSession>
   signOut(): Promise<void>
   getSession(): Promise<AuthSession | null>

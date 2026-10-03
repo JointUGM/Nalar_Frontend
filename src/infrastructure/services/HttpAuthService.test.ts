@@ -40,6 +40,22 @@ describe('Redis cookie authentication', () => {
     await expect(auth.activateAccount({ activationId: userId, tokenHash: 'recipient-proof', password: 'Long-password-123' })).rejects.toMatchObject({ code: expected })
   })
 
+  it('requests a reset link, confirms a reset and changes a password with the documented bodies and outcomes', async () => {
+    const replies: Record<string, Response> = {
+      '/api/v1/auth/password-reset': new Response(null, { status: 202 }),
+      '/api/v1/auth/password-reset/confirm': Response.json({ error: { code: 'INVALID_ACTIVATION', message: 'private' } }, { status: 400 }),
+      '/api/v1/auth/password': Response.json({ error: { code: 'INVALID_CREDENTIALS', message: 'private' } }, { status: 401 }),
+    }
+    const fetch = vi.fn<typeof globalThis.fetch>(async (input) => replies[String(input)])
+    const { auth } = service(fetch)
+    await auth.requestPasswordReset('guru@example.test')
+    await expect(auth.resetPassword({ activationId: userId, tokenHash: 'proof', password: 'Long-password-123' })).rejects.toMatchObject({ code: 'invalid_activation' })
+    await expect(auth.changePassword('old-password', 'Long-password-123')).rejects.toMatchObject({ code: 'invalid_credentials' })
+    expect(fetch.mock.calls.map(([, init]) => JSON.parse(String(init?.body)))).toEqual([
+      { email: 'guru@example.test' }, { reset_id: userId, token_hash: 'proof', password: 'Long-password-123' }, { current_password: 'old-password', new_password: 'Long-password-123' },
+    ])
+  })
+
   it('removes legacy tokens and signs in with credentials included and CSRF protection', async () => {
     const { auth, storage } = service(async (input, init) => {
       expect(input).toBe('/api/v1/auth/login')
