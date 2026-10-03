@@ -71,7 +71,7 @@ export function TeacherPublishPage({ service, base, schoolId }: { service: Teach
     try {
       const published = await service.publish({ class_id: chosen.class_id, mission_version_id: version.id, mode, ...(mode === 'window' ? { opens_at: wib(opens), closes_at: wib(closes) } : {}) }, signal)
       // A live session continues on the projector; a window just appears in the session list.
-      if (!signal?.aborted) navigate(mode === 'live' ? `${base}/publications/${published.publication_id}/projector` : base)
+      if (!signal?.aborted) navigate(mode === 'live' ? `${base}/publications/${published.publication_id}/projector` : `${base}/sessions`)
     } catch (cause) {
       if (!signal?.aborted) { setFailure(cause instanceof ApiError ? cause : new ApiError(0, 'UNAVAILABLE')); setConfirming(false); setPending(false) }
     } finally { busy.current = false }

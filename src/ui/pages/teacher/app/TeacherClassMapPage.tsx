@@ -23,7 +23,7 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
   const lines = Math.ceil((data?.concepts.length ?? 0) / perRow)
 
   return <div className={styles.content}>
-    <Link className={styles.back} to={base}><Icon name="chevronLeft" size={14} />Sesi dan hasil</Link>
+    <Link className={styles.back} to={`${base}/sessions`}><Icon name="chevronLeft" size={14} />Sesi dan hasil</Link>
     <div className={styles.header}>
       <div><h1>Peta miskonsepsi kelas</h1><p>{subtitle}{data ? ` · ${data.denominator} siswa dihitung` : ''}</p></div>
       <div className={styles.actions}><Link className={styles.release} to={`${base}/publications/${publicationId}/release`} state={location.state}><Icon name="send" size={14} />Rilis ke orang tua</Link></div>

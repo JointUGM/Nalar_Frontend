@@ -109,6 +109,19 @@ function backend(overrides: Record<string, Reply> = {}) {
       ],
     }),
     [`GET /sessions/${sessionId}/report`]: () => Response.json(reportOut()),
+    [`GET /teacher/attention?school_id=${school}&limit=50`]: () => Response.json({ next_cursor: null, counts: { safety: 1, flag: 0, kb_review: 1, release_ready: 0, total: 2 }, items: [
+      { kind: 'safety', item_id: sessionId, created_at: '2026-10-02T03:10:00Z', session_id: sessionId, publication_id: publication, student_name: 'Raka Pratama', paused_at: '2026-10-02T03:10:00Z' },
+      { kind: 'kb_review', item_id: kbId, created_at: '2026-10-02T01:00:00Z', knowledge_base_id: kbId, topic_title: 'Tekanan Zat', pending_concepts: 1, pending_misconceptions: 2 },
+      { kind: 'something_new', item_id: kbId, created_at: '2026-10-02T01:00:00Z' },
+    ] }),
+    [`GET /teacher/dashboard?school_id=${school}`]: () => Response.json({
+      as_of: '2026-10-02T05:00:00Z', timezone: 'Asia/Jakarta',
+      this_week: { week_start: '2026-09-28T00:00:00+07:00', week_end: '2026-10-05T00:00:00+07:00', sessions_completed: 12, students: 30, active_misconceptions: 5, concepts_with_misconceptions: 2, changed_mind_rate: 0.4, open_flags: 1 },
+      last_week: { week_start: '2026-09-21T00:00:00+07:00', week_end: '2026-09-28T00:00:00+07:00', sessions_completed: 10, students: 30, active_misconceptions: 6, concepts_with_misconceptions: 3, changed_mind_rate: null, open_flags: 0 },
+      trend: [{ week_start: '2026-09-28T00:00:00+07:00', mastered: 10, developing: 6, misconception: 4 }],
+      top_changed: [{ misconception_id: misconception, statement: 'Gaya bisa habis', held: 8, resolved: 5 }],
+    }),
+    [`GET /teacher/classes/${klass}/students`]: () => Response.json({ publication_id: null, items: [{ student_id: student, full_name: 'Raka Pratama', session_id: sessionId, status: 'completed', completed_at: '2026-10-02T04:00:00Z', evaluation_status: 'completed', open_flag_count: 1, concept_counts: { mastered: 2, developing: 1, misconception: 1 } }] }),
     'POST /publications': () => Response.json({ publication_id: publication, run_id: school, run_status: 'scheduled' }, { status: 201 }),
     ...overrides,
   }
@@ -129,7 +142,7 @@ function open(path: string, request: typeof fetch) {
 
 describe('signed-in teacher pages', () => {
   it('lists published missions with their counts and links to projector, monitor, class map and release', async () => {
-    open(base, backend())
+    open(`${base}/sessions`, backend())
     const card = within(await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?, kelas 8B' }))
     expect(card.getAllByText('28')).toHaveLength(2)
     for (const [name, page] of [['Proyektor', 'projector'], ['Pantau', 'monitor'], ['Peta kelas', 'class-map'], ['Rilis ke orang tua', 'release']]) expect(card.getByRole('link', { name })).toHaveAttribute('href', `${base}/publications/${publication}/${page}`)
@@ -238,6 +251,24 @@ describe('signed-in teacher pages', () => {
     await waitFor(() => expect(request.mock.calls.filter(([url]) => String(url).endsWith('/safety-actions'))).toHaveLength(1))
     const bodies = request.mock.calls.filter(([, init]) => init?.method === 'POST').map(([, init]) => JSON.parse(String(init?.body)))
     expect(bodies).toEqual([{ decision: 'cleared', note: null }, { action: 'resume', note: null }])
+  })
+
+  it('opens on the weekly dashboard and badges what needs attention, each item linking to where it is handled', async () => {
+    open(base, backend())
+    expect(await screen.findByText('+2 dari minggu lalu')).toBeInTheDocument()
+    expect(screen.getByText('40%')).toBeInTheDocument()
+    expect(screen.getByText('“Gaya bisa habis”')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getAllByRole('link', { name: /Perlu perhatian/ })[0]).toHaveTextContent('2'))
+    fireEvent.click(screen.getAllByRole('link', { name: /Perlu perhatian/ })[0])
+    expect(await screen.findByRole('link', { name: /Raka Pratama/ })).toHaveAttribute('href', `${base}/publications/${publication}/sessions/${sessionId}`)
+    expect(screen.getByRole('link', { name: /Tekanan Zat/ })).toHaveAttribute('href', `${base}/knowledge-base/${kbId}`)
+  })
+
+  it('lists a class with each student’s latest attempt and concept results', async () => {
+    open(`${base}/classes`, backend())
+    const row = within((await screen.findByRole('rowheader', { name: 'Raka Pratama' })).closest('tr')!)
+    expect(row.getByText('Selesai · 1 perlu verifikasi')).toBeInTheDocument()
+    expect(row.getByText('2 paham · 1 berkembang · 1 miskonsepsi')).toBeInTheDocument()
   })
 
   it('uploads a PDF as multipart and follows the reading job on the topic page', async () => {
