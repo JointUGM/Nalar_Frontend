@@ -1,11 +1,17 @@
 import { ApiError, resourceId } from '@/domain/model/ApiError'
-import type { MissionInput, MissionVersionDraft, PublishInput } from '@/domain/model/Teacher'
+import type { FlagDecision, MissionInput, MissionVersionDraft, PublishInput, SafetyAction } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 
 function required(value: string, max: number): string {
   const trimmed = value.trim()
   if (!trimmed || trimmed.length > max) throw new ApiError(422, 'INVALID_INPUT')
   return trimmed
+}
+// An optional note: blank means none.
+function note(value: string | null): string | null {
+  const trimmed = value?.trim() ?? ''
+  if (trimmed.length > 1000) throw new ApiError(422, 'INVALID_INPUT')
+  return trimmed || null
 }
 function versionNumber(value: number): number {
   if (!Number.isInteger(value) || value < 1) throw new ApiError(404, 'NOT_FOUND')
@@ -34,6 +40,14 @@ export class TeacherUseCases implements TeacherService {
     if (!Number.isFinite(opens) || !Number.isFinite(closes) || opens >= closes) throw new ApiError(422, 'INVALID_WINDOW')
     return this.service.publish({ ...base, mode: 'window', opens_at: input.opens_at, closes_at: input.closes_at }, signal)
   }
+  report(sessionId: string, signal?: AbortSignal) { return this.service.report(resourceId(sessionId), signal) }
+  overrideScore(scoreId: string, level: number, reason: string, signal?: AbortSignal) {
+    // The teacher's reason is kept beside the AI level for good, so a change without one is refused.
+    if (!Number.isInteger(level) || level < 0 || level > 4) throw new ApiError(422, 'INVALID_INPUT')
+    return this.service.overrideScore(resourceId(scoreId), level, required(reason, 2000), signal)
+  }
+  reviewFlag(flagId: string, decision: FlagDecision, value: string | null, signal?: AbortSignal) { return this.service.reviewFlag(resourceId(flagId), decision, note(value), signal) }
+  safetyAction(sessionId: string, action: SafetyAction, value: string | null, signal?: AbortSignal) { return this.service.safetyAction(resourceId(sessionId), action, note(value), signal) }
   classMap(publicationId: string, signal?: AbortSignal) { return this.service.classMap(resourceId(publicationId), signal) }
   releasePreview(publicationId: string, signal?: AbortSignal) { return this.service.releasePreview(resourceId(publicationId), signal) }
   release(publicationId: string, expectedEligibleCount: number, signal?: AbortSignal) {
