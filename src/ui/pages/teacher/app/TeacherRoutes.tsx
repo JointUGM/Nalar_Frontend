@@ -1,7 +1,9 @@
-import { Route, Routes, useLocation, useNavigate } from 'react-router'
+import { Route, Routes, useLocation, useNavigate, useParams } from 'react-router'
 import type { Identity } from '@/domain/model/Identity'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
+import type { LiveService } from '@/domain/services/LiveService'
 import type { TeacherService } from '@/domain/services/TeacherService'
+import { LiveTeacherMonitor } from '@/ui/pages/live/LiveTeacherRun'
 import { TeacherContextProvider } from '@/ui/components/teacher-shell/TeacherContextProvider'
 import { TeacherShell } from '@/ui/components/teacher-shell/TeacherShell'
 import { TeacherClassMapPage } from './TeacherClassMapPage'
@@ -16,7 +18,7 @@ import { TeacherReleasePage } from './TeacherReleasePage'
 import { TeacherSessionsPage } from './TeacherSessionsPage'
 
 // ProtectedRole has already checked that this account teaches at the school in the path.
-export function TeacherRoutes({ service, kb, identity }: { service: TeacherService; kb: KnowledgeBaseService; identity: Identity }) {
+export function TeacherRoutes({ service, kb, live, identity }: { service: TeacherService; kb: KnowledgeBaseService; live: LiveService; identity: Identity }) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const schoolId = pathname.split('/')[2] ?? ''
@@ -28,12 +30,13 @@ export function TeacherRoutes({ service, kb, identity }: { service: TeacherServi
     { label: 'Misi', icon: 'target', to: `${base}/missions` },
     { label: 'Basis pengetahuan', icon: 'layers', to: `${base}/knowledge-base` },
   ] as const
-  const title = pathname.endsWith('/class-map') ? 'Hasil kelas / Peta miskonsepsi' : pathname.endsWith('/release') ? 'Hasil kelas / Rilis ke orang tua' : pathname.includes('/missions') ? 'Misi' : pathname.includes('/knowledge-base') ? 'Basis pengetahuan' : 'Sesi dan hasil'
+  const title = pathname.endsWith('/monitor') ? 'Sesi langsung' : pathname.endsWith('/class-map') ? 'Hasil kelas / Peta miskonsepsi' : pathname.endsWith('/release') ? 'Hasil kelas / Rilis ke orang tua' : pathname.includes('/missions') ? 'Misi' : pathname.includes('/knowledge-base') ? 'Basis pengetahuan' : 'Sesi dan hasil'
   return <TeacherContextProvider schools={schools.map((item) => item.schoolName)} current={school} onChange={(name) => { const next = schools.find((item) => item.schoolName === name); if (next) navigate(`/teacher/${next.schoolId}`) }}>
     <TeacherShell title={title} user={identity.fullName} nav={nav} home={base} review={false}>
       <Routes>
         <Route path=":schoolId" element={<TeacherSessionsPage service={service} base={base} />} />
         <Route path=":schoolId/sessions" element={<TeacherSessionsPage service={service} base={base} />} />
+        <Route path=":schoolId/publications/:publicationId/monitor" element={<MonitorRoute live={live} base={base} />} />
         <Route path=":schoolId/publications/:publicationId/class-map" element={<TeacherClassMapPage service={service} base={base} />} />
         <Route path=":schoolId/publications/:publicationId/release" element={<TeacherReleasePage service={service} base={base} />} />
         <Route path=":schoolId/missions" element={<TeacherMissionsPage service={service} base={base} schoolId={schoolId} />} />
@@ -47,4 +50,10 @@ export function TeacherRoutes({ service, kb, identity }: { service: TeacherServi
       </Routes>
     </TeacherShell>
   </TeacherContextProvider>
+}
+
+// Keyed by publication, so moving to another run starts its polling afresh.
+function MonitorRoute({ live, base }: { live: LiveService; base: string }) {
+  const { publicationId = '' } = useParams()
+  return <LiveTeacherMonitor key={publicationId} service={live} publicationId={publicationId} base={base} />
 }

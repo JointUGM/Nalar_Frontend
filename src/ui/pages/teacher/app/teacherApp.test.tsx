@@ -3,9 +3,11 @@ import { MemoryRouter } from 'react-router'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { Identity } from '@/domain/model/Identity'
 import { KnowledgeBaseUseCases } from '@/application/knowledge-base-use-cases'
+import { LiveUseCases } from '@/application/live-use-cases'
 import { TeacherUseCases } from '@/application/teacher-use-cases'
 import { HttpApi } from '@/infrastructure/services/HttpApi'
 import { HttpKnowledgeBaseService } from '@/infrastructure/services/HttpKnowledgeBaseService'
+import { HttpLiveService } from '@/infrastructure/services/HttpLiveService'
 import { HttpTeacherService } from '@/infrastructure/services/HttpTeacherService'
 import { AppRoutes } from '@/ui/routes'
 import { ProtectedRole } from '@/ui/pages/account/ProtectedRole'
@@ -83,6 +85,13 @@ function backend(overrides: Record<string, Reply> = {}) {
     [`GET /jobs/${job}`]: () => Response.json(jobOut()),
     [`GET /schools/${school}/knowledge-bases?limit=100`]: () => Response.json(kbList),
     [`GET /missions/${draft}/versions/1`]: () => Response.json(versionOut()),
+    [`GET /publications/${publication}/monitor`]: () => Response.json({
+      run: { id: school, mode: 'live', status: 'open', join_code: 'K7Q2MW', started_at: '2026-10-02T03:00:00Z' }, waiting_count: 1, server_now: '2026-10-02T03:05:00Z',
+      students: [
+        { student_id: student, name: 'Raka Pratama', status: 'in_progress', current_turn_index: 2, max_turns: 4, deadline_at: null, open_flag_count: 0, safety_paused: true },
+        { student_id: klass, name: 'Sinta Dewi', status: 'completed', current_turn_index: 4, max_turns: 4, deadline_at: null, open_flag_count: 1, safety_paused: false },
+      ],
+    }),
     'POST /publications': () => Response.json({ publication_id: publication, run_id: school, run_status: 'scheduled' }, { status: 201 }),
     ...overrides,
   }
@@ -97,7 +106,8 @@ function open(path: string, request: typeof fetch) {
   const api = new HttpApi({ apiBaseUrl: '/api/v1', fetch: request })
   const service = new TeacherUseCases(new HttpTeacherService(api))
   const kb = new KnowledgeBaseUseCases(new HttpKnowledgeBaseService(api))
-  return render(<MemoryRouter initialEntries={[path]}><AppRoutes accountEntry={<h1>Masuk</h1>} privateEntry={<ProtectedRole dependencies={account} renderRole={(verified) => <TeacherRoutes service={service} kb={kb} identity={verified} />} />} /></MemoryRouter>)
+  const live = new LiveUseCases(new HttpLiveService({ apiBaseUrl: '/api/v1', fetch: request }))
+  return render(<MemoryRouter initialEntries={[path]}><AppRoutes accountEntry={<h1>Masuk</h1>} privateEntry={<ProtectedRole dependencies={account} renderRole={(verified) => <TeacherRoutes service={service} kb={kb} live={live} identity={verified} />} />} /></MemoryRouter>)
 }
 
 describe('signed-in teacher pages', () => {
@@ -162,6 +172,17 @@ describe('signed-in teacher pages', () => {
     await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1))
     const [, init] = request.mock.calls.find(([, options]) => options?.method === 'POST')!
     expect(JSON.parse(String(init?.body))).toEqual({ class_id: klass, mission_version_id: version, run: { mode: 'live' } })
+  })
+
+  it('shows the safety alert first and filters the monitored students by status', async () => {
+    open(`${base}/publications/${publication}/monitor`, backend())
+    expect(await screen.findByRole('alert')).toHaveTextContent('Raka Pratama mungkin butuh bantuan Anda')
+    const done = screen.getByRole('button', { name: /SELESAI/ })
+    expect(done).toHaveTextContent('1')
+    fireEvent.click(done)
+    expect(screen.getByText('Sinta Dewi')).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: /Siswa/ })).queryByText('Raka Pratama')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Kode K7Q2MW/ })).toHaveAttribute('href', `${base}/publications/${publication}/projector`)
   })
 
   it('uploads a PDF as multipart and follows the reading job on the topic page', async () => {
