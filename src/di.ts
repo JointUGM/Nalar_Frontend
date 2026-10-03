@@ -1,4 +1,5 @@
 import { SignInUseCase } from '@/application/sign-in-use-case'
+import { ActivateAccountUseCase } from '@/application/activate-account-use-case'
 import { SignOutUseCase } from '@/application/sign-out-use-case'
 import { ObserveAuthSessionUseCase } from '@/application/observe-auth-session-use-case'
 import { GetCurrentIdentityUseCase } from '@/application/get-current-identity-use-case'
@@ -41,6 +42,7 @@ export async function createDependencies(config: PublicAppConfig): Promise<{ acc
     teacher: new TeacherUseCases(new HttpTeacherService(api)),
     knowledgeBase: new KnowledgeBaseUseCases(new HttpKnowledgeBaseService(api)),
     account: {
+      activate: new ActivateAccountUseCase(auth),
       signIn: new SignInUseCase(auth), signOut: new SignOutUseCase(auth), session: new ObserveAuthSessionUseCase(auth),
       identity: new GetCurrentIdentityUseCase(new HttpIdentityRepository({ apiBaseUrl })),
     },

@@ -18,6 +18,7 @@ function deferred<T>() {
   return { promise, resolve, reject }
 }
 class TestAuth implements AuthService {
+  async activateAccount(): Promise<void> { throw new Error('Login must not activate an account') }
   current: AuthSession | null = null
   attempts: SignInCredentials[] = []
   listeners = new Set<(value: AuthSession | null) => void>()
