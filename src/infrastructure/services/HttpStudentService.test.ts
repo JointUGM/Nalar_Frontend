@@ -7,7 +7,7 @@ import { HttpStudentService } from './HttpStudentService'
 const id = '00000000-0000-4000-8000-00000000000a'
 const session = '00000000-0000-4000-8000-00000000000b'
 const service = (request: typeof fetch) => new StudentUseCases(new HttpStudentService(new HttpApi({ apiBaseUrl: '/api/v1', fetch: request })))
-const card = { publication_id: id, mission_title: 'Kelereng', subject_name: 'IPA', mode: 'window', run_status: 'open', attempt_status: 'not_started', opens_at: '2026-10-02T00:30:00+00:00', closes_at: null, max_duration_minutes: 20 }
+const card = { session_id: null, publication_id: id, mission_title: 'Kelereng', subject_name: 'IPA', mode: 'window', run_status: 'open', attempt_status: 'not_started', opens_at: '2026-10-02T00:30:00+00:00', closes_at: null, max_duration_minutes: 20 }
 const paste: TelemetryEvent = { type: 'paste', at: '2026-10-02T01:00:00.000Z', value: 42 }
 
 describe('student HTTP adapter', () => {
