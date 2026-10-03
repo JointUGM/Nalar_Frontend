@@ -1,89 +1,111 @@
 import { useCallback } from 'react'
 import { Link } from 'react-router'
-import type { DashboardWeek, TeacherDashboard } from '@/domain/model/Teacher'
+import type { ApiError } from '@/domain/model/ApiError'
+import type { AttentionItem, AttentionPage, DashboardWeek, TeacherDashboard } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
-import { formatDay } from '@/ui/formatInstant'
+import type { IconName } from '@/ui/components/icon/Icon'
+import { formatDay, formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherHome.module.css'
 import sections from '@/ui/pages/teacher/HomeSections.module.css'
 
+interface AttentionResource { data: AttentionPage | null; error: ApiError | null; online: boolean; refresh: () => void }
+const number = new Intl.NumberFormat('id-ID')
+const shortDay = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', timeZone: 'Asia/Jakarta' })
 const percent = (rate: number | null) => rate === null ? '—' : `${Math.round(rate * 100)}%`
-const change = (now: number, before: number, unit = '') => now === before ? 'Sama dengan minggu lalu' : `${now > before ? '+' : '−'}${Math.abs(now - before)}${unit} dari minggu lalu`
+const change = (now: number, before: number, unit = '') => now === before ? 'Sama dengan minggu lalu' : `${now > before ? '+' : '−'}${number.format(Math.abs(now - before))}${unit} dari minggu lalu`
 const series = [['mastered', 'Paham'], ['developing', 'Berkembang'], ['misconception', 'Miskonsepsi']] as const
-// The chart plots each outcome as a share of all concept results that week, 0% at the bottom and 100% at the top.
-const point = (week: number, share: number) => ({ x: 36 + week * 80, y: 130 - share * 120 })
+const priority = { safety: 0, flag: 1, kb_review: 2, release_ready: 3 }
+const taskKind = { safety: 'Pendampingan siswa', flag: 'Verifikasi sesi', kb_review: 'Tinjauan materi', release_ready: 'Rilis ringkasan' }
 
 function kpis(week: DashboardWeek, last: DashboardWeek) {
   const rate = week.changed_mind_rate, before = last.changed_mind_rate
   return [
-    { label: 'Sesi selesai', value: String(week.sessions_completed), chip: change(week.sessions_completed, last.sessions_completed), tone: 'success', caption: `Dari ${week.students} siswa` },
-    { label: 'Miskonsepsi aktif', value: String(week.active_misconceptions), chip: change(week.active_misconceptions, last.active_misconceptions), tone: 'misconception', caption: `Di ${week.concepts_with_misconceptions} konsep` },
-    { label: 'Berubah pikiran', value: percent(rate), chip: rate === null || before === null ? 'Belum ada pembanding' : change(Math.round(rate * 100), Math.round(before * 100), ' poin'), tone: 'success', caption: 'Saat sesi, tanpa diberi tahu' },
-    { label: 'Perlu verifikasi', value: String(week.open_flags), chip: 'Belum ditinjau', tone: 'verification', caption: 'Tidak mengubah skor' },
-  ] as const
+    { label: 'Sesi selesai', value: number.format(week.sessions_completed), change: change(week.sessions_completed, last.sessions_completed), caption: `Dari ${number.format(week.students)} siswa` },
+    { label: 'Miskonsepsi aktif', value: number.format(week.active_misconceptions), change: change(week.active_misconceptions, last.active_misconceptions), caption: `Di ${number.format(week.concepts_with_misconceptions)} konsep` },
+    { label: 'Berubah pikiran', value: percent(rate), change: rate === null || before === null ? 'Belum ada pembanding' : change(Math.round(rate * 100), Math.round(before * 100), ' poin'), caption: 'Mengoreksi pemahaman saat sesi' },
+    { label: 'Perlu verifikasi', value: number.format(week.open_flags), change: week.open_flags > 0 ? 'Belum ditinjau' : 'Tidak ada catatan terbuka', caption: 'Tidak mengubah skor penalaran' },
+  ]
 }
 
-function Trend({ trend }: { trend: TeacherDashboard['trend'] }) {
-  const shares = trend.map((week) => { const total = week.mastered + week.developing + week.misconception; return { week, total, share: (key: typeof series[number][0]) => total ? week[key] / total : 0 } })
-  return <section className={sections.card} aria-labelledby="home-trend">
-    <div className={sections.head}><h2 id="home-trend" className={sections.title}><Icon name="graph" size={16} />Tren pemahaman</h2><span className={sections.range}>{trend.length} minggu terakhir</span></div>
-    <ul className={sections.legend}>{series.map(([key, label]) => <li key={key}><svg width="22" height="8" viewBox="0 0 22 8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" className={sections[key === 'mastered' ? 'understood' : key]} /></svg>{label}</li>)}</ul>
-    <svg viewBox="0 0 320 150" role="img" aria-label="Grafik garis bagian hasil konsep per minggu untuk paham, berkembang, dan miskonsepsi. Data lengkap ada pada tabel di bawah." className={sections.chart}>
-      <g className={sections.axis}>
-        {[['100%', 14], ['67%', 54], ['33%', 94], ['0%', 134]].map(([text, y]) => <text key={text} x="0" y={y}>{text}</text>)}
-        {shares.map(({ week }, index) => <text key={week.week_start} x={point(index, 0).x} y="148">{formatDay(week.week_start)}</text>)}
-      </g>
-      <path d={[10, 50, 90, 130].map((y) => `M28 ${y}H320`).join('')} className={sections.grid} />
-      {series.map(([key]) => <g key={key} className={sections[key === 'mastered' ? 'understood' : key]}>
-        <polyline points={shares.map(({ share }, index) => { const at = point(index, share(key)); return `${at.x},${at.y}` }).join(' ')} />
-        {shares.map(({ share }, index) => { const at = point(index, share(key)); return <circle key={index} cx={at.x} cy={at.y} r="2.5" /> })}
-      </g>)}
-    </svg>
-    <details className={sections.table}>
-      <summary>Lihat data tren sebagai tabel</summary>
-      <table>
-        <caption>Jumlah hasil konsep per minggu</caption>
-        <thead><tr><th scope="col">Minggu mulai</th>{series.map(([key, label]) => <th key={key} scope="col">{label}</th>)}</tr></thead>
-        <tbody>{trend.map((week) => <tr key={week.week_start}><th scope="row">{formatDay(week.week_start)}</th>{series.map(([key]) => <td key={key}>{week[key]}</td>)}</tr>)}</tbody>
-      </table>
-    </details>
+function attentionLink(item: AttentionItem, base: string): { title: string; detail: string; action: string; icon: IconName; to: string } {
+  switch (item.kind) {
+    case 'safety': return { title: `${item.student_name} membutuhkan pendampingan`, detail: 'Sesi dijeda untuk keselamatan. Periksa kondisi siswa sebelum melanjutkan.', action: 'Dampingi siswa', icon: 'heart', to: `${base}/publications/${item.publication_id}/sessions/${item.session_id}` }
+    case 'flag': return { title: `Verifikasi sesi ${item.student_name}`, detail: 'Tinjau aktivitas dan jawaban siswa. Catatan ini tidak mengubah skor.', action: 'Tinjau sesi', icon: 'flag', to: `${base}/publications/${item.publication_id}/sessions/${item.session_id}` }
+    case 'kb_review': return { title: `Tinjau materi ${item.topic_title}`, detail: `${number.format(item.pending_concepts)} konsep dan ${number.format(item.pending_misconceptions)} miskonsepsi menunggu persetujuan.`, action: 'Tinjau materi', icon: 'book', to: `${base}/knowledge-base/${item.knowledge_base_id}` }
+    case 'release_ready': return { title: `Ringkasan kelas ${item.class_name} siap dirilis`, detail: `${item.mission_title} · ${number.format(item.eligible_count)} ringkasan siap ditinjau.`, action: 'Pratinjau rilis', icon: 'send', to: `${base}/publications/${item.publication_id}/release` }
+  }
+}
+
+function NextSteps({ resource, base }: { resource: AttentionResource; base: string }) {
+  const { data, error, online, refresh } = resource
+  const items = data ? [...data.items].sort((a, b) => priority[a.kind] - priority[b.kind]).slice(0, 4) : []
+  return <section className={sections.agenda} aria-labelledby="home-next" aria-busy={!data && !error}>
+    <div className={sections.head}><div><h2 id="home-next">Perlu perhatian</h2><p>Tinjauan dan tindak lanjut Anda.</p></div>{data && data.counts.total > 0 && <span className={sections.count}>{number.format(data.counts.total)}</span>}</div>
+    <LiveFeedback error={error} online={online} refresh={refresh} />
+    {!data && !error && <p role="status" className={sections.empty}>Memuat tugas Anda…</p>}
+    {data && (data.counts.total === 0 ? <div className={sections.clear}><span className={sections.clearIcon}><Icon name="check" size={20} /></span><div><h3>Tidak ada tinjauan yang menunggu.</h3><p>Anda bisa menyiapkan misi berikutnya atau melihat hasil kelas.</p></div></div> : items.length === 0 ? <p className={sections.empty}>Buka Perlu perhatian untuk melihat tugas yang tersedia.</p> : <ul className={sections.tasks}>{items.map((item) => {
+      const entry = attentionLink(item, base)
+      return <li key={`${item.kind}-${item.item_id}`}><Link to={entry.to} className={sections.task} data-kind={item.kind}>
+        <span className={sections.taskKind}><Icon name={entry.icon} size={14} />{taskKind[item.kind]}</span>
+        <span className={sections.taskText}><strong>{entry.title}</strong><span>{entry.detail}</span></span>
+        <span className={sections.taskAction}>{entry.action}<Icon name="chevronRight" size={16} /></span>
+      </Link></li>
+    })}</ul>)}
+    <Link className={sections.allTasks} to={`${base}/attention`}>Lihat semua perhatian<Icon name="chevronRight" size={16} /></Link>
   </section>
 }
 
-export function TeacherHomePage({ service, base, schoolId, user }: { service: TeacherService; base: string; schoolId: string; user: string }) {
+function Trend({ trend }: { trend: TeacherDashboard['trend'] }) {
+  const hasResults = trend.some((week) => week.mastered + week.developing + week.misconception > 0)
+  return <section className={sections.trend} aria-labelledby="home-trend">
+    <div className={sections.head}><div><h2 id="home-trend">Tren pemahaman</h2><p>{trend.length > 0 ? `Komposisi hasil konsep dalam ${trend.length} minggu terakhir.` : 'Komposisi pemahaman dari hasil sesi kelas Anda.'}</p></div></div>
+    {!hasResults ? <p className={sections.empty}>Tren akan muncul setelah hasil konsep tersedia.</p> : <>
+      <ul className={sections.legend}>{series.map(([key, label]) => <li key={key}><span className={sections[key]} aria-hidden="true" />{label}</li>)}</ul>
+      <div className={sections.chart} role="img" aria-label="Komposisi paham, berkembang, dan miskonsepsi per minggu. Jumlah lengkap tersedia pada tabel di bawah.">
+        {trend.map((week) => {
+          const total = week.mastered + week.developing + week.misconception
+          return <div className={sections.chartRow} key={week.week_start}><span className={sections.week}>{shortDay.format(new Date(week.week_start))}</span><div className={sections.stack}>{series.filter(([key]) => week[key] > 0).map(([key]) => <span key={key} className={sections[key]} style={{ width: `${total ? week[key] / total * 100 : 0}%` }} />)}</div><span className={sections.chartValue}>{total ? percent(week.mastered / total) : '—'}<span> paham</span></span></div>
+        })}
+      </div>
+      <details className={sections.table}><summary>Lihat data tren sebagai tabel<Icon name="chevronDown" size={16} /></summary><div className={sections.tableScroll}>
+        <table><caption>Jumlah hasil konsep per minggu, bukan jumlah siswa</caption><thead><tr><th scope="col">Minggu mulai</th>{series.map(([key, label]) => <th key={key} scope="col">{label}</th>)}</tr></thead><tbody>{trend.map((week) => <tr key={week.week_start}><th scope="row">{formatDay(week.week_start)}</th>{series.map(([key]) => <td key={key}>{number.format(week[key])}</td>)}</tr>)}</tbody></table>
+      </div></details>
+    </>}
+  </section>
+}
+
+export function TeacherHomePage({ service, base, schoolId, user, attention }: { service: TeacherService; base: string; schoolId: string; user: string; attention: AttentionResource }) {
   const read = useCallback((signal: AbortSignal) => service.dashboard(schoolId, signal), [service, schoolId])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   return <div className={styles.content}>
-    <div className={styles.header}>
-      <div><h1>Selamat datang, {user.split(' ')[0]}</h1><p>{data ? `Minggu ini, dihitung sampai ${formatDay(data.as_of)}` : 'Ringkasan minggu ini'}</p></div>
-      <div className={styles.actions}><ButtonLink className={styles.start} to={`${base}/sessions`}><Icon name="monitor" size={14} />Sesi dan hasil</ButtonLink></div>
-    </div>
-    <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat ringkasan…</p>}
+    <div className={styles.header}><div><span className={styles.eyebrow}>Ruang mengajar Anda</span><h1>Selamat datang, {user.split(' ')[0]}</h1><p>Temukan yang berubah. Tentukan langkah berikutnya.</p></div><ButtonLink className={styles.start} to={`${base}/missions/new`}><Icon name="plus" size={18} />Buat misi</ButtonLink></div>
+    <section className={styles.summary} aria-labelledby="home-week" aria-busy={!data && !error}>
+      <div className={styles.sectionHead}><h2 id="home-week">Pembelajaran minggu ini</h2>{data && <span>Diperbarui {formatDayTime(data.as_of)}</span>}</div>
+      <LiveFeedback error={error} online={online} refresh={refresh} />
+      {!data && !error && <div role="status" className={styles.loading}><span>Memuat ringkasan…</span><div className={styles.skeleton} aria-hidden="true">{Array.from({ length: 4 }, (_, index) => <div key={index} />)}</div></div>}
+      {data && <>
+        <ul className={styles.kpis} aria-label="Ringkasan minggu ini">{kpis(data.this_week, data.last_week).map((kpi) => <li key={kpi.label}><span className={styles.label}>{kpi.label}</span><strong className={styles.value}>{kpi.value}</strong><span className={styles.comparison}>{kpi.change}</span><span className={styles.caption}>{kpi.caption}</span></li>)}</ul>
+        {data.this_week.sessions_completed === 0 && <div className={styles.empty}><div><strong>Belum ada sesi selesai minggu ini.</strong><p>Hasil akan terisi setelah siswa menyelesaikan misi dan evaluasi tersedia.</p></div><Link to={`${base}/sessions`}>Lihat sesi<Icon name="chevronRight" size={16} /></Link></div>}
+      </>}
+    </section>
+    <div className={styles.workbench} data-has-insights={Boolean(data)}>
+    <div className={styles.insights}>
     {data && <>
-      <ul className={styles.kpis} aria-label="Ringkasan minggu ini">{kpis(data.this_week, data.last_week).map((kpi) => <li key={kpi.label}>
-        <span className={styles.label}>{kpi.label}</span>
-        <div className={styles.value}><strong>{kpi.value}</strong></div>
-        <span className={[styles.chip, styles[kpi.tone]].join(' ')}>{kpi.chip}</span>
-        <small>{kpi.caption}</small>
-      </li>)}</ul>
-      <div className={styles.insights}>
-        <div className={styles.primary}><Trend trend={data.trend} /></div>
-        <section className={[sections.card, sections.flush].join(' ')} aria-labelledby="home-changed">
-          <div className={sections.changedHead}><h2 id="home-changed" className={sections.title}><Icon name="idea" size={16} />Berubah pikiran minggu ini</h2><p className={sections.muted}>Siswa yang mengoreksi sendiri miskonsepsinya selama sesi.</p></div>
-          {data.top_changed.length === 0 ? <p className={sections.muted}>Belum ada perubahan pikiran minggu ini.</p> : <ol className={sections.changed} role="list">{data.top_changed.map((item, index) => <li key={item.misconception_id}>
-            <div className={sections.changedTitle}><span className={sections.rank} aria-hidden="true">{index + 1}</span><div><h3>“{item.statement}”</h3></div></div>
-            <dl className={sections.stats}>
-              <div><dt>Awalnya</dt><dd><span className={[sections.mark, sections.urgent].join(' ')} aria-hidden="true"><Icon name="users" size={9} /></span>{item.held} siswa</dd></div>
-              <div><dt>Berubah</dt><dd className={sections.good}><span className={[sections.mark, sections.success].join(' ')} aria-hidden="true"><Icon name="arrowUp" size={9} /></span>{item.resolved} siswa</dd></div>
-            </dl>
-          </li>)}</ol>}
-          <p className={sections.muted}><Link to={`${base}/attention`}>Lihat yang perlu perhatian</Link></p>
-        </section>
-      </div>
+      <Trend trend={data.trend} />
+      <section className={sections.changedPanel} aria-labelledby="home-changed"><div className={sections.head}><div><h2 id="home-changed">Berubah pikiran minggu ini</h2><p>Miskonsepsi yang siswa koreksi sendiri saat berdialog.</p></div></div>
+        {data.top_changed.length === 0 ? <p className={sections.empty}>Belum ada perubahan pikiran minggu ini.</p> : <ol className={sections.changed}>{data.top_changed.map((item, index) => <li key={item.misconception_id}><span className={sections.ordinal} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><div><h3>“{item.statement}”</h3><p><strong>{number.format(item.resolved)} siswa berubah pikiran</strong><span>dari {number.format(item.held)} siswa yang awalnya memegang miskonsepsi ini.</span></p></div></li>)}</ol>}
+        <Link className={sections.link} to={`${base}/sessions`}>Jelajahi hasil kelas<Icon name="chevronRight" size={16} /></Link>
+      </section>
     </>}
+    </div>
+    <div className={styles.rail}>
+    <NextSteps resource={attention} base={base} />
+    <section className={styles.prepare} aria-labelledby="home-prepare"><span className={styles.prepareLabel}><Icon name="layers" size={16} />Persiapan mengajar</span><div><h2 id="home-prepare">Materi yang Anda percaya.</h2><p>Tinjau konsep dan miskonsepsi sebelum menyusun misi untuk kelas Anda.</p></div><Link to={`${base}/knowledge-base`}>Buka basis pengetahuan<Icon name="chevronRight" size={16} /></Link></section>
+    </div>
+    </div>
   </div>
 }

@@ -288,8 +288,10 @@ describe('signed-in teacher pages', () => {
   it('lists a class with each student’s latest attempt and concept results', async () => {
     open(`${base}/classes`, backend())
     const row = within((await screen.findByRole('rowheader', { name: 'Raka Pratama' })).closest('tr')!)
-    expect(row.getByText('Selesai · 1 perlu verifikasi')).toBeInTheDocument()
-    expect(row.getByText('2 paham · 1 berkembang · 1 miskonsepsi')).toBeInTheDocument()
+    expect(row.getByText('Selesai', { exact: true })).toBeInTheDocument()
+    expect(row.getByText('1 perlu verifikasi')).toBeInTheDocument()
+    expect(row.getAllByRole('term').map((label) => label.textContent)).toEqual(['Paham', 'Berkembang', 'Miskonsepsi'])
+    expect(row.getAllByRole('definition').map((count) => count.textContent)).toEqual(['2', '1', '1'])
   })
 
   it('uploads a PDF as multipart and follows the reading job on the topic page', async () => {
