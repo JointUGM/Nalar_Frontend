@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Route, Routes, useLocation, useNavigate, useParams } from 'react-router'
 import type { Identity } from '@/domain/model/Identity'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
@@ -7,7 +7,6 @@ import type { TeacherService } from '@/domain/services/TeacherService'
 import type { AccountDependencies } from '@/ui/pages/account/AccountDependencies'
 import { ChangePasswordDialog } from '@/ui/pages/account/ChangePasswordDialog'
 import { LiveTeacherMonitor } from '@/ui/pages/live/LiveTeacherRun'
-import { useLiveResource } from '@/ui/pages/live/useLiveResource'
 import { TeacherContextProvider } from '@/ui/components/teacher-shell/TeacherContextProvider'
 import { TeacherShell } from '@/ui/components/teacher-shell/TeacherShell'
 import { TeacherAttentionPage } from './TeacherAttentionPage'
@@ -24,9 +23,7 @@ import { TeacherPublishPage } from './TeacherPublishPage'
 import { TeacherReleasePage } from './TeacherReleasePage'
 import { TeacherReportPage } from './TeacherReportPage'
 import { TeacherSessionsPage } from './TeacherSessionsPage'
-
-// The attention queue backs both the sidebar badge and its page; it is reread on every navigation and once a minute.
-const attentionPollMs = () => 60_000
+import { useAttention } from './useAttention'
 
 // ProtectedRole has already checked that this account teaches at the school in the path.
 export function TeacherRoutes({ service, kb, live, identity, changePassword }: { service: TeacherService; kb: KnowledgeBaseService; live: LiveService; identity: Identity; changePassword?: AccountDependencies['changePassword'] }) {
@@ -37,10 +34,7 @@ export function TeacherRoutes({ service, kb, live, identity, changePassword }: {
   const base = `/teacher/${schoolId}`
   const schools = identity.memberships.filter((item) => item.role === 'teacher')
   const school = schools.find((item) => item.schoolId.toLowerCase() === schoolId.toLowerCase())?.schoolName ?? ''
-  const readAttention = useCallback((signal: AbortSignal) => service.attention(schoolId, signal), [service, schoolId])
-  const attention = useLiveResource(readAttention, attentionPollMs)
-  const refreshAttention = attention.refresh
-  useEffect(() => { refreshAttention() }, [pathname, refreshAttention])
+  const attention = useAttention(service, schoolId, pathname)
   const waiting = attention.data?.counts.total ?? 0
   const nav = [
     { label: 'Beranda', icon: 'home', to: base, exclude: /^\/teacher\/[^/]+\/./ },
