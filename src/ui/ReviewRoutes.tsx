@@ -19,7 +19,7 @@ const AccountPassword = lazy(() => import('@/ui/pages/account/AccountPassword').
 const TeacherAttention = lazy(() => import('@/ui/pages/teacher/TeacherAttention').then((module) => ({ default: module.TeacherAttention })))
 const TeacherClasses = lazy(() => import('@/ui/pages/teacher/TeacherClasses').then((module) => ({ default: module.TeacherClasses })))
 
-export function ReviewRoutes({ accountEntry, activationEntry, privateEntry }: { accountEntry: ReactNode; activationEntry?: ReactNode; privateEntry?: ReactNode }) {
+export function ReviewRoutes({ accountEntry, activationEntry, resetEntry, privateEntry }: { accountEntry: ReactNode; activationEntry?: ReactNode; resetEntry?: ReactNode; privateEntry?: ReactNode }) {
   return <Suspense fallback={<p role="status">Memuat halaman…</p>}><Routes>
     <Route path="/review/platform/schools" element={<PlatformSchools />} />
     <Route path="/review/platform/schools/:schoolId" element={<PlatformSchools />} />
@@ -38,6 +38,6 @@ export function ReviewRoutes({ accountEntry, activationEntry, privateEntry }: { 
     <Route path="/review/account/activate" element={<AccountActivate />} />
     <Route path="/review/account/reset" element={<AccountReset />} />
     <Route path="/review/account/password" element={<AccountPassword />} />
-    <Route path="*" element={<AppRoutes accountEntry={accountEntry} activationEntry={activationEntry} privateEntry={privateEntry} />} />
+    <Route path="*" element={<AppRoutes accountEntry={accountEntry} activationEntry={activationEntry} resetEntry={resetEntry} privateEntry={privateEntry} />} />
   </Routes></Suspense>
 }

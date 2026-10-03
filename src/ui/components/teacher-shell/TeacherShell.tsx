@@ -23,7 +23,7 @@ const more: readonly NavItem[] = [{ label: 'Ubah kata sandi', icon: 'key' }, { l
 const unavailable = 'Belum tersedia di pratinjau'
 
 // The defaults are the example-data review pages; a signed-in teacher passes the real navigation and review={false}, which also hides the example assistant, notifications and search results.
-export function TeacherShell({ title, user, nav = workspace, home = '/review/teacher/home', review = true, children }: { title: string; user: string; nav?: readonly NavItem[]; home?: string; review?: boolean; children: ReactNode }) {
+export function TeacherShell({ title, user, nav = workspace, home = '/review/teacher/home', review = true, onChangePassword, children }: { title: string; user: string; nav?: readonly NavItem[]; home?: string; review?: boolean; onChangePassword?: () => void; children: ReactNode }) {
   const { school, schools, changeSchool } = useTeacherContext()
   const [collapsed, setCollapsed] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -53,6 +53,7 @@ export function TeacherShell({ title, user, nav = workspace, home = '/review/tea
       <button type="button" aria-expanded={schoolOpen} aria-controls="teacher-school-list" onClick={() => setSchoolOpen((open) => !open)}><Icon name="swap" /><span className={styles.label}>Ganti sekolah</span></button>
       {schoolOpen && <div id="teacher-school-list" role="group" aria-label="Pilih sekolah" className={styles.schools}>{schools.map((name) => <button key={name} type="button" aria-pressed={name === school} onClick={() => { changeSchool(name); setSchoolOpen(false); close() }}>{name}{name === school && <Icon name="check" size={14} />}</button>)}</div>}
       {review && more.map(item)}
+      {onChangePassword && <button type="button" onClick={() => { close(); onChangePassword() }}><Icon name="key" /><span className={styles.label}>Ubah kata sandi</span></button>}
     </nav>
   </>
   // On a phone the sidebar is hidden, so signing out has to live in the drawer too.

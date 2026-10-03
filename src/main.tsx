@@ -1,5 +1,5 @@
 import { createElement, lazy, StrictMode } from 'react'
-import { captureActivationLink } from './activation-link'
+import { captureActivationLink, captureResetLink } from './activation-link'
 import type { ReactNode } from 'react'
 import type { TelemetryBatch } from './domain/model/Student'
 import { createRoot } from 'react-dom/client'
@@ -9,6 +9,7 @@ import { AccountLoadFailure } from './ui/routes'
 import './index.css'
 
 const activationProof = captureActivationLink(window.location, window.history)
+const resetProof = captureResetLink(window.location, window.history)
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Missing root element in index.html')
@@ -33,6 +34,15 @@ const accountEntry = createElement(lazy(async () => {
     return { default: () => <Login dependencies={created.account} /> }
   } catch {
     return { default: AccountLoadFailure }
+  }
+}))
+
+const resetEntry = createElement(lazy(async () => {
+  try {
+    const [created, { ResetPassword }] = await Promise.all([getDependencies(), import('./ui/pages/account/ResetPassword')])
+    return { default: () => <ResetPassword proof={resetProof} dependencies={created.account} /> }
+  } catch {
+    return { default: () => <main><h1>Pemulihan kata sandi belum dapat dibuka</h1><p>Coba lagi nanti atau hubungi admin sekolah.</p><a href="/login">Masuk ke NALAR</a></main> }
   }
 }))
 
@@ -66,7 +76,7 @@ const privateEntry = createElement(lazy(async () => {
       if (created.school && path.startsWith('/school/')) return <SchoolRoutes service={created.school} identity={identity} />
       if (student && path.startsWith('/student/')) return <StudentRoutes service={student} identity={identity} />
       // Every other teacher path is a real teacher page: sessions, results, missions or the knowledge base.
-      return teacher && knowledgeBase && created.live && path.startsWith('/teacher/') ? <TeacherRoutes service={teacher} kb={knowledgeBase} live={created.live} identity={identity} /> : null
+      return teacher && knowledgeBase && created.live && path.startsWith('/teacher/') ? <TeacherRoutes service={teacher} kb={knowledgeBase} live={created.live} identity={identity} changePassword={created.account?.changePassword} /> : null
     }} /> }
   } catch {
     return { default: AccountLoadFailure }
@@ -77,6 +87,6 @@ if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('prev
   void import('./ui/pages/foundation-preview/FoundationPreview').then(({ FoundationPreview }) => render(<FoundationPreview />))
 } else {
   void Promise.all([import('./review-di'), import('./ui/ReviewRoutes')]).then(([{ createReviewDependencies }, { ReviewRoutes }]) => {
-    render(<BrowserRouter><DependenciesProvider value={createReviewDependencies()}><ReviewRoutes accountEntry={accountEntry} activationEntry={activationEntry} privateEntry={privateEntry} /></DependenciesProvider></BrowserRouter>)
+    render(<BrowserRouter><DependenciesProvider value={createReviewDependencies()}><ReviewRoutes accountEntry={accountEntry} activationEntry={activationEntry} resetEntry={resetEntry} privateEntry={privateEntry} /></DependenciesProvider></BrowserRouter>)
   })
 }

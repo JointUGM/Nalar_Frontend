@@ -210,7 +210,7 @@ export function Login({ dependencies }: { dependencies: AccountDependencies | nu
                 </form>
 
                 <p className={styles.help}>
-                  Belum punya kata sandi atau perlu bantuan masuk? Hubungi pengelola akun Anda.
+                  <a href="/reset-password">Lupa kata sandi?</a> Belum punya akun atau perlu bantuan masuk? Hubungi pengelola akun Anda.
                 </p>
               </>
             )}

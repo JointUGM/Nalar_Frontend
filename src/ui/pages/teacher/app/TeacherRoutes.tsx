@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { Route, Routes, useLocation, useNavigate, useParams } from 'react-router'
 import type { Identity } from '@/domain/model/Identity'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
 import type { LiveService } from '@/domain/services/LiveService'
 import type { TeacherService } from '@/domain/services/TeacherService'
+import type { AccountDependencies } from '@/ui/pages/account/AccountDependencies'
+import { ChangePasswordDialog } from '@/ui/pages/account/ChangePasswordDialog'
 import { LiveTeacherMonitor } from '@/ui/pages/live/LiveTeacherRun'
 import { TeacherContextProvider } from '@/ui/components/teacher-shell/TeacherContextProvider'
 import { TeacherShell } from '@/ui/components/teacher-shell/TeacherShell'
@@ -19,7 +22,8 @@ import { TeacherReportPage } from './TeacherReportPage'
 import { TeacherSessionsPage } from './TeacherSessionsPage'
 
 // ProtectedRole has already checked that this account teaches at the school in the path.
-export function TeacherRoutes({ service, kb, live, identity }: { service: TeacherService; kb: KnowledgeBaseService; live: LiveService; identity: Identity }) {
+export function TeacherRoutes({ service, kb, live, identity, changePassword }: { service: TeacherService; kb: KnowledgeBaseService; live: LiveService; identity: Identity; changePassword?: AccountDependencies['changePassword'] }) {
+  const [passwordOpen, setPasswordOpen] = useState(false)
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const schoolId = pathname.split('/')[2] ?? ''
@@ -33,7 +37,7 @@ export function TeacherRoutes({ service, kb, live, identity }: { service: Teache
   ] as const
   const title = pathname.includes('/sessions/') ? 'Hasil kelas / Laporan siswa' : pathname.endsWith('/monitor') ? 'Sesi langsung' : pathname.endsWith('/class-map') ? 'Hasil kelas / Peta miskonsepsi' : pathname.endsWith('/release') ? 'Hasil kelas / Rilis ke orang tua' : pathname.includes('/missions') ? 'Misi' : pathname.includes('/knowledge-base') ? 'Basis pengetahuan' : 'Sesi dan hasil'
   return <TeacherContextProvider schools={schools.map((item) => item.schoolName)} current={school} onChange={(name) => { const next = schools.find((item) => item.schoolName === name); if (next) navigate(`/teacher/${next.schoolId}`) }}>
-    <TeacherShell title={title} user={identity.fullName} nav={nav} home={base} review={false}>
+    <TeacherShell title={title} user={identity.fullName} nav={nav} home={base} review={false} onChangePassword={changePassword ? () => setPasswordOpen(true) : undefined}>
       <Routes>
         <Route path=":schoolId" element={<TeacherSessionsPage service={service} base={base} />} />
         <Route path=":schoolId/sessions" element={<TeacherSessionsPage service={service} base={base} />} />
@@ -50,6 +54,7 @@ export function TeacherRoutes({ service, kb, live, identity }: { service: Teache
         <Route path=":schoolId/knowledge-base/:kbId" element={<TeacherKbDetailPage kb={kb} base={base} />} />
         <Route path="*" element={<h1>Halaman tidak tersedia</h1>} />
       </Routes>
+      {changePassword && <ChangePasswordDialog open={passwordOpen} onClose={() => setPasswordOpen(false)} change={changePassword} />}
     </TeacherShell>
   </TeacherContextProvider>
 }
