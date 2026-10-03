@@ -109,6 +109,7 @@ function backend(overrides: Record<string, Reply> = {}) {
       ],
     }),
     [`GET /sessions/${sessionId}/report`]: () => Response.json(reportOut()),
+    [`GET /missions/${draft}/versions`]: () => Response.json([{ version_number: 1, status: 'draft', created_at: '2026-10-02T02:00:00Z', created_by_name: 'Sari Wulandari', reviewed_at: null, locked_at: null }]),
     [`GET /teacher/attention?school_id=${school}&limit=50`]: () => Response.json({ next_cursor: null, counts: { safety: 1, flag: 0, kb_review: 1, release_ready: 0, total: 2 }, items: [
       { kind: 'safety', item_id: sessionId, created_at: '2026-10-02T03:10:00Z', session_id: sessionId, publication_id: publication, student_name: 'Raka Pratama', paused_at: '2026-10-02T03:10:00Z' },
       { kind: 'kb_review', item_id: kbId, created_at: '2026-10-02T01:00:00Z', knowledge_base_id: kbId, topic_title: 'Tekanan Zat', pending_concepts: 1, pending_misconceptions: 2 },

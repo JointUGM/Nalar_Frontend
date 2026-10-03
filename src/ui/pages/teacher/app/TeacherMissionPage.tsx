@@ -3,19 +3,20 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
 import type { Job, KbDetail } from '@/domain/model/KnowledgeBase'
 import { publishable } from '@/domain/model/Teacher'
-import type { MissionSummary, MissionVersion } from '@/domain/model/Teacher'
+import type { MissionSummary, MissionVersion, VersionHistory } from '@/domain/model/Teacher'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
+import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherMissionReview.module.css'
 import { JobNotice } from './JobNotice'
 import { missionRefusal, moveWord, problemWord, rubricWord, versionWord } from './missionText'
 
-interface Loaded { mission: MissionSummary; version: MissionVersion | null; detail: KbDetail | null }
+interface Loaded { mission: MissionSummary; version: MissionVersion | null; detail: KbDetail | null; history: VersionHistory[] }
 type Command = '' | 'generate' | 'review' | 'save'
 
 export function TeacherMissionPage({ service, kb, base, schoolId }: { service: TeacherService; kb: KnowledgeBaseService; base: string; schoolId: string }) {
@@ -29,8 +30,9 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
     if (!mission) throw new ApiError(404, 'NOT_FOUND')
     const number = requested ?? mission.latest_version?.version_number
     // The knowledge base only supplies the concept names, so the mission still opens without it.
-    const [version, detail] = await Promise.all([number ? service.missionVersion(missionId, number, signal) : null, kb.detail(mission.knowledge_base_id, signal).catch(() => null)])
-    return { mission, version, detail }
+    // The history and the concept names are extras; the version still opens without them.
+    const [version, detail, history] = await Promise.all([number ? service.missionVersion(missionId, number, signal) : null, kb.detail(mission.knowledge_base_id, signal).catch(() => null), service.missionVersions(missionId, signal).catch((): VersionHistory[] => [])])
+    return { mission, version, detail, history }
   }, [service, kb, schoolId, missionId, requested])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   const commandSignal = useCommandSignal()
@@ -47,7 +49,7 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
   const back = <Link className={styles.back} to={`${base}/missions`}><Icon name="chevronLeft" size={14} />Misi</Link>
 
   if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <p role="status">Memuat misi…</p>}</div>
-  const { mission, version, detail } = data
+  const { mission, version, detail, history } = data
   const latest = mission.latest_version
   const isLatest = version !== null && latest?.id === version.id
   const targets = version ? version.target_concept_ids.map((id) => detail?.concepts.find((item) => item.id === id)?.name).filter(Boolean) : []
@@ -81,7 +83,7 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
     <div className={styles.header}>
       <div>
         <div className={styles.title}><h1>{mission.title}</h1><span className={[styles.tag, version?.status === 'draft' ? styles.draft : version ? styles.version : styles.locked].join(' ')}>{version ? `${versionWord[version.status] ?? version.status} · v${version.version_number}` : 'Belum ada versi'}</span></div>
-        <p>{detail ? `Basis pengetahuan: ${detail.topic_title}` : mission.can_edit ? 'Misi Anda' : 'Dari rekan guru'}</p>
+        <p>{[detail && `Basis pengetahuan: ${detail.topic_title}`, mission.can_edit ? 'Misi Anda' : `Dari ${mission.created_by_name ?? 'rekan guru'}`].filter(Boolean).join(' · ')}</p>
       </div>
       <div className={styles.actions}>
         {mission.can_edit && <Button tone="secondary" pending={pending === 'generate'} pendingLabel="Meminta draf…" disabled={pending !== '' || draft !== null} onClick={() => { void run('generate', (signal) => service.generateMission(mission.id, signal), (queued) => setJobId(queued.job_id)) }}><Icon name="sparkle" size={14} />{version ? 'Buat ulang dengan AI' : 'Buat draf dengan AI'}</Button>}
@@ -145,5 +147,13 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
         })}</ul>
       </div></section>
     </>}
+    {history.length > 0 && <section className={styles.panelCard} aria-labelledby="mission-history"><div className={styles.panel}>
+      <h2 id="mission-history">Riwayat versi</h2>
+      <ol className={styles.versions}>{history.map((item) => <li key={item.version_number}>
+        <strong>v{item.version_number}</strong>
+        <span><span>{item.created_by_name ?? 'Rekan guru'} · {formatDayTime(item.created_at)}</span><small>{item.locked_at ? `Dikunci ${formatDayTime(item.locked_at)}` : item.reviewed_at ? `Ditinjau ${formatDayTime(item.reviewed_at)}` : 'Belum ditinjau'}</small></span>
+        {version?.version_number === item.version_number ? <span className={styles.tag}>Sedang dibuka</span> : <Link to={`${path}?v=${item.version_number}`}>{versionWord[item.status] ?? item.status}</Link>}
+      </li>)}</ol>
+    </div></section>}
   </div>
 }
