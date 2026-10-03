@@ -37,8 +37,9 @@ export class HttpStudentService implements StudentService {
   }
 
   // The session page reads its own state, so only the id is kept from the response.
-  async startWindowSession(publicationId: string, signal?: AbortSignal): Promise<WindowSession> {
-    const { data } = await this.api.request(`/student/publications/${encodeURIComponent(publicationId)}/window-session`, { method: 'POST', signal })
+  async startWindowSession(publicationId: string, runId: string | null, signal?: AbortSignal): Promise<WindowSession> {
+    const body: Schemas['WindowStartIn'] | undefined = runId ? { run_id: runId } : undefined
+    const { data } = await this.api.request(`/student/publications/${encodeURIComponent(publicationId)}/window-session`, { method: 'POST', body, signal })
     return { session_id: text(record(data).session_id) }
   }
 

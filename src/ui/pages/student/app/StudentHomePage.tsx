@@ -23,7 +23,7 @@ export function StudentHomePage({ service, base, user }: { service: StudentServi
   const [tab, setTab] = useState<'upcoming' | 'completed'>('upcoming')
   const firstName = user.split(' ')[0]
   const loading = !data && !error
-  const startPath = (mission: MissionCard) => `${base}/missions/${mission.publication_id}/start`
+  const startPath = (mission: MissionCard) => `${base}/missions/${mission.publication_id}/start${mission.is_granted_attempt ? `?run=${mission.run_id}` : ''}`
   const startable = data?.open.filter(canStart) ?? []
   const first = startable[0]
   const empty = data !== null && data.open.length + data.upcoming.length + data.completed.length === 0
@@ -62,12 +62,12 @@ export function StudentHomePage({ service, base, user }: { service: StudentServi
             <div className={styles.cards}>{data.open.map((mission) => {
               const resume = canResume(mission)
               const live = mission.mode === 'live'
-              return <article key={mission.publication_id} className={styles.mission} data-kind={resume ? 'resume' : 'start'} aria-labelledby={`mission-${mission.publication_id}`}>
+              return <article key={mission.run_id} className={styles.mission} data-kind={resume ? 'resume' : 'start'} aria-labelledby={`mission-${mission.run_id}`}>
                 <div className={styles.missionHead}>
                   <span className={styles.badge} data-kind={resume ? 'resume' : 'start'}><Icon name={resume ? 'refresh' : 'clock'} size={11} />{resume ? 'Sedang dikerjakan' : live ? 'Sesi kelas' : mission.closes_at ? `Ditutup ${formatTime(mission.closes_at)}` : 'Terbuka'}</span>
                   <small>{mission.subject_name}</small>
                 </div>
-                <h3 id={`mission-${mission.publication_id}`}>{mission.mission_title}</h3>
+                <h3 id={`mission-${mission.run_id}`}>{mission.mission_title}{mission.is_granted_attempt && <small> · kesempatan ke-{mission.attempt_number}</small>}</h3>
                 <p>{live ? 'Dikerjakan bersama di kelas. Masukkan kode yang ditampilkan gurumu.' : `Satu soal, lalu beberapa pertanyaan tentang alasanmu. Sekitar ${mission.target_duration_minutes} menit.`}</p>
                 {live ? <ButtonLink to={`${base}/join`}>Gabung dengan kode</ButtonLink>
                   : resume ? <ButtonLink tone="secondary" to={startPath(mission)}>Lanjutkan</ButtonLink>
@@ -88,7 +88,7 @@ export function StudentHomePage({ service, base, user }: { service: StudentServi
                 <thead><tr><th scope="col">MISI</th><th scope="col">MAPEL</th><th scope="col">WAKTU</th><th scope="col">STATUS</th></tr></thead>
                 <tbody>
                   {rows.length === 0 && <tr><td colSpan={4}>{tab === 'completed' ? 'Belum ada misi yang selesai.' : 'Belum ada misi yang dijadwalkan.'}</td></tr>}
-                  {rows.map((row) => <tr key={row.publication_id}>
+                  {rows.map((row) => <tr key={row.run_id}>
                     <th scope="row">{tab === 'completed' && row.session_id && row.attempt_status === 'completed' ? <Link to={`${base}/sessions/${row.session_id}`}>{row.mission_title}</Link> : row.mission_title}</th><td>{row.subject_name}</td>
                     <td>{tab === 'upcoming' ? (row.opens_at ? formatDayTime(row.opens_at) : 'Menunggu guru') : row.closes_at ? formatDayTime(row.closes_at) : '—'}</td>
                     <td><span className={styles.tag}>{tab === 'upcoming' ? 'Belum dibuka' : row.attempt_status === 'completed' ? 'Selesai' : 'Belum selesai'}</span></td>

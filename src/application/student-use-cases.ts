@@ -8,7 +8,7 @@ export class StudentUseCases implements StudentService {
   constructor(private readonly service: StudentService) {}
   missions(signal?: AbortSignal) { return this.service.missions(signal) }
   reflections(signal?: AbortSignal) { return this.service.reflections(signal) }
-  startWindowSession(publicationId: string, signal?: AbortSignal) { return this.service.startWindowSession(resourceId(publicationId), signal) }
+  startWindowSession(publicationId: string, runId: string | null, signal?: AbortSignal) { return this.service.startWindowSession(resourceId(publicationId), runId === null ? null : resourceId(runId), signal) }
   telemetry(sessionId: string, batch: TelemetryBatch, signal?: AbortSignal) {
     // The backend accepts at most 200 events per batch and a 32-bit sequence number.
     if (batch.events.length < 1 || batch.events.length > 200 || !whole(batch.client_seq, 2147483647) || (batch.turn_index !== null && !whole(batch.turn_index, 50))) throw new ApiError(422, 'INVALID_INPUT')
