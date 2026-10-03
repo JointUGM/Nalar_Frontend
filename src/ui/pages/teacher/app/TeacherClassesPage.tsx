@@ -1,66 +1,143 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
+import type { ClassStudent } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
-import { Feedback } from '@/ui/components/feedback/Feedback'
+import { ButtonLink } from '@/ui/components/button/ButtonLink'
+import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherClasses.module.css'
 
 const statusWord: Readonly<Record<string, string>> = { not_started: 'Belum mulai', in_progress: 'Sedang mengerjakan', paused_safety: 'Dijeda', completed: 'Selesai', timed_out: 'Waktu habis', ended_safety: 'Diakhiri' }
-const tone = (status: string | null, flags: number) => flags > 0 ? 'verify' : status === 'completed' ? 'done' : 'idle'
+const filters = [['all', 'Semua siswa'], ['not_started', 'Belum mulai'], ['in_progress', 'Mengerjakan'], ['completed', 'Selesai'], ['flagged', 'Perlu verifikasi']] as const
+type StudentFilter = typeof filters[number][0]
+const nameOrder = new Intl.Collator('id-ID', { numeric: true, sensitivity: 'base' })
+const number = new Intl.NumberFormat('id-ID')
+const matches = (student: ClassStudent, filter: StudentFilter) => filter === 'all' || (filter === 'flagged' ? student.open_flag_count > 0 : (student.status ?? 'not_started') === filter)
+
+function EmptyState({ title, children }: { title: string; children: ReactNode }) {
+  return <div className={styles.empty}>
+    <span className={styles.emptyIcon}><Icon name="users" size={24} /></span>
+    <h3>{title}</h3><p>{children}</p>
+  </div>
+}
+
+function LoadingRoster({ classes = false }: { classes?: boolean }) {
+  return <div className={styles.loading} role="status">
+    <p>{classes ? 'Memuat kelas…' : 'Memuat daftar siswa…'}</p>
+    <div className={styles.skeleton} aria-hidden="true">{[0, 1, 2].map(key => <div key={key}><span /><span /><span /></div>)}</div>
+  </div>
+}
+
+function ConceptResults({ student }: { student: ClassStudent }) {
+  const { mastered, developing, misconception } = student.concept_counts
+  if (mastered + developing + misconception === 0) {
+    const explanation = ({ pending: 'Penilaian diproses', failed: 'Penilaian belum tersedia', no_answer: 'Belum ada jawaban dinilai' } as Readonly<Record<string, string>>)[student.evaluation_status ?? '']
+    return <span className={styles.noResult}>{explanation ?? 'Belum ada hasil konsep'}</span>
+  }
+  return <dl className={styles.concepts}>
+    <div><dt>Paham</dt><dd>{number.format(mastered)}</dd></div>
+    <div><dt>Berkembang</dt><dd>{number.format(developing)}</dd></div>
+    <div><dt>Miskonsepsi</dt><dd>{number.format(misconception)}</dd></div>
+  </dl>
+}
 
 export function TeacherClassesPage({ service, base, schoolId }: { service: TeacherService; base: string; schoolId: string }) {
   const read = useCallback(async (signal: AbortSignal) => {
     const [assignments, publications] = await Promise.all([service.assignments(signal), service.publications(signal)])
-    // One entry per class of this school, whatever subjects the teacher teaches there.
-    const classes = [...new Map(assignments.filter((item) => item.school_id.toLowerCase() === schoolId.toLowerCase()).map((item) => [item.class_id, item])).values()]
-    return { classes, publications }
+    const schoolAssignments = assignments.filter(item => item.school_id.toLowerCase() === schoolId.toLowerCase())
+    const classes = [...new Map(schoolAssignments.map(item => [item.class_id, item])).values()]
+      .sort((a, b) => nameOrder.compare(a.class_name, b.class_name))
+    return { classes, assignments: schoolAssignments, publications }
   }, [service, schoolId])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   const [classId, setClassId] = useState('')
   const [publicationId, setPublicationId] = useState('')
-  const chosen = classId || data?.classes[0]?.class_id || ''
-  const missions = data?.publications.filter((item) => item.class_id === chosen) ?? []
-  // A report link needs a mission, so the class's latest one is chosen until the teacher picks another.
-  const mission = missions.some((item) => item.id === publicationId) ? publicationId : missions[0]?.id ?? ''
+  const selectedClass = data?.classes.find(item => item.class_id === classId) ?? data?.classes[0]
+  const chosen = selectedClass?.class_id ?? ''
+  const missions = data?.publications.filter(item => item.class_id === chosen) ?? []
+  const publication = missions.find(item => item.id === publicationId) ?? missions[0]
+  const mission = publication?.id ?? ''
+  const subjects = [...new Set(data?.assignments.filter(item => item.class_id === chosen).map(item => item.subject_name) ?? [])]
 
   return <div className={styles.content}>
-    <div className={styles.header}><div><h1>Kelas dan siswa</h1><p>Siapa yang sudah mengerjakan, dan hasil konsep dari percobaan terakhirnya.</p></div></div>
+    <header className={styles.header}>
+      <div><h1>Kelas dan siswa</h1><p>Kenali progres siswa, lalu buka laporan untuk melihat penalarannya.</p></div>
+      <ButtonLink className={styles.publish} to={`${base}/missions`}><Icon name="plus" size={16} />Terbitkan misi</ButtonLink>
+    </header>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat kelas…</p>}
-    {data && data.classes.length === 0 && <Feedback title="Belum ada kelas">Anda belum ditugaskan ke kelas mana pun di sekolah ini.</Feedback>}
-    {data && data.classes.length > 0 && <>
-      <div className={styles.tabs} role="group" aria-label="Kelas">{data.classes.map((item) => <button key={item.class_id} type="button" aria-pressed={item.class_id === chosen} onClick={() => { setClassId(item.class_id); setPublicationId('') }}>{item.class_name}</button>)}</div>
-      {missions.length > 0 && <label className={styles.search}>Misi
-        <select value={mission} onChange={(event) => setPublicationId(event.target.value)}>{missions.map((item) => <option key={item.id} value={item.id}>{item.mission_title}</option>)}</select>
-      </label>}
-      <Roster key={`${chosen}-${mission}`} service={service} classId={chosen} publicationId={mission || null} base={base} />
-    </>}
+    {!data && !error && <section className={styles.roster}><LoadingRoster classes /></section>}
+    {!data && error && <p className={styles.unavailable}>Daftar kelas belum dapat ditampilkan.</p>}
+    {data && data.classes.length === 0 && <section className={styles.roster}>
+      <EmptyState title="Belum ada kelas yang ditugaskan">Kelas akan muncul setelah admin sekolah menugaskan Anda sebagai guru.</EmptyState>
+    </section>}
+    {data && selectedClass && <div className={styles.workspace}>
+      <aside className={styles.classPicker} aria-label="Pilih kelas">
+        <div className={styles.pickerHeading}><h2>Kelas saya</h2><span>{number.format(data.classes.length)}</span></div>
+        <div className={styles.classes} role="group" aria-label="Kelas">
+          {data.classes.map(item => {
+            const missionCount = data.publications.filter(publication => publication.class_id === item.class_id).length
+            return <button key={item.class_id} type="button" aria-pressed={item.class_id === chosen} onClick={() => { setClassId(item.class_id); setPublicationId('') }}>
+              <span><strong>Kelas {item.class_name}</strong><small>{number.format(missionCount)} misi dimuat</small></span><Icon name="chevronRight" size={16} />
+            </button>
+          })}
+        </div>
+      </aside>
+      <section className={styles.roster} aria-labelledby="class-roster-title">
+        <div className={styles.rosterHeading}><div><h2 id="class-roster-title">Kelas {selectedClass.class_name}</h2><p>Tingkat {selectedClass.grade_level}{subjects.length > 0 && ` · ${subjects.join(' / ')}`}</p></div>
+          {publication && <Link className={styles.classMap} to={`${base}/publications/${mission}/class-map`} state={{ publication }}>Peta kelas<Icon name="chevronRight" size={16} /></Link>}
+        </div>
+        {missions.length > 0 ? <div className={styles.missionContext}>
+          <label htmlFor="class-mission">Misi yang ditinjau</label>
+          <select id="class-mission" value={mission} onChange={event => setPublicationId(event.target.value)}>
+            {missions.map((item, index) => <option key={item.id} value={item.id}>{item.mission_title} · {item.run.mode === 'live' ? 'Langsung' : item.run.mode === 'window' ? 'Jendela waktu' : item.run.mode}{missions.filter(other => other.mission_title === item.mission_title).length > 1 ? ` · Sesi ${index + 1}` : ''}</option>)}
+          </select>
+          <p>Menampilkan percobaan terakhir setiap siswa untuk misi yang dipilih.</p>
+        </div> : <div className={styles.noMission}><Icon name="file" size={18} /><div><h3>Belum ada misi di kelas ini</h3><p>Daftar siswa tetap tersedia. Terbitkan misi untuk mulai melihat progresnya.</p></div></div>}
+        <Roster key={`${chosen}-${mission}`} service={service} classId={chosen} publicationId={mission || null} base={base} />
+      </section>
+    </div>}
   </div>
 }
 
 function Roster({ service, classId, publicationId, base }: { service: TeacherService; classId: string; publicationId: string | null; base: string }) {
   const read = useCallback((signal: AbortSignal) => service.classStudents(classId, publicationId, signal), [service, classId, publicationId])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
-  if (!data) return <LiveFeedback error={error} online={online} refresh={refresh} loading={!error} />
-  const done = data.filter((student) => student.status === 'completed').length
-  return <section className={styles.card} aria-label="Daftar siswa">
-    <p className={styles.note}>{done} dari {data.length} siswa sudah selesai{publicationId ? ' untuk misi ini' : ''}.</p>
-    <div className={styles.region} role="region" aria-label="Daftar siswa (dapat digulir)" tabIndex={0}><table>
-      <caption className={styles.hidden}>Siswa, status, dan hasil konsep</caption>
-      <thead><tr><th scope="col">SISWA</th><th scope="col">STATUS</th><th scope="col">KONSEP</th><th scope="col"><span className={styles.hidden}>Laporan</span></th></tr></thead>
-      <tbody>{data.map((student) => {
-        const { mastered, developing, misconception } = student.concept_counts, total = mastered + developing + misconception
-        return <tr key={student.student_id}>
-          <th scope="row">{student.full_name}</th>
-          <td><span className={styles.tag} data-status={tone(student.status, student.open_flag_count)}>{statusWord[student.status ?? 'not_started'] ?? student.status}{student.open_flag_count > 0 && ` · ${student.open_flag_count} perlu verifikasi`}</span></td>
-          <td>{total === 0 ? '—' : <span className={styles.concept}>
-            <span className={styles.bar} aria-hidden="true"><i style={{ inlineSize: `${mastered / total * 100}%` }} /><i style={{ inlineSize: `${developing / total * 100}%` }} /><i style={{ inlineSize: `${misconception / total * 100}%` }} /></span>
-            <small>{mastered} paham · {developing} berkembang · {misconception} miskonsepsi</small>
-          </span>}</td>
-          <td>{student.session_id && publicationId && <Link className={styles.report} to={`${base}/publications/${publicationId}/sessions/${student.session_id}`} aria-label={`Laporan ${student.full_name}`}>Laporan</Link>}</td>
-        </tr>
-      })}</tbody>
-    </table></div>
-  </section>
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<StudentFilter>('all')
+  const [sort, setSort] = useState('name-asc')
+  const done = data?.filter(student => student.status === 'completed').length ?? 0
+  const visible = (data ?? []).filter(student => matches(student, filter) && student.full_name.toLocaleLowerCase('id-ID').includes(query.trim().toLocaleLowerCase('id-ID')))
+    .sort((a, b) => nameOrder.compare(a.full_name, b.full_name) * (sort === 'name-desc' ? -1 : 1))
+  const filtered = Boolean(query.trim()) || filter !== 'all'
+  function reset() { setQuery(''); setFilter('all') }
+
+  return <>
+    <div className={styles.resourceFeedback}><LiveFeedback error={error} online={online} refresh={refresh} /></div>
+    {!data && !error && <LoadingRoster />}
+    {!data && error && <p className={styles.unavailable}>Daftar siswa belum dapat ditampilkan.</p>}
+    {data && data.length === 0 && <EmptyState title="Belum ada siswa di kelas ini">Siswa akan muncul setelah admin sekolah memperbarui daftar kelas.</EmptyState>}
+    {data && data.length > 0 && <>
+      {publicationId && <div className={styles.filters} role="group" aria-label="Filter siswa">{filters.map(([value, label]) => <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}<span>{number.format(data.filter(student => matches(student, value)).length)}</span></button>)}</div>}
+      <div className={styles.toolbar}>
+        <label className={styles.search}><Icon name="search" size={18} /><input type="search" aria-label="Cari nama siswa" placeholder="Cari nama siswa…" value={query} onChange={event => setQuery(event.target.value)} /></label>
+        <label className={styles.sort}><span>Urutan</span><select aria-label="Urutkan siswa" value={sort} onChange={event => setSort(event.target.value)}><option value="name-asc">Nama A–Z</option><option value="name-desc">Nama Z–A</option></select></label>
+        {filtered && <button className={styles.reset} type="button" onClick={reset}>Hapus filter</button>}
+      </div>
+      <p className={styles.resultCount} role="status">{number.format(visible.length)} dari {number.format(data.length)} siswa ditampilkan{publicationId && ` · ${number.format(done)} selesai untuk misi ini`}</p>
+      {visible.length === 0 ? <EmptyState title="Tidak ada siswa yang cocok">Coba nama lain atau <button className={styles.inlineReset} type="button" onClick={reset}>hapus filter</button> untuk melihat daftar siswa.</EmptyState> : <table className={styles.table} role="table">
+        <caption className={styles.hidden}>Daftar siswa, status percobaan terakhir, hasil konsep, dan laporan</caption>
+        <thead role="rowgroup"><tr role="row"><th scope="col">Siswa</th><th scope="col">Status</th><th scope="col">Hasil konsep</th><th scope="col"><span className={styles.hidden}>Laporan</span></th></tr></thead>
+        <tbody role="rowgroup">{visible.map(student => <tr key={student.student_id} role="row">
+          <th scope="row" role="rowheader"><div className={styles.student}><span className={styles.avatar} aria-hidden="true">{student.full_name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => Array.from(part)[0]).join('').toLocaleUpperCase('id-ID')}</span><span>{student.full_name}</span></div></th>
+          <td role="cell"><span className={styles.mobileLabel} aria-hidden="true">Status</span><div className={styles.studentStatus}>
+            <span className={styles.status} data-status={student.status ?? 'not_started'}>{statusWord[student.status ?? 'not_started'] ?? student.status}</span>
+            {student.open_flag_count > 0 && <span className={styles.flag}><Icon name="flag" size={12} />{number.format(student.open_flag_count)} perlu verifikasi</span>}
+          </div></td>
+          <td role="cell"><span className={styles.mobileLabel} aria-hidden="true">Hasil konsep</span><ConceptResults student={student} /></td>
+          <td role="cell" className={styles.reportCell}>{student.session_id && publicationId ? <Link className={styles.report} to={`${base}/publications/${publicationId}/sessions/${student.session_id}`} aria-label={`Laporan ${student.full_name}`}>Laporan<Icon name="chevronRight" size={14} /></Link> : <span className={styles.noReport}>Belum ada laporan</span>}</td>
+        </tr>)}</tbody>
+      </table>}
+    </>}
+  </>
 }
