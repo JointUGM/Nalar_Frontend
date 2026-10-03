@@ -56,13 +56,16 @@ const scoreId = '00000000-0000-4000-8000-000000000016'
 const flagId = '00000000-0000-4000-8000-000000000017'
 const turnId = '00000000-0000-4000-8000-000000000018'
 const reportPath = `${base}/publications/${publication}/sessions/${sessionId}`
+const levels = ['Tidak ada', 'Awal', 'Sebagian', 'Jelas', 'Lengkap']
 const reportOut = (extra: Record<string, unknown> = {}) => ({
-  student: { id: student, name: 'Raka Pratama' }, session: { status: 'paused_safety', attempt_number: 1, started_at: '2026-10-02T03:00:00Z', ended_at: null, end_reason: null },
+  student: { id: student, name: 'Raka Pratama' }, mission: { mission_id: mission, title: 'Kenapa kelereng berhenti?', version_number: 2 },
+  rubric: { claim: ['Tidak ada klaim', 'Klaim kabur', 'Klaim cukup', 'Klaim jelas', 'Klaim tajam'], evidence: levels, mechanism: levels, transfer: levels },
+  session: { status: 'paused_safety', attempt_number: 1, started_at: '2026-10-02T03:00:00Z', ended_at: null, end_reason: null },
   evaluation: { status: 'completed', summary: null },
   scores: [{ score_id: scoreId, dimension: 'claim', ai_level: 2, final_level: 2, rationale: 'Klaim jelas', evidence: [{ turn_id: turnId, quote: 'gaya gesek' }], overrides: [] }],
   concept_results: [{ concept_id: concept, misconception_id: misconception, outcome: 'developing', resolved_in_session: true }],
   flags: [{ id: flagId, flag_type: 'large_paste', severity: 'medium', status: 'open' }],
-  turns: [{ turn_id: turnId, turn_index: 0, kind: 'opening', prompt: 'Kenapa kelereng berhenti?', answer: 'Karena gaya gesek.', answer_state: 'accepted', guard_result: null, move: null, move_source: null, reason: null, reason_code: null, safety_paused: false }],
+  turns: [{ turn_id: turnId, turn_index: 0, kind: 'opening', prompt: 'Kenapa kelereng berhenti?', answer: 'Karena gaya gesek.', answer_state: 'accepted', guard_result: null, move: null, move_source: null, reason: null, reason_code: null, safety_paused: false, activity: { paste_chars: 120, away_seconds: 4.5, typing_ms: 30000 } }],
   ...extra,
 })
 const kbId = '00000000-0000-4000-8000-000000000012'
@@ -77,7 +80,6 @@ const kbDetail = (conceptStatus = 'pending', can_edit = true) => ({
 })
 const sections = { items: [{ id: section, material_id: school, parent_section_id: null, title: 'Bab 1 Tekanan', level: 1, ordinal: 1, page_start: 1, page_end: 20, suggested: true, build_status: 'pending', built_at: null }] }
 const jobOut = (extra: Record<string, unknown> = {}) => ({ id: job, kind: 'kb_detect_sections', status: 'succeeded', entity_type: 'materials', entity_id: school, error_code: null, updated_at: '2026-10-02T03:00:00+00:00', ...extra })
-const levels = ['Tidak ada', 'Awal', 'Sebagian', 'Jelas', 'Lengkap']
 const versionOut = (extra: Record<string, unknown> = {}) => ({
   id: draft, version_number: 1, status: 'draft', can_edit: true, anchor_problem: 'Kenapa kelereng melambat?', reference_reasoning: 'Gaya gesek memperlambat kelereng.',
   rubric: { claim: levels, evidence: levels, mechanism: levels, transfer: levels }, target_concept_ids: [concept], misconception_ids: [misconception], source_chunk_ids: [],

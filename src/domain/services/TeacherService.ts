@@ -1,4 +1,4 @@
-import type { ClassMap, FlagDecision, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import type { AttemptGrantInput, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 
 export interface TeacherService {
   publications(signal?: AbortSignal): Promise<TeacherPublication[]>
@@ -12,6 +12,11 @@ export interface TeacherService {
   publish(input: PublishInput, signal?: AbortSignal): Promise<Published>
   classMap(publicationId: string, signal?: AbortSignal): Promise<ClassMap>
   report(sessionId: string, signal?: AbortSignal): Promise<SessionReport>
+  attention(schoolId: string, signal?: AbortSignal): Promise<AttentionPage>
+  classStudents(classId: string, publicationId: string | null, signal?: AbortSignal): Promise<ClassStudent[]>
+  dashboard(schoolId: string, signal?: AbortSignal): Promise<TeacherDashboard>
+  missionVersions(missionId: string, signal?: AbortSignal): Promise<VersionHistory[]>
+  grantAttempt(publicationId: string, input: AttemptGrantInput, idempotencyKey: string, signal?: AbortSignal): Promise<{ run_id: string }>
   overrideScore(scoreId: string, level: number, reason: string, signal?: AbortSignal): Promise<void>
   reviewFlag(flagId: string, decision: FlagDecision, note: string | null, signal?: AbortSignal): Promise<void>
   safetyAction(sessionId: string, action: SafetyAction, note: string | null, signal?: AbortSignal): Promise<void>

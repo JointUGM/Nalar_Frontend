@@ -1,5 +1,5 @@
 import { ApiError, resourceId } from '@/domain/model/ApiError'
-import type { FlagDecision, MissionInput, MissionVersionDraft, PublishInput, SafetyAction } from '@/domain/model/Teacher'
+import type { AttemptGrantInput, FlagDecision, MissionInput, MissionVersionDraft, PublishInput, SafetyAction } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 
 function required(value: string, max: number): string {
@@ -41,6 +41,17 @@ export class TeacherUseCases implements TeacherService {
     return this.service.publish({ ...base, mode: 'window', opens_at: input.opens_at, closes_at: input.closes_at }, signal)
   }
   report(sessionId: string, signal?: AbortSignal) { return this.service.report(resourceId(sessionId), signal) }
+  attention(schoolId: string, signal?: AbortSignal) { return this.service.attention(resourceId(schoolId), signal) }
+  classStudents(classId: string, publicationId: string | null, signal?: AbortSignal) { return this.service.classStudents(resourceId(classId), publicationId === null ? null : resourceId(publicationId), signal) }
+  dashboard(schoolId: string, signal?: AbortSignal) { return this.service.dashboard(resourceId(schoolId), signal) }
+  missionVersions(missionId: string, signal?: AbortSignal) { return this.service.missionVersions(resourceId(missionId), signal) }
+  // The key stays the same when the teacher retries one submission, so a lost answer never grants twice.
+  grantAttempt(publicationId: string, input: AttemptGrantInput, idempotencyKey: string, signal?: AbortSignal) {
+    const opens = input.opens_at === undefined ? NaN : Date.parse(input.opens_at), closes = input.closes_at === undefined ? NaN : Date.parse(input.closes_at)
+    const window = input.opens_at === undefined && input.closes_at === undefined ? {} : Number.isFinite(opens) && Number.isFinite(closes) && opens < closes ? { opens_at: input.opens_at, closes_at: input.closes_at } : null
+    if (!window) throw new ApiError(422, 'INVALID_WINDOW')
+    return this.service.grantAttempt(resourceId(publicationId), { student_id: resourceId(input.student_id), reason: required(input.reason, 2000), ...window }, resourceId(idempotencyKey), signal)
+  }
   overrideScore(scoreId: string, level: number, reason: string, signal?: AbortSignal) {
     // The teacher's reason is kept beside the AI level for good, so a change without one is refused.
     if (!Number.isInteger(level) || level < 0 || level > 4) throw new ApiError(422, 'INVALID_INPUT')
