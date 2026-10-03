@@ -18,9 +18,6 @@ const AccountReset = lazy(() => import('@/ui/pages/account/AccountReset').then((
 const AccountPassword = lazy(() => import('@/ui/pages/account/AccountPassword').then((module) => ({ default: module.AccountPassword })))
 const StudentReflection = lazy(() => import('@/ui/pages/student/StudentReflection').then((module) => ({ default: module.StudentReflection })))
 const StudentReflections = lazy(() => import('@/ui/pages/student/StudentReflections').then((module) => ({ default: module.StudentReflections })))
-const StudentResume = lazy(() => import('@/ui/pages/student/StudentResume').then((module) => ({ default: module.StudentResume })))
-const StudentSession = lazy(() => import('@/ui/pages/student/StudentSession').then((module) => ({ default: module.StudentSession })))
-const StudentLobby = lazy(() => import('@/ui/pages/student/StudentLobby').then((module) => ({ default: module.StudentLobby })))
 const TeacherAttention = lazy(() => import('@/ui/pages/teacher/TeacherAttention').then((module) => ({ default: module.TeacherAttention })))
 const TeacherClasses = lazy(() => import('@/ui/pages/teacher/TeacherClasses').then((module) => ({ default: module.TeacherClasses })))
 const TeacherProjector = lazy(() => import('@/ui/pages/teacher/TeacherProjector').then((module) => ({ default: module.TeacherProjector })))
@@ -47,9 +44,6 @@ export function ReviewRoutes({ accountEntry, activationEntry, privateEntry }: { 
       <Route path="/review/teacher/missions/:missionId/monitor" element={<TeacherMonitor />} />
       <Route path="/review/teacher/missions/:missionId/class-map/report" element={<TeacherReport />} />
     </Route>
-    <Route path="/review/student/missions/:missionId/lobby" element={<StudentLobby />} />
-    <Route path="/review/student/missions/:missionId/session" element={<StudentSession />} />
-    <Route path="/review/student/missions/:missionId/resume" element={<StudentResume />} />
     <Route path="/review/student/reflections" element={<StudentReflections />} />
     <Route path="/review/student/reflections/:reflectionId" element={<StudentReflection />} />
     <Route path="/review/account/activate" element={<AccountActivate />} />
