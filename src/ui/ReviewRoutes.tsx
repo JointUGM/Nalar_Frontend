@@ -16,8 +16,6 @@ const TeacherHome = lazy(() => import('@/ui/pages/teacher/TeacherHome').then((mo
 const AccountActivate = lazy(() => import('@/ui/pages/account/AccountActivate').then((module) => ({ default: module.AccountActivate })))
 const AccountReset = lazy(() => import('@/ui/pages/account/AccountReset').then((module) => ({ default: module.AccountReset })))
 const AccountPassword = lazy(() => import('@/ui/pages/account/AccountPassword').then((module) => ({ default: module.AccountPassword })))
-const StudentReflection = lazy(() => import('@/ui/pages/student/StudentReflection').then((module) => ({ default: module.StudentReflection })))
-const StudentReflections = lazy(() => import('@/ui/pages/student/StudentReflections').then((module) => ({ default: module.StudentReflections })))
 const TeacherAttention = lazy(() => import('@/ui/pages/teacher/TeacherAttention').then((module) => ({ default: module.TeacherAttention })))
 const TeacherClasses = lazy(() => import('@/ui/pages/teacher/TeacherClasses').then((module) => ({ default: module.TeacherClasses })))
 
@@ -37,8 +35,6 @@ export function ReviewRoutes({ accountEntry, activationEntry, privateEntry }: { 
       <Route path="/review/teacher/classes" element={<TeacherClasses />} />
       <Route path="/review/teacher/attention" element={<TeacherAttention />} />
     </Route>
-    <Route path="/review/student/reflections" element={<StudentReflections />} />
-    <Route path="/review/student/reflections/:reflectionId" element={<StudentReflection />} />
     <Route path="/review/account/activate" element={<AccountActivate />} />
     <Route path="/review/account/reset" element={<AccountReset />} />
     <Route path="/review/account/password" element={<AccountPassword />} />

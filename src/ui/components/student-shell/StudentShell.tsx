@@ -11,7 +11,6 @@ import styles from './StudentShell.module.css'
 interface NavItem { label: string; icon: IconName; to?: string; badge?: string }
 const items: readonly NavItem[] = [
   { label: 'Misi saya', icon: 'target', to: '/review/student/home', badge: '1 terbuka' },
-  { label: 'Refleksi', icon: 'message', to: '/review/student/reflections' },
   { label: 'Gabung sesi', icon: 'monitor', to: '/review/student/join' },
 ]
 const unavailable = 'Belum tersedia di pratinjau'
