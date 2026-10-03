@@ -32,9 +32,18 @@ function marked(answer: string, quote: string | null) {
   const at = quote ? answer.indexOf(quote) : -1
   return at < 0 || !quote ? answer : <>{answer.slice(0, at)}<mark>{quote}</mark>{answer.slice(at + quote.length)}</>
 }
+const grantRefusals: Readonly<Record<string, string>> = {
+  PUBLICATION_NOT_GRANTABLE: 'Misi ini tidak bisa diberi kesempatan lagi: bukan misi jendela waktu, atau hasilnya sudah dirilis ke orang tua.',
+  ATTEMPT_NOT_GRANTABLE: 'Siswa ini masih punya percobaan yang belum selesai.',
+}
+// Counted, never recorded: what the student pasted, how long they were away, how long they typed.
+function activityLine({ paste_chars, away_seconds, typing_ms }: { paste_chars: number; away_seconds: number; typing_ms: number }) {
+  const parts = [paste_chars > 0 && `${paste_chars} karakter ditempel`, away_seconds >= 1 && `${Math.round(away_seconds)} detik di luar halaman`, typing_ms > 0 && `${Math.round(typing_ms / 1000)} detik mengetik`].filter(Boolean)
+  return parts.length ? parts.join(' · ') : null
+}
 const minutes = (from: string, to: string | null) => to ? `${Math.max(1, Math.round((Date.parse(to) - Date.parse(from)) / 60000))} menit` : null
 
-type Pending = { kind: 'score'; score: ReportScore } | { kind: 'safety'; action: SafetyAction } | null
+type Pending = { kind: 'score'; score: ReportScore } | { kind: 'safety'; action: SafetyAction } | { kind: 'grant' } | null
 
 export function TeacherReportPage({ service, base }: { service: TeacherService; base: string }) {
   const { publicationId = '', sessionId = '' } = useParams()
@@ -52,6 +61,9 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
   const [pending, setPending] = useState(false)
   const [failure, setFailure] = useState<ApiError | null>(null)
   const [quote, setQuote] = useState<{ turn: string; text: string } | null>(null)
+  // One key per grant request, kept across retries so a lost answer can never grant twice.
+  const grantKey = useRef('')
+  const [granted, setGranted] = useState(false)
   const monitor = `${base}/publications/${publicationId}/monitor`
   const back = <Link className={styles.back} to={monitor}><Icon name="chevronLeft" size={14} />Pemantauan</Link>
   if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <p role="status">Memuat laporan…</p>}</div>
@@ -60,6 +72,8 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
   const conceptName = (id: string) => map?.concepts.find((item) => item.concept_id === id)?.name ?? 'Konsep'
   const misconception = (id: string) => map?.concepts.flatMap((item) => item.misconceptions).find((item) => item.misconception_id === id)?.statement
   const changed = report.scores.filter((score) => score.overrides.length > 0)
+  const descriptor = (dimension: string, level: number) => (report.rubric as unknown as Record<string, string[] | undefined>)[dimension]?.[level]
+  const finished = ['completed', 'timed_out', 'ended_safety'].includes(report.session.status)
 
   // One command at a time; the report is reread afterwards, also after a refusal.
   async function run(action: (signal?: AbortSignal) => Promise<void>, done?: () => void) {
@@ -70,17 +84,19 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
     catch (cause) { if (!signal?.aborted) setFailure(cause instanceof ApiError ? cause : new ApiError(0, 'UNAVAILABLE')) }
     finally { busy.current = false; if (!signal?.aborted) { setPending(false); refresh() } }
   }
-  const said = failure && (refusals[failure.code] ?? failure.message)
-  const open = (next: Pending) => { setFailure(null); setReason(''); if (next?.kind === 'score') setLevel(next.score.final_level); setDialog(next) }
+  const said = failure && (refusals[failure.code] ?? grantRefusals[failure.code] ?? failure.message)
+  const open = (next: Pending) => { setFailure(null); setReason(''); if (next?.kind === 'score') setLevel(next.score.final_level); if (next?.kind === 'grant') grantKey.current = crypto.randomUUID(); setDialog(next) }
 
   return <div className={styles.content}>
     {back}
     <div className={styles.header}>
       <div className={styles.who}>
         <span className={styles.avatar} aria-hidden="true">{report.student.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')}</span>
-        <div><h1>{report.student.name}</h1><p>{[`Percobaan ${report.session.attempt_number}`, sessionWord[report.session.status] ?? report.session.status, minutes(report.session.started_at, report.session.ended_at)].filter(Boolean).join(' · ')}</p></div>
+        <div><h1>{report.student.name}</h1><p>{[`${report.mission.title} · versi ${report.mission.version_number}`, `Percobaan ${report.session.attempt_number}`, sessionWord[report.session.status] ?? report.session.status, minutes(report.session.started_at, report.session.ended_at)].filter(Boolean).join(' · ')}</p></div>
       </div>
+      {finished && <Button tone="secondary" disabled={pending || granted} onClick={() => open({ kind: 'grant' })}><Icon name="refresh" size={14} />{granted ? 'Kesempatan lagi diberikan' : 'Beri kesempatan lagi'}</Button>}
     </div>
+    {granted && <Feedback tone="success" title="Kesempatan lagi diberikan" announce>Siswa melihatnya sebagai misi baru di Misi saya. Hasil percobaan ini tetap tersimpan.</Feedback>}
     <p className={styles.note}>Hanya untuk guru · tidak ditampilkan kepada siswa atau orang tua.</p>
     {said && !dialog && <Feedback tone="warning" title={said} announce />}
     {report.session.status === 'paused_safety' && <Feedback tone="warning" title="Sesi siswa ini dijeda karena keselamatan" announce>
@@ -102,7 +118,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
         <dd>
           <span className={styles.value}><strong>{score.final_level}</strong><small>/4</small>{score.final_level !== score.ai_level && <s>{score.ai_level}<span className={styles.hidden}> skor asli AI</span></s>}</span>
           <span className={styles.bar} aria-hidden="true">{Array.from({ length: 4 }, (_, step) => <span key={step} data-on={step < score.final_level} />)}</span>
-          <span className={styles.level}>{score.overrides.length ? 'Diubah guru' : score.evidence.length ? (score.rationale ?? 'Skor AI') : 'Tanpa kutipan pendukung'}</span>
+          <span className={styles.level}>{[score.overrides.length ? 'Diubah guru' : !score.evidence.length && 'Tanpa kutipan pendukung', descriptor(score.dimension, score.final_level)].filter(Boolean).join(' · ') || (score.rationale ?? 'Skor AI')}</span>
         </dd>
       </div>
     })}</dl>}
@@ -148,6 +164,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
             <div className={styles.turnHead}><b>{turn.turn_index === 0 ? 'SOAL PEMBUKA' : `GILIRAN ${turn.turn_index}`}</b>{turn.move && <span>{moveWord[turn.move] ?? turn.move}</span>}{turn.safety_paused && <small>Sesi dijeda di sini</small>}</div>
             <p className={styles.question}>{turn.prompt}</p>
             <p className={styles.answer}><span className={styles.hidden}>Jawaban siswa: </span>{turn.answer === null ? <i>Belum dijawab</i> : marked(turn.answer, quote?.turn === turn.turn_id ? quote.text : null)}</p>
+            {activityLine(turn.activity) && <p className={styles.meta}>{activityLine(turn.activity)}</p>}
           </li>)}</ol>
         </div>
       </section>
@@ -158,10 +175,18 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
         <fieldset className={dialogStyles.scale} disabled={pending}>
           <legend>Skor baru</legend>
           <div className={dialogStyles.options}>{[0, 1, 2, 3, 4].map((value) => <label key={value} className={dialogStyles.option}><input type="radio" name="override-level" value={value} checked={level === value} onChange={() => setLevel(value)} /><span>{value}</span></label>)}</div>
+          {dialog?.kind === 'score' && descriptor(dialog.score.dimension, level) && <p className={dialogStyles.level} aria-live="polite">Skor {level} · {descriptor(dialog.score.dimension, level)}</p>}
         </fieldset>
         <div className={dialogStyles.area}><label htmlFor="override-reason">Alasan <span aria-hidden="true">*</span></label><textarea id="override-reason" rows={3} required maxLength={2000} value={reason} disabled={pending} onChange={(event) => setReason(event.target.value)} /></div>
         {said && <p role="alert" className={dialogStyles.error}>{said}</p>}
         <div className={dialogStyles.actions}><Button tone="secondary" disabled={pending} onClick={() => setDialog(null)}>Batal</Button><Button type="submit" pending={pending} pendingLabel="Menyimpan…" disabled={!reason.trim() || (dialog?.kind === 'score' && level === dialog.score.final_level)}>Simpan skor</Button></div>
+      </form>
+    </Dialog>
+    <Dialog open={dialog?.kind === 'grant'} title="Beri kesempatan lagi?" description={`${report.student.name} mendapat satu percobaan baru untuk misi ini, terbuka sampai besok. Hasil percobaan ini tetap tersimpan.`} onClose={() => { if (!pending) setDialog(null) }} dismissible={!pending}>
+      <form onSubmit={(event) => { event.preventDefault(); void run((signal) => service.grantAttempt(publicationId, { student_id: report.student.id, reason }, grantKey.current, signal).then(() => undefined), () => setGranted(true)) }}>
+        <div className={dialogStyles.area}><label htmlFor="grant-reason">Alasan <span aria-hidden="true">*</span></label><textarea id="grant-reason" rows={3} required maxLength={2000} value={reason} disabled={pending} onChange={(event) => setReason(event.target.value)} /></div>
+        {said && <p role="alert" className={dialogStyles.error}>{said}</p>}
+        <div className={dialogStyles.actions}><Button tone="secondary" disabled={pending} onClick={() => setDialog(null)}>Batal</Button><Button type="submit" pending={pending} pendingLabel="Memproses…" disabled={!reason.trim()}>Beri kesempatan</Button></div>
       </form>
     </Dialog>
     <Dialog open={dialog?.kind === 'safety'} title={dialog?.kind === 'safety' && dialog.action === 'end' ? 'Akhiri sesi siswa?' : 'Lanjutkan sesi siswa?'} description={dialog?.kind === 'safety' && dialog.action === 'end' ? 'Sesi berakhir sekarang. Jawaban yang sudah dikirim tetap tersimpan.' : 'Siswa bisa menjawab lagi sampai batas waktu sesinya.'} onClose={() => { if (!pending) setDialog(null) }} dismissible={!pending}>

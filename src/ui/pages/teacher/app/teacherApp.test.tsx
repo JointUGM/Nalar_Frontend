@@ -227,13 +227,33 @@ describe('signed-in teacher pages', () => {
     fireEvent.click(screen.getByRole('radio', { name: '3' }))
     const save = screen.getByRole('button', { name: 'Simpan skor' })
     expect(save).toBeDisabled()
-    fireEvent.change(screen.getByLabelText(/Alasan/), { target: { value: ' Arah gesekan benar ' } })
+    fireEvent.change(screen.getByRole('textbox', { name: /Alasan/ }), { target: { value: ' Arah gesekan benar ' } })
     fireEvent.click(save)
     fireEvent.click(save)
     expect(await screen.findByText(/dari 2 menjadi 3/)).toBeInTheDocument()
     const posts = request.mock.calls.filter(([, init]) => init?.method === 'POST')
     expect(posts).toHaveLength(1)
     expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ final_level: 3, reason: 'Arah gesekan benar' })
+  })
+
+  it('shows the rubric meaning and activity, and grants one extra attempt with an idempotency key', async () => {
+    const request = backend({
+      [`GET /sessions/${sessionId}/report`]: () => Response.json(reportOut({ session: { status: 'completed', attempt_number: 1, started_at: '2026-10-02T03:00:00Z', ended_at: '2026-10-02T03:15:00Z', end_reason: null } })),
+      [`POST /publications/${publication}/attempt-grants`]: () => Response.json({ grant_id: school, run_id: school }, { status: 201 }),
+    })
+    open(reportPath, request)
+    expect(await screen.findByText(/Klaim cukup/)).toBeInTheDocument()
+    expect(screen.getByText('120 karakter ditempel · 5 detik di luar halaman · 30 detik mengetik')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Beri kesempatan lagi' }))
+    fireEvent.change(screen.getByRole('textbox', { name: /Alasan/ }), { target: { value: 'Sakit saat sesi' } })
+    const grant = screen.getByRole('button', { name: 'Beri kesempatan' })
+    fireEvent.click(grant)
+    fireEvent.click(grant)
+    expect(await screen.findByText('Kesempatan lagi diberikan', { selector: 'p' })).toBeInTheDocument()
+    const posts = request.mock.calls.filter(([, init]) => init?.method === 'POST')
+    expect(posts).toHaveLength(1)
+    expect(new Headers(posts[0][1]?.headers).get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/)
+    expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ student_id: student, reason: 'Sakit saat sesi' })
   })
 
   it('reviews a flag and resumes a paused session only after confirming', async () => {
