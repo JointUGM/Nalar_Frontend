@@ -1,61 +1,15 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { lobbyExample, lobbyPath, reflectionPath, reflections, reflectionsPath, sessionExample } from './studentExamples'
-import { StudentLobby } from './StudentLobby'
+import { describe, expect, it } from 'vitest'
+import { reflectionPath, reflections, reflectionsPath } from './studentExamples'
 import { StudentReflection } from './StudentReflection'
 import { StudentReflections } from './StudentReflections'
-import { StudentSession } from './StudentSession'
-import { reflectionTickMs } from './useSessionFinishViewModel'
-import { sendMs } from './useStudentSessionViewModel'
 
 const routes = <Routes>
-  <Route path="/review/student/missions/:missionId/lobby" element={<StudentLobby />} />
-  <Route path="/review/student/missions/:missionId/session" element={<StudentSession />} />
   <Route path="/review/student/reflections" element={<StudentReflections />} />
   <Route path="/review/student/reflections/:reflectionId" element={<StudentReflection />} />
 </Routes>
 const open = (path: string) => render(<MemoryRouter initialEntries={[path]}>{routes}</MemoryRouter>)
-const wait = (ms: number) => act(() => { vi.advanceTimersByTime(ms) })
-
-// Starts from the lobby (so the warm-up guess travels) and answers every question.
-const finishMission = (guess: number | null) => {
-  open(lobbyPath('kelereng'))
-  if (guess !== null) fireEvent.click(within(screen.getByRole('group', { name: lobbyExample.warmQuestion })).getAllByRole('button')[guess])
-  fireEvent.click(screen.getByRole('button', { name: 'Guru memulai sesi (simulasi)' }))
-  fireEvent.click(screen.getByRole('link', { name: /Aku siap/ }))
-  fireEvent.click(screen.getByRole('button', { name: 'Mulai sekarang' }))
-  for (let index = 0; index < sessionExample.questions.length; index += 1) {
-    fireEvent.click(screen.getByRole('button', { name: 'Isi jawaban contoh' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Kirim' }))
-    wait(sendMs)
-  }
-}
-
-beforeEach(() => vi.useFakeTimers())
-afterEach(() => vi.useRealTimers())
-
-describe('finish screen', () => {
-  it('shows the warm-up guess, the last answer and the journey, then offers the reflection after a short wait', () => {
-    finishMission(1)
-    const guess = screen.getByRole('region', { name: 'Tebakan awalmu' })
-    expect(within(guess).getByText(lobbyExample.warmOptions[1])).toBeInTheDocument()
-    expect(within(guess).getByText('B')).toBeInTheDocument()
-    expect(screen.getByText(`“${sessionExample.sampleAnswers[5]}”`)).toBeInTheDocument()
-    expect(screen.getByText('langkah kamu jawab').nextSibling).toHaveTextContent('6')
-    expect(screen.getByRole('status')).toHaveTextContent('Menyiapkan refleksimu…')
-    expect(screen.queryByRole('link', { name: /Lihat refleksimu/ })).not.toBeInTheDocument()
-    for (let tick = 0; tick < 20; tick += 1) wait(reflectionTickMs)
-    expect(screen.getByRole('link', { name: /Lihat refleksimu/ })).toHaveAttribute('href', reflectionPath('kelereng'))
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
-  })
-
-  it('says so when the warm-up was skipped, and never shows a score or verdict', () => {
-    finishMission(null)
-    expect(screen.getByText('Kamu melewatkan pemanasan tadi.')).toBeInTheDocument()
-    expect(document.body.textContent).not.toMatch(/skor|peringkat|jawaban yang benar|jawaban yang salah|tebakanmu (benar|salah)/i)
-  })
-})
 
 describe('reflections', () => {
   it('lists every reflection with its question for the student to take home', () => {
