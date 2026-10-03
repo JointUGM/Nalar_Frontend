@@ -48,9 +48,10 @@ describe('protected live routes', () => {
       throw new Error(`Unexpected request ${path}`)
     })
     route(`/student/${schoolId}`, request)
-    fireEvent.change(await screen.findByLabelText(/Kode gabung/), { target: { value: 'ABC123' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Gabung sesi' }))
-    await screen.findByText('Kamu sudah bergabung. Menunggu guru memulai sesi.')
+    // A full code joins as soon as it is typed; pasted lower case and dashes are cleaned first.
+    fireEvent.change(await screen.findByLabelText('Kode gabung'), { target: { value: 'abc-123' } })
+    await screen.findByText('Menunggu guru memulai sesi')
+    expect(JSON.parse(String(request.mock.calls.find(([path]) => String(path).endsWith('/join'))![1]?.body))).toEqual({ join_code: 'ABC123' })
     started = true
     await act(async () => window.dispatchEvent(new Event('online')))
     await screen.findByRole('heading', { name: 'Mengapa benda berhenti?' })
