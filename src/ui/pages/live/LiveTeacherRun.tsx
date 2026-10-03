@@ -134,8 +134,9 @@ export function LiveTeacherMonitor({ service, publicationId, base }: { service: 
     const phase = data.run.status
     const paused = data.students.filter((student) => student.safety_paused)
     const visible = filter ? data.students.filter((student) => inGroup(student, filter)) : data.students
+    const report = (sessionId: string) => `${base}/publications/${publicationId}/sessions/${sessionId}`
     return <>
-      {paused.length > 0 && <div className={monitorStyles.safety} role="alert"><Icon name="heart" size={16} /><strong>KESELAMATAN</strong><span><b>{paused.map((student) => student.name).join(', ')}</b> mungkin butuh bantuan Anda. Sesinya dijeda.</span></div>}
+      {paused.length > 0 && <div className={monitorStyles.safety} role="alert"><Icon name="heart" size={16} /><strong>KESELAMATAN</strong><span>{paused.map((student, index) => <span key={student.student_id}>{index > 0 && ', '}{student.session_id ? <Link to={report(student.session_id)}>{student.name}</Link> : <b>{student.name}</b>}</span>)} mungkin butuh bantuan Anda. Sesinya dijeda; buka laporannya untuk melanjutkan atau mengakhiri sesi.</span></div>}
       <div className={monitorStyles.header}>
         <div>
           <div className={monitorStyles.title}><h1>{run.title}</h1><span className={monitorStyles.badge} data-closed={phase === 'closed'}><span className={monitorStyles.dot} aria-hidden="true" />{phase === 'closed' ? 'PENERIMAAN DITUTUP' : phase === 'open' ? `LANGSUNG${run.elapsed !== null ? ` · ${clock(run.elapsed)}` : ''}` : phase === 'lobby' ? 'LOBI' : 'BELUM DIBUKA'}</span></div>
@@ -156,7 +157,7 @@ export function LiveTeacherMonitor({ service, publicationId, base }: { service: 
         <div className={monitorStyles.rosterHead}><h2 id="roster-title">Siswa <small>{visible.length} dari {data.students.length}</small></h2></div>
         {visible.length === 0 ? <p className={monitorStyles.empty}>Tidak ada siswa dengan status ini.</p> : <ul className={monitorStyles.grid}>{visible.map((student) => <li key={student.student_id}>
           <div className={monitorStyles.student} data-status={student.safety_paused ? 'paused' : finished.includes(student.status) ? 'done' : student.status === 'in_progress' ? 'running' : 'not-started'}>
-            <span className={monitorStyles.studentTop}><span className={monitorStyles.name}>{student.name}</span><Icon name={statusIcon(student)} size={13} /></span>
+            <span className={monitorStyles.studentTop}>{student.session_id ? <Link className={monitorStyles.name} to={report(student.session_id)} aria-label={`Laporan ${student.name}`}>{student.name}</Link> : <span className={monitorStyles.name}>{student.name}</span>}<Icon name={statusIcon(student)} size={13} /></span>
             <span className={monitorStyles.dots} aria-hidden="true">{Array.from({ length: student.max_turns }, (_, step) => <span key={step} data-on={step < (student.current_turn_index ?? 0)} />)}</span>
             <span className={monitorStyles.status}>{statusLabel(student)}{student.current_turn_index !== null && ` · pertanyaan ${student.current_turn_index} dari ${student.max_turns}`}{student.open_flag_count > 0 && ` · ${student.open_flag_count} perlu verifikasi`}</span>
           </div>

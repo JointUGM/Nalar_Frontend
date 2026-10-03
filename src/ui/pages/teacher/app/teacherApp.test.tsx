@@ -51,6 +51,20 @@ const klass = '00000000-0000-4000-8000-000000000011'
 const missions = { items: [{ id: mission, title: 'Kenapa kelereng berhenti?', knowledge_base_id: school, created_by: school, can_edit: true, latest_version: { id: version, version_number: 2, status: 'reviewed' } }, { id: draft, title: 'Tekanan Zat', knowledge_base_id: school, created_by: school, can_edit: true, latest_version: { id: draft, version_number: 1, status: 'draft' } }], next_cursor: null }
 const assignments = { items: [{ school_id: school, class_id: klass, class_name: '8B', grade_level: 8, school_subject_id: school, subject_name: 'IPA' }] }
 const preview = (extra: Record<string, unknown> = {}) => ({ ready: true, blockers: [], eligible_count: 1, ineligible_count: 2, summaries: [{ student_id: student, name: 'Raka Pratama', summary_text: 'Raka mengubah pendapatnya sendiri.' }], released_at: null, ...extra })
+const sessionId = '00000000-0000-4000-8000-000000000015'
+const scoreId = '00000000-0000-4000-8000-000000000016'
+const flagId = '00000000-0000-4000-8000-000000000017'
+const turnId = '00000000-0000-4000-8000-000000000018'
+const reportPath = `${base}/publications/${publication}/sessions/${sessionId}`
+const reportOut = (extra: Record<string, unknown> = {}) => ({
+  student: { id: student, name: 'Raka Pratama' }, session: { status: 'paused_safety', attempt_number: 1, started_at: '2026-10-02T03:00:00Z', ended_at: null, end_reason: null },
+  evaluation: { status: 'completed', summary: null },
+  scores: [{ score_id: scoreId, dimension: 'claim', ai_level: 2, final_level: 2, rationale: 'Klaim jelas', evidence: [{ turn_id: turnId, quote: 'gaya gesek' }], overrides: [] }],
+  concept_results: [{ concept_id: concept, misconception_id: misconception, outcome: 'developing', resolved_in_session: true }],
+  flags: [{ id: flagId, flag_type: 'large_paste', severity: 'medium', status: 'open' }],
+  turns: [{ turn_id: turnId, turn_index: 0, kind: 'opening', prompt: 'Kenapa kelereng berhenti?', answer: 'Karena gaya gesek.', answer_state: 'accepted', guard_result: null, move: null, move_source: null, reason: null, reason_code: null, safety_paused: false }],
+  ...extra,
+})
 const kbId = '00000000-0000-4000-8000-000000000012'
 const job = '00000000-0000-4000-8000-000000000013'
 const section = '00000000-0000-4000-8000-000000000014'
@@ -88,10 +102,11 @@ function backend(overrides: Record<string, Reply> = {}) {
     [`GET /publications/${publication}/monitor`]: () => Response.json({
       run: { id: school, mode: 'live', status: 'open', join_code: 'K7Q2MW', started_at: '2026-10-02T03:00:00Z' }, waiting_count: 1, server_now: '2026-10-02T03:05:00Z',
       students: [
-        { student_id: student, name: 'Raka Pratama', status: 'in_progress', current_turn_index: 2, max_turns: 4, deadline_at: null, open_flag_count: 0, safety_paused: true },
+        { student_id: student, name: 'Raka Pratama', status: 'in_progress', current_turn_index: 2, max_turns: 4, deadline_at: null, open_flag_count: 0, safety_paused: true, session_id: sessionId },
         { student_id: klass, name: 'Sinta Dewi', status: 'completed', current_turn_index: 4, max_turns: 4, deadline_at: null, open_flag_count: 1, safety_paused: false },
       ],
     }),
+    [`GET /sessions/${sessionId}/report`]: () => Response.json(reportOut()),
     'POST /publications': () => Response.json({ publication_id: publication, run_id: school, run_status: 'scheduled' }, { status: 201 }),
     ...overrides,
   }
@@ -183,6 +198,44 @@ describe('signed-in teacher pages', () => {
     expect(screen.getByText('Sinta Dewi')).toBeInTheDocument()
     expect(within(screen.getByRole('region', { name: /Siswa/ })).queryByText('Raka Pratama')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Kode K7Q2MW/ })).toHaveAttribute('href', `${base}/publications/${publication}/projector`)
+    expect(within(screen.getByRole('alert')).getByRole('link', { name: 'Raka Pratama' })).toHaveAttribute('href', reportPath)
+  })
+
+  it('changes a score only with a reason, once, and keeps the AI level beside it', async () => {
+    let final = 2
+    const request = backend({
+      [`GET /sessions/${sessionId}/report`]: () => Response.json(reportOut({ scores: [{ score_id: scoreId, dimension: 'claim', ai_level: 2, final_level: final, rationale: null, evidence: [], overrides: final === 2 ? [] : [{ previous_level: 2, new_level: final, reason: 'Arah gesekan benar', created_at: '2026-10-02T04:00:00Z' }] }] })),
+      [`POST /scores/${scoreId}/overrides`]: () => { final = 3; return Response.json({ score_id: scoreId, ai_level: 2, final_level: 3, overridden_at: '2026-10-02T04:00:00Z' }) },
+    })
+    open(reportPath, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Ubah skor Klaim' }))
+    fireEvent.click(screen.getByRole('radio', { name: '3' }))
+    const save = screen.getByRole('button', { name: 'Simpan skor' })
+    expect(save).toBeDisabled()
+    fireEvent.change(screen.getByLabelText(/Alasan/), { target: { value: ' Arah gesekan benar ' } })
+    fireEvent.click(save)
+    fireEvent.click(save)
+    expect(await screen.findByText(/dari 2 menjadi 3/)).toBeInTheDocument()
+    const posts = request.mock.calls.filter(([, init]) => init?.method === 'POST')
+    expect(posts).toHaveLength(1)
+    expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ final_level: 3, reason: 'Arah gesekan benar' })
+  })
+
+  it('reviews a flag and resumes a paused session only after confirming', async () => {
+    const request = backend({
+      [`POST /flags/${flagId}/review`]: () => Response.json({ status: 'cleared', reviewed_at: '2026-10-02T04:00:00Z' }),
+      [`POST /sessions/${sessionId}/safety-actions`]: () => Response.json({ session_id: sessionId, status: 'in_progress', acted_at: '2026-10-02T04:00:00Z' }),
+    })
+    open(reportPath, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Tidak ada masalah' }))
+    await waitFor(() => expect(request.mock.calls.some(([url]) => String(url).endsWith('/review'))).toBe(true))
+    fireEvent.click(screen.getByRole('button', { name: 'Lanjutkan sesi' }))
+    expect(request.mock.calls.some(([url]) => String(url).endsWith('/safety-actions'))).toBe(false)
+    const confirm = screen.getAllByRole('button', { name: 'Lanjutkan sesi' }).at(-1)!
+    fireEvent.click(confirm)
+    await waitFor(() => expect(request.mock.calls.filter(([url]) => String(url).endsWith('/safety-actions'))).toHaveLength(1))
+    const bodies = request.mock.calls.filter(([, init]) => init?.method === 'POST').map(([, init]) => JSON.parse(String(init?.body)))
+    expect(bodies).toEqual([{ decision: 'cleared', note: null }, { action: 'resume', note: null }])
   })
 
   it('uploads a PDF as multipart and follows the reading job on the topic page', async () => {

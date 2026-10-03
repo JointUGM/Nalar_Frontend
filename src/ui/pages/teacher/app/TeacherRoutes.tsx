@@ -15,6 +15,7 @@ import { TeacherMissionPage } from './TeacherMissionPage'
 import { TeacherMissionsPage } from './TeacherMissionsPage'
 import { TeacherPublishPage } from './TeacherPublishPage'
 import { TeacherReleasePage } from './TeacherReleasePage'
+import { TeacherReportPage } from './TeacherReportPage'
 import { TeacherSessionsPage } from './TeacherSessionsPage'
 
 // ProtectedRole has already checked that this account teaches at the school in the path.
@@ -30,13 +31,14 @@ export function TeacherRoutes({ service, kb, live, identity }: { service: Teache
     { label: 'Misi', icon: 'target', to: `${base}/missions` },
     { label: 'Basis pengetahuan', icon: 'layers', to: `${base}/knowledge-base` },
   ] as const
-  const title = pathname.endsWith('/monitor') ? 'Sesi langsung' : pathname.endsWith('/class-map') ? 'Hasil kelas / Peta miskonsepsi' : pathname.endsWith('/release') ? 'Hasil kelas / Rilis ke orang tua' : pathname.includes('/missions') ? 'Misi' : pathname.includes('/knowledge-base') ? 'Basis pengetahuan' : 'Sesi dan hasil'
+  const title = pathname.includes('/sessions/') ? 'Hasil kelas / Laporan siswa' : pathname.endsWith('/monitor') ? 'Sesi langsung' : pathname.endsWith('/class-map') ? 'Hasil kelas / Peta miskonsepsi' : pathname.endsWith('/release') ? 'Hasil kelas / Rilis ke orang tua' : pathname.includes('/missions') ? 'Misi' : pathname.includes('/knowledge-base') ? 'Basis pengetahuan' : 'Sesi dan hasil'
   return <TeacherContextProvider schools={schools.map((item) => item.schoolName)} current={school} onChange={(name) => { const next = schools.find((item) => item.schoolName === name); if (next) navigate(`/teacher/${next.schoolId}`) }}>
     <TeacherShell title={title} user={identity.fullName} nav={nav} home={base} review={false}>
       <Routes>
         <Route path=":schoolId" element={<TeacherSessionsPage service={service} base={base} />} />
         <Route path=":schoolId/sessions" element={<TeacherSessionsPage service={service} base={base} />} />
         <Route path=":schoolId/publications/:publicationId/monitor" element={<MonitorRoute live={live} base={base} />} />
+        <Route path=":schoolId/publications/:publicationId/sessions/:sessionId" element={<TeacherReportPage service={service} base={base} />} />
         <Route path=":schoolId/publications/:publicationId/class-map" element={<TeacherClassMapPage service={service} base={base} />} />
         <Route path=":schoolId/publications/:publicationId/release" element={<TeacherReleasePage service={service} base={base} />} />
         <Route path=":schoolId/missions" element={<TeacherMissionsPage service={service} base={base} schoolId={schoolId} />} />
