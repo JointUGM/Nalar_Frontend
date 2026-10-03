@@ -2,7 +2,6 @@
 // A role leaves this list when it gets real pages (parent, student and teacher have theirs under ui/pages/<role>/app).
 const reviewDashboards: Readonly<Record<string, string>> = {
   platform: '/review/platform/schools',
-  school: '/review/school/people',
 }
 
 export function devDashboardPath(rolePath: string): string | null {
