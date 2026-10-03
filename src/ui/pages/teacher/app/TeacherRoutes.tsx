@@ -46,7 +46,7 @@ export function TeacherRoutes({ service, kb, live, identity, changePassword }: {
   ] as const
   const title = pathname.includes('/sessions/') ? 'Hasil kelas / Laporan siswa' : pathname.endsWith('/monitor') ? 'Sesi langsung' : pathname.endsWith('/class-map') ? 'Hasil kelas / Peta miskonsepsi' : pathname.endsWith('/release') ? 'Hasil kelas / Rilis ke orang tua' : pathname.includes('/missions') ? 'Misi' : pathname.includes('/knowledge-base') ? 'Basis pengetahuan' : pathname.endsWith('/classes') ? 'Kelas dan siswa' : pathname.endsWith('/attention') ? 'Perlu perhatian' : pathname.endsWith('/sessions') ? 'Sesi dan hasil' : 'Beranda'
   return <TeacherContextProvider schools={schools.map((item) => item.schoolName)} current={school} onChange={(name) => { const next = schools.find((item) => item.schoolName === name); if (next) navigate(`/teacher/${next.schoolId}`) }}>
-    <TeacherShell title={title} user={identity.fullName} nav={nav} home={base} review={false} onChangePassword={changePassword ? () => setPasswordOpen(true) : undefined}>
+    <TeacherShell title={title} user={identity.fullName} nav={nav} home={base} onChangePassword={changePassword ? () => setPasswordOpen(true) : undefined}>
       <Routes>
         <Route path=":schoolId" element={<TeacherHomePage service={service} base={base} schoolId={schoolId} user={identity.fullName} />} />
         <Route path=":schoolId/classes" element={<TeacherClassesPage service={service} base={base} schoolId={schoolId} />} />

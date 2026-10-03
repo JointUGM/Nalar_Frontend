@@ -31,7 +31,7 @@ function Login() {
 
 const child = { id: 'a', name: 'Anak Satu', initials: 'A', detail: '8B · Sekolah', klass: '8B', tone: 'warm' as const }
 const shells: readonly (readonly [string, ReactNode])[] = [
-  ['Guru', <TeacherContextProvider schools={['Sekolah']}><TeacherShell title="Beranda" user="Bu Guru"><p>Isi</p></TeacherShell></TeacherContextProvider>],
+  ['Guru', <TeacherContextProvider schools={['Sekolah']}><TeacherShell title="Beranda" user="Bu Guru" nav={[{ label: 'Beranda', icon: 'home', to: '/teacher/x' }]} home="/teacher/x"><p>Isi</p></TeacherShell></TeacherContextProvider>],
   ['Siswa', <StudentShell title="Misi saya" user="Raka Pratama" detail="Kelas 8B"><p>Isi</p></StudentShell>],
   ['Orang tua', <ParentContextProvider all={[child]}><ParentShell title="Ringkasan" user="Pak Orang" home="/x" nav={[{ label: 'Ringkasan', icon: 'home', to: '/x' }]}><p>Isi</p></ParentShell></ParentContextProvider>],
 ]
