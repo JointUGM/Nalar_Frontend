@@ -26,7 +26,7 @@ function Login() {
   return <p>Masuk · keluar diminta: {String(state?.signOut === true)}</p>
 }
 
-const shell = (schoolContext?: typeof school) => render(<MemoryRouter initialEntries={['/review/school/people']}>
+const shell = (schoolContext?: typeof school) => render(<MemoryRouter initialEntries={['/review/school/kb-owners']}>
   <Routes>
     <Route path="/login" element={<Login />} />
     <Route path="*" element={<AdultShell schoolContext={schoolContext}><p>Isi halaman</p></AdultShell>} />

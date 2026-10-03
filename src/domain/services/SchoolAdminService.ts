@@ -1,4 +1,4 @@
-import type { AcademicYear, InvitationAdmission, InvitationPage, RosterImport } from '@/domain/model/SchoolAdmin'
+import type { AcademicYear, Assignment, ClassDraft, InvitationAdmission, InvitationPage, NewAcademicYear, PeoplePage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
 
 export interface SchoolAdminService {
   invitations(schoolId: string, cursor: string | null, signal?: AbortSignal): Promise<InvitationPage>
@@ -6,4 +6,14 @@ export interface SchoolAdminService {
   academicYears(schoolId: string, signal?: AbortSignal): Promise<AcademicYear[]>
   uploadRoster(schoolId: string, academicYearId: string, file: File, signal?: AbortSignal): Promise<{ import_id: string }>
   rosterImport(importId: string, signal?: AbortSignal): Promise<RosterImport>
+  people(schoolId: string, query: { role: PeopleRole; q: string; cursor: string | null }, signal?: AbortSignal): Promise<PeoplePage>
+  editPerson(schoolId: string, userId: string, edit: PersonEdit, signal?: AbortSignal): Promise<void>
+  deactivatePerson(schoolId: string, userId: string, signal?: AbortSignal): Promise<void>
+  classes(schoolId: string, academicYearId: string, signal?: AbortSignal): Promise<SchoolClass[]>
+  createClass(schoolId: string, academicYearId: string, draft: ClassDraft, signal?: AbortSignal): Promise<void>
+  editClass(schoolId: string, classId: string, draft: ClassDraft, signal?: AbortSignal): Promise<void>
+  subjects(schoolId: string, signal?: AbortSignal): Promise<SchoolSubject[]>
+  assignments(schoolId: string, academicYearId: string, signal?: AbortSignal): Promise<Assignment[]>
+  assignTeacher(schoolId: string, classId: string, subjectId: string, teacherId: string | null, signal?: AbortSignal): Promise<void>
+  createAcademicYear(schoolId: string, year: NewAcademicYear, idempotencyKey: string, signal?: AbortSignal): Promise<void>
 }

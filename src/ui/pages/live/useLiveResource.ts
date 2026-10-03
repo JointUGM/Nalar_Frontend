@@ -110,3 +110,28 @@ export function useCommandSignal() {
   }, [])
   return useCallback(() => controller.current?.signal, [])
 }
+
+// One command at a time: a second click while one runs is ignored, and the refusal stays until the next run or `reset`.
+export function useCommand() {
+  const commandSignal = useCommandSignal()
+  const busy = useRef(false)
+  const [pending, setPending] = useState(false)
+  const [failure, setFailure] = useState<ApiError | null>(null)
+  const run = useCallback(async (command: (signal?: AbortSignal) => Promise<unknown>): Promise<boolean> => {
+    if (busy.current) return false
+    busy.current = true; setPending(true); setFailure(null)
+    const signal = commandSignal()
+    try {
+      await command(signal)
+      return !signal?.aborted
+    } catch (cause) {
+      if (!signal?.aborted) setFailure(cause instanceof ApiError ? cause : new ApiError(0, 'UNAVAILABLE'))
+      return false
+    } finally {
+      busy.current = false
+      if (!signal?.aborted) setPending(false)
+    }
+  }, [commandSignal])
+  const reset = useCallback(() => setFailure(null), [])
+  return { pending, failure, run, reset }
+}

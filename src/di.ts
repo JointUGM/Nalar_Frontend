@@ -16,6 +16,8 @@ import { HttpTeacherService } from '@/infrastructure/services/HttpTeacherService
 import { TeacherUseCases } from '@/application/teacher-use-cases'
 import { HttpSchoolAdminService } from '@/infrastructure/services/HttpSchoolAdminService'
 import { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
+import { HttpPlatformAdminService } from '@/infrastructure/services/HttpPlatformAdminService'
+import { PlatformAdminUseCases } from '@/application/platform-admin-use-cases'
 import { HttpKnowledgeBaseService } from '@/infrastructure/services/HttpKnowledgeBaseService'
 import { KnowledgeBaseUseCases } from '@/application/knowledge-base-use-cases'
 import type { AccountDependencies } from '@/ui/pages/account/AccountDependencies'
@@ -32,9 +34,9 @@ function resolveApiBaseUrl(input?: string): string | null {
   } catch { return null }
 }
 
-export async function createDependencies(config: PublicAppConfig): Promise<{ account: AccountDependencies | null; live: LiveUseCases | null; parent: ParentUseCases | null; student: StudentUseCases | null; teacher: TeacherUseCases | null; knowledgeBase: KnowledgeBaseUseCases | null; school: SchoolAdminUseCases | null; dispose: () => Promise<void> }> {
+export async function createDependencies(config: PublicAppConfig): Promise<{ account: AccountDependencies | null; live: LiveUseCases | null; parent: ParentUseCases | null; student: StudentUseCases | null; teacher: TeacherUseCases | null; knowledgeBase: KnowledgeBaseUseCases | null; school: SchoolAdminUseCases | null; platform: PlatformAdminUseCases | null; dispose: () => Promise<void> }> {
   const apiBaseUrl = resolveApiBaseUrl(config.apiBaseUrl)
-  if (!apiBaseUrl) return { account: null, live: null, parent: null, student: null, teacher: null, knowledgeBase: null, school: null, dispose: async () => {} }
+  if (!apiBaseUrl) return { account: null, live: null, parent: null, student: null, teacher: null, knowledgeBase: null, school: null, platform: null, dispose: async () => {} }
   const { HttpAuthService } = await import('@/infrastructure/services/HttpAuthService')
   const auth = new HttpAuthService({ apiBaseUrl })
   const api = new HttpApi({ apiBaseUrl })
@@ -45,6 +47,7 @@ export async function createDependencies(config: PublicAppConfig): Promise<{ acc
     teacher: new TeacherUseCases(new HttpTeacherService(api)),
     knowledgeBase: new KnowledgeBaseUseCases(new HttpKnowledgeBaseService(api)),
     school: new SchoolAdminUseCases(new HttpSchoolAdminService(api)),
+    platform: new PlatformAdminUseCases(new HttpPlatformAdminService(api)),
     account: {
       activate: new ActivateAccountUseCase(auth),
       requestReset: new RequestPasswordResetUseCase(auth), reset: new ResetPasswordUseCase(auth), changePassword: new ChangePasswordUseCase(auth),

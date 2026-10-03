@@ -882,11 +882,6 @@ export function Landing() {
             <Link to="/login" className={styles.footerLink}>
               Masuk ke NALAR
             </Link>
-            {import.meta.env.DEV && (
-              <a href="/review/platform/schools" className={styles.footerLink} style={{ color: 'var(--color-text-muted)' }}>
-                Pratinjau (dev)
-              </a>
-            )}
           </div>
         </div>
       </footer>

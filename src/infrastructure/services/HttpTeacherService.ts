@@ -32,7 +32,7 @@ export class HttpTeacherService implements TeacherService {
     const { data } = await this.api.request('/teacher/assignments', { signal })
     return list(record(data).items).map((item) => {
       const value = record(item)
-      return { school_id: text(value.school_id), class_id: text(value.class_id), class_name: text(value.class_name), grade_level: count(value.grade_level), school_subject_id: text(value.school_subject_id), subject_name: text(value.subject_name) } satisfies Schemas['AssignmentOut']
+      return { school_id: text(value.school_id), class_id: text(value.class_id), class_name: text(value.class_name), grade_level: count(value.grade_level), school_subject_id: text(value.school_subject_id), subject_name: text(value.subject_name) } satisfies Schemas['nalar__presentation__api__schemas__teacher__AssignmentOut']
     })
   }
 

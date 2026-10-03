@@ -238,6 +238,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/knowledge-bases/{kb_id}/owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Transfer Kb */
+        post: operations["transfer_kb_api_v1_knowledge_bases__kb_id__owner_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/knowledge-bases/{kb_id}/review-queue": {
         parameters: {
             query?: never;
@@ -495,6 +512,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/curriculum-versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Curriculum Versions */
+        get: operations["curriculum_versions_api_v1_platform_curriculum_versions_get"];
+        put?: never;
+        /** Publish Curriculum */
+        post: operations["publish_curriculum_api_v1_platform_curriculum_versions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/curriculum-versions/{version_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Curriculum Version */
+        get: operations["curriculum_version_api_v1_platform_curriculum_versions__version_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/schools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Schools */
+        get: operations["schools_api_v1_platform_schools_get"];
+        put?: never;
+        /** Create School */
+        post: operations["create_school_api_v1_platform_schools_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/schools/{school_id}/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** School Admin */
+        post: operations["school_admin_api_v1_platform_schools__school_id__admin_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/schools/{school_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** School Status */
+        patch: operations["school_status_api_v1_platform_schools__school_id__status_patch"];
+        trace?: never;
+    };
     "/api/v1/publications": {
         parameters: {
             query?: never;
@@ -675,7 +779,8 @@ export interface paths {
         /** Academic Years */
         get: operations["academic_years_api_v1_schools__school_id__academic_years_get"];
         put?: never;
-        post?: never;
+        /** Create Year */
+        post: operations["create_year_api_v1_schools__school_id__academic_years_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -698,6 +803,59 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{school_id}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Assignments */
+        get: operations["assignments_api_v1_schools__school_id__assignments_get"];
+        /** Assign Teacher */
+        put: operations["assign_teacher_api_v1_schools__school_id__assignments_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{school_id}/classes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Classes */
+        get: operations["classes_api_v1_schools__school_id__classes_get"];
+        put?: never;
+        /** Create Class */
+        post: operations["create_class_api_v1_schools__school_id__classes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{school_id}/classes/{class_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit Class */
+        patch: operations["edit_class_api_v1_schools__school_id__classes__class_id__patch"];
         trace?: never;
     };
     "/api/v1/schools/{school_id}/knowledge-bases": {
@@ -735,6 +893,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{school_id}/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** People */
+        get: operations["people_api_v1_schools__school_id__people_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{school_id}/people/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit Person */
+        patch: operations["edit_person_api_v1_schools__school_id__people__user_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/schools/{school_id}/people/{user_id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deactivate Person */
+        post: operations["deactivate_person_api_v1_schools__school_id__people__user_id__deactivate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{school_id}/roster-imports": {
         parameters: {
             query?: never;
@@ -746,6 +955,40 @@ export interface paths {
         put?: never;
         /** Upload Roster */
         post: operations["upload_roster_api_v1_schools__school_id__roster_imports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{school_id}/subjects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Subjects */
+        get: operations["subjects_api_v1_schools__school_id__subjects_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{school_id}/subjects/{subject_id}/curriculum": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Curriculum */
+        put: operations["set_curriculum_api_v1_schools__school_id__subjects__subject_id__curriculum_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1096,6 +1339,30 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AcademicYearCreatedOut */
+        AcademicYearCreatedOut: {
+            /**
+             * Academic Year Id
+             * Format: uuid
+             */
+            academic_year_id: string;
+        };
+        /** AcademicYearIn */
+        AcademicYearIn: {
+            /** Copy Classes From */
+            copy_classes_from?: string | null;
+            /**
+             * Ends On
+             * Format: date
+             */
+            ends_on: string;
+            name: components["schemas"]["Name"];
+            /**
+             * Starts On
+             * Format: date
+             */
+            starts_on: string;
+        };
         /** AcademicYearOut */
         AcademicYearOut: {
             /**
@@ -1136,6 +1403,11 @@ export interface components {
              */
             token_hash: string;
         };
+        /** AdminEmailIn */
+        AdminEmailIn: {
+            /** Email */
+            email: string;
+        };
         /** AnswerAccepted */
         AnswerAccepted: {
             /** Next Prompt Url */
@@ -1159,34 +1431,25 @@ export interface components {
             /** Turn Index */
             turn_index: number;
         };
-        /** AssignmentOut */
-        AssignmentOut: {
+        /** AssignmentIn */
+        AssignmentIn: {
             /**
              * Class Id
              * Format: uuid
              */
             class_id: string;
-            /** Class Name */
-            class_name: string;
-            /** Grade Level */
-            grade_level: number;
-            /**
-             * School Id
-             * Format: uuid
-             */
-            school_id: string;
             /**
              * School Subject Id
              * Format: uuid
              */
             school_subject_id: string;
-            /** Subject Name */
-            subject_name: string;
+            /** Teacher Id */
+            teacher_id: string | null;
         };
         /** AssignmentsOut */
         AssignmentsOut: {
             /** Items */
-            items: components["schemas"]["AssignmentOut"][];
+            items: components["schemas"]["nalar__presentation__api__schemas__teacher__AssignmentOut"][];
         };
         /** AttemptGrantIn */
         AttemptGrantIn: {
@@ -1318,6 +1581,19 @@ export interface components {
             /** Statement */
             statement: string;
         };
+        /** ClassIn */
+        ClassIn: {
+            /**
+             * Academic Year Id
+             * Format: uuid
+             */
+            academic_year_id: string;
+            /** Grade Level */
+            grade_level: number;
+            /** Homeroom Teacher Id */
+            homeroom_teacher_id?: string | null;
+            name: components["schemas"]["Name"];
+        };
         /** ClassMapOut */
         ClassMapOut: {
             /** Concepts */
@@ -1327,6 +1603,39 @@ export interface components {
             /** Incomplete Count */
             incomplete_count: number;
             insight?: components["schemas"]["InsightOut"] | null;
+        };
+        /** ClassOut */
+        ClassOut: {
+            /**
+             * Academic Year Id
+             * Format: uuid
+             */
+            academic_year_id: string;
+            /** Archived At */
+            archived_at: string | null;
+            /**
+             * Class Id
+             * Format: uuid
+             */
+            class_id: string;
+            /** Grade Level */
+            grade_level: number;
+            /** Homeroom Teacher Id */
+            homeroom_teacher_id: string | null;
+            /** Name */
+            name: string;
+            /** Student Count */
+            student_count: number;
+        };
+        /** ClassPatchIn */
+        ClassPatchIn: {
+            /** Academic Year Id */
+            academic_year_id?: string | null;
+            /** Grade Level */
+            grade_level?: number | null;
+            /** Homeroom Teacher Id */
+            homeroom_teacher_id?: string | null;
+            name?: components["schemas"]["Name"] | null;
         };
         /** ClassStudentOut */
         ClassStudentOut: {
@@ -1434,6 +1743,121 @@ export interface components {
             started: number;
             /** Timed Out */
             timed_out: number;
+        };
+        /** CurriculumCreatedOut */
+        CurriculumCreatedOut: {
+            /**
+             * Curriculum Version Id
+             * Format: uuid
+             */
+            curriculum_version_id: string;
+        };
+        /** CurriculumDetailOut */
+        CurriculumDetailOut: {
+            /** Decree Code */
+            decree_code: string;
+            /**
+             * Effective On
+             * Format: date
+             */
+            effective_on: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Current */
+            is_current: boolean;
+            /** Name */
+            name: string;
+            /** Published At */
+            published_at: string | null;
+            /** School Count */
+            school_count: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "published" | "superseded";
+            /** Subjects */
+            subjects: components["schemas"]["CurriculumSubjectOut"][];
+        };
+        /** CurriculumIn */
+        CurriculumIn: {
+            decree_code: components["schemas"]["Name"];
+            /**
+             * Effective On
+             * Format: date
+             */
+            effective_on: string;
+            /**
+             * Is Current
+             * @default true
+             */
+            is_current: boolean;
+            name: components["schemas"]["Name"];
+            /** Subjects */
+            subjects: components["schemas"]["CurriculumSubjectIn"][];
+        };
+        /** CurriculumMappingIn */
+        CurriculumMappingIn: {
+            /** Cp Subject Id */
+            cp_subject_id?: string | null;
+            /**
+             * Cp Version Id
+             * Format: uuid
+             */
+            cp_version_id: string;
+        };
+        /** CurriculumSubjectIn */
+        CurriculumSubjectIn: {
+            /** Learning Outcomes */
+            learning_outcomes: components["schemas"]["LearningOutcomeIn"][];
+            name: components["schemas"]["Name"];
+            /** Phase */
+            phase: string;
+        };
+        /** CurriculumSubjectOut */
+        CurriculumSubjectOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Learning Outcomes */
+            learning_outcomes: components["schemas"]["LearningOutcomeOut"][];
+            /** Name */
+            name: string;
+            /** Phase */
+            phase: string;
+        };
+        /** CurriculumVersionOut */
+        CurriculumVersionOut: {
+            /** Decree Code */
+            decree_code: string;
+            /**
+             * Effective On
+             * Format: date
+             */
+            effective_on: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Current */
+            is_current: boolean;
+            /** Name */
+            name: string;
+            /** Published At */
+            published_at: string | null;
+            /** School Count */
+            school_count: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "published" | "superseded";
         };
         /** DashboardTrendOut */
         DashboardTrendOut: {
@@ -1735,6 +2159,14 @@ export interface components {
             /** Topic Title */
             topic_title: string;
         };
+        /** KbOwnerIn */
+        KbOwnerIn: {
+            /**
+             * Teacher Id
+             * Format: uuid
+             */
+            teacher_id: string;
+        };
         /** KbPageOut */
         KbPageOut: {
             /** Items */
@@ -1804,6 +2236,41 @@ export interface components {
             topic_key: string;
             /** Topic Title */
             topic_title: string;
+        };
+        /** LearningOutcomeIn */
+        LearningOutcomeIn: {
+            /** Description */
+            description: string;
+            element?: components["schemas"]["Name"] | null;
+            /**
+             * Ordinal
+             * @default 0
+             */
+            ordinal: number;
+        };
+        /** LearningOutcomeOut */
+        LearningOutcomeOut: {
+            /** Description */
+            description: string;
+            /** Element */
+            element: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Ordinal */
+            ordinal: number;
+        };
+        /** LinkedPersonOut */
+        LinkedPersonOut: {
+            /** Full Name */
+            full_name: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
         };
         /** LiveWarmupIn */
         LiveWarmupIn: {
@@ -2133,6 +2600,7 @@ export interface components {
              */
             student_id: string;
         };
+        Name: string;
         /** OpeningGuessOut */
         OpeningGuessOut: {
             /** Choice Id */
@@ -2316,6 +2784,49 @@ export interface components {
             type: "paste";
             /** Value */
             value: number;
+        };
+        /** PeoplePageOut */
+        PeoplePageOut: {
+            /** Items */
+            items: components["schemas"]["PersonOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Total */
+            total: number;
+        };
+        /** PersonEditIn */
+        PersonEditIn: {
+            /** Class Id */
+            class_id?: string | null;
+            full_name?: components["schemas"]["Name"] | null;
+        };
+        /** PersonOut */
+        PersonOut: {
+            /**
+             * Account State
+             * @enum {string}
+             */
+            account_state: "active" | "inactive" | "pending_activation";
+            /** Class Name */
+            class_name: string | null;
+            /** Email */
+            email: string | null;
+            /** Full Name */
+            full_name: string;
+            /** Linked Children */
+            linked_children: components["schemas"]["LinkedPersonOut"][];
+            /** Linked Parents */
+            linked_parents: components["schemas"]["LinkedPersonOut"][];
+            /** Nisn */
+            nisn: string | null;
+            role: components["schemas"]["Role"];
+            /** Roles */
+            roles: components["schemas"]["Role"][];
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
         };
         /** PrerequisiteOut */
         PrerequisiteOut: {
@@ -2660,6 +3171,8 @@ export interface components {
             /** Pending Misconceptions */
             pending_misconceptions: number;
         };
+        /** @enum {string} */
+        Role: "school_admin" | "teacher" | "student" | "parent";
         /** RoleOut */
         RoleOut: {
             /** Role */
@@ -2812,6 +3325,79 @@ export interface components {
             /** Student Name */
             student_name: string;
         };
+        /** SchoolAdminOut */
+        SchoolAdminOut: {
+            /** Pending Activation */
+            pending_activation: boolean;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
+        /** SchoolCreatedOut */
+        SchoolCreatedOut: {
+            /** Pending Activation */
+            pending_activation: boolean;
+            /**
+             * School Id
+             * Format: uuid
+             */
+            school_id: string;
+        };
+        /** SchoolIn */
+        SchoolIn: {
+            /** Admin Email */
+            admin_email: string;
+            city: components["schemas"]["Name"];
+            name: components["schemas"]["Name"];
+            /** Npsn */
+            npsn: string;
+        };
+        /** SchoolOut */
+        SchoolOut: {
+            /** Admin Name */
+            admin_name: string | null;
+            /** City */
+            city: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Npsn */
+            npsn: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended";
+            /** User Count */
+            user_count: number;
+        };
+        /** SchoolStatusIn */
+        SchoolStatusIn: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "suspended";
+        };
+        /** SchoolsPageOut */
+        SchoolsPageOut: {
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Items */
+            items: components["schemas"]["SchoolOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Total */
+            total: number;
+        };
         /** SectionItemOut */
         SectionItemOut: {
             /** Build Status */
@@ -2962,6 +3548,22 @@ export interface components {
             items: components["schemas"]["StudentReflectionOut"][];
             /** Next Cursor */
             next_cursor: string | null;
+        };
+        /** SubjectOut */
+        SubjectOut: {
+            /** Cp Subject Id */
+            cp_subject_id: string | null;
+            /** Cp Version Id */
+            cp_version_id: string | null;
+            /** Kb Owner Name */
+            kb_owner_name: string | null;
+            /** Name */
+            name: string;
+            /**
+             * School Subject Id
+             * Format: uuid
+             */
+            school_subject_id: string;
         };
         /** SummaryPreviewOut */
         SummaryPreviewOut: {
@@ -3230,6 +3832,32 @@ export interface components {
             /** Run Id */
             run_id?: string | null;
         };
+        /** AssignmentOut */
+        nalar__presentation__api__schemas__administration__AssignmentOut: {
+            /**
+             * Academic Year Id
+             * Format: uuid
+             */
+            academic_year_id: string;
+            /**
+             * Class Id
+             * Format: uuid
+             */
+            class_id: string;
+            /** Class Name */
+            class_name: string;
+            /**
+             * School Subject Id
+             * Format: uuid
+             */
+            school_subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+            /** Teacher Id */
+            teacher_id: string | null;
+            /** Teacher Name */
+            teacher_name: string;
+        };
         /** WarmupChoiceIn */
         nalar__presentation__api__schemas__missions__WarmupChoiceIn: {
             /** Id */
@@ -3241,6 +3869,30 @@ export interface components {
         nalar__presentation__api__schemas__student__WarmupChoiceIn: {
             /** Choice Id */
             choice_id: string;
+        };
+        /** AssignmentOut */
+        nalar__presentation__api__schemas__teacher__AssignmentOut: {
+            /**
+             * Class Id
+             * Format: uuid
+             */
+            class_id: string;
+            /** Class Name */
+            class_name: string;
+            /** Grade Level */
+            grade_level: number;
+            /**
+             * School Id
+             * Format: uuid
+             */
+            school_id: string;
+            /**
+             * School Subject Id
+             * Format: uuid
+             */
+            school_subject_id: string;
+            /** Subject Name */
+            subject_name: string;
         };
     };
     responses: never;
@@ -3656,6 +4308,39 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MaterialQueuedOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transfer_kb_api_v1_knowledge_bases__kb_id__owner_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KbOwnerIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -4196,6 +4881,230 @@ export interface operations {
             };
         };
     };
+    curriculum_versions_api_v1_platform_curriculum_versions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurriculumVersionOut"][];
+                };
+            };
+        };
+    };
+    publish_curriculum_api_v1_platform_curriculum_versions_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CurriculumIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurriculumCreatedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    curriculum_version_api_v1_platform_curriculum_versions__version_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurriculumDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    schools_api_v1_platform_schools_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolsPageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_school_api_v1_platform_schools_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SchoolIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolCreatedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_admin_api_v1_platform_schools__school_id__admin_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminEmailIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolAdminOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_status_api_v1_platform_schools__school_id__status_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SchoolStatusIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     publish_api_v1_publications_post: {
         parameters: {
             query?: never;
@@ -4549,6 +5458,43 @@ export interface operations {
             };
         };
     };
+    create_year_api_v1_schools__school_id__academic_years_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcademicYearIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcademicYearCreatedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_invitations_api_v1_schools__school_id__account_invitations_get: {
         parameters: {
             query?: {
@@ -4606,6 +5552,176 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InvitationsQueuedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assignments_api_v1_schools__school_id__assignments_get: {
+        parameters: {
+            query?: {
+                academic_year_id?: string | null;
+            };
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["nalar__presentation__api__schemas__administration__AssignmentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assign_teacher_api_v1_schools__school_id__assignments_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignmentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    classes_api_v1_schools__school_id__classes_get: {
+        parameters: {
+            query?: {
+                academic_year_id?: string | null;
+            };
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_class_api_v1_schools__school_id__classes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClassIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_class_api_v1_schools__school_id__classes__class_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+                class_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClassPatchIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassOut"];
                 };
             };
             /** @description Validation Error */
@@ -4724,6 +5840,106 @@ export interface operations {
             };
         };
     };
+    people_api_v1_schools__school_id__people_get: {
+        parameters: {
+            query?: {
+                role?: components["schemas"]["Role"] | null;
+                q?: string;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeoplePageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_person_api_v1_schools__school_id__people__user_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonEditIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deactivate_person_api_v1_schools__school_id__people__user_id__deactivate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     upload_roster_api_v1_schools__school_id__roster_imports_post: {
         parameters: {
             query?: never;
@@ -4747,6 +5963,71 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["RosterQueuedOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subjects_api_v1_schools__school_id__subjects_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_curriculum_api_v1_schools__school_id__subjects__subject_id__curriculum_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CurriculumMappingIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

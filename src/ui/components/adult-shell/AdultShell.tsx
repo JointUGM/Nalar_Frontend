@@ -9,7 +9,7 @@ import type { SearchTarget } from '@/ui/components/shell-search/ShellSearch'
 import type { IconName } from '@/ui/components/icon/Icon'
 import styles from './AdultShell.module.css'
 
-// The defaults are the example-data review pages; a signed-in school admin passes the real `nav` and review={false}, which also drops the example label.
+// Without `nav` and `schoolContext` this is the platform admin shell. The school default is the one example page left (KB owners); a signed-in school admin passes the real `nav` and review={false}, which also drops the example label.
 export function AdultShell({ children, search = '', onSearch, schoolContext, nav, review = true }: { children: ReactNode; search?: string; onSearch?: (value: string) => void; schoolContext?: { name: string; year?: string; admin: string }; nav?: readonly { label: string; icon: IconName; to: string }[]; review?: boolean }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
@@ -18,23 +18,17 @@ export function AdultShell({ children, search = '', onSearch, schoolContext, nav
   useEffect(() => {
     if (focusContent) contentRef.current?.focus()
   }, [focusContent, location.key])
-  const base = location.pathname.startsWith('/review/') ? '/review/platform' : '/platform'
   const navigation = nav ? <nav className={styles.navigation} aria-label="Navigasi Admin Sekolah">{nav.map((item) => <NavLink key={item.to} to={item.to} end state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name={item.icon} /><span>{item.label}</span></NavLink>)}</nav>
   : schoolContext ? <nav className={styles.navigation} aria-label="Navigasi Admin Sekolah">
-    <NavLink to="/review/school/people" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="users" /><span>Orang</span></NavLink>
-    <NavLink to="/review/school/classes" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="grid" /><span>Kelas</span></NavLink>
-    <NavLink to="/review/school/subjects" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="book" /><span>Mata pelajaran</span></NavLink>
-    <NavLink to="/review/school/assignments" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="link" /><span>Penugasan guru</span></NavLink>
     <NavLink to="/review/school/kb-owners" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="layers" /><span>Basis pengetahuan</span></NavLink>
-    <NavLink to="/review/school/year" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="calendar" /><span>Tahun ajaran</span></NavLink>
   </nav> : <nav className={styles.navigation} aria-label="Navigasi Admin Platform">
-    <NavLink to={`${base}/schools`} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="school" /><span>Sekolah</span></NavLink>
-    <NavLink to={`${base}/cp-versions`} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="book" /><span>Capaian Pembelajaran</span></NavLink>
+    <NavLink to="/platform/schools" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="school" /><span>Sekolah</span></NavLink>
+    <NavLink to="/platform/cp-versions" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="book" /><span>Capaian Pembelajaran</span></NavLink>
   </nav>
 
   const pages: SearchTarget[] = (nav ? nav.map((item): [string, string] => [item.label, item.to]) : schoolContext
-    ? [['Orang', '/review/school/people'], ['Kelas', '/review/school/classes'], ['Mata pelajaran', '/review/school/subjects'], ['Penugasan guru', '/review/school/assignments'], ['Basis pengetahuan', '/review/school/kb-owners'], ['Tahun ajaran', '/review/school/year']]
-    : [['Sekolah', `${base}/schools`], ['Capaian Pembelajaran', `${base}/cp-versions`]]
+    ? [['Basis pengetahuan', '/review/school/kb-owners']]
+    : [['Sekolah', '/platform/schools'], ['Capaian Pembelajaran', '/platform/cp-versions']]
   ).map(([label, to]) => ({ label, hint: 'Halaman', to }))
 
   // Signing out must stay reachable wherever the sidebar is not: on a phone the navigation lives in the drawer.
@@ -43,7 +37,7 @@ export function AdultShell({ children, search = '', onSearch, schoolContext, nav
   return <div className={styles.shell}>
     <a className={styles.skipLink} href="#platform-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>
-      <Link to={nav ? nav[0].to : schoolContext ? '/review/school/people' : '/'} className={styles.brand}><BrandMark /><span>nalar</span><small>{schoolContext ? 'sekolah' : 'platform'}</small></Link>
+      <Link to={nav ? nav[0].to : schoolContext ? '/review/school/kb-owners' : '/platform/schools'} className={styles.brand}><BrandMark /><span>nalar</span><small>{schoolContext ? 'sekolah' : 'platform'}</small></Link>
       {schoolContext && <div className={[styles.schoolContext, styles.schoolCard].join(' ')}><Icon name="school" /><span><strong>{schoolContext.name}</strong><small>Admin sekolah{schoolContext.year && ` · ${schoolContext.year}`}</small></span></div>}
       {navigation}
       <div className={styles.sidebarSpacer} />

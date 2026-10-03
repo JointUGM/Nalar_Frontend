@@ -7,7 +7,7 @@ import type { AccountDependencies } from './AccountDependencies'
 import { useIdentityAccessViewModel } from './useIdentityAccessViewModel'
 import styles from '@/ui/RouteBoundary.module.css'
 
-export function ProtectedRole({ dependencies, dashboardFor, renderRole }: { dependencies: AccountDependencies | null; dashboardFor?: (rolePath: string) => string | null; renderRole?: (identity: Identity, path: string) => ReactNode }) {
+export function ProtectedRole({ dependencies, renderRole }: { dependencies: AccountDependencies | null; renderRole?: (identity: Identity, path: string) => ReactNode }) {
   const location = useLocation()
   const access = useIdentityAccessViewModel(dependencies)
   if (access.phase === 'checking') return <main className={styles.page}><h1>Memeriksa akses…</h1><p role="status">Tunggu sebentar.</p></main>
@@ -17,9 +17,6 @@ export function ProtectedRole({ dependencies, dashboardFor, renderRole }: { depe
 
   const rolePage = renderRole?.(access.identity, location.pathname)
   if (rolePage) return rolePage
-  const dashboard = dashboardFor?.(location.pathname)
-  if (dashboard) return <Navigate to={dashboard} replace />
-
 
   return <main className={styles.page}><h1>Halaman peran belum tersedia</h1><p>Akses akun telah diperiksa. Fitur peran ini sedang disiapkan.</p>{getRoleChoices(access.identity).length > 1 && <p><Link to="/login">Pilih peran lain</Link></p>}<p><Link to="/login" state={{ signOut: true }}>Keluar</Link></p></main>
 }

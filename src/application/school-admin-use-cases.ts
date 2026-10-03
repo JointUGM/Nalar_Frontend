@@ -1,6 +1,6 @@
 import { ApiError, resourceId } from '@/domain/model/ApiError'
 import { invitationBatchSize, invitationTargetStates, rosterMaxBytes } from '@/domain/model/SchoolAdmin'
-import type { InvitationSummary, InvitationTarget } from '@/domain/model/SchoolAdmin'
+import type { ClassDraft, InvitationSummary, InvitationTarget, LinkedPerson, NewAcademicYear, PersonEdit, PeopleRole } from '@/domain/model/SchoolAdmin'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 
 export class SchoolAdminUseCases {
@@ -37,5 +37,47 @@ export class SchoolAdminUseCases {
       }
     }
     return { queued, skipped }
+  }
+
+  people(schoolId: string, role: PeopleRole, q: string, cursor: string | null, signal?: AbortSignal) {
+    return this.service.people(resourceId(schoolId), { role, q: q.trim(), cursor }, signal)
+  }
+  // Every active teacher of the school, for the homeroom and assignment pickers.
+  async teachers(schoolId: string, signal?: AbortSignal): Promise<LinkedPerson[]> {
+    const school = resourceId(schoolId)
+    const found: LinkedPerson[] = []
+    let cursor: string | null = null
+    do {
+      const page = await this.service.people(school, { role: 'teacher', q: '', cursor }, signal)
+      found.push(...page.items.filter((item) => item.account_state !== 'inactive').map(({ user_id, full_name }) => ({ user_id, full_name })))
+      cursor = page.next_cursor
+    } while (cursor)
+    return found
+  }
+  editPerson(schoolId: string, userId: string, edit: PersonEdit, signal?: AbortSignal) {
+    const name = edit.full_name?.trim()
+    if (edit.full_name !== undefined && !name) throw new ApiError(422, 'NAME_REQUIRED')
+    return this.service.editPerson(resourceId(schoolId), resourceId(userId), { ...(name ? { full_name: name } : {}), ...(edit.class_id ? { class_id: resourceId(edit.class_id) } : {}) }, signal)
+  }
+  deactivatePerson(schoolId: string, userId: string, signal?: AbortSignal) { return this.service.deactivatePerson(resourceId(schoolId), resourceId(userId), signal) }
+
+  classes(schoolId: string, academicYearId: string, signal?: AbortSignal) { return this.service.classes(resourceId(schoolId), resourceId(academicYearId), signal) }
+  saveClass(schoolId: string, academicYearId: string, classId: string | null, draft: ClassDraft, signal?: AbortSignal) {
+    const name = draft.name.trim()
+    if (!name) throw new ApiError(422, 'NAME_REQUIRED')
+    const clean = { name, grade_level: draft.grade_level, homeroom_teacher_id: draft.homeroom_teacher_id && resourceId(draft.homeroom_teacher_id) }
+    return classId ? this.service.editClass(resourceId(schoolId), resourceId(classId), clean, signal) : this.service.createClass(resourceId(schoolId), resourceId(academicYearId), clean, signal)
+  }
+  subjects(schoolId: string, signal?: AbortSignal) { return this.service.subjects(resourceId(schoolId), signal) }
+  assignments(schoolId: string, academicYearId: string, signal?: AbortSignal) { return this.service.assignments(resourceId(schoolId), resourceId(academicYearId), signal) }
+  assignTeacher(schoolId: string, classId: string, subjectId: string, teacherId: string | null, signal?: AbortSignal) {
+    return this.service.assignTeacher(resourceId(schoolId), resourceId(classId), resourceId(subjectId), teacherId && resourceId(teacherId), signal)
+  }
+  // The key stays the same while the admin retries one submission, so a retry can never start a second year.
+  createAcademicYear(schoolId: string, year: NewAcademicYear, idempotencyKey: string, signal?: AbortSignal) {
+    const name = year.name.trim()
+    if (!name) throw new ApiError(422, 'NAME_REQUIRED')
+    if (!year.starts_on || !year.ends_on || year.ends_on <= year.starts_on) throw new ApiError(422, 'INVALID_DATES')
+    return this.service.createAcademicYear(resourceId(schoolId), { ...year, name, copy_classes_from: year.copy_classes_from && resourceId(year.copy_classes_from) }, idempotencyKey, signal)
   }
 }
