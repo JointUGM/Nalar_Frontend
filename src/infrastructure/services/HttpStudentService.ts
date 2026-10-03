@@ -1,6 +1,6 @@
 import type { MissionCard, StudentMissions, StudentReflection, TelemetryBatch, WindowSession } from '@/domain/model/Student'
 import type { StudentService } from '@/domain/services/StudentService'
-import { count, instant, list, nullable, record, text } from './HttpApi'
+import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
 
@@ -15,6 +15,7 @@ function card(item: unknown): MissionCard {
     opens_at: nullable(value.opens_at, instant), closes_at: nullable(value.closes_at, instant),
     target_duration_minutes: value.target_duration_minutes === undefined ? 15 : count(value.target_duration_minutes),
     max_duration_minutes: count(value.max_duration_minutes), session_id: nullable(value.session_id, text),
+    run_id: text(value.run_id), attempt_number: count(value.attempt_number), is_granted_attempt: flag(value.is_granted_attempt),
   } satisfies Schemas['MissionCardOut']
 }
 

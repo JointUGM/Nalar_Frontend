@@ -8,6 +8,10 @@ export interface MissionCard {
   attempt_status: string
   // The student's latest session for this mission, if any: a finished one reopens its reflection.
   session_id: string | null
+  // A teacher-granted retake is its own card with its own run; start it with that run id.
+  run_id: string
+  attempt_number: number
+  is_granted_attempt: boolean
   opens_at: string | null
   closes_at: string | null
   target_duration_minutes: number

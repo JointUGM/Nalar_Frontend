@@ -101,7 +101,8 @@ export class HttpTeacherService implements TeacherService {
           mastered_count: count(concept.mastered_count), developing_count: count(concept.developing_count), not_observed_count: count(concept.not_observed_count),
           misconceptions: list(concept.misconceptions).map((entry) => {
             const misconception = record(entry)
-            return { misconception_id: text(misconception.misconception_id), statement: text(misconception.statement), count: count(misconception.count), resolved_count: count(misconception.resolved_count), student_ids: list(misconception.student_ids).map((id) => text(id)) }
+            return { misconception_id: text(misconception.misconception_id), statement: text(misconception.statement), count: count(misconception.count), resolved_count: count(misconception.resolved_count), student_ids: list(misconception.student_ids).map((id) => text(id)),
+              students: list(misconception.students).map((entry) => { const holder = record(entry); return { student_id: text(holder.student_id), name: text(holder.name), session_id: text(holder.session_id) } }) }
           }),
         }
       }),

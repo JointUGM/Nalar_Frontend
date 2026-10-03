@@ -9,7 +9,7 @@ export interface TeacherPublication {
 }
 
 // Every number here is counted by the database (AI-4); the narrative is the only AI-written part.
-export interface ClassMapMisconception { misconception_id: string; statement: string; count: number; resolved_count: number; student_ids: string[] }
+export interface ClassMapMisconception { misconception_id: string; statement: string; count: number; resolved_count: number; student_ids: string[]; students: { student_id: string; name: string; session_id: string }[] }
 export interface ClassMapConcept { concept_id: string; name: string; mastered_count: number; developing_count: number; not_observed_count: number; misconceptions: ClassMapMisconception[] }
 export interface ClassMap { denominator: number; incomplete_count: number; concepts: ClassMapConcept[]; insight: { narrative: string; generated_at: string } | null }
 
