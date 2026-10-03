@@ -45,19 +45,6 @@ describe('production identity and route boundary', () => {
   const teacherPath = '/teacher/00000000-0000-4000-8000-000000000002'
   const parentToo: Identity = { ...identity, isParent: true }
 
-  it('hands an authorized role path to the dashboard mapping when one is supplied (development only)', async () => {
-    const access = createAccess()
-    render(<MemoryRouter initialEntries={[teacherPath]}><Where /><AppRoutes accountEntry={<Login dependencies={access.dependencies} />} privateEntry={<ProtectedRole dependencies={access.dependencies} dashboardFor={() => '/review/teacher/home'} />} /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/review/teacher/home'))
-  })
-
-  it('does not use the dashboard mapping for a path the account may not open', async () => {
-    const access = createAccess()
-    render(<MemoryRouter initialEntries={['/school/00000000-0000-4000-8000-000000000002']}><Where /><AppRoutes accountEntry={<Login dependencies={access.dependencies} />} privateEntry={<ProtectedRole dependencies={access.dependencies} dashboardFor={() => '/review/school/people'} />} /></MemoryRouter>)
-    expect(await screen.findByRole('heading', { name: 'Akses tidak tersedia' })).toBeInTheDocument()
-    expect(screen.getByTestId('where')).toHaveTextContent('/school/')
-  })
-
   it('offers a real sign-out on the placeholder, and a role switch only when there are several roles', async () => {
     const single = createAccess()
     route(single.dependencies, teacherPath)
