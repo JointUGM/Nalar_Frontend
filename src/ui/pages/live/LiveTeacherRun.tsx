@@ -33,6 +33,7 @@ function statusLabel(student: LiveStudent) {
   if (student.status === 'ended_safety') return 'Sesi diakhiri'
   if (student.status === 'in_progress') return 'Sedang berjalan'
   if (student.status === 'waiting') return 'Di ruang tunggu'
+  if (student.status === 'cancelled') return 'Tidak ikut sesi ini'
   return 'Belum mulai'
 }
 const statusIcon = (student: LiveStudent): IconName => student.safety_paused ? 'heart' : student.open_flag_count > 0 ? 'flag' : finished.includes(student.status) ? 'check' : student.status === 'in_progress' ? 'more' : 'minus'
@@ -162,6 +163,7 @@ export function LiveTeacherMonitor({ service, publicationId, base }: { service: 
             <span className={monitorStyles.studentTop}>{student.session_id ? <Link className={monitorStyles.name} to={report(student.session_id)} aria-label={`Laporan ${student.name}`}>{student.name}</Link> : <span className={monitorStyles.name}>{student.name}</span>}<Icon name={statusIcon(student)} size={13} /></span>
             <span className={monitorStyles.dots} aria-hidden="true">{Array.from({ length: student.max_turns }, (_, step) => <span key={step} data-on={step < (student.current_turn_index ?? 0)} />)}</span>
             <span className={monitorStyles.status}>{statusLabel(student)}{student.current_turn_index !== null && ` · pertanyaan ${student.current_turn_index} dari ${student.max_turns}`}{student.open_flag_count > 0 && ` · ${student.open_flag_count} perlu verifikasi`}</span>
+            {phase === 'lobby' && student.status === 'waiting' && student.participant_id && <ConfirmAction label="Keluarkan" title={`Keluarkan ${student.name} dari lobi?`} description="Siswa kembali ke beranda dan tidak bisa masuk lagi ke sesi ini. Pakai bila siswa masuk ke sesi yang salah." confirm="Keluarkan" pendingLabel="Mengeluarkan…" disabled={offline} action={(signal) => service.removeParticipant(data.run.id, student.participant_id!, signal)} onDone={run.resource.refresh} refusal={(error) => error.code === 'RUN_NOT_IN_LOBBY' ? 'Sesi sudah dimulai, jadi siswa tidak bisa dikeluarkan dari lobi lagi.' : null} />}
             {/* A safety pause is ended from the report, after the teacher has met the student. */}
             {student.status === 'in_progress' && !student.safety_paused && student.session_id && <ConfirmAction label="Akhiri sesi" title={`Akhiri sesi ${student.name}?`} description="Sesi berhenti sekarang dan dinilai sejauh yang sudah dijawab. Siswa tidak bisa melanjutkannya." confirm="Akhiri sesi" pendingLabel="Mengakhiri…" disabled={offline} action={(signal) => service.endSession(student.session_id!, signal)} onDone={run.resource.refresh} refusal={(error) => error.code === 'SESSION_PAUSED_USE_SAFETY_ACTION' ? 'Sesi ini dijeda untuk keselamatan. Buka laporannya untuk melanjutkan atau mengakhiri.' : null} />}
           </div>
