@@ -30,6 +30,20 @@ export function nullable<T>(value: unknown, read: (value: unknown) => T): T | nu
   return value === null || value === undefined ? null : read(value)
 }
 
+// Reads a cursor-paged list in full: one request when there is no next page, and at most `maxPages` (500 items at a limit of 100) so a runaway list cannot keep a poll busy.
+export async function allItems(api: Pick<HttpApi, 'request'>, path: string, signal?: AbortSignal, maxPages = 5): Promise<unknown[]> {
+  const items: unknown[] = []
+  let cursor: string | null = null
+  for (let page = 0; page < maxPages; page += 1) {
+    const { data } = await api.request(cursor ? `${path}${path.includes('?') ? '&' : '?'}cursor=${encodeURIComponent(cursor)}` : path, { signal })
+    const value = record(data)
+    items.push(...list(value.items))
+    cursor = nullable(value.next_cursor, text)
+    if (!cursor) break
+  }
+  return items
+}
+
 // ponytail: HttpLiveService keeps its own copy of this request path until the pilot is over; fold it in when that file next changes.
 export class HttpApi {
   constructor(private readonly options: { apiBaseUrl: string; fetch?: typeof globalThis.fetch }) {}
