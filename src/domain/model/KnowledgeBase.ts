@@ -17,6 +17,10 @@ export type KbItemPatch =
   | { kind: 'concept'; name: string; description: string }
   | { kind: 'misconception'; statement: string; correct_understanding: string; detection_cues: string[]; counter_examples: string[] }
 
+// An item the owner writes by hand. It starts pending like a generated one, and the owner reviews it the same way. No source paragraph is attached.
+export interface NewConcept { name: string; description: string }
+export interface NewMisconception { statement: string; correct_understanding: string; detection_cues: string[]; counter_examples: string[] }
+
 // A background job: `queued` or `running` until it ends as `succeeded` or `failed` (then `error_code` says why).
 // `generation_result` is set only when a mission draft was generated: the new version, and the target concepts the AI could not ground in the materials.
 export interface Job { id: string; kind: string; status: string; error_code: string | null; generation_result: { version_number: number; ungrounded_concept_ids: string[] } | null }

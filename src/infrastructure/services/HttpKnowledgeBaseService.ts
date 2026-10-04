@@ -1,4 +1,4 @@
-import type { Job, KbCreateInput, KbDetail, KbItemKind, KbItemPatch, KbQueued, KbReviewQueue, KbSection, KbSummary, ReviewStatus } from '@/domain/model/KnowledgeBase'
+import type { Job, KbCreateInput, KbDetail, KbItemKind, KbItemPatch, KbQueued, KbReviewQueue, KbSection, KbSummary, NewConcept, NewMisconception, ReviewStatus } from '@/domain/model/KnowledgeBase'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
@@ -96,6 +96,18 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
       ? { name: patch.name, description: patch.description } satisfies Schemas['ConceptPatchIn']
       : { statement: patch.statement, correct_understanding: patch.correct_understanding, detection_cues: patch.detection_cues, counter_examples: patch.counter_examples } satisfies Schemas['MisconceptionPatchIn']
     await this.api.request(item(patch.kind, itemId), { method: 'PATCH', body, signal })
+  }
+
+  async addConcept(kbId: string, concept: NewConcept, idempotencyKey: string, signal?: AbortSignal): Promise<{ id: string }> {
+    const body: Schemas['ConceptCreateIn'] = { name: concept.name, ...(concept.description ? { description: concept.description } : {}), source_chunk_ids: [] }
+    const value = record((await this.api.request(`/knowledge-bases/${encodeURIComponent(kbId)}/concepts`, { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey }, signal })).data)
+    return { id: text(value.id) } satisfies Pick<Schemas['ConceptOut'], 'id'>
+  }
+
+  async addMisconception(kbId: string, conceptId: string, misconception: NewMisconception, idempotencyKey: string, signal?: AbortSignal): Promise<{ id: string }> {
+    const body: Schemas['MisconceptionCreateIn'] = { ...misconception, source_chunk_ids: [] }
+    const value = record((await this.api.request(`/knowledge-bases/${encodeURIComponent(kbId)}/concepts/${encodeURIComponent(conceptId)}/misconceptions`, { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey }, signal })).data)
+    return { id: text(value.id) } satisfies Pick<Schemas['MisconceptionOut'], 'id'>
   }
 
   async review(kind: KbItemKind, itemId: string, status: ReviewStatus, signal?: AbortSignal): Promise<void> {
