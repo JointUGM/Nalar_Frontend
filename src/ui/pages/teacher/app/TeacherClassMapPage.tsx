@@ -76,6 +76,7 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
         <section className={styles.card} aria-labelledby="happening-title">
           <h2 id="happening-title">Yang terjadi di kelas</h2>
           {data.insight ? <p className={styles.story}>{data.insight.narrative}</p> : <p className={styles.story}>Penjelasan ditulis setelah semua sesi selesai dan dinilai.</p>}
+          {data.insight && data.insight.suggestions.length > 0 && <><h3 className={styles.suggestTitle}>Saran untuk pertemuan berikutnya</h3><ul className={styles.suggestions}>{data.insight.suggestions.map((suggestion, index) => <li key={index}>{suggestion}</li>)}</ul></>}
         </section>
       </div>
 
