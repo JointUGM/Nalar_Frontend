@@ -12,6 +12,8 @@ export const invitationBatchSize = 100
 export interface AcademicYear { id: string; name: string; starts_on: string; ends_on: string; is_current: boolean }
 // Row errors are the backend's per-row explanations, written for the admin who fixes the file.
 export interface RosterImport { status: string; rows_total: number | null; rows_succeeded: number | null; rows_failed: number | null; errors: { row_number: number; field: string; message: string }[] }
+export interface RosterImportSummary { import_id: string; academic_year_id: string; status: string; rows_total: number | null; rows_succeeded: number | null; rows_failed: number | null; created_at: string; completed_at: string | null }
+export interface RosterImportPage { items: RosterImportSummary[]; next_cursor: string | null; total: number }
 export const rosterImportEnded = (item: RosterImport) => item.status === 'completed' || item.status === 'failed'
 export const rosterMaxBytes = 5 * 1024 * 1024
 // The columns the backend reads, in order. A student needs a 10-digit NISN and grade 1-12; a teacher needs an email.
@@ -24,6 +26,7 @@ export interface Person { user_id: string; full_name: string; role: string; nisn
 export interface PeoplePage { items: Person[]; next_cursor: string | null; total: number }
 export interface PersonEdit { full_name?: string; class_id?: string }
 // One account added by hand; the roster import stays the way to add many. Invitations are sent from the invitations page, never here.
+export const placementMax = 500
 export type NewPersonRole = 'student' | 'teacher' | 'parent'
 export type Relationship = 'ayah' | 'ibu' | 'wali'
 export interface NewPerson { full_name: string; role: NewPersonRole; email?: string; nisn?: string; class_id?: string; child_ids: string[]; relationship?: Relationship }

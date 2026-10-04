@@ -1,6 +1,6 @@
 import { ApiError, resourceId } from '@/domain/model/ApiError'
-import { invitationBatchSize, invitationTargetStates, rosterMaxBytes } from '@/domain/model/SchoolAdmin'
-import type { ClassDraft, InvitationSummary, InvitationTarget, LinkedPerson, NewAcademicYear, NewPerson, PersonEdit, PeopleRole } from '@/domain/model/SchoolAdmin'
+import { invitationBatchSize, placementMax, invitationTargetStates, rosterMaxBytes } from '@/domain/model/SchoolAdmin'
+import type { ClassDraft, InvitationSummary, InvitationTarget, LinkedPerson, NewAcademicYear, NewPerson, PersonEdit, Relationship, PeopleRole } from '@/domain/model/SchoolAdmin'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 
 export class SchoolAdminUseCases {
@@ -14,6 +14,8 @@ export class SchoolAdminUseCases {
     return this.service.uploadRoster(resourceId(schoolId), resourceId(academicYearId), file, signal)
   }
   rosterImport(importId: string, signal?: AbortSignal) { return this.service.rosterImport(resourceId(importId), signal) }
+  rosterImports(schoolId: string, cursor: string | null, signal?: AbortSignal) { return this.service.rosterImports(resourceId(schoolId), cursor === null ? null : resourceId(cursor), signal) }
+  rosterImportErrors(importId: string, signal?: AbortSignal) { return this.service.rosterImportErrors(resourceId(importId), signal) }
 
   invitations(schoolId: string, signal?: AbortSignal) { return this.service.invitations(resourceId(schoolId), null, signal) }
 
@@ -76,6 +78,16 @@ export class SchoolAdminUseCases {
     }, resourceId(idempotencyKey), signal)
   }
   reactivatePerson(schoolId: string, userId: string, signal?: AbortSignal) { return this.service.reactivatePerson(resourceId(schoolId), resourceId(userId), signal) }
+  linkParent(schoolId: string, parentId: string, studentId: string, relationship: Relationship | null, signal?: AbortSignal) {
+    return this.service.linkParent(resourceId(schoolId), resourceId(parentId), resourceId(studentId), relationship, signal)
+  }
+  unlinkParent(schoolId: string, parentId: string, studentId: string, signal?: AbortSignal) { return this.service.unlinkParent(resourceId(schoolId), resourceId(parentId), resourceId(studentId), signal) }
+  // One request places up to 500 students atomically; asking again with the same students changes nothing.
+  placeStudents(schoolId: string, classId: string, userIds: string[], signal?: AbortSignal) {
+    const ids = [...new Set(userIds.map(resourceId))]
+    if (ids.length === 0 || ids.length > placementMax) throw new ApiError(422, 'INVALID_INPUT')
+    return this.service.placeStudents(resourceId(schoolId), resourceId(classId), ids, signal)
+  }
   deactivatePerson(schoolId: string, userId: string, signal?: AbortSignal) { return this.service.deactivatePerson(resourceId(schoolId), resourceId(userId), signal) }
 
   classes(schoolId: string, academicYearId: string, signal?: AbortSignal) { return this.service.classes(resourceId(schoolId), resourceId(academicYearId), signal) }

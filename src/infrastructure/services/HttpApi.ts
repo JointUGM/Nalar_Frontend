@@ -36,13 +36,13 @@ export class HttpApi {
 
   // `form` sends a multipart upload: the browser writes its own Content-Type with the boundary, and a file of up to 50 MB gets two minutes instead of ten seconds.
   // `timeoutMs` is for the few calls that wait on the AI before answering.
-  async request(path: string, init: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH'; body?: unknown; form?: FormData; timeoutMs?: number; headers?: Record<string, string>; signal?: AbortSignal } = {}): Promise<{ status: number; data: unknown }> {
+  async request(path: string, init: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: unknown; form?: FormData; timeoutMs?: number; raw?: boolean; headers?: Record<string, string>; signal?: AbortSignal } = {}): Promise<{ status: number; data: unknown }> {
     const method = init.method ?? 'GET'
     let response: Response
     try {
       response = await (this.options.fetch ?? globalThis.fetch)(`${this.options.apiBaseUrl}${path}`, {
         method, credentials: 'include', cache: 'no-store',
-        headers: { ...init.headers, Accept: 'application/json', ...(method === 'GET' ? {} : { 'X-Nalar-CSRF': '1' }), ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+        headers: { ...init.headers, Accept: init.raw ? 'text/csv' : 'application/json', ...(method === 'GET' ? {} : { 'X-Nalar-CSRF': '1' }), ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }) },
         body: init.form ?? (init.body === undefined ? undefined : JSON.stringify(init.body)),
         signal: AbortSignal.any([...(init.signal ? [init.signal] : []), AbortSignal.timeout(init.timeoutMs ?? (init.form ? 120_000 : 10_000))]),
       })
@@ -60,6 +60,8 @@ export class HttpApi {
       throw new ApiError(response.status, code, reference && /^[A-Za-z0-9_-]{1,64}$/.test(reference) ? reference : undefined, undefined, problems)
     }
     if (response.status === 204) return { status: 204, data: null }
+    // `raw` is for a file answer (the row-error CSV): the body is handed over untouched, as a Blob.
+    if (init.raw) return { status: response.status, data: await response.blob() }
     try { return { status: response.status, data: await response.json() } } catch { throw invalid() }
   }
 }
