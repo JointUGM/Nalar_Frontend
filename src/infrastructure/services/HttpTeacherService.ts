@@ -117,6 +117,7 @@ export class HttpTeacherService implements TeacherService {
           }),
         }
       }),
+      prerequisites: list(value.prerequisites).map((entry) => { const edge = record(entry); return { concept_id: text(edge.concept_id), prerequisite_id: text(edge.prerequisite_id) } }),
       insight: nullable(value.insight, (raw) => { const insight = record(raw); return { narrative: text(insight.narrative), generated_at: instant(insight.generated_at) } }),
     } satisfies Schemas['ClassMapOut']
   }
