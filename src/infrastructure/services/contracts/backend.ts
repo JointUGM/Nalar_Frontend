@@ -170,6 +170,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Config */
+        get: operations["config_api_v1_config_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/flags/{flag_id}/review": {
         parameters: {
             query?: never;
@@ -215,6 +232,40 @@ export interface paths {
         get: operations["get_kb_api_v1_knowledge_bases__kb_id__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge-bases/{kb_id}/concepts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Concept */
+        post: operations["create_concept_api_v1_knowledge_bases__kb_id__concepts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge-bases/{kb_id}/concepts/{concept_id}/misconceptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Misconception */
+        post: operations["create_misconception_api_v1_knowledge_bases__kb_id__concepts__concept_id__misconceptions_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -616,6 +667,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/publications/{publication_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Publication Detail */
+        get: operations["publication_detail_api_v1_publications__publication_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit Publication */
+        patch: operations["edit_publication_api_v1_publications__publication_id__patch"];
+        trace?: never;
+    };
     "/api/v1/publications/{publication_id}/attempt-grants": {
         parameters: {
             query?: never;
@@ -627,6 +696,23 @@ export interface paths {
         put?: never;
         /** Grant Attempt */
         post: operations["grant_attempt_api_v1_publications__publication_id__attempt_grants_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/publications/{publication_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Publication */
+        post: operations["cancel_publication_api_v1_publications__publication_id__cancel_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -710,6 +796,23 @@ export interface paths {
         };
         /** Get Import */
         get: operations["get_import_api_v1_roster_imports__import_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/roster-imports/{import_id}/errors.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Import Errors */
+        get: operations["import_errors_api_v1_roster_imports__import_id__errors_csv_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -858,6 +961,23 @@ export interface paths {
         patch: operations["edit_class_api_v1_schools__school_id__classes__class_id__patch"];
         trace?: never;
     };
+    "/api/v1/schools/{school_id}/classes/{class_id}/students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Place Students */
+        post: operations["place_students_api_v1_schools__school_id__classes__class_id__students_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{school_id}/curriculum-versions": {
         parameters: {
             query?: never;
@@ -920,8 +1040,27 @@ export interface paths {
         /** People */
         get: operations["people_api_v1_schools__school_id__people_get"];
         put?: never;
-        post?: never;
+        /** Create Person */
+        post: operations["create_person_api_v1_schools__school_id__people_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{school_id}/people/{parent_id}/children/{student_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Link Child */
+        put: operations["link_child_api_v1_schools__school_id__people__parent_id__children__student_id__put"];
+        post?: never;
+        /** Unlink Child */
+        delete: operations["unlink_child_api_v1_schools__school_id__people__parent_id__children__student_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -961,7 +1100,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/schools/{school_id}/roster-imports": {
+    "/api/v1/schools/{school_id}/people/{user_id}/reactivate": {
         parameters: {
             query?: never;
             header?: never;
@@ -969,6 +1108,24 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
+        put?: never;
+        /** Reactivate Person */
+        post: operations["reactivate_person_api_v1_schools__school_id__people__user_id__reactivate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{school_id}/roster-imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Imports */
+        get: operations["list_imports_api_v1_schools__school_id__roster_imports_get"];
         put?: never;
         /** Upload Roster */
         post: operations["upload_roster_api_v1_schools__school_id__roster_imports_post"];
@@ -1635,6 +1792,19 @@ export interface components {
             homeroom_teacher_id?: string | null;
             name: components["schemas"]["Name"];
         };
+        /** ClassMapEdgeOut */
+        ClassMapEdgeOut: {
+            /**
+             * Concept Id
+             * Format: uuid
+             */
+            concept_id: string;
+            /**
+             * Prerequisite Id
+             * Format: uuid
+             */
+            prerequisite_id: string;
+        };
         /** ClassMapOut */
         ClassMapOut: {
             /** Concepts */
@@ -1644,6 +1814,8 @@ export interface components {
             /** Incomplete Count */
             incomplete_count: number;
             insight?: components["schemas"]["InsightOut"] | null;
+            /** Prerequisites */
+            prerequisites?: components["schemas"]["ClassMapEdgeOut"][];
         };
         /** ClassOut */
         ClassOut: {
@@ -1734,6 +1906,14 @@ export interface components {
             /** Not Observed Count */
             not_observed_count: number;
         };
+        /** ConceptCreateIn */
+        ConceptCreateIn: {
+            description?: components["schemas"]["ItemText"] | null;
+            /** Name */
+            name: string;
+            /** Source Chunk Ids */
+            source_chunk_ids?: string[];
+        };
         /** ConceptOut */
         ConceptOut: {
             /** Cp Learning Outcome Id */
@@ -1760,6 +1940,15 @@ export interface components {
             description?: string | null;
             /** Name */
             name?: string | null;
+        };
+        /** ConfigOut */
+        ConfigOut: {
+            /** Account Email Enabled */
+            account_email_enabled: boolean;
+            /** Password Reset Enabled */
+            password_reset_enabled: boolean;
+            /** Weekly Digest Enabled */
+            weekly_digest_enabled: boolean;
         };
         /** ConnectionEvent */
         ConnectionEvent: {
@@ -2125,6 +2314,7 @@ export interface components {
             /** Skipped */
             skipped: number;
         };
+        ItemText: string;
         /** JobOut */
         JobOut: {
             /**
@@ -2430,6 +2620,17 @@ export interface components {
             /** Students */
             students: components["schemas"]["MisconceptionStudentOut"][];
         };
+        /** MisconceptionCreateIn */
+        MisconceptionCreateIn: {
+            correct_understanding: components["schemas"]["ItemText"];
+            /** Counter Examples */
+            counter_examples?: components["schemas"]["ItemText"][];
+            /** Detection Cues */
+            detection_cues?: components["schemas"]["ItemText"][];
+            /** Source Chunk Ids */
+            source_chunk_ids?: string[];
+            statement: components["schemas"]["ItemText"];
+        };
         /** MisconceptionOut */
         MisconceptionOut: {
             /**
@@ -2725,6 +2926,11 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** ParentLinkIn */
+        ParentLinkIn: {
+            /** Relationship */
+            relationship?: ("ayah" | "ibu" | "wali") | null;
+        };
         /** ParentPreferencesIn */
         ParentPreferencesIn: {
             /** Weekly Digest Enabled */
@@ -2847,6 +3053,38 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** PersonCreateIn */
+        PersonCreateIn: {
+            /** Child Ids */
+            child_ids?: string[];
+            /** Class Id */
+            class_id?: string | null;
+            /** Email */
+            email?: string | null;
+            full_name: components["schemas"]["Name"];
+            /**
+             * Invite
+             * @default false
+             */
+            invite: boolean;
+            /** Nisn */
+            nisn?: string | null;
+            /** Relationship */
+            relationship?: ("ayah" | "ibu" | "wali") | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "teacher" | "student" | "parent";
+        };
+        /** PersonCreatedOut */
+        PersonCreatedOut: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
         /** PersonEditIn */
         PersonEditIn: {
             /** Class Id */
@@ -2903,6 +3141,61 @@ export interface components {
             /** Turn Index */
             turn_index: number;
         };
+        /** PublicationDetailOut */
+        PublicationDetailOut: {
+            /** Cancelled At */
+            cancelled_at: string | null;
+            /**
+             * Class Id
+             * Format: uuid
+             */
+            class_id: string;
+            /** Class Name */
+            class_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Knowledge Base Id
+             * Format: uuid
+             */
+            knowledge_base_id: string;
+            /**
+             * Mission Id
+             * Format: uuid
+             */
+            mission_id: string;
+            /** Mission Title */
+            mission_title: string;
+            /**
+             * Mission Version Id
+             * Format: uuid
+             */
+            mission_version_id: string;
+            /**
+             * Published By
+             * Format: uuid
+             */
+            published_by: string;
+            /** Released To Parents At */
+            released_to_parents_at: string | null;
+            /** Runs */
+            runs: components["schemas"]["PublicationRunDetailOut"][];
+            /**
+             * School Id
+             * Format: uuid
+             */
+            school_id: string;
+            /** Version Number */
+            version_number: number;
+        };
         /** PublicationOut */
         PublicationOut: {
             /**
@@ -2923,6 +3216,45 @@ export interface components {
             /** Released To Parents At */
             released_to_parents_at: string | null;
             run: components["schemas"]["RunSummaryOut"];
+        };
+        /** PublicationRunDetailOut */
+        PublicationRunDetailOut: {
+            /** Closes At */
+            closes_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Join Code */
+            join_code: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "primary" | "grant";
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "live" | "window";
+            /** Opens At */
+            opens_at: string | null;
+            /** Status */
+            status: string;
+        };
+        /** PublicationWindowIn */
+        PublicationWindowIn: {
+            /**
+             * Closes At
+             * Format: date-time
+             */
+            closes_at: string;
+            /**
+             * Opens At
+             * Format: date-time
+             */
+            opens_at: string;
         };
         /** PublicationsPageOut */
         PublicationsPageOut: {
@@ -3250,6 +3582,43 @@ export interface components {
             rows_total: number | null;
             /** Status */
             status: string;
+        };
+        /** RosterImportSummaryOut */
+        RosterImportSummaryOut: {
+            /**
+             * Academic Year Id
+             * Format: uuid
+             */
+            academic_year_id: string;
+            /** Completed At */
+            completed_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Import Id
+             * Format: uuid
+             */
+            import_id: string;
+            /** Rows Failed */
+            rows_failed: number | null;
+            /** Rows Succeeded */
+            rows_succeeded: number | null;
+            /** Rows Total */
+            rows_total: number | null;
+            /** Status */
+            status: string;
+        };
+        /** RosterImportsPageOut */
+        RosterImportsPageOut: {
+            /** Items */
+            items: components["schemas"]["RosterImportSummaryOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Total */
+            total: number;
         };
         /** RosterQueuedOut */
         RosterQueuedOut: {
@@ -3626,6 +3995,11 @@ export interface components {
             open: components["schemas"]["MissionCardOut"][];
             /** Upcoming */
             upcoming: components["schemas"]["MissionCardOut"][];
+        };
+        /** StudentPlacementIn */
+        StudentPlacementIn: {
+            /** User Ids */
+            user_ids: string[];
         };
         /** StudentReflectionOut */
         StudentReflectionOut: {
@@ -4261,6 +4635,26 @@ export interface operations {
             };
         };
     };
+    config_api_v1_config_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfigOut"];
+                };
+            };
+        };
+    };
     review_flag_api_v1_flags__flag_id__review_post: {
         parameters: {
             query?: never;
@@ -4345,6 +4739,81 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KbDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_concept_api_v1_knowledge_bases__kb_id__concepts_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConceptCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConceptOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_misconception_api_v1_knowledge_bases__kb_id__concepts__concept_id__misconceptions_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                kb_id: string;
+                concept_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MisconceptionCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MisconceptionOut"];
                 };
             };
             /** @description Validation Error */
@@ -5211,6 +5680,70 @@ export interface operations {
             };
         };
     };
+    publication_detail_api_v1_publications__publication_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                publication_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicationDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_publication_api_v1_publications__publication_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                publication_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicationWindowIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     grant_attempt_api_v1_publications__publication_id__attempt_grants_post: {
         parameters: {
             query?: never;
@@ -5236,6 +5769,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AttemptGrantOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_publication_api_v1_publications__publication_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                publication_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -5282,7 +5844,9 @@ export interface operations {
     monitor_api_v1_publications__publication_id__monitor_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "If-None-Match"?: string | null;
+            };
             path: {
                 publication_id: string;
             };
@@ -5293,11 +5857,23 @@ export interface operations {
             /** @description Successful Response */
             200: {
                 headers: {
+                    "Cache-Control"?: string;
+                    Date?: string;
+                    ETag?: string;
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["MonitorOut"];
                 };
+            };
+            /** @description Authorized view unchanged; empty body. Use Date for clock synchronization. */
+            304: {
+                headers: {
+                    Date?: string;
+                    ETag?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -5395,6 +5971,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["RosterImportOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_errors_api_v1_roster_imports__import_id__errors_csv_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                import_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -5808,6 +6413,40 @@ export interface operations {
             };
         };
     };
+    place_students_api_v1_schools__school_id__classes__class_id__students_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+                class_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentPlacementIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     school_curriculum_versions_api_v1_schools__school_id__curriculum_versions_get: {
         parameters: {
             query?: never;
@@ -5980,6 +6619,109 @@ export interface operations {
             };
         };
     };
+    create_person_api_v1_schools__school_id__people_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonCreatedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    link_child_api_v1_schools__school_id__people__parent_id__children__student_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+                parent_id: string;
+                student_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParentLinkIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unlink_child_api_v1_schools__school_id__people__parent_id__children__student_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+                parent_id: string;
+                student_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     edit_person_api_v1_schools__school_id__people__user_id__patch: {
         parameters: {
             query?: never;
@@ -6032,6 +6774,71 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reactivate_person_api_v1_schools__school_id__people__user_id__reactivate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_imports_api_v1_schools__school_id__roster_imports_get: {
+        parameters: {
+            query?: {
+                academic_year_id?: string | null;
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RosterImportsPageOut"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -6368,7 +7175,9 @@ export interface operations {
     lobby_api_v1_student_runs__run_id__lobby_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "If-None-Match"?: string | null;
+            };
             path: {
                 run_id: string;
             };
@@ -6379,11 +7188,23 @@ export interface operations {
             /** @description Successful Response */
             200: {
                 headers: {
+                    "Cache-Control"?: string;
+                    Date?: string;
+                    ETag?: string;
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["StudentLobbyOut"];
                 };
+            };
+            /** @description Authorized view unchanged; empty body. Use Date for clock synchronization. */
+            304: {
+                headers: {
+                    Date?: string;
+                    ETag?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -6507,7 +7328,9 @@ export interface operations {
     session_state_api_v1_student_sessions__session_id__state_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "If-None-Match"?: string | null;
+            };
             path: {
                 session_id: string;
             };
@@ -6518,11 +7341,23 @@ export interface operations {
             /** @description Successful Response */
             200: {
                 headers: {
+                    "Cache-Control"?: string;
+                    Date?: string;
+                    ETag?: string;
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["StateOut"];
                 };
+            };
+            /** @description Authorized view unchanged; empty body. Use Date for clock synchronization. */
+            304: {
+                headers: {
+                    Date?: string;
+                    ETag?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
