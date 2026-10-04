@@ -431,8 +431,26 @@ describe('signed-in teacher pages', () => {
   it('shows a colleague’s knowledge base without any way to change it', async () => {
     open(kbPath, backend({ [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail('pending', false)) }))
     await screen.findByText(/milik rekan guru/)
-    for (const name of ['Setujui', 'Tolak', 'Edit', 'Susun Bab 1 Tekanan']) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
+    for (const name of ['Setujui', 'Tolak', 'Edit', 'Susun Bab 1 Tekanan', 'Arsipkan topik', 'Arsipkan konsep', 'Hapus']) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
     expect(screen.queryByLabelText(/Tambah materi/)).not.toBeInTheDocument()
+  })
+
+  it('deletes a material only after confirming, and opens its PDF through the signed link', async () => {
+    const request = backend({
+      [`DELETE /knowledge-bases/${kbId}/materials/${school}`]: () => new Response(null, { status: 204 }),
+      [`GET /knowledge-bases/${kbId}/materials/${school}/file`]: () => Response.json({ url: 'https://storage.example/materi.pdf?token=t', expires_in: 300 }),
+    })
+    const tab = { opener: {}, location: { href: 'about:blank' }, close: vi.fn() }
+    const opened = vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window)
+    open(kbPath, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Buka PDF IPA Kelas 8.pdf' }))
+    await waitFor(() => expect(tab.location.href).toBe('https://storage.example/materi.pdf?token=t'))
+    expect(tab.opener).toBeNull()
+    opened.mockRestore()
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus' }))
+    expect(request.mock.calls.some(([, init]) => init?.method === 'DELETE')).toBe(false)
+    fireEvent.click(await screen.findByRole('button', { name: 'Hapus materi' }))
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'DELETE')).toHaveLength(1))
   })
 
   it('creates a mission once, asks for its draft and opens the generated version', async () => {
