@@ -3,6 +3,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { AccountLayout } from './AccountLayout'
 import { AccountPreviewControl, AccountPreviewNote } from './AccountPreviewControl'
 import { useAccountResetViewModel } from './useAccountResetViewModel'
@@ -14,7 +15,7 @@ export function AccountReset() {
   const pending = view.preview.status === 'pending'
   return <AccountLayout>
     {view.sent ? <>
-      <span className={styles.sentIcon} aria-hidden="true"><Icon name="check" size={22} /></span>
+      <span className={styles.sentIcon} aria-hidden="true"><NalaIcon name="send" size={44} /></span>
       <h1>Cek email Anda</h1>
       <p>Tautan untuk membuat kata sandi baru sudah dikirim ke <strong>{view.email.trim()}</strong>. Tautan berlaku 1 jam.</p>
       <p>Tidak punya akses email? Minta admin sekolah mencetak slip kode sekali pakai.</p>

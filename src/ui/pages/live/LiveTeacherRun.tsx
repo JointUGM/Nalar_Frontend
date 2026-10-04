@@ -7,6 +7,7 @@ import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Button } from '@/ui/components/button/Button'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { IconName } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from './LiveFrame'
 import { useCommandSignal, useLiveResource, useServerTime } from './useLiveResource'
@@ -136,7 +137,7 @@ export function LiveTeacherMonitor({ service, publicationId, base }: { service: 
     const visible = filter ? data.students.filter((student) => inGroup(student, filter)) : data.students
     const report = (sessionId: string) => `${base}/publications/${publicationId}/sessions/${sessionId}`
     return <>
-      {paused.length > 0 && <div className={monitorStyles.safety} role="alert"><Icon name="heart" size={16} /><strong>KESELAMATAN</strong><span>{paused.map((student, index) => <span key={student.student_id}>{index > 0 && ', '}{student.session_id ? <Link to={report(student.session_id)}>{student.name}</Link> : <b>{student.name}</b>}</span>)} mungkin butuh bantuan Anda. Sesinya dijeda; buka laporannya untuk melanjutkan atau mengakhiri sesi.</span></div>}
+      {paused.length > 0 && <div className={monitorStyles.safety} role="alert"><NalaIcon name="care" /><strong>KESELAMATAN</strong><span>{paused.map((student, index) => <span key={student.student_id}>{index > 0 && ', '}{student.session_id ? <Link to={report(student.session_id)}>{student.name}</Link> : <b>{student.name}</b>}</span>)} mungkin butuh bantuan Anda. Sesinya dijeda; buka laporannya untuk melanjutkan atau mengakhiri sesi.</span></div>}
       <div className={monitorStyles.header}>
         <div>
           <div className={monitorStyles.title}><h1>{run.title}</h1><span className={monitorStyles.badge} data-closed={phase === 'closed'}><span className={monitorStyles.dot} aria-hidden="true" />{phase === 'closed' ? 'PENERIMAAN DITUTUP' : phase === 'open' ? `LANGSUNG${run.elapsed !== null ? ` · ${clock(run.elapsed)}` : ''}` : phase === 'lobby' ? 'LOBI' : 'BELUM DIBUKA'}</span></div>

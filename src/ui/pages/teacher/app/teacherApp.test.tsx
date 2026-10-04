@@ -12,6 +12,7 @@ import { HttpTeacherService } from '@/infrastructure/services/HttpTeacherService
 import { AppRoutes } from '@/ui/routes'
 import { ProtectedRole } from '@/ui/pages/account/ProtectedRole'
 import type { AccountDependencies } from '@/ui/pages/account/AccountDependencies'
+import { TeacherAttentionPage } from './TeacherAttentionPage'
 import { TeacherRoutes } from './TeacherRoutes'
 
 const school = '00000000-0000-4000-8000-000000000002'
@@ -288,8 +289,10 @@ describe('signed-in teacher pages', () => {
   it('lists a class with each student’s latest attempt and concept results', async () => {
     open(`${base}/classes`, backend())
     const row = within((await screen.findByRole('rowheader', { name: 'Raka Pratama' })).closest('tr')!)
-    expect(row.getByText('Selesai · 1 perlu verifikasi')).toBeInTheDocument()
-    expect(row.getByText('2 paham · 1 berkembang · 1 miskonsepsi')).toBeInTheDocument()
+    expect(row.getByText('Selesai', { exact: true })).toBeInTheDocument()
+    expect(row.getByText('1 perlu verifikasi')).toBeInTheDocument()
+    expect(row.getAllByRole('term').map((label) => label.textContent)).toEqual(['Paham', 'Berkembang', 'Miskonsepsi'])
+    expect(row.getAllByRole('definition').map((count) => count.textContent)).toEqual(['2', '1', '1'])
   })
 
   it('uploads a PDF as multipart and follows the reading job on the topic page', async () => {
@@ -401,5 +404,20 @@ describe('signed-in teacher pages', () => {
     expect(await screen.findByText('Versi ini belum bisa dipakai.')).toBeInTheDocument()
     expect(screen.getByText(/belum disetujui di basis pengetahuan/)).toBeInTheDocument()
     expect(screen.queryByText('rahasia')).not.toBeInTheDocument()
+  })
+})
+
+describe('Nala on the attention page', () => {
+  const counts = { safety: 0, flag: 0, kb_review: 0, release_ready: 0, total: 0 }
+  const paused = { kind: 'safety' as const, item_id: student, created_at: '2026-10-03T04:00:00Z', paused_at: '2026-10-03T04:00:00Z', student_name: 'Raka Pratama', session_id: student, publication_id: publication }
+  const show = (data: Parameters<typeof TeacherAttentionPage>[0]['data']) => render(<MemoryRouter><TeacherAttentionPage data={data} error={null} online refresh={() => {}} base={base} /></MemoryRouter>)
+
+  it('puts student support first, and shows one Nala when the queue is clear', () => {
+    const { unmount } = show({ counts: { ...counts, safety: 1, total: 1 }, items: [paused] })
+    expect(screen.getByText('Dahulukan pendampingan siswa, ya.')).toBeInTheDocument()
+    unmount()
+    show({ counts, items: [] })
+    expect(screen.getByRole('heading', { name: 'Tidak ada yang perlu perhatian di sini.' })).toBeInTheDocument()
+    expect(screen.queryByText('Semua catatan sudah ditindaklanjuti.')).not.toBeInTheDocument()
   })
 })

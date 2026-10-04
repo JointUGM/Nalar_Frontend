@@ -7,8 +7,8 @@
 .header button { gap: 6px; font-size: 13px; border-radius: 8px; white-space: nowrap; }
 .header button:disabled { border-color: var(--color-success-bg); background: var(--color-success-bg); color: var(--color-success-strong); opacity: 1; }
 .note { margin: 8px 0 0; max-inline-size: 72ch; font-size: 13px; line-height: 20px; color: var(--color-text-secondary); }
-.banner { display: flex; align-items: center; gap: 8px; margin: 16px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--color-nav-hover); font-size: 12px; line-height: 18px; }
-.banner[data-released="true"] { background: var(--color-success-bg); color: var(--color-success-strong); }
+.banner { --nala-ring: var(--color-nav-hover); display: flex; align-items: center; gap: 8px; margin: 16px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--color-nav-hover); font-size: 12px; line-height: 18px; }
+.banner[data-released="true"] { --nala-ring: var(--color-success-bg); background: var(--color-success-bg); color: var(--color-success-strong); }
 .grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: start; margin-block-start: 16px; }
 .table, .preview { border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); min-inline-size: 0; }
 .table { overflow: hidden; }

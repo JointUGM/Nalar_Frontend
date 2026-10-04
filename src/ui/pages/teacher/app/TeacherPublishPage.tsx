@@ -8,6 +8,7 @@ import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherPublication.module.css'
@@ -110,7 +111,7 @@ export function TeacherPublishPage({ service, base, schoolId }: { service: Teach
       <section className={styles.card} aria-labelledby="publication-summary">
         <h2 id="publication-summary">Ringkasan</h2>
         <dl className={styles.rows}>{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
-        <p className={styles.lock}><Icon name="lock" size={14} />Versi {version.version_number} dikunci saat diterbitkan dan tidak bisa diubah lagi.</p>
+        <p className={styles.lock}><NalaIcon name="lock" />Versi {version.version_number} dikunci saat diterbitkan dan tidak bisa diubah lagi.</p>
         <Button onClick={check}><Icon name="send" size={14} />Terbitkan</Button>
       </section>
     </div>

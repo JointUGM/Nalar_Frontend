@@ -48,7 +48,7 @@ export function TeacherRoutes({ service, kb, live, identity, changePassword }: {
   return <TeacherContextProvider schools={schools.map((item) => item.schoolName)} current={school} onChange={(name) => { const next = schools.find((item) => item.schoolName === name); if (next) navigate(`/teacher/${next.schoolId}`) }}>
     <TeacherShell title={title} user={identity.fullName} nav={nav} home={base} onChangePassword={changePassword ? () => setPasswordOpen(true) : undefined}>
       <Routes>
-        <Route path=":schoolId" element={<TeacherHomePage service={service} base={base} schoolId={schoolId} user={identity.fullName} />} />
+        <Route path=":schoolId" element={<TeacherHomePage service={service} base={base} schoolId={schoolId} user={identity.fullName} attention={attention} />} />
         <Route path=":schoolId/classes" element={<TeacherClassesPage service={service} base={base} schoolId={schoolId} />} />
         <Route path=":schoolId/attention" element={<TeacherAttentionPage data={attention.data} error={attention.error} online={attention.online} refresh={attention.refresh} base={base} />} />
         <Route path=":schoolId/sessions" element={<TeacherSessionsPage service={service} base={base} />} />

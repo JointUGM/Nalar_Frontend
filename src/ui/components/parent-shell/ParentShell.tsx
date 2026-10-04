@@ -5,6 +5,7 @@ import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Icon } from '@/ui/components/icon/Icon'
 import { activeNavTarget } from '@/ui/components/navigation/activeNav'
+import { NalaAvatar, NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { IconName } from '@/ui/components/icon/Icon'
 import { useParentContext } from './useParentContext'
 import styles from './ParentShell.module.css'
@@ -30,7 +31,7 @@ export function ParentShell({ title, user, nav, home, children }: { title: strin
     ? <p className={styles.noKids}>Belum ada anak yang tertaut ke akunmu.</p>
     : <ul className={styles.kids} aria-label="Anak">{linkedChildren.map((item) => <li key={item.id}>
       <button type="button" aria-pressed={item.id === child?.id} title={item.name} onClick={() => { selectChild(item.id); close() }}>
-        <span className={styles.kidAvatar} data-tone={item.tone} aria-hidden="true">{item.initials}</span>
+        <span className={styles.kidAvatar}><NalaAvatar seed={item.name} size={34} /></span>
         <span className={[styles.kidText, styles.label].join(' ')}><strong>{item.name}</strong><small>{item.detail}</small></span>
         {item.id === child?.id && <span className={styles.kidCheck} aria-hidden="true"><Icon name="check" size={14} /></span>}
       </button>
@@ -48,6 +49,8 @@ export function ParentShell({ title, user, nav, home, children }: { title: strin
 
   // On a phone the sidebar is hidden, so signing out has to live in the drawer too.
   const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label="Keluar" onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
+  // Parents mostly open this on a phone, so the three places live in a thumb-reach bar there; the drawer keeps the child picker and sign-out.
+  const tabs = <nav className={styles.tabbar} aria-label="Menu utama">{nav.filter((entry) => entry.to).map((entry) => <Link key={entry.label} to={entry.to ?? home} state={{ focusPlatformContent: true }} aria-current={entry.to === active ? 'page' : undefined} className={entry.to === active ? styles.active : undefined}><span className={styles.tabIcon}><Icon name={entry.icon} size={22} /></span>{entry.label}</Link>)}</nav>
   return <div className={styles.shell} data-collapsed={collapsed}>
     <a className={styles.skipLink} href="#parent-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>
@@ -58,7 +61,7 @@ export function ParentShell({ title, user, nav, home, children }: { title: strin
       {menu}
       <div className={styles.spacer} />
       <div className={[styles.reminder, styles.label].join(' ')} role="note" aria-label="Privasi anak">
-        <p><Icon name="lock" size={14} />Privasi anak</p>
+        <p><NalaIcon name="lock" />Privasi anak</p>
         <p>Anda hanya melihat ringkasan yang sudah dirilis guru. Tanpa skor dan tanpa perbandingan dengan teman sekelas.</p>
       </div>
       <div className={styles.user}>
@@ -71,13 +74,14 @@ export function ParentShell({ title, user, nav, home, children }: { title: strin
       <header className={styles.topbar}>
         <button type="button" className={styles.menuButton} aria-label="Buka navigasi" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Icon name="menu" /></button>
         <span className={styles.title}>{title}</span>
-        {child && <span className={styles.chip} data-switchable={linkedChildren.length > 1}><span data-tone={child.tone} aria-hidden="true">{child.initials}</span>{chip}</span>}
+        {child && <span className={styles.chip} data-switchable={linkedChildren.length > 1}><span><NalaAvatar seed={child.name} size={28} /></span>{chip}</span>}
         {/* On a phone the sidebar is a drawer, so the child can be changed straight from the bar. */}
-        {child && linkedChildren.length > 1 && <button type="button" className={[styles.chip, styles.chipButton].join(' ')} aria-label={`Anak: ${child.name}. Ganti anak`} aria-haspopup="dialog" onClick={() => setDrawerOpen(true)}><span data-tone={child.tone} aria-hidden="true">{child.initials}</span>{chip}<Icon name="chevronDown" size={14} /></button>}
+        {child && linkedChildren.length > 1 && <button type="button" className={[styles.chip, styles.chipButton].join(' ')} aria-label={`Anak: ${child.name}. Ganti anak`} aria-haspopup="dialog" onClick={() => setDrawerOpen(true)}><span><NalaAvatar seed={child.name} size={28} /></span>{chip}<Icon name="chevronDown" size={14} /></button>}
         <button type="button" className={styles.bell} disabled aria-label="Notifikasi belum tersedia"><Icon name="bell" size={16} /></button>
       </header>
       <main ref={contentRef} className={styles.main} id="parent-content" tabIndex={-1}>{children}</main>
     </div>
+    {tabs}
     <Dialog open={drawerOpen} onClose={close} title="Menu orang tua" description={`${user} · ${child ? child.name : 'belum ada anak tertaut'}`} presentation="drawer"><div className={styles.drawerNav}>{menu}{signOut}</div></Dialog>
   </div>
 }

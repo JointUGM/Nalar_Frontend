@@ -3,7 +3,7 @@ import type { RefObject } from 'react'
 import { Link } from 'react-router'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Icon } from '@/ui/components/icon/Icon'
-import { Nala } from '@/ui/components/nala/Nala'
+import { NalaAlive } from './components/NalaAlive'
 import { AccessTable } from './components/AccessTable'
 import { Checkpoints } from './components/Checkpoints'
 import { ClassMap } from './components/ClassMap'
@@ -107,7 +107,7 @@ export function Landing() {
           <div className={styles.bookend} aria-hidden="true">
             <span className={styles.bookendDisc} />
             <span className={styles.bookendSun} />
-            <span className={styles.bookendNala}><Nala mood={closingWow ? 'wow' : 'hello'} size={190} animate={!reduced} /></span>
+            <span className={styles.bookendNala}><NalaAlive mood={closingWow ? 'wow' : 'hello'} size={190} animate={!reduced} /></span>
           </div>
         </div>
       </section>

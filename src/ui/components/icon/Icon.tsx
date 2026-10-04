@@ -1,57 +1,7 @@
-const paths = {
-  users: <><circle cx="9" cy="8" r="3" /><path d="M3 20v-2a6 6 0 0 1 12 0v2M16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 4v2" /></>,
-  grid: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
-  link: <><path d="m10 13 4-4M8 15l-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0M16 9l1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0" /></>,
-  layers: <path d="m12 3 10 5-10 5L2 8zm-10 9 10 5 10-5M2 16l10 5 10-5" />,
-  calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4M17 3v4M3 11h18" /></>,
-  school: <path d="M3 20.5h18M5 20.5V10l7-5 7 5v10.5M10 20.5v-5h4v5" />,
-  book: <><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z" /><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3" /></>,
-  search: <><circle cx="11" cy="11" r="6.5" /><path d="m20 20-4.2-4.2" /></>,
-  bell: <><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z" /><path d="M10 20.5a2 2 0 0 0 4 0" /></>,
-  logout: <><path d="M14 4h5.5v16H14" /><path d="M9.5 8 5.5 12l4 4M5.5 12H16" /></>,
-  plus: <path d="M12 5v14M5 12h14" />,
-  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
-  upload: <><path d="M12 15.5V4M7 8.5l5-4.5 5 4.5" /><path d="M4 15v4.5h16V15" /></>,
-  more: <><circle cx="5.5" cy="12" r="1.3" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" /><circle cx="18.5" cy="12" r="1.3" fill="currentColor" stroke="none" /></>,
-  swap: <path d="M4 8h15l-3.5-3.5M20 16H5l3.5 3.5" />,
-  pause: <path d="M9 6v12M15 6v12" />,
-  home: <path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-5h4v5" />,
-  target: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" /></>,
-  monitor: <><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></>,
-  graph: <path d="M4 4v16h16M8 16v-5M12 16V8M16 16v-3" />,
-  alert: <><path d="M12 4 21 19H3z" /><path d="M12 10v4M12 16.5v.5" /></>,
-  key: <><circle cx="8" cy="15" r="3.5" /><path d="m10.5 12.5 9-9M16 7l3 3" /></>,
-  info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8v.5" /></>,
-  chevronDown: <path d="m6 9 6 6 6-6" />,
-  chevronLeft: <path d="m15 6-6 6 6 6" />,
-  chevronRight: <path d="m9 6 6 6-6 6" />,
-  play: <path d="M7 5v14l12-7z" />,
-  arrowUp: <path d="M12 19V5M6 11l6-6 6 6" />,
-  clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
-  sun: <><circle cx="12" cy="12" r="4" /><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4" /></>,
-  moon: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />,
-  check: <path d="m5 12.5 4.5 4.5L19 7" />,
-  arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
-  file: <><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4" /></>,
-  message: <path d="M4 5h16v11H9l-5 4z" />,
-  refresh: <path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" />,
-  heart:<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />,
-  flag: <path d="M6 21V4M6 5h11l-2 4 2 4H6" />,
-  minus: <path d="M6 12h12" />,
-  sort: <path d="M7 4v16M4 17l3 3 3-3M17 20V4M14 7l3-3 3 3" />,
-  x: <path d="M6 6l12 12M18 6 6 18" />,
-  stop: <rect x="6" y="6" width="12" height="12" rx="2" />,
-  sparkle:<><path d="m11 3 1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z" /><path d="M19 15v5M16.5 17.5h5" /></>,
-  lock: <><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>,
-  send: <path d="M21 3 10 14M21 3l-7 18-4-7-7-4z" />,
-  pencil:<><path d="M4 20h4L19.5 8.5l-4-4L4 16z" /><path d="m13.5 6.5 4 4" /></>,
-  archive: <><path d="M4 6h16v4H4z" /><path d="M6 10v10h12V10M10 14h4" /></>,
-  idea: <path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" />,
-  sliders: <path d="M4 7h9M17 7h3M4 17h3M11 17h9M13 4v6M7 14v6" />,
-}
+import { iconPaths, type IconName } from './iconPaths'
 
-export type IconName = keyof typeof paths
+export type { IconName }
 
 export function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>{paths[name]}</svg>
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>{iconPaths[name]}</svg>
 }

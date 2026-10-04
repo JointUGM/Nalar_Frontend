@@ -1,74 +1,13 @@
-/*
- * Motion of the supplied mascot, opt-in through `animate`. SVG parts move in view-box units.
- * Only character motion keeps a slight spring; it settles quickly and never loops faster than a breath.
- */
-.part, .hop, .breathe, .jump, .eyes, .blink, .wave, .brows, .gaze { transform-box: view-box; }
-
-/* Pose changes ease instead of snapping: wings, tilt and pupils all interpolate. */
-.part { transition: transform 560ms cubic-bezier(0.34, 1.2, 0.64, 1); }
-
-/* The pupils drift toward --gaze-x/--gaze-y, set by the page from the pointer. */
-.gaze { transform: translate(var(--gaze-x, 0px), var(--gaze-y, 0px)); transition: transform 180ms ease-out; }
-
-/* Every mood starts with a small hop from the feet. */
-.hop { transform-origin: 100px 208px; }
-.hop-hello { animation: hopHello 520ms cubic-bezier(0.34, 1.2, 0.64, 1); }
-.hop-ask { animation: hopAsk 520ms cubic-bezier(0.34, 1.2, 0.64, 1); }
-.hop-think { animation: hopThink 520ms cubic-bezier(0.34, 1.2, 0.64, 1); }
-.hop-wow { animation: hopWow 520ms cubic-bezier(0.34, 1.2, 0.64, 1); }
-.hop-proud { animation: hopProud 520ms cubic-bezier(0.34, 1.2, 0.64, 1); }
-.hop-calm { animation: hopCalm 520ms cubic-bezier(0.34, 1.2, 0.64, 1); }
-
-/* Breathing squashes from the feet, so the body never floats off its shadow. */
-.breathe { transform-origin: 100px 208px; animation: breathe 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
-.jump { transform-origin: 100px 208px; animation: jump 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
-.shadow-breathe, .shadow-jump { transform-box: fill-box; transform-origin: center; }
-.shadow-breathe { animation: shadowBreathe 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
-.shadow-jump { animation: shadowJump 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
-
-.eyes { transform-origin: 100px 98px; animation: open 300ms cubic-bezier(0.23, 1, 0.32, 1); }
-/* A natural rhythm: one blink, a pause, then an occasional double blink. */
-.eyes.blink { animation: open 300ms cubic-bezier(0.23, 1, 0.32, 1), blink 6.4s ease-in-out 1.2s infinite; }
-
-.brows { animation: brows 380ms cubic-bezier(0.23, 1, 0.32, 1); }
-.fade { animation: fade 260ms ease-out; }
-
-.wave { transform-origin: 38px 138px; animation: wave 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
-
-@keyframes hopHello { 0% { transform: translateY(0) scale(1.04, 0.94); } 45% { transform: translateY(-7px) scale(0.98, 1.03); } 100% { transform: none; } }
-@keyframes hopAsk { 0% { transform: translateY(0) scale(1.04, 0.94); } 45% { transform: translateY(-7px) scale(0.98, 1.03); } 100% { transform: none; } }
-@keyframes hopThink { 0% { transform: translateY(0) scale(1.04, 0.94); } 45% { transform: translateY(-7px) scale(0.98, 1.03); } 100% { transform: none; } }
-@keyframes hopWow { 0% { transform: translateY(0) scale(1.04, 0.94); } 45% { transform: translateY(-7px) scale(0.98, 1.03); } 100% { transform: none; } }
-@keyframes hopProud { 0% { transform: translateY(0) scale(1.04, 0.94); } 45% { transform: translateY(-7px) scale(0.98, 1.03); } 100% { transform: none; } }
-@keyframes hopCalm { 0% { transform: translateY(0) scale(1.04, 0.94); } 45% { transform: translateY(-7px) scale(0.98, 1.03); } 100% { transform: none; } }
-
-@keyframes breathe { 0%, 100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-4px) scale(0.99, 1.02); } }
-@keyframes jump {
-  0%, 100% { transform: translateY(0) scale(1, 1); }
-  12% { transform: translateY(0) scale(1.05, 0.93); }
-  32% { transform: translateY(-14px) scale(0.97, 1.04); }
-  52% { transform: translateY(0) scale(1.04, 0.95); }
-  64% { transform: translateY(0) scale(1, 1); }
-}
-/* The shadow keeps its 0.08 ink tint; it only narrows and fades a touch as the body rises. */
-@keyframes shadowBreathe { 0%, 100% { transform: scale(1); opacity: 0.08; } 50% { transform: scale(0.9); opacity: 0.06; } }
-@keyframes shadowJump { 0%, 12%, 52%, 100% { transform: scale(1); opacity: 0.08; } 32% { transform: scale(0.72); opacity: 0.04; } }
-
-@keyframes open { from { transform: scaleY(0.12); } }
-@keyframes blink {
-  0%, 88%, 100% { transform: scaleY(1); }
-  90% { transform: scaleY(0.1); }
-  92% { transform: scaleY(1); }
-  95% { transform: scaleY(1); }
-  96.5% { transform: scaleY(0.1); }
-  98% { transform: scaleY(1); }
-}
-@keyframes brows { from { opacity: 0; transform: translateY(-4px); } }
-@keyframes fade { from { opacity: 0; } }
-@keyframes wave { 0%, 100% { transform: rotate(-10deg); } 30% { transform: rotate(16deg); } 55% { transform: rotate(-4deg); } 78% { transform: rotate(12deg); } }
-
-@media (prefers-reduced-motion: reduce) {
-  .part, .gaze { transition: none; }
-  .hop, .breathe, .jump, .eyes, .brows, .fade, .wave, .shadow-breathe, .shadow-jump,
-  [class*='hop-'] { animation: none !important; }
-}
+/* One-shot motion for `animate`: Nala settles in, then plays the pose's supplied motion once. Nothing loops. */
+.enter { transform-origin: 50% 100%; animation: nala-enter 420ms cubic-bezier(.23, 1, .32, 1) both; }
+.bob, .jump, .wave, .blink { transform-box: view-box; }
+.bob { animation: nala-bob 900ms cubic-bezier(.37, 0, .63, 1) 420ms both; }
+.jump { animation: nala-jump 720ms cubic-bezier(.33, 1, .68, 1) 380ms both; }
+.wave { transform-origin: 38px 138px; animation: nala-wave 560ms ease-in-out 380ms 2 both; }
+.blink { transform-origin: 100px 98px; animation: nala-blink 220ms ease-in-out 1500ms both; }
+@keyframes nala-enter { from { opacity: 0; transform: translateY(10px) scale(.92); } }
+@keyframes nala-bob { 50% { transform: translateY(-5px); } }
+@keyframes nala-jump { 35% { transform: translateY(-14px); } 60% { transform: translateY(0); } 75% { transform: translateY(-3px); } }
+@keyframes nala-wave { 35% { transform: rotate(-14deg); } 70% { transform: rotate(10deg); } }
+@keyframes nala-blink { 50% { transform: scaleY(.1); } }
+@media (prefers-reduced-motion: reduce) { .enter, .bob, .jump, .wave, .blink { animation: none; } }

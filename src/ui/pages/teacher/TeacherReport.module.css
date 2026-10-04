@@ -3,7 +3,7 @@
 .back:hover { color: var(--color-primary); }
 .header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
 .who { display: flex; align-items: center; gap: 12px; min-inline-size: 0; }
-.avatar { display: grid; place-items: center; flex: none; inline-size: 44px; block-size: 44px; border-radius: 50%; background: var(--color-warning-bg); color: var(--color-warning-text); font-size: 15px; font-weight: 700; }
+.avatar { display: grid; place-items: center; flex: none; inline-size: 48px; block-size: 48px; }
 .who h1 { margin: 0; font-size: 22px; line-height: 30px; letter-spacing: -.015em; overflow-wrap: anywhere; }
 .who p { margin: 2px 0 0; font-size: 13px; color: var(--color-text-muted); }
 .header > button { gap: 6px; font-size: 13px; border-radius: 8px; white-space: nowrap; }

@@ -1,29 +1,39 @@
-.content { max-inline-size: 1200px; }
-.header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; }
-.titleRow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.titleRow h1 { margin: 0; font-size: 22px; line-height: 30px; letter-spacing: -.015em; }
-.titleRow span { padding: 3px 8px; border-radius: 6px; background: var(--color-warning-bg); color: var(--color-warning-text); font-size: 11px; font-weight: 700; }
-.header p { margin: 2px 0 0; font-size: 13px; color: var(--color-text-muted); }
-.actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
-.back { display: inline-flex; align-items: center; gap: 4px; min-block-size: 44px; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); text-decoration: none; }
-.back:hover { color: var(--color-primary); }
-.note { margin: 12px 0 0; font-size: 13px; line-height: 20px; color: var(--color-text-secondary); }
-.grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; margin-block-start: 16px; }
-.main { display: flex; flex-direction: column; gap: 16px; min-inline-size: 0; }
-.card { min-inline-size: 0; padding: 20px 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
-.card h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; line-height: 22px; }
-.card > p { margin: 12px 0 0; font-family: var(--font-reading); font-size: 18px; line-height: 28px; color: var(--color-text-secondary); overflow-wrap: anywhere; }
-.concepts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 16px; margin-block-start: 12px; }
-.concepts h3, .tryHome h3 { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-text-muted); }
-.concepts ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
-.concepts li { padding: 3px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; }
-.concepts li[data-status="done"] { background: var(--color-info-bg); color: var(--color-primary-hover); }
-.concepts li[data-status="growing"] { background: var(--color-warning-bg); color: var(--color-warning-text); }
-.ask { background: var(--color-accent); border-color: var(--color-accent); }
-.ask .question { color: var(--color-ink); font-size: 20px; line-height: 30px; font-weight: 600; }
-.tryHome { margin-block-start: 20px; padding-block-start: 16px; border-block-start: 1px solid rgb(21 33 59 / 18%); }
-.tryHome h3 { color: var(--color-ink); }
-.tryHome p { margin: 6px 0 0; font-size: 16px; line-height: 24px; color: var(--color-ink); }
-@media (max-width: 899px) {
-  .grid { grid-template-columns: minmax(0, 1fr); }
+.content { display: grid; gap: 24px; max-inline-size: 860px; margin-inline: auto; }
+.loading { margin: 0; font-size: 14px; font-weight: 600; color: var(--color-primary-hover); }
+.back { display: inline-flex; align-items: center; gap: 4px; justify-self: start; min-block-size: 44px; margin-inline-start: -8px; padding-inline: 8px; border-radius: 10px; color: var(--color-primary-hover); font-size: 14px; font-weight: 600; text-decoration: none; }
+.back:hover { background: var(--color-nav-hover); }
+.header { display: flex; align-items: center; flex-wrap: wrap; gap: 16px 24px; margin-block-start: -12px; }
+.header > div:first-child { flex: 1 1 320px; min-inline-size: 0; }
+.header h1 { margin: 0; font-size: 28px; line-height: 36px; font-weight: 750; letter-spacing: -.03em; text-wrap: balance; overflow-wrap: anywhere; }
+.header p { margin: 4px 0 0; font-size: 14px; line-height: 24px; color: var(--color-text-secondary); }
+.panel { border-radius: 24px; background: var(--color-surface); }
+.paper { min-inline-size: 0; padding: 32px 40px 40px; border-radius: 24px; background: var(--color-surface); animation: page-in 460ms cubic-bezier(.23, 1, .32, 1) both; }
+.paperHead { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block-end: 20px; border-block-end: 1px solid var(--color-role-border); }
+.paperHead h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; line-height: 24px; font-weight: 650; color: var(--color-text-secondary); }
+.paperHead h2 svg { color: var(--color-primary); }
+.print { min-block-size: 44px; padding-inline: 16px; border-radius: var(--radius-pill); font-size: 13px; }
+.text { max-inline-size: 64ch; margin-block-start: 24px; }
+.text p { margin: 0; font-family: var(--font-reading); font-size: 18px; line-height: 30px; color: var(--color-ink); text-wrap: pretty; overflow-wrap: anywhere; }
+.text p + p { margin-block-start: 18px; }
+.pager { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.pager a { display: flex; align-items: center; gap: 12px; min-block-size: 64px; padding: 12px 16px; border-radius: 16px; background: var(--color-surface); color: var(--color-ink); font-size: 14px; line-height: 20px; font-weight: 650; text-decoration: none; transition: background-color 140ms ease-out, transform 160ms cubic-bezier(.23, 1, .32, 1); }
+.pager a[data-end] { justify-content: space-between; text-align: end; }
+.pager a:hover { background: var(--color-nav-hover); }
+.pager a:active { transform: scale(.98); }
+.pager small { display: block; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--color-text-muted); }
+.pager svg { flex: none; color: var(--color-primary); }
+.content :is(a, button):focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+@keyframes page-in { from { opacity: 0; transform: translateY(8px); } }
+@media (max-width: 767px) {
+  .header h1 { font-size: 24px; line-height: 32px; }
+  .paper { padding: 24px 20px 28px; border-radius: 20px; }
+  .panel { border-radius: 20px; }
+  .text p { font-size: 18px; line-height: 30px; }
+  .pager { grid-template-columns: minmax(0, 1fr); }
+  .pager a[data-end] { text-align: start; }
+}
+@media (prefers-reduced-motion: reduce) { .paper { animation: none; } .pager a { transition: none; } .pager a:active { transform: none; } }
+@media print {
+  .back, .header > :not(:first-child), .pager, .print { display: none; }
+  .paper { padding: 0; animation: none; }
 }

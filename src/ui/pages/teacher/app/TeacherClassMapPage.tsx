@@ -4,6 +4,7 @@ import type { TeacherPublication } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherClassMap.module.css'
@@ -43,7 +44,7 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
       <div className={styles.grid}>
         <section className={styles.card} aria-labelledby="map-title">
           <div className={styles.cardHead}>
-            <h2 id="map-title"><Icon name="graph" size={16} />Pemahaman per konsep</h2>
+            <h2 id="map-title"><NalaIcon name="graph" />Pemahaman per konsep</h2>
             <ul className={styles.legend} aria-label="Keterangan warna"><li data-kind="understood">Paham</li><li data-kind="developing">Berkembang</li></ul>
           </div>
           <p className={styles.system}><strong>DIHITUNG SISTEM</strong> Semua angka dihitung dari data sesi. AI hanya menulis penjelasan.</p>

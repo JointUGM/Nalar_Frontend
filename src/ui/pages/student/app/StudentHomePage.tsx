@@ -5,8 +5,9 @@ import { Link } from 'react-router'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { Nala } from '@/ui/components/nala/Nala'
-import { formatDayTime, formatTime, formatToday } from '@/ui/formatInstant'
+import { formatDayTime, formatToday } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/student/StudentHome.module.css'
@@ -27,13 +28,14 @@ export function StudentHomePage({ service, base, user }: { service: StudentServi
   const startPath = (mission: MissionCard) => `${base}/missions/${mission.publication_id}/start${mission.is_granted_attempt ? `?run=${mission.run_id}` : ''}`
   const startable = data?.open.filter(canStart) ?? []
   const first = startable[0]
+  const continuing = data?.open.find(canResume)
+  const next = continuing ?? first
   const empty = data !== null && data.open.length + data.upcoming.length + data.completed.length === 0
   const rows = data?.[tab] ?? []
 
   return <div className={styles.content} aria-busy={loading}>
     <div className={styles.header}>
-      <div><h1>Halo, {firstName}</h1><p>{formatToday()} · {startable.length > 0 ? `ada ${startable.length} misi yang bisa kamu mulai sekarang` : 'belum ada misi yang bisa kamu mulai'}</p></div>
-      {first && <ButtonLink to={startPath(first)}><Icon name="play" size={14} />Mulai misi hari ini</ButtonLink>}
+      <div><h1>Halo, {firstName}</h1><p>{formatToday()}</p></div>
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {loading && <>
@@ -41,46 +43,50 @@ export function StudentHomePage({ service, base, user }: { service: StudentServi
       <div className={styles.skeleton} aria-hidden="true"><span /><span /><span /></div>
     </>}
     {data && <>
-      <section className={styles.hero} aria-label="Pesan dari Nala">
-        <Nala mood={data.open.length === 0 ? 'calm' : 'hello'} size={96} />
-        <div className={styles.bubble}><strong>Nala</strong><p>{first ? `Hai, ${firstName}! Ada misi yang bisa kamu mulai: “${first.mission_title}” Aku penasaran dengan alasanmu.`
-          : data.open.length > 0 ? `Hai, ${firstName}! Ada sesi yang sedang dibuka. Kalau gurumu menampilkan kode, gabung dari sini.`
-            : `Hai, ${firstName}! Belum ada misi baru hari ini. Kalau gurumu sudah menerbitkan misi, kamu akan melihatnya di sini.`}</p></div>
-        {first && <ButtonLink className={styles.heroStart} to={startPath(first)}>Ayo mulai</ButtonLink>}
-      </section>
+      <div className={styles.welcome}>
+        <section className={styles.hero} aria-label="Pesan dari Nala">
+          <div className={styles.heroCopy}>
+            <h2>{continuing ? 'Alasanmu masih punya cerita.' : empty ? 'Ruang berpikirmu ada di sini.' : 'Penasaran itu awal yang baik.'}</h2>
+            <p>{continuing ? 'Ada misi yang belum selesai. Ayo lanjutkan dari tempat kamu berhenti.' : first ? 'Aku Nala. Kita jelajahi satu soal, lalu ceritakan alasanmu dengan kata-katamu sendiri.' : data.open.length > 0 ? 'Aku Nala. Gurumu membuka sesi kelas. Siapkan kodenya, lalu kita mulai bersama.' : 'Aku Nala. Sambil menunggu misi dari gurumu, rasa ingin tahumu boleh terus berjalan.'}</p>
+            {next && <ButtonLink className={styles.heroStart} to={startPath(next)}>{continuing ? 'Lanjutkan misimu' : 'Ayo mulai'}<Icon name="chevronRight" size={16} /></ButtonLink>}
+          </div>
+          <div className={styles.mascot}><Nala mood={continuing ? 'think' : data.open.length === 0 ? 'calm' : 'hello'} size={184} /></div>
+        </section>
+        <aside className={styles.joinCard} aria-labelledby="student-code">
+          <span className={styles.joinIcon}><NalaIcon name="live" size={44} /></span>
+          <h2 id="student-code">Punya kode dari guru?</h2>
+          <p>Masuk ke sesi kelas dan berpikir bersama teman-temanmu.</p>
+          <ButtonLink tone="secondary" to={`${base}/join`}>Gabung dengan kode<Icon name="chevronRight" size={14} /></ButtonLink>
+        </aside>
+      </div>
 
       {empty ? <Feedback title="Belum ada misi untukmu">Misi muncul di sini setelah gurumu menerbitkannya. Tidak ada yang perlu kamu lakukan sekarang.</Feedback> : <>
-        <ul className={styles.kpis} aria-label="Ringkasan misimu">
-          <li><span className={styles.label}>Misi terbuka</span><span className={styles.value}><strong>{data.open.length}</strong></span><small>Bisa dikerjakan sekarang</small></li>
-          <li><span className={styles.label}>Akan datang</span><span className={styles.value}><strong>{data.upcoming.length}</strong></span><small>Belum dibuka</small></li>
-          <li><span className={styles.label}>Sudah dikerjakan</span><span className={styles.value}><strong>{data.completed.length}</strong></span><small>Misi yang sudah lewat</small></li>
-        </ul>
-
         <div className={styles.main}>
           <section className={styles.card} aria-labelledby="student-open">
-            <h2 id="student-open"><Icon name="target" size={16} />Terbuka sekarang <span>{data.open.length}</span></h2>
-            {data.open.length === 0 && <p>Belum ada misi yang terbuka.</p>}
+            <div className={styles.sectionHead}><h2 id="student-open">Terbuka sekarang <span>{data.open.length}</span></h2><p>Pilih misi untuk menjelajahi alasanmu.</p></div>
+            {data.open.length === 0 && <p className={styles.emptyOpen}>Belum ada misi yang terbuka. Jadwal berikutnya bisa kamu lihat di bawah.</p>}
             <div className={styles.cards}>{data.open.map((mission) => {
               const resume = canResume(mission)
               const live = mission.mode === 'live'
-              return <article key={mission.run_id} className={styles.mission} data-kind={resume ? 'resume' : 'start'} aria-labelledby={`mission-${mission.run_id}`}>
+              return <article key={mission.run_id} className={styles.mission} data-kind={resume ? 'resume' : live ? 'live' : 'start'} aria-labelledby={`mission-${mission.run_id}`}>
                 <div className={styles.missionHead}>
-                  <span className={styles.badge} data-kind={resume ? 'resume' : 'start'}><Icon name={resume ? 'refresh' : 'clock'} size={11} />{resume ? 'Sedang dikerjakan' : live ? 'Sesi kelas' : mission.closes_at ? `Ditutup ${formatTime(mission.closes_at)}` : 'Terbuka'}</span>
-                  <small>{mission.subject_name}</small>
+                  <span className={styles.subject}><Icon name={live ? 'users' : 'book'} size={18} />{mission.subject_name}</span>
+                  <span className={styles.badge} data-kind={resume ? 'resume' : 'start'}>{resume ? 'Sedang dikerjakan' : live ? 'Sesi kelas' : 'Terbuka'}</span>
                 </div>
                 <h3 id={`mission-${mission.run_id}`}>{mission.mission_title}{mission.is_granted_attempt && <small> · kesempatan ke-{mission.attempt_number}</small>}</h3>
-                <p>{live ? 'Dikerjakan bersama di kelas. Masukkan kode yang ditampilkan gurumu.' : `Satu soal, lalu beberapa pertanyaan tentang alasanmu. Sekitar ${mission.target_duration_minutes} menit.`}</p>
-                {live ? <ButtonLink to={`${base}/join`}>Gabung dengan kode</ButtonLink>
-                  : resume ? <ButtonLink tone="secondary" to={startPath(mission)}>Lanjutkan</ButtonLink>
-                    : canStart(mission) ? <ButtonLink to={startPath(mission)}>Mulai</ButtonLink>
-                      : <span className={styles.tag}>Sudah dikerjakan</span>}
+                <p>{live ? 'Dikerjakan bersama di kelas. Masukkan kode yang ditampilkan gurumu.' : 'Satu soal, beberapa pertanyaan. Ada ruang untuk cara berpikirmu.'}</p>
+                <div className={styles.missionTime}><span><Icon name="clock" size={14} />± {mission.target_duration_minutes} menit</span>{mission.closes_at && <span>Ditutup {formatDayTime(mission.closes_at)}</span>}</div>
+                <div className={styles.missionAction}>{live ? <ButtonLink tone="secondary" to={`${base}/join`}>Gabung dengan kode<Icon name="chevronRight" size={14} /></ButtonLink>
+                  : resume ? <ButtonLink to={startPath(mission)}>Lanjutkan<Icon name="chevronRight" size={14} /></ButtonLink>
+                    : canStart(mission) ? <ButtonLink to={startPath(mission)}>Mulai<Icon name="chevronRight" size={14} /></ButtonLink>
+                      : <span className={styles.tag}>Sudah dikerjakan</span>}</div>
               </article>
             })}</div>
           </section>
 
           <section className={styles.table} aria-labelledby="student-all">
             <div className={styles.tableHead}>
-              <h2 id="student-all"><Icon name="calendar" size={16} />Semua misi</h2>
+              <h2 id="student-all"><NalaIcon name="calendar" />Semua misi</h2>
               <div className={styles.tabs} role="group" aria-label="Jenis misi">{tabs.map(([key, label]) => <button key={key} type="button" aria-pressed={tab === key} onClick={() => setTab(key)}>{label}</button>)}</div>
             </div>
             <div className={styles.region} role="region" aria-label="Daftar misi (dapat digulir)" tabIndex={0}>
@@ -90,9 +96,9 @@ export function StudentHomePage({ service, base, user }: { service: StudentServi
                 <tbody>
                   {rows.length === 0 && <tr><td colSpan={4}>{tab === 'completed' ? 'Belum ada misi yang selesai.' : 'Belum ada misi yang dijadwalkan.'}</td></tr>}
                   {rows.map((row) => <tr key={row.run_id}>
-                    <th scope="row">{tab === 'completed' && row.session_id && row.attempt_status === 'completed' ? <Link to={`${base}/sessions/${row.session_id}`}>{row.mission_title}</Link> : row.mission_title}</th><td>{row.subject_name}</td>
-                    <td>{tab === 'upcoming' ? (row.opens_at ? formatDayTime(row.opens_at) : 'Menunggu guru') : row.closes_at ? formatDayTime(row.closes_at) : '—'}</td>
-                    <td><span className={styles.tag}>{tab === 'upcoming' ? 'Belum dibuka' : row.attempt_status === 'completed' ? 'Selesai' : 'Belum selesai'}</span></td>
+                    <th scope="row">{tab === 'completed' && row.session_id && row.attempt_status === 'completed' ? <Link to={`${base}/sessions/${row.session_id}`}>{row.mission_title}</Link> : row.mission_title}</th><td data-label="Mapel">{row.subject_name}</td>
+                    <td data-label="Waktu">{tab === 'upcoming' ? (row.opens_at ? formatDayTime(row.opens_at) : 'Menunggu guru') : row.closes_at ? formatDayTime(row.closes_at) : 'Tidak tersedia'}</td>
+                    <td data-label="Status"><span className={styles.tag}>{tab === 'upcoming' ? 'Belum dibuka' : row.attempt_status === 'completed' ? 'Selesai' : 'Belum selesai'}</span></td>
                   </tr>)}
                 </tbody>
               </table>

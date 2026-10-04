@@ -3,6 +3,7 @@ import type { RefObject } from 'react'
 import { Link } from 'react-router'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
+import { NalaAlive } from './NalaAlive'
 import { CLASS_TOTAL, HERO_LINES, HERO_SCENES, MISCONCEPTIONS, TOTAL_PROMPTS } from '@/ui/pages/landing/landingContent'
 import { usePrefersReducedMotion } from '@/ui/pages/landing/useLandingMotion'
 import shared from '@/ui/pages/landing/Landing.module.css'
@@ -93,7 +94,7 @@ function NalaStage() {
       <div className={styles.layer} data-depth="0.7">
         <div className={styles.nala}>
           <span className={styles.thinking}><span /><span /><span /></span>
-          <Nala mood={current.mood} size={240} animate={!reduced} />
+          <NalaAlive mood={current.mood} size={240} animate={!reduced} />
         </div>
       </div>
 

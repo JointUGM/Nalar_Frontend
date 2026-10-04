@@ -1,4 +1,4 @@
-import type { NalaMood } from '@/ui/components/nala/Nala'
+import type { AliveMood } from '@/ui/pages/landing/components/NalaAlive'
 
 // Example content only. It follows the documented demo topic (IPA kelas 8, Gaya dan Gerak) and its
 // misconception "gaya dorong bisa habis". Names, class and counts are fictional and labelled as such on the page.
@@ -15,7 +15,7 @@ export const SECTIONS = [
 export type HeroScene = 'hello' | 'ask' | 'think' | 'evidence'
 
 /** The hero's looped motion graphic: Nala greets, asks, waits while the student answers, then the teacher's evidence lands. */
-export const HERO_SCENES: readonly { scene: HeroScene; mood: NalaMood; ms: number }[] = [
+export const HERO_SCENES: readonly { scene: HeroScene; mood: AliveMood; ms: number }[] = [
   { scene: 'hello', mood: 'hello', ms: 3200 },
   { scene: 'ask', mood: 'ask', ms: 3600 },
   { scene: 'think', mood: 'think', ms: 3400 },
@@ -66,7 +66,7 @@ export interface DialogueStep {
   screen: {
     prompt: string
     promptKind: 'anchor' | 'probe'
-    mood: NalaMood
+    mood: AliveMood
     previous?: string
     answer: string
     answerState: 'typing' | 'sent'

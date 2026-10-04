@@ -71,7 +71,7 @@ describe('signed-in parent pages', () => {
     open('/parent', backend())
     await screen.findByRole('heading', { name: 'Kabar Raka' })
     await screen.findByText('Raka mengubah pendapatnya sendiri.')
-    expect(screen.getByRole('rowheader', { name: 'Gaya gesek' })).toBeInTheDocument()
+    expect(screen.getByText('Gaya gesek')).toBeInTheDocument()
     expect(screen.queryByText('Pratinjau · data contoh')).not.toBeInTheDocument()
     await pickChild(/Nadia Pratama/)
     await screen.findByRole('heading', { name: 'Belum ada ringkasan yang tersedia' })

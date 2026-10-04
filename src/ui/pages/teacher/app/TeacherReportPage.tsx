@@ -7,6 +7,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaAvatar, NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherReport.module.css'
@@ -92,7 +93,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
     {back}
     <div className={styles.header}>
       <div className={styles.who}>
-        <span className={styles.avatar} aria-hidden="true">{report.student.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')}</span>
+        <span className={styles.avatar}><NalaAvatar seed={report.student.name} size={48} /></span>
         <div><h1>{report.student.name}</h1><p>{[`${report.mission.title} · versi ${report.mission.version_number}`, `Percobaan ${report.session.attempt_number}`, sessionWord[report.session.status] ?? report.session.status, minutes(report.session.started_at, report.session.ended_at)].filter(Boolean).join(' · ')}</p></div>
       </div>
       {finished && <Button tone="secondary" disabled={pending || granted} onClick={() => open({ kind: 'grant' })}><Icon name="refresh" size={14} />{granted ? 'Kesempatan lagi diberikan' : 'Beri kesempatan lagi'}</Button>}
@@ -140,7 +141,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
         </section>)}
 
         <section className={styles.card} aria-labelledby="evidence-title">
-          <h2 id="evidence-title"><Icon name="message" size={16} />Bukti skor</h2>
+          <h2 id="evidence-title"><NalaIcon name="message" />Bukti skor</h2>
           {!evaluated ? <p className={styles.muted}>Kutipan bukti muncul setelah evaluasi selesai.</p> : <ul className={styles.evidence}>{report.scores.map((score) => <li key={score.score_id}>
             {score.evidence.length ? score.evidence.map((item) => <button key={`${item.turn_id}-${item.quote}`} type="button" aria-pressed={quote?.turn === item.turn_id && quote.text === item.quote} onClick={() => setQuote({ turn: item.turn_id, text: item.quote })}>
               <span><b>{(rubricWord.find(([key]) => key === score.dimension)?.[1] ?? score.dimension).toUpperCase()}</b></span>
