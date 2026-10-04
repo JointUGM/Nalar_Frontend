@@ -44,7 +44,7 @@ afterAll(() => {
 })
 
 const publications = { items: [{ id: publication, class_id: school, class_name: '8B', mission_title: 'Kenapa kelereng berhenti?', released_to_parents_at: null, run: { id: school, mode: 'live', status: 'closed', join_code: null, opens_at: null, closes_at: null }, counts: { started: 30, completed: 28, timed_out: 2, evaluated: 28 } }], next_cursor: null }
-const classMap = { denominator: 28, incomplete_count: 2, concepts: [{ concept_id: concept, name: 'Gaya gesek', mastered_count: 10, developing_count: 6, not_observed_count: 0, misconceptions: [{ misconception_id: misconception, statement: 'Gaya bisa habis', count: 18, resolved_count: 11, student_ids: [student], students: [{ student_id: student, name: 'Raka Pratama', session_id: student }] }] }], insight: { narrative: 'Sebanyak 18 siswa mengira gaya bisa habis.', generated_at: '2026-10-02T03:00:00+00:00' } }
+const classMap = { denominator: 28, incomplete_count: 2, prerequisites: [], concepts: [{ concept_id: concept, name: 'Gaya gesek', mastered_count: 10, developing_count: 6, not_observed_count: 0, misconceptions: [{ misconception_id: misconception, statement: 'Gaya bisa habis', count: 18, resolved_count: 11, student_ids: [student], students: [{ student_id: student, name: 'Raka Pratama', session_id: student }] }] }], insight: { narrative: 'Sebanyak 18 siswa mengira gaya bisa habis.', generated_at: '2026-10-02T03:00:00+00:00' } }
 const mission = '00000000-0000-4000-8000-00000000000e'
 const version = '00000000-0000-4000-8000-00000000000f'
 const draft = '00000000-0000-4000-8000-000000000010'
@@ -188,6 +188,15 @@ describe('signed-in teacher pages', () => {
     expect(screen.getByText('10 paham · 6 berkembang · 0 belum teramati')).toBeInTheDocument()
   })
 
+  it('draws a line between a concept and its prerequisite and lists the prerequisite first', async () => {
+    const other = '00000000-0000-4000-8000-0000000000aa'
+    const two = { ...classMap, prerequisites: [{ concept_id: other, prerequisite_id: concept }], concepts: [{ ...classMap.concepts[0], concept_id: other, name: 'Tekanan udara', misconceptions: [] }, classMap.concepts[0]] }
+    open(`${base}/publications/${publication}/class-map`, backend({ [`GET /publications/${publication}/class-map`]: () => Response.json(two) }))
+    const map = await screen.findByTestId('map-edges')
+    expect(map.querySelectorAll('path')).toHaveLength(1)
+    const names = screen.getAllByText(/^(Gaya gesek|Tekanan udara)$/).map((node) => node.textContent)
+    expect(names.indexOf('Gaya gesek')).toBeLessThan(names.indexOf('Tekanan udara'))
+  })
   it('releases once, with the count the teacher saw, only after confirming', async () => {
     let released: string | null = null
     const request = backend({
