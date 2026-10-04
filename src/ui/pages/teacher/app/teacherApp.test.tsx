@@ -151,6 +151,34 @@ describe('signed-in teacher pages', () => {
     expect(screen.queryByText('Pratinjau · data contoh')).not.toBeInTheDocument()
   })
 
+  it('moves a scheduled window once, sending the new times as WIB', async () => {
+    const scheduled = { items: [{ ...publications.items[0], run: { id: school, mode: 'window', status: 'scheduled', join_code: null, opens_at: '2030-01-02T01:00:00Z', closes_at: '2030-01-02T03:00:00Z' }, counts: { started: 0, completed: 0, timed_out: 0, evaluated: 0 } }], next_cursor: null }
+    const request = backend({ 'GET /teacher/publications?limit=100': () => Response.json(scheduled), [`PATCH /publications/${publication}`]: () => new Response(null, { status: 204 }) })
+    open(`${base}/sessions`, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Ubah jadwal' }))
+    expect(screen.getByLabelText(/Dibuka \(WIB\)/)).toHaveValue('2030-01-02T08:00')
+    fireEvent.change(screen.getByLabelText(/Ditutup \(WIB\)/), { target: { value: '2030-01-02T11:30' } })
+    const save = screen.getByRole('button', { name: 'Simpan jadwal' })
+    fireEvent.click(save)
+    fireEvent.click(save)
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'PATCH')).toHaveLength(1))
+    const [, init] = request.mock.calls.find(([, options]) => options?.method === 'PATCH')!
+    expect(JSON.parse(String(init?.body))).toEqual({ opens_at: '2030-01-02T08:00:00+07:00', closes_at: '2030-01-02T11:30:00+07:00' })
+  })
+  it('cancels a publication nobody has started and says why when students have started meanwhile', async () => {
+    const idle = { items: [{ ...publications.items[0], run: { ...publications.items[0].run, status: 'scheduled' }, counts: { started: 0, completed: 0, timed_out: 0, evaluated: 0 } }], next_cursor: null }
+    const request = backend({ 'GET /teacher/publications?limit=100': () => Response.json(idle), [`POST /publications/${publication}/cancel`]: () => Response.json({ error: { code: 'PUBLICATION_HAS_SESSIONS' } }, { status: 409 }) })
+    open(`${base}/sessions`, request)
+    expect(screen.queryByRole('button', { name: 'Ubah jadwal' })).not.toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('button', { name: 'Batalkan sesi' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Batalkan sesi' }))
+    expect((await screen.findAllByText('Sudah ada siswa yang memulai, jadi sesi ini tidak bisa diubah atau dibatalkan.')).length).toBeGreaterThan(0)
+  })
+  it('offers no change once students have started', async () => {
+    open(`${base}/sessions`, backend())
+    await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?, kelas 8B' })
+    expect(screen.queryByRole('button', { name: 'Batalkan sesi' })).not.toBeInTheDocument()
+  })
   it('shows the class map with the exact counts and the saved explanation', async () => {
     open(`${base}/publications/${publication}/class-map`, backend())
     const row = within((await screen.findByRole('rowheader', { name: '“Gaya bisa habis”' })).closest('tr')!)
