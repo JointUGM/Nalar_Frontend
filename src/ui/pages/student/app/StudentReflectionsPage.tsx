@@ -34,7 +34,7 @@ export function StudentReflectionsPage({ service, base }: { service: StudentServ
       {filtered.length === 0 && <div className={styles.empty}><Feedback title="Belum menemukan refleksinya">Coba judul misi atau kata lain dari refleksimu.</Feedback><Button tone="secondary" onClick={() => setSearch('')}>Tampilkan semua refleksi</Button></div>}
       <ul className={styles.list} aria-label="Daftar refleksi">{filtered.map((item) => <li key={item.session_id}>
       <Link to={`${base}/sessions/${item.session_id}`}>
-        <span className={styles.meta}><span>Refleksi</span><span>{formatDay(item.completed_at)}</span></span>
+        <span className={styles.meta}><span>{item.subject_name || 'Refleksi'}</span><span>{formatDay(item.completed_at)}</span></span>
         <strong>{item.mission_title}</strong>
         <span className={styles.excerpt}>{excerpt(item.content)}</span>
         <span className={styles.read}>Baca refleksi<Icon name="chevronRight" size={16} /></span>
