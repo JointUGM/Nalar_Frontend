@@ -64,6 +64,43 @@ describe('school administration', () => {
     expect(await screen.findByText(/admin sekolah terakhir yang aktif/)).toBeInTheDocument()
   })
 
+  it('adds one student, retrying with the same key and renewing it once the form changes', async () => {
+    let attempts = 0
+    const request = open(`/school/${school}/people`, (key) => {
+      if (key === `GET /schools/${school}/people?role=student&limit=50`) return Response.json({ items: [person], next_cursor: null, total: 1 })
+      if (key === `GET /schools/${school}/academic-years`) return Response.json(years)
+      if (key === `GET /schools/${school}/classes?academic_year_id=${year}`) return Response.json([klass(classA, '8A')])
+      if (key === `POST /schools/${school}/people`) return ++attempts === 1 ? Response.json({ error: { code: 'DEPENDENCY_UNAVAILABLE' } }, { status: 503 }) : Response.json({ user_id: classB }, { status: 201 })
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Tambah orang' }))
+    const form = within(screen.getByRole('dialog'))
+    fireEvent.change(form.getByLabelText(/Nama lengkap/), { target: { value: ' Budi Santoso ' } })
+    fireEvent.change(form.getByLabelText(/NISN/), { target: { value: '00981a23402' } })
+    fireEvent.change(await form.findByRole('combobox', { name: /Kelas/ }), { target: { value: classA } })
+    fireEvent.click(form.getByRole('button', { name: 'Tambah' }))
+    await waitFor(() => expect(sent(request, 'POST')).toHaveLength(1))
+    await screen.findAllByText('Layanan sedang sibuk. Coba lagi sebentar.')
+    fireEvent.click(form.getByRole('button', { name: 'Tambah' }))
+    expect(await screen.findByText('Budi Santoso ditambahkan. Kirim undangan dari halaman Undangan.')).toBeInTheDocument()
+    const [first, second] = sent(request, 'POST')
+    expect(new Headers(first[1]?.headers).get('Idempotency-Key')).toBe(new Headers(second[1]?.headers).get('Idempotency-Key'))
+    expect(JSON.parse(String(second[1]?.body))).toEqual({ full_name: 'Budi Santoso', role: 'student', nisn: '0098123402', class_id: classA, child_ids: [], invite: false })
+  })
+  it('turns an inactive person back on and explains a refusal', async () => {
+    const answers = [Response.json({ error: { code: 'REACTIVATION_HISTORY_MISSING' } }, { status: 409 }), new Response(null, { status: 204 })]
+    const request = open(`/school/${school}/people`, (key) => {
+      if (key === `GET /schools/${school}/people?role=student&limit=50`) return Response.json({ items: [{ ...person, account_state: 'inactive' }], next_cursor: null, total: 1 })
+      if (key === `POST /schools/${school}/people/${student}/reactivate`) return answers.shift()
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Kelola Adinda Putri' }))
+    const drawer = within(screen.getByRole('dialog'))
+    expect(drawer.queryByRole('button', { name: 'Nonaktifkan akun' })).not.toBeInTheDocument()
+    fireEvent.click(drawer.getByRole('button', { name: 'Aktifkan kembali' }))
+    expect((await screen.findAllByText(/Riwayat penonaktifan tidak ditemukan/)).length).toBeGreaterThan(0)
+    fireEvent.click(drawer.getByRole('button', { name: 'Aktifkan kembali' }))
+    expect(await screen.findByText('Adinda Putri aktif lagi.')).toBeInTheDocument()
+    expect(sent(request, 'POST')).toHaveLength(2)
+  })
   it('retries a new academic year with the same key, and a changed form gets a new one', async () => {
     let posts = 0
     const request = open(`/school/${school}/year`, (key) => {

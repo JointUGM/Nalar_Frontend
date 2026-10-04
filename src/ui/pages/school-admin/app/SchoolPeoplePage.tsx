@@ -8,6 +8,7 @@ import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
 import { StatusBadge } from '@/ui/components/status-badge/StatusBadge'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
+import { NewPersonDialog } from './NewPersonDialog'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import styles from '@/ui/pages/school-admin/SchoolPeople.module.css'
@@ -17,6 +18,8 @@ const stateWord: Readonly<Record<string, string>> = { active: 'Aktif', inactive:
 const refusals: Readonly<Record<string, string>> = {
   LAST_SCHOOL_ADMIN: 'Ini admin sekolah terakhir yang aktif. Minta admin platform menunjuk admin baru lebih dulu.',
   NAME_REQUIRED: 'Isi nama lengkap.',
+  REACTIVATION_HISTORY_MISSING: 'Riwayat penonaktifan tidak ditemukan, jadi akun ini tidak bisa diaktifkan lagi dari sini.',
+  ADMIN_REACTIVATION_REQUIRES_HANDOFF: 'Admin sekolah yang nonaktif hanya bisa diganti lewat admin platform.',
 }
 
 export function SchoolPeoplePage({ service, schoolId }: { service: SchoolAdminUseCases; schoolId: string }) {
@@ -25,6 +28,7 @@ export function SchoolPeoplePage({ service, schoolId }: { service: SchoolAdminUs
   const [q, setQ] = useState('')
   const [cursor, setCursor] = useState<string | null>(null)
   const [open, setOpen] = useState<Person | null>(null)
+  const [adding, setAdding] = useState(false)
   const [message, setMessage] = useState('')
   const tabs = useRef<(HTMLButtonElement | null)[]>([])
   // The list is asked for once the admin pauses typing, not on every key.
@@ -35,7 +39,7 @@ export function SchoolPeoplePage({ service, schoolId }: { service: SchoolAdminUs
   const choose = (next: PeopleRole) => { setRole(next); setCursor(null); setMessage('') }
 
   return <div className={styles.content}>
-    <div className={styles.heading}><h1>Orang</h1></div>
+    <div className={styles.heading}><h1>Orang</h1><Button onClick={() => { setMessage(''); setAdding(true) }}><Icon name="plus" size={16} />Tambah orang</Button></div>
     <div className={styles.filters}>
       <div className={styles.tabs} role="tablist" aria-label="Peran">{roles.map(([value, text], index) => <button key={value} ref={(element) => { tabs.current[index] = element }} role="tab" aria-selected={role === value} aria-controls="people-panel" tabIndex={role === value ? 0 : -1} className={role === value ? styles.selected : undefined} onClick={() => choose(value)} onKeyDown={(event) => {
         const next = event.key === 'ArrowRight' ? (index + 1) % roles.length : event.key === 'ArrowLeft' ? (index + roles.length - 1) % roles.length : undefined
@@ -43,7 +47,7 @@ export function SchoolPeoplePage({ service, schoolId }: { service: SchoolAdminUs
       }}>{text}</button>)}</div>
       <div><Field label="Cari nama, NISN, atau email" type="search" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
     </div>
-    <p className={styles.note}>Akun baru dibuat lewat Impor data. Di sini nama dan kelas bisa diubah, dan akun bisa dinonaktifkan; riwayatnya tetap tersimpan.</p>
+    <p className={styles.note}>Satu akun baru bisa ditambah di sini; banyak akun sekaligus lewat Impor data. Nama dan kelas bisa diubah, dan akun bisa dinonaktifkan atau diaktifkan lagi; riwayatnya tetap tersimpan.</p>
     {message && <Feedback tone="success" title={message} announce />}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     <section id="people-panel" role="tabpanel" aria-label={label} tabIndex={0}>
@@ -64,6 +68,7 @@ export function SchoolPeoplePage({ service, schoolId }: { service: SchoolAdminUs
         {data.next_cursor && <Button tone="secondary" onClick={() => setCursor(data.next_cursor)}>Berikutnya</Button>}
       </nav>}
     </section>
+    {adding && <NewPersonDialog service={service} schoolId={schoolId} initialRole={role === 'school_admin' ? 'student' : role} onClose={(done) => { setAdding(false); if (done) { setMessage(done); refresh() } }} />}
     {open && <PersonDrawer service={service} schoolId={schoolId} person={open} onClose={(done) => { setOpen(null); if (done) { setMessage(done); refresh() } }} />}
   </div>
 }
@@ -87,6 +92,9 @@ function PersonDrawer({ service, schoolId, person, onClose }: { service: SchoolA
   async function save() {
     const edit = { ...(name.trim() !== person.full_name ? { full_name: name } : {}), ...(classId ? { class_id: classId } : {}) }
     if (await command.run((signal) => service.editPerson(schoolId, person.user_id, edit, signal))) onClose(`Data ${name.trim()} tersimpan.`)
+  }
+  async function reactivate() {
+    if (await command.run((signal) => service.reactivatePerson(schoolId, person.user_id, signal))) onClose(`${person.full_name} aktif lagi.`)
   }
   async function deactivate() {
     if (await command.run((signal) => service.deactivatePerson(schoolId, person.user_id, signal))) onClose(`${person.full_name} dinonaktifkan. Riwayatnya tetap tersimpan.`)
@@ -115,6 +123,7 @@ function PersonDrawer({ service, schoolId, person, onClose }: { service: SchoolA
         <Button tone="secondary" disabled={command.pending} onClick={() => onClose()}>Batal</Button>
         <Button type="submit" disabled={!changed} pending={command.pending} pendingLabel="Menyimpan…">Simpan</Button>
       </div>
+      {person.account_state === 'inactive' && <Button tone="secondary" pending={command.pending} pendingLabel="Mengaktifkan…" onClick={() => void reactivate()}>Aktifkan kembali</Button>}
       {person.account_state !== 'inactive' && <Button tone="ghost" disabled={command.pending} onClick={() => { command.reset(); setConfirming(true) }}>Nonaktifkan akun</Button>}
     </form>}
   </Dialog>
