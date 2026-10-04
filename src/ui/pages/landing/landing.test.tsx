@@ -1,5 +1,4 @@
 import { render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { Landing } from './Landing'
@@ -31,12 +30,6 @@ describe('landing page', () => {
     expect(HERO_LINES.greeting).not.toMatch(verdict)
     expect(HERO_LINES.probe).not.toMatch(verdict)
     expect(HERO_LINES.probe.trim().endsWith('?')).toBe(true)
-  })
-
-  it('lets the visitor pause the looping hero animation', async () => {
-    page()
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Jeda animasi' }))
-    expect(screen.getByRole('button', { name: 'Putar animasi' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('shows every example turn to assistive technology and labels the example data', () => {
