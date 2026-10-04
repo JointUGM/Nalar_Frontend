@@ -101,3 +101,5 @@
   .concepts dd { font-size: 20px; line-height: 28px; }
   .report { justify-content: start; inline-size: auto; gap: 8px; font-size: 13px; }
 }
+.student a { color: inherit; font-weight: inherit; text-underline-offset: 3px; }
+.student a:hover { color: var(--color-primary); }
