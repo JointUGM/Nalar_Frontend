@@ -4,7 +4,7 @@ import type { ClassStudent } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
-import { NalaIcon } from '@/ui/components/nala/NalaIcon'
+import { NalaAvatar, NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
@@ -127,7 +127,7 @@ function Roster({ service, classId, publicationId, base }: { service: TeacherSer
         <caption className={styles.hidden}>Daftar siswa, status percobaan terakhir, hasil konsep, dan laporan</caption>
         <thead role="rowgroup"><tr role="row"><th scope="col">Siswa</th><th scope="col">Status</th><th scope="col">Hasil konsep</th><th scope="col"><span className={styles.hidden}>Laporan</span></th></tr></thead>
         <tbody role="rowgroup">{visible.map(student => <tr key={student.student_id} role="row">
-          <th scope="row" role="rowheader"><div className={styles.student}><span className={styles.avatar} aria-hidden="true">{student.full_name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => Array.from(part)[0]).join('').toLocaleUpperCase('id-ID')}</span><span>{student.full_name}</span></div></th>
+          <th scope="row" role="rowheader"><div className={styles.student}><span className={styles.avatar}><NalaAvatar seed={student.full_name} size={36} /></span><span>{student.full_name}</span></div></th>
           <td role="cell"><span className={styles.mobileLabel} aria-hidden="true">Status</span><div className={styles.studentStatus}>
             <span className={styles.status} data-status={student.status ?? 'not_started'}>{statusWord[student.status ?? 'not_started'] ?? student.status}</span>
             {student.open_flag_count > 0 && <span className={styles.flag}><Icon name="flag" size={12} />{number.format(student.open_flag_count)} perlu verifikasi</span>}

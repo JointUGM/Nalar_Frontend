@@ -6,6 +6,7 @@ import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Icon } from '@/ui/components/icon/Icon'
 import type { IconName } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
+import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
 import styles from './StudentShell.module.css'
 
 interface NavItem { label: string; icon: IconName; to?: string; badge?: string }
@@ -24,7 +25,6 @@ export function StudentShell({ title, user, detail, nav = items, home = '/review
   const focusContent = location.state?.focusPlatformContent === true
   useEffect(() => { if (focusContent) contentRef.current?.focus() }, [focusContent, location.key])
   const close = () => setDrawerOpen(false)
-  const initials = user.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
   const navigation = <nav className={styles.navigation} aria-label="Navigasi siswa">{nav.map((entry) => entry.to
     ? <NavLink key={entry.label} to={entry.to} end={entry.to === home} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive || (entry.to === home && location.pathname.startsWith(`${home}/missions/`)) ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</NavLink>
     : <button key={entry.label} type="button" disabled title={unavailable}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span></button>)}</nav>
@@ -47,7 +47,7 @@ export function StudentShell({ title, user, detail, nav = items, home = '/review
         <p>Nala bertanya supaya kamu bisa menemukan alasanmu sendiri.</p>
       </div>
       <div className={styles.user}>
-        <span className={styles.avatar} aria-hidden="true">{initials}</span>
+        <span className={styles.avatar}><NalaAvatar seed={user} size={34} /></span>
         <span className={[styles.who, styles.label].join(' ')}><strong>{user}</strong><small>{detail}</small></span>
         <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label={review ? 'Keluar dari pratinjau' : 'Keluar'}><Icon name="logout" size={16} /></Link>
       </div>

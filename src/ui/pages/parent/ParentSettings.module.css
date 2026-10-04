@@ -28,8 +28,7 @@
 .me small, .kids small { font-size: 13px; line-height: 20px; color: var(--color-text-muted); overflow-wrap: anywhere; }
 .avatar, .kid { display: grid; place-items: center; flex: none; border-radius: 50%; background: var(--color-warning-bg); color: var(--color-warning-text); font-weight: 700; }
 .avatar { inline-size: 48px; block-size: 48px; font-size: 16px; }
-.kid { inline-size: 40px; block-size: 40px; font-size: 14px; }
-.kid[data-tone='info'] { background: var(--color-info-bg); color: var(--color-primary-hover); }
+.kid { inline-size: 40px; block-size: 40px; background: none; }
 .sub { margin: 24px 0 4px; font-size: 13px; line-height: 20px; font-weight: 650; color: var(--color-text-secondary); }
 .kids { margin: 0; padding: 0; list-style: none; }
 .kids li { display: flex; align-items: center; gap: 12px; padding-block: 10px; }

@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import type { ParentService } from '@/domain/services/ParentService'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
-import { NalaIcon } from '@/ui/components/nala/NalaIcon'
+import { NalaAvatar, NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaNote } from '@/ui/components/nala/NalaState'
 import { useParentContext } from '@/ui/components/parent-shell/useParentContext'
@@ -69,7 +69,7 @@ export function ParentSettingsPage({ service, user }: { service: ParentService; 
         </div>
         <h3 className={styles.sub}>Anak tertaut</h3>
         {linkedChildren.length === 0 ? <p className={styles.rowHelp}>Belum ada</p> : <ul className={styles.kids}>{linkedChildren.map((child) => <li key={child.id}>
-          <span className={styles.kid} data-tone={child.tone} aria-hidden="true">{child.initials}</span>
+          <span className={styles.kid}><NalaAvatar seed={child.name} size={40} /></span>
           <div><strong>{child.name}</strong><small>{child.detail}</small></div>
         </li>)}</ul>}
         <div className={styles.links}><Link to="/login" state={{ signOut: true }}><Icon name="logout" size={16} />Keluar</Link></div>

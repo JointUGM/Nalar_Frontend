@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import type { AttentionItem, AttentionPage } from '@/domain/model/Teacher'
 import type { ApiError } from '@/domain/model/ApiError'
 import { Icon } from '@/ui/components/icon/Icon'
-import { NalaIcon, type NalaIconName } from '@/ui/components/nala/NalaIcon'
+import { NalaAvatar, NalaIcon, type NalaIconName } from '@/ui/components/nala/NalaIcon'
 import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
@@ -21,7 +21,6 @@ const groups: readonly { kind: Kind; title: string; tab: string; hint: string; i
 ]
 const flagWord: Readonly<Record<string, string>> = { large_paste: 'Tempelan teks panjang', tab_switching: 'Sering berpindah tab', inconsistency_gap: 'Jawaban tidak konsisten', style_shift: 'Gaya tulisan berubah', cross_student_similarity: 'Mirip jawaban siswa lain', disconnect_pattern: 'Koneksi sering terputus' }
 const number = new Intl.NumberFormat('id-ID')
-const initials = (name: string) => name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => Array.from(part)[0]).join('').toLocaleUpperCase('id-ID')
 
 // Each item opens the page where the teacher acts on it. `student` is set when the item is about a person.
 function describe(item: AttentionItem, base: string): { to: string; who: string; summary: string; student: boolean; at: string } {
@@ -75,7 +74,7 @@ export function TeacherAttentionPage({ data, error, online, refresh, base }: { d
             <ul className={styles.list}>{items.map(item => {
               const { to, who, summary, student, at } = describe(item, base)
               return <li key={`${item.kind}-${item.item_id}`}><Link className={styles.row} to={to}>
-                <span className={styles.lead} data-person={student} aria-hidden="true">{student ? initials(who) : <NalaIcon name={group.icon} size={44} />}</span>
+                <span className={styles.lead} data-person={student} aria-hidden="true">{student ? <NalaAvatar seed={who} size={40} /> : <NalaIcon name={group.icon} size={44} />}</span>
                 <span className={styles.body}><strong className={styles.who}>{who}</strong><span className={styles.summary}>{summary}</span><time className={styles.when} dateTime={at}>{item.kind === 'safety' ? 'Dijeda ' : ''}{formatDayTime(at)}</time></span>
                 <span className={styles.action}>{group.action}<Icon name="chevronRight" size={16} /></span>
               </Link></li>
