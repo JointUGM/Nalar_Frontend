@@ -1,4 +1,4 @@
-import type { AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import type { StudentHistoryPage, AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 import { ApiError } from '@/domain/model/ApiError'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { allItems, count, flag, instant, list, nullable, record, text } from './HttpApi'
@@ -54,6 +54,22 @@ export class HttpTeacherService implements TeacherService {
 
   async generateMission(missionId: string, signal?: AbortSignal): Promise<{ job_id: string }> {
     return { job_id: text(record((await this.api.request(`${mission(missionId)}/generate`, { method: 'POST', signal })).data).job_id) }
+  }
+
+  async studentHistory(studentId: string, cursor: string | null, signal?: AbortSignal): Promise<StudentHistoryPage> {
+    const value = record((await this.api.request(`/teacher/students/${encodeURIComponent(studentId)}/history?limit=50${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`, { signal })).data)
+    return {
+      next_cursor: nullable(value.next_cursor, text),
+      items: list(value.items).map((entry) => {
+        const item = record(entry)
+        return {
+          session_id: text(item.session_id), publication_id: text(item.publication_id), mission_title: text(item.mission_title), subject_name: text(item.subject_name), class_name: text(item.class_name),
+          academic_year_id: text(item.academic_year_id), academic_year_name: text(item.academic_year_name), attempt_number: count(item.attempt_number), status: text(item.status), evaluation_status: nullable(item.evaluation_status, text),
+          started_at: instant(item.started_at), ended_at: nullable(item.ended_at, instant),
+          scores: list(item.scores).map((raw) => { const score = record(raw); return { dimension: text(score.dimension), final_level: count(score.final_level) } }),
+        } satisfies Schemas['StudentHistoryItemOut']
+      }),
+    }
   }
 
   async exportPublication(publicationId: string, signal?: AbortSignal): Promise<Blob> {
@@ -129,7 +145,7 @@ export class HttpTeacherService implements TeacherService {
         }
       }),
       prerequisites: list(value.prerequisites).map((entry) => { const edge = record(entry); return { concept_id: text(edge.concept_id), prerequisite_id: text(edge.prerequisite_id) } }),
-      insight: nullable(value.insight, (raw) => { const insight = record(raw); return { narrative: text(insight.narrative), generated_at: instant(insight.generated_at) } }),
+      insight: nullable(value.insight, (raw) => { const insight = record(raw); return { narrative: text(insight.narrative), generated_at: instant(insight.generated_at), suggestions: insight.suggestions === undefined ? [] : texts(insight.suggestions) } }),
     } satisfies Schemas['ClassMapOut']
   }
 

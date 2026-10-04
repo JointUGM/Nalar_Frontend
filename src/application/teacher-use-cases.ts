@@ -53,6 +53,7 @@ export class TeacherUseCases implements TeacherService {
   dashboard(schoolId: string, signal?: AbortSignal) { return this.service.dashboard(resourceId(schoolId), signal) }
   missionVersions(missionId: string, signal?: AbortSignal) { return this.service.missionVersions(resourceId(missionId), signal) }
   // The key stays the same when the teacher retries one submission, so a lost answer never grants twice.
+  studentHistory(studentId: string, cursor: string | null, signal?: AbortSignal) { return this.service.studentHistory(resourceId(studentId), cursor, signal) }
   exportPublication(publicationId: string, signal?: AbortSignal) { return this.service.exportPublication(resourceId(publicationId), signal) }
   exportReport(sessionId: string, signal?: AbortSignal) { return this.service.exportReport(resourceId(sessionId), signal) }
   grantAttempt(publicationId: string, input: AttemptGrantInput, idempotencyKey: string, signal?: AbortSignal) {
