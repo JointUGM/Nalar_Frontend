@@ -8,6 +8,7 @@ import { useCommand } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import styles from '@/ui/pages/school-admin/SchoolYear.module.css'
 import { useAcademicYears } from './useAcademicYears'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const refusals: Readonly<Record<string, string>> = {
   ACADEMIC_YEAR_EXISTS: 'Tahun ajaran dengan nama itu sudah ada.',
@@ -43,7 +44,7 @@ export function SchoolYearPage({ service, schoolId }: { service: SchoolAdminUseC
     <h1>Tahun ajaran</h1>
     <p className={styles.lead}>Tahun ajaran baru langsung menjadi tahun berjalan. Riwayat misi dan hasil tahun sebelumnya tetap tersimpan.</p>
     <LiveFeedback error={years.error} online refresh={years.refresh} />
-    {!years.loaded && !years.error && <p role="status">Memuat tahun ajaran…</p>}
+    {!years.loaded && !years.error && <Loading label="Memuat tahun ajaran…" />}
     {done && <Feedback tone="success" title={done} announce>Langkah berikutnya: impor data siswa untuk tahun ini.</Feedback>}
     {years.list.length > 0 && <ol className={styles.steps}>{years.list.map((year) => <li key={year.id} className={[styles.step, year.is_current ? styles.current : styles.done].join(' ')} aria-current={year.is_current ? 'step' : undefined}>
       <div><h2>{year.name}</h2><p>{date(year.starts_on)} – {date(year.ends_on)}</p><span className={styles.state}>{year.is_current ? 'Berjalan' : 'Selesai'}</span></div>

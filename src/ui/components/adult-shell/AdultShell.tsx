@@ -1,13 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Link, NavLink, useLocation } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Dialog } from '@/ui/components/dialog/Dialog'
+import { activeNavTarget } from '@/ui/components/navigation/activeNav'
 import { ShellSearch } from '@/ui/components/shell-search/ShellSearch'
 import type { SearchTarget } from '@/ui/components/shell-search/ShellSearch'
 import type { IconName } from '@/ui/components/icon/Icon'
 import styles from './AdultShell.module.css'
+
+const platformLinks: readonly { label: string; icon: IconName; to: string }[] = [
+  { label: 'Sekolah', icon: 'school', to: '/platform/schools' },
+  { label: 'Capaian Pembelajaran', icon: 'book', to: '/platform/cp-versions' },
+]
 
 // Without `nav` this is the platform admin shell; the school admin passes its `nav` and `schoolContext`.
 export function AdultShell({ children, search = '', onSearch, schoolContext, nav }: { children: ReactNode; search?: string; onSearch?: (value: string) => void; schoolContext?: { name: string; year?: string; admin: string }; nav?: readonly { label: string; icon: IconName; to: string }[] }) {
@@ -18,11 +24,9 @@ export function AdultShell({ children, search = '', onSearch, schoolContext, nav
   useEffect(() => {
     if (focusContent) contentRef.current?.focus()
   }, [focusContent, location.key])
-  const navigation = nav ? <nav className={styles.navigation} aria-label="Navigasi Admin Sekolah">{nav.map((item) => <NavLink key={item.to} to={item.to} end state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name={item.icon} /><span>{item.label}</span></NavLink>)}</nav>
-  : <nav className={styles.navigation} aria-label="Navigasi Admin Platform">
-    <NavLink to="/platform/schools" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="school" /><span>Sekolah</span></NavLink>
-    <NavLink to="/platform/cp-versions" state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name="book" /><span>Capaian Pembelajaran</span></NavLink>
-  </nav>
+  const links = nav ?? platformLinks
+  const active = activeNavTarget(location.pathname, links)
+  const navigation = <nav className={styles.navigation} aria-label={nav ? 'Navigasi Admin Sekolah' : 'Navigasi Admin Platform'}>{links.map((item) => <Link key={item.to} to={item.to} state={{ focusPlatformContent: true }} aria-current={item.to === active ? 'page' : undefined} className={item.to === active ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name={item.icon} /><span>{item.label}</span></Link>)}</nav>
 
   const pages: SearchTarget[] = (nav ? nav.map((item): [string, string] => [item.label, item.to]) : [['Sekolah', '/platform/schools'], ['Capaian Pembelajaran', '/platform/cp-versions']]
   ).map(([label, to]) => ({ label, hint: 'Halaman', to }))

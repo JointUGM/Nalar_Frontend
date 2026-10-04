@@ -11,6 +11,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherMissions.module.css'
 import { versionWord } from './missionText'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const filters = [['all', 'Semua misi'], ['ready', 'Siap diterbitkan'], ['draft', 'Dalam persiapan']] as const
 type MissionFilter = typeof filters[number][0]
@@ -70,7 +71,7 @@ export function TeacherMissionsPage({ service, base, schoolId }: { service: Teac
     <LiveFeedback error={error} online={online} refresh={refresh} />
     <section className={styles.library} aria-labelledby="mission-library-title">
       <div className={styles.libraryHead}><h2 id="mission-library-title">Pustaka misi</h2>{data && <span>{number.format(data.length)} misi dimuat</span>}</div>
-      {!data && !error && <div className={styles.loading} role="status"><p>Memuat misi…</p><div className={styles.skeleton} aria-hidden="true">{[0, 1, 2].map(key => <div key={key}><span /><span /><span /></div>)}</div></div>}
+      {!data && !error && <div className={styles.loading}><Loading label="Memuat misi…" /><div className={styles.skeleton} aria-hidden="true">{[0, 1, 2].map(key => <div key={key}><span /><span /><span /></div>)}</div></div>}
       {!data && error && <NalaEmpty mood="oops" title="Pustaka misi belum dapat ditampilkan">Gunakan pilihan pemulihan di atas untuk memuatnya lagi.</NalaEmpty>}
       {data && data.length === 0 && <NalaEmpty mood="ask" title="Belum ada misi" action={<ButtonLink className={styles.emptyAction} to={`${base}/missions/new`}>Buat misi pertama<Icon name="plus" size={16} /></ButtonLink>}>
         Mulai dari basis pengetahuan dengan konsep yang sudah disetujui, lalu susun misi pertama Anda.

@@ -1,7 +1,9 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { Landing } from './Landing'
+import { DIALOGUE, HERO_LINES, SECTIONS } from './landingContent'
 
 const page = () => render(<MemoryRouter><Landing /></MemoryRouter>)
 
@@ -10,28 +12,43 @@ describe('landing page', () => {
     page()
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
     const nav = screen.getByRole('navigation', { name: 'Navigasi halaman' })
-    for (const [label, id] of [['Cara Kerja', 'cara-kerja'], ['Dialog Sokratik', 'dialog'], ['Untuk Guru', 'guru'], ['Kenalan Nala', 'maskot'], ['Tanya Jawab', 'faq']]) {
+    for (const [id, label] of SECTIONS) {
       expect(within(nav).getByRole('link', { name: label })).toHaveAttribute('href', `#${id}`)
       expect(document.getElementById(id)).not.toBeNull()
     }
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Masuk ke NALAR' })).toHaveAttribute('href', '/login')
     expect(screen.getAllByRole('link', { name: /^Masuk/ }).every((link) => link.getAttribute('href') === '/login')).toBe(true)
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /daftar|uji coba/i })).not.toBeInTheDocument()
   })
 
-  it('switches the simulated dialog between subjects', () => {
+  it('never puts a verdict, praise or the answer in Nala’s example questions', () => {
+    const verdict = /\b(benar|salah|betul|tepat|keliru|hebat|pintar|bagus|luar biasa|jawabannya adalah|gaya gesek|inersia|hukum newton)\b/i
+    for (const { screen: turn } of DIALOGUE) {
+      expect(turn.prompt).not.toMatch(verdict)
+      expect(turn.prompt.trim().endsWith('?')).toBe(true)
+    }
+    expect(HERO_LINES.greeting).not.toMatch(verdict)
+    expect(HERO_LINES.probe).not.toMatch(verdict)
+    expect(HERO_LINES.probe.trim().endsWith('?')).toBe(true)
+  })
+
+  it('lets the visitor pause the looping hero animation', async () => {
     page()
-    const tabs = screen.getByRole('tablist', { name: 'Pilih topik simulasi dialog' })
-    const [first, second] = within(tabs).getAllByRole('tab')
-    expect(first).toHaveAttribute('aria-selected', 'true')
-    fireEvent.click(second)
-    expect(second).toHaveAttribute('aria-selected', 'true')
-    expect(first).toHaveAttribute('aria-selected', 'false')
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Jeda animasi' }))
+    expect(screen.getByRole('button', { name: 'Putar animasi' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('shows every example turn to assistive technology and labels the example data', () => {
+    page()
+    for (const { screen: turn } of DIALOGUE) expect(screen.getAllByText(turn.prompt).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Contoh dialog untuk IPA kelas 8/)).toBeInTheDocument()
+    expect(screen.getByText('Contoh layar proyektor guru. Kode, kelas, dan inisial siswa fiktif.')).toBeInTheDocument()
+    expect(screen.getByRole('table', { name: 'Siapa melihat apa di NALAR' })).toBeInTheDocument()
   })
 
   it('makes no statistics, endorsement or regulatory claims', () => {
     page()
-    // "100%" appears only as the teacher-control badge, a statement of ownership rather than a measured figure.
-    expect(document.body.textContent).not.toMatch(/PISA|OECD|Permendikdasmen|SKB|UU PDP|Kemendikdasmen|disetujui (oleh )?(kementerian|pemerintah)|bersertifikat|terbukti|(?<![\d,])(?!100%)\d+(,\d+)?\s?%/)
+    expect(document.body.textContent).not.toMatch(/PISA|OECD|Permendikdasmen|SKB|UU PDP|Kemendikdasmen|disetujui (oleh )?(kementerian|pemerintah)|bersertifikat|terbukti|rating|ulasan|\d+(,\d+)?\s?%|\d+\.\d{3}\+?/)
   })
 })

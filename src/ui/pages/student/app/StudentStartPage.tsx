@@ -12,6 +12,7 @@ import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/student/StudentIntro.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const steps = [
   ['Jawab satu soal dengan kata-katamu', 'Tidak perlu istilah yang rumit.'],
@@ -42,7 +43,7 @@ export function StudentStartPage({ service, base }: { service: StudentService; b
   const [failure, setFailure] = useState<ApiError | null>(null)
   const back = <Link className={styles.back} to={base}><Icon name="chevronLeft" size={14} />Misi saya</Link>
 
-  if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <p role="status">Memuat misi…</p>}</div>
+  if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat misi…" />}</div>
   // Only a mission in the student's own list has a start page; anything else is simply not found.
   const find = (list: typeof data.open) => list.find((item) => item.publication_id === publicationId && (run ? item.run_id === run : !item.is_granted_attempt))
   const mission = find(data.open) ?? find(data.upcoming) ?? find(data.completed)

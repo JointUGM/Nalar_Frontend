@@ -13,7 +13,7 @@ export function LandingMenu({ links }: { links: readonly (readonly [string, stri
     <Dialog open={open} onClose={close} title="Menu" description="Bagian halaman dan masuk" presentation="drawer">
       <nav className={styles.drawerNav} aria-label="Bagian halaman">
         {links.map(([id, label]) => <a key={id} href={`#${id}`} onClick={close}>{label}</a>)}
-        <Link className={styles.login} to="/login" onClick={close}>Masuk</Link>
+        <Link className={styles.login} to="/login" onClick={close}>Masuk ke NALAR</Link>
       </nav>
     </Dialog>
   </>

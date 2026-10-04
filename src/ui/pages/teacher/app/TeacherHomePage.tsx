@@ -13,6 +13,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherHome.module.css'
 import sections from '@/ui/pages/teacher/HomeSections.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 interface AttentionResource { data: AttentionPage | null; error: ApiError | null; online: boolean; refresh: () => void }
 const number = new Intl.NumberFormat('id-ID')
@@ -48,7 +49,7 @@ function NextSteps({ resource, base }: { resource: AttentionResource; base: stri
   return <section className={sections.agenda} aria-labelledby="home-next" aria-busy={!data && !error}>
     <div className={sections.head}><div><h2 id="home-next">Perlu perhatian</h2><p>Tinjauan dan tindak lanjut Anda.</p></div>{data && data.counts.total > 0 && <span className={sections.count}>{number.format(data.counts.total)}</span>}</div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status" className={sections.empty}>Memuat tugas Anda…</p>}
+    {!data && !error && <Loading label="Memuat tugas Anda…" />}
     {data && (data.counts.total === 0 ? <div className={sections.clear}><Nala mood="proud" size={72} /><div><h3>Tidak ada tinjauan yang menunggu.</h3><p>Anda bisa menyiapkan misi berikutnya atau melihat hasil kelas.</p></div></div> : items.length === 0 ? <p className={sections.empty}>Buka Perlu perhatian untuk melihat tugas yang tersedia.</p> : <ul className={sections.tasks}>{items.map((item) => {
       const entry = attentionLink(item, base)
       return <li key={`${item.kind}-${item.item_id}`}><Link to={entry.to} className={sections.task} data-kind={item.kind}>
@@ -94,7 +95,7 @@ export function TeacherHomePage({ service, base, schoolId, user, attention }: { 
     <section className={styles.summary} aria-labelledby="home-week" aria-busy={!data && !error}>
       <div className={styles.sectionHead}><h2 id="home-week">Pembelajaran minggu ini</h2>{data && <span>Diperbarui {formatDayTime(data.as_of)}</span>}</div>
       <LiveFeedback error={error} online={online} refresh={refresh} />
-      {!data && !error && <div role="status" className={styles.loading}><span>Memuat ringkasan…</span><div className={styles.skeleton} aria-hidden="true">{Array.from({ length: 4 }, (_, index) => <div key={index} />)}</div></div>}
+      {!data && !error && <div className={styles.loading}><Loading label="Memuat ringkasan…" /><div className={styles.skeleton} aria-hidden="true">{Array.from({ length: 4 }, (_, index) => <div key={index} />)}</div></div>}
       {data && <>
         <ul className={styles.kpis} aria-label="Ringkasan minggu ini">{kpis(data.this_week, data.last_week).map((kpi) => <li key={kpi.label}><span className={styles.label}><NalaIcon name={kpi.icon} />{kpi.label}</span><strong className={styles.value}>{kpi.value}</strong><span className={styles.comparison}>{kpi.change}</span><span className={styles.caption}>{kpi.caption}</span></li>)}</ul>
         {data.this_week.sessions_completed === 0 && <div className={styles.empty}><div><strong>Belum ada sesi selesai minggu ini.</strong><p>Hasil akan terisi setelah siswa menyelesaikan misi dan evaluasi tersedia.</p></div><Link to={`${base}/sessions`}>Lihat sesi<Icon name="chevronRight" size={16} /></Link></div>}

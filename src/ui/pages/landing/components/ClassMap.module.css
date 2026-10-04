@@ -1,0 +1,89 @@
+/* After the lesson the class map is on the same projector, so this is the page's one Dongker block. */
+.block {
+  padding-block: clamp(88px, 10vw, 144px);
+  color: var(--projector-ink);
+  background: var(--projector);
+}
+
+.block :focus-visible { outline-color: var(--color-paper); }
+.block ::selection { color: var(--projector); }
+
+.title { color: var(--projector-ink); }
+.lead { color: var(--projector-muted); }
+.caption { color: var(--projector-muted); }
+
+.grid { display: grid; gap: 16px; }
+
+@media (min-width: 960px) {
+  .grid { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 24px; align-items: stretch; }
+}
+
+.counts, .narrative {
+  margin: 0;
+  padding: 24px;
+  border-radius: 24px;
+  background: var(--projector-raised);
+}
+
+@media (min-width: 640px) { .counts, .narrative { padding: 32px; } }
+
+.panelTitle { margin-block-end: 24px; color: var(--projector-muted); font-size: 0.875rem; font-weight: 600; }
+
+.list { display: grid; gap: 28px; margin: 0; padding: 0; list-style: none; }
+
+.item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; align-items: baseline; }
+
+.statement { font-size: 1.0625rem; font-weight: 600; }
+
+.number { color: var(--projector-muted); font-size: 0.9375rem; white-space: nowrap; }
+.number strong { margin-inline-end: 4px; color: var(--projector-ink); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
+.dots { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(27, minmax(0, 1fr)); gap: 3px; }
+.dots span {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 12%);
+  transition: background-color 300ms ease calc(var(--d) * 18ms);
+}
+.grid[data-in='true'] .dots span[data-on='true'] { background: var(--projector-ink); }
+
+@media (min-width: 640px) { .dots { gap: 5px; } }
+
+.narrative { display: grid; align-content: start; }
+
+.sentence {
+  font-size: clamp(1.25rem, 1.02rem + 0.8vw, 1.5rem);
+  font-weight: 500;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.placeholder {
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: var(--projector-muted);
+  background: rgb(255 255 255 / 10%);
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 0.7em;
+  white-space: nowrap;
+}
+
+.value {
+  display: inline-block;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-decoration: underline 3px var(--color-paper);
+  text-underline-offset: 6px;
+  animation: fill 440ms var(--ease-out);
+}
+
+.legend { display: flex; align-items: center; gap: 10px; margin-block-start: 32px; color: var(--projector-muted); font-size: 0.875rem; }
+.swatch { inline-size: 20px; block-size: 3px; border-radius: 2px; background: var(--color-paper); }
+
+@keyframes fill { from { opacity: 0; transform: translateY(6px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .dots span { transition: none; }
+  .dots span[data-on='true'] { background: var(--projector-ink); }
+  .value { animation: none; }
+}

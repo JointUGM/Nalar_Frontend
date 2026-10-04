@@ -11,6 +11,7 @@ import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherSessions.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const sessionsPollMs = () => 15_000
 const number = new Intl.NumberFormat('id-ID')
@@ -92,7 +93,7 @@ export function TeacherSessionsPage({ service, base }: { service: TeacherService
         <div className={styles.classFilter}><label htmlFor="sessions-class">Kelas</label><select id="sessions-class" value={classId} disabled={!data} onChange={(event) => setClassId(event.target.value)}><option value="">Semua kelas</option>{classId && !classes.has(classId) && <option value={classId}>Kelas sebelumnya</option>}{[...classes].sort((a, b) => classOrder.compare(a[1], b[1])).map(([id, name]) => <option key={id} value={id}>Kelas {name}</option>)}</select></div>
         {filtered && <button type="button" className={styles.reset} onClick={reset}>Hapus filter</button>}
       </div>
-      {!data && !error && <div className={styles.loading} role="status"><span>Memuat sesi…</span><div className={styles.skeleton} aria-hidden="true">{Array.from({ length: 3 }, (_, index) => <div key={index}><span /><span /><span /></div>)}</div></div>}
+      {!data && !error && <div className={styles.loading}><Loading label="Memuat sesi…" /><div className={styles.skeleton} aria-hidden="true">{Array.from({ length: 3 }, (_, index) => <div key={index}><span /><span /><span /></div>)}</div></div>}
       {data && data.length === 0 && <NalaEmpty mood="ask" title="Belum ada sesi kelas" action={<ButtonLink tone="secondary" className={styles.emptyAction} to={`${base}/missions`}>Pilih misi untuk diterbitkan<Icon name="chevronRight" size={16} /></ButtonLink>}>Terbitkan misi yang sudah ditinjau ke kelas Anda. Sesi dan hasilnya akan muncul di sini.</NalaEmpty>}
       {data && data.length > 0 && <>
         <p className={styles.resultCount} role="status">Menampilkan {number.format(visible.length)} dari {number.format(data.length)} sesi yang dimuat</p>

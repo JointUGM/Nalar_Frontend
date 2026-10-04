@@ -37,7 +37,7 @@ export function TeacherRoutes({ service, kb, live, identity, changePassword }: {
   const attention = useAttention(service, schoolId, pathname)
   const waiting = attention.data?.counts.total ?? 0
   const nav = [
-    { label: 'Beranda', icon: 'home', to: base, exclude: /^\/teacher\/[^/]+\/./ },
+    { label: 'Beranda', icon: 'home', to: base },
     { label: 'Sesi dan hasil', icon: 'monitor', to: `${base}/sessions`, match: /\/publications\// },
     { label: 'Kelas', icon: 'users', to: `${base}/classes` },
     { label: 'Misi', icon: 'target', to: `${base}/missions` },

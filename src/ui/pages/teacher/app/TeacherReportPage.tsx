@@ -13,6 +13,7 @@ import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/use
 import styles from '@/ui/pages/teacher/TeacherReport.module.css'
 import dialogStyles from '@/ui/pages/teacher/ReportDialogs.module.css'
 import { moveWord, rubricWord } from './missionText'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const flagWord: Readonly<Record<string, string>> = {
   large_paste: 'Tempelan teks panjang', tab_switching: 'Sering berpindah tab', inconsistency_gap: 'Jawaban tidak konsisten',
@@ -67,7 +68,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
   const [granted, setGranted] = useState(false)
   const monitor = `${base}/publications/${publicationId}/monitor`
   const back = <Link className={styles.back} to={monitor}><Icon name="chevronLeft" size={14} />Pemantauan</Link>
-  if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <p role="status">Memuat laporan…</p>}</div>
+  if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat laporan…" />}</div>
   const { report, map }: { report: SessionReport; map: ClassMap | null } = data
   const evaluated = report.evaluation?.status === 'completed'
   const conceptName = (id: string) => map?.concepts.find((item) => item.concept_id === id)?.name ?? 'Konsep'

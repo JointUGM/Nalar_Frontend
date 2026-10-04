@@ -10,6 +10,7 @@ import { Select } from '@/ui/components/select/Select'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import styles from '@/ui/pages/teacher/TeacherAttentionQueue.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 type Kind = AttentionItem['kind']
 // Urgency order, the same as the home dashboard: student support first, then verification, material review and release.
@@ -49,7 +50,7 @@ export function TeacherAttentionPage({ data, error, online, refresh, base }: { d
   return <div className={styles.content}>
     <div className={styles.header}><div><h1>Perlu perhatian</h1><p>Tinjau catatan, pahami konteksnya, lalu tentukan tindak lanjut.</p></div>{note && <NalaNote mood={note[0]} text={note[1]} />}</div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <div className={styles.panel}><p className={styles.loading} role="status">Memuat daftar…</p></div>}
+    {!data && !error && <div className={styles.panel}><Loading label="Memuat daftar…" /></div>}
     {!data && error && <div className={styles.panel}><NalaEmpty mood="oops" title="Daftar perhatian belum dapat ditampilkan">Coba muat ulang melalui pilihan di atas.</NalaEmpty></div>}
     {data && <section className={styles.panel} aria-label="Daftar catatan">
       <div className={styles.tabs} role="group" aria-label="Jenis catatan">

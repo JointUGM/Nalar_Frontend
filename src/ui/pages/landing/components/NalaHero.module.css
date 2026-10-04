@@ -1,0 +1,297 @@
+.hero {
+  --tinta: #2447D1;
+  --stage-h: 520px;
+  --nala-x: 38%;
+  padding-block: calc(var(--header-height) + clamp(12px, 2.4vw, 32px)) clamp(56px, 7vw, 96px);
+}
+
+.grid { display: grid; gap: 40px; align-items: center; }
+
+@media (min-width: 1024px) {
+  .grid { grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: 48px; }
+}
+
+/* Below desktop the stage leads, so Nala and the headline share the first screen. */
+@media (max-width: 1023px) {
+  .figure { order: -1; }
+}
+
+/* Copy */
+
+.copy { display: grid; gap: 20px; justify-items: start; max-inline-size: 540px; animation: lift 800ms var(--ease-out) both; }
+
+.title {
+  margin: 0;
+  font-size: clamp(2.5rem, 1.45rem + 2.95vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.036em;
+  text-wrap: balance;
+}
+
+.mark {
+  padding-inline: 0.06em;
+  margin-inline: -0.06em;
+  background-image: linear-gradient(var(--highlight), var(--highlight));
+  background-repeat: no-repeat;
+  background-position: 0 86%;
+  background-size: 100% 0.34em;
+  box-decoration-break: clone;
+  animation: sweep 900ms var(--ease-out) 700ms both;
+}
+
+.lead { max-inline-size: 31rem; color: var(--color-text-secondary); font-size: 1.125rem; line-height: 1.6; text-wrap: pretty; }
+
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-block-start: 12px; }
+
+.ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 52px;
+  padding-inline: 8px;
+  color: var(--color-ink);
+  font-size: 1.0625rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+.ghost svg { transition: transform 200ms var(--ease-out); }
+
+@media (hover: hover) and (pointer: fine) {
+  .ghost:hover { color: var(--color-primary); }
+  .ghost:hover svg { transform: translateX(3px); }
+}
+
+/* Stage: Nala in a line-drawn NALAR doorway on the paper itself, no colour block behind her. */
+
+.figure { position: relative; margin: 0; display: grid; gap: 12px; }
+
+.stage { position: relative; block-size: var(--stage-h); }
+
+.layer { position: absolute; inset: 0; pointer-events: none; will-change: transform; }
+
+.arch {
+  position: absolute;
+  inset-block-end: 24px;
+  inset-inline-start: var(--nala-x);
+  inline-size: 330px;
+  block-size: 403px;
+  margin-inline-start: -165px;
+  overflow: visible;
+}
+
+.floor { fill: color-mix(in srgb, var(--color-accent) 20%, var(--color-paper)); transform-box: fill-box; transform-origin: center; animation: grow 900ms var(--ease-out) 200ms both; }
+
+.archPath, .archEcho { fill: none; stroke-linecap: round; stroke-dasharray: 100; }
+.archPath { stroke: var(--tinta); stroke-width: 9; animation: draw 1500ms var(--ease-in-out) 300ms both; }
+.archEcho { stroke: rgb(36 71 209 / 16%); stroke-width: 2.5; animation: draw 1700ms var(--ease-in-out) 620ms both; }
+
+/* Only the mascot's own motion keeps a slight spring; every UI piece eases out. */
+.sun { fill: var(--color-accent); transform-box: fill-box; transform-origin: center; animation: pop 560ms cubic-bezier(0.34, 1.25, 0.64, 1) 1200ms both, float 5s ease-in-out 1.8s infinite; }
+
+.nala {
+  position: absolute;
+  inset-block-end: 50px;
+  inset-inline-start: var(--nala-x);
+  translate: -50% 0;
+  animation: drop 760ms cubic-bezier(0.34, 1.25, 0.64, 1) 640ms both;
+}
+
+.thinking {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-end: -10px;
+  display: flex;
+  gap: 5px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  box-shadow: 0 10px 24px rgb(21 33 59 / 18%);
+  opacity: 0;
+  transform: translateY(6px) scale(0.92);
+  transition: opacity 200ms ease, transform 200ms var(--ease-out);
+}
+.thinking span { inline-size: 7px; block-size: 7px; border-radius: 50%; background: var(--tinta); animation: dot 1s ease-in-out infinite; }
+.thinking span:nth-child(2) { animation-delay: 150ms; }
+.thinking span:nth-child(3) { animation-delay: 300ms; }
+
+/* Cards: hidden states exit fast, visible states enter slower and later. */
+
+.ask, .answer, .count, .evidence {
+  position: absolute;
+  transition: opacity 220ms ease, transform 220ms var(--ease-out), filter 220ms ease;
+}
+
+.ask {
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: min(360px, 68%);
+  display: grid;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: 20px 20px 20px 6px;
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px rgb(21 33 59 / 6%), 0 28px 56px -22px rgb(21 33 59 / 30%);
+  animation: rise 760ms var(--ease-out) 1000ms both;
+}
+
+.askHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.who { display: inline-flex; align-items: center; gap: 8px; font-size: 0.875rem; font-weight: 700; }
+.progress { display: inline-flex; align-items: center; gap: 4px; opacity: 0; transition: opacity 240ms ease; }
+.progress i { inline-size: 16px; block-size: 5px; border-radius: 3px; background: var(--color-surface-muted); }
+.progress i[data-on='true'] { background: var(--tinta); }
+.progress b { margin-inline-start: 6px; color: var(--color-text-muted); font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+
+.lines { display: grid; }
+.lines p { grid-area: 1 / 1; font-size: 1.0625rem; font-weight: 500; line-height: 1.55; text-wrap: pretty; transition: opacity 260ms ease, filter 260ms ease, transform 260ms var(--ease-out); }
+.probe { opacity: 0; filter: blur(4px); transform: translateY(6px); }
+
+.answer {
+  inset-block-start: 148px;
+  inset-inline-end: 0;
+  inline-size: min(236px, 44%);
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 20px 6px 20px 20px;
+  background: var(--color-info-bg);
+  box-shadow: 0 22px 44px -22px rgb(10 20 60 / 55%);
+  opacity: 0;
+  transform: translateX(18px);
+  filter: blur(4px);
+}
+.answerWho { color: var(--tinta); font-size: 0.75rem; font-weight: 700; }
+.answer p { font-family: var(--font-reading); font-size: 0.9375rem; line-height: 1.55; }
+
+.count {
+  inset-block-end: 6px;
+  inset-inline-start: 0;
+  inline-size: min(236px, 44%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px 12px 12px;
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: 0 22px 44px -22px rgb(10 20 60 / 55%);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--color-text-secondary);
+  opacity: 0;
+  transform: translateY(14px) scale(0.96);
+  filter: blur(4px);
+}
+.count strong { display: block; color: var(--color-ink); font-size: 0.875rem; }
+.countNumber {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: 12px;
+  color: var(--color-misconception-text);
+  background: var(--color-misconception-bg);
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.evidence {
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  inline-size: min(252px, 46%);
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  color: #FFFFFF;
+  background: var(--projector);
+  box-shadow: 0 30px 56px -18px rgb(10 20 60 / 60%);
+  opacity: 0;
+  transform: translateY(18px);
+  filter: blur(4px);
+}
+.evidenceHead { display: flex; align-items: baseline; justify-content: space-between; }
+.evidenceHead span { color: var(--projector-muted); font-size: 0.8125rem; font-weight: 600; }
+.evidenceHead b { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
+.evidenceHead small { color: #8792AB; font-size: 1rem; }
+.evidence p { color: #E4E8F2; font-family: var(--font-reading); font-size: 0.9375rem; line-height: 1.45; }
+.evidence mark { color: inherit; background: linear-gradient(rgb(242 178 58 / 38%), rgb(242 178 58 / 38%)) no-repeat 0 88% / 100% 55%; }
+.evidenceFoot { color: #8792AB; font-size: 0.75rem; }
+
+/* Scenes */
+
+.stage:not([data-scene='hello']) .greeting { opacity: 0; filter: blur(4px); transform: translateY(-6px); }
+.stage:not([data-scene='hello']) .probe { opacity: 1; filter: none; transform: none; transition-delay: 120ms; }
+.stage:not([data-scene='hello']) .progress { opacity: 1; }
+
+.stage:is([data-scene='think'], [data-scene='evidence']) .answer { opacity: 1; transform: none; filter: none; transition: opacity 460ms ease 260ms, transform 520ms var(--ease-out) 260ms, filter 460ms ease 260ms; }
+.stage[data-scene='think'] .thinking { opacity: 1; transform: none; transition-delay: 700ms; }
+
+.stage[data-scene='evidence'] .evidence { opacity: 1; transform: none; filter: none; transition: opacity 460ms ease 200ms, transform 560ms var(--ease-out) 200ms, filter 460ms ease 200ms; }
+.stage[data-scene='evidence'] .count { opacity: 1; transform: none; filter: none; transition: opacity 460ms ease 480ms, transform 560ms var(--ease-out) 480ms, filter 460ms ease 480ms; }
+
+.stage[data-paused='true'] * { animation-play-state: paused !important; }
+
+.meta { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+
+.pause {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms var(--ease-out);
+}
+.pause:hover:not(:disabled) { color: var(--color-ink); background: var(--color-surface-muted); }
+.pause:active { transform: scale(0.97); }
+
+.caption { color: var(--color-text-muted); font-size: 0.8125rem; }
+
+/* Short laptop screens keep the whole hero above the fold. */
+@media (min-width: 1024px) and (max-height: 820px) {
+  .hero { --stage-h: 452px; }
+  .title { font-size: clamp(2.5rem, 1.4rem + 2.5vw, 3.1rem); }
+  .arch { inline-size: 280px; block-size: 342px; margin-inline-start: -140px; }
+  .nala { inset-block-end: 44px; }
+  .nala svg { inline-size: 200px; block-size: auto; }
+  .answer { inset-block-start: 128px; }
+}
+
+/* Phones: one card slot at the top that the scenes swap through, Nala below it, nothing stacked over the mascot. */
+@media (max-width: 639px) {
+  .hero { --stage-h: 420px; --nala-x: 50%; }
+  .ask, .answer, .evidence { inset-block-start: 0; inset-inline: 0; inline-size: auto; }
+  .evidence { inset-block-end: auto; }
+  .count { display: none; }
+  .arch { inline-size: 240px; block-size: 293px; margin-inline-start: -120px; inset-block-end: 0; }
+  .nala { inset-block-end: 18px; }
+  .nala svg { inline-size: 160px; block-size: auto; }
+  .stage:is([data-scene='think'], [data-scene='evidence']) .ask { opacity: 0; transform: translateY(-8px); filter: blur(4px); }
+  .stage[data-scene='evidence'] .answer { opacity: 0; transform: translateY(-8px); filter: blur(4px); transition: opacity 220ms ease, transform 220ms var(--ease-out), filter 220ms ease; }
+  .answer { transform: translateY(12px); }
+
+}
+
+@keyframes lift { from { transform: translateY(14px); } }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+@keyframes grow { from { opacity: 0; transform: scale(0.6); } }
+@keyframes sweep { from { background-size: 0% 0.34em; } }
+@keyframes draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes pop { from { opacity: 0; transform: scale(0.4); } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes drop { from { opacity: 0; transform: translateY(-36px) scale(0.92); } }
+@keyframes dot { 50% { opacity: 0.25; transform: translateY(-2px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .copy, .mark, .floor, .archPath, .archEcho, .sun, .nala, .ask, .thinking span { animation: none !important; }
+  .ask, .answer, .count, .evidence, .lines p, .progress { transition: none !important; }
+}

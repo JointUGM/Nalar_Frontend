@@ -9,6 +9,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/platform-admin/Platform.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const day = new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' })
 const refusals: Readonly<Record<string, string>> = {
@@ -31,7 +32,7 @@ export function PlatformCurriculumPage({ service }: { service: PlatformAdminUseC
     <div className={styles.pageHeading}><div><h1>Capaian Pembelajaran nasional</h1><p>Versi baru tidak mengubah pemetaan CP sekolah yang sudah ada.</p></div><Button className={styles.compactButton} onClick={() => { setMessage(''); setPublishing(true) }}><Icon name="upload" size={16} />Terbitkan versi baru</Button></div>
     {message && <Feedback tone="success" title={message} announce />}
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status" className={styles.readState}>Memuat Capaian Pembelajaran…</p>}
+    {!data && !error && <Loading label="Memuat Capaian Pembelajaran…" />}
     {data && <div className={styles.curriculumGrid}>
       <section className={styles.versions} aria-label="Versi Capaian Pembelajaran">{data.length ? data.map((version) => <article className={styles.version} key={version.id}>
         <div><h2><button type="button" className={styles.versionLink} aria-pressed={version.id === versionId} onClick={() => setChosen(version.id)}>{version.name}</button></h2><p>{version.decree_code} · berlaku {day.format(new Date(`${version.effective_on}T00:00:00`))} · dipakai {version.school_count} sekolah</p></div>
@@ -48,7 +49,7 @@ function VersionDetail({ service, versionId }: { service: PlatformAdminUseCases;
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   return <section className={styles.outcomes} aria-label="Isi Capaian Pembelajaran">
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat isi versi…</p>}
+    {!data && !error && <Loading label="Memuat isi versi…" />}
     {data && <><h2>{data.name}</h2>{data.subjects.map((subject) => <details key={`${subject.name}-${subject.phase}`}>
       <summary>{subject.name} · Fase {subject.phase} · {subject.learning_outcomes.length} capaian</summary>
       <ul>{subject.learning_outcomes.map((outcome, index) => <li key={index}>{outcome.element && <strong>{outcome.element} — </strong>}{outcome.description}</li>)}</ul>

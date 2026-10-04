@@ -12,6 +12,7 @@ import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import styles from '@/ui/pages/school-admin/SchoolClasses.module.css'
 import { useAcademicYears } from './useAcademicYears'
 import { YearSelect } from './YearSelect'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const refusals: Readonly<Record<string, string>> = {
   CLASS_NAME_EXISTS: 'Nama kelas itu sudah dipakai di tahun ajaran ini.',
@@ -40,7 +41,7 @@ export function SchoolClassesPage({ service, schoolId }: { service: SchoolAdminU
     <YearSelect years={years} />
     {message && <Feedback tone="success" title={message} announce />}
     <LiveFeedback error={years.error ?? error} online={online} refresh={() => { years.refresh(); refresh() }} />
-    {((!years.loaded && !years.error) || (years.yearId && !data && !error)) && <p role="status">Memuat kelas…</p>}
+    {((!years.loaded && !years.error) || (years.yearId && !data && !error)) && <Loading label="Memuat kelas…" />}
     {data && <p className={styles.note}>{data.classes.length} kelas. Pilih kelas untuk mengubah nama, tingkat, atau wali kelasnya.</p>}
     {data && data.classes.length === 0 && <p className={styles.empty}>Belum ada kelas di tahun ajaran ini.</p>}
     {groups.map((group) => <section key={group.grade} className={styles.group} aria-labelledby={`grade-${group.grade}`}>

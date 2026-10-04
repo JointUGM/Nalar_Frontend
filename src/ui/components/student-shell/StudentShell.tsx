@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Link, NavLink, useLocation } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Icon } from '@/ui/components/icon/Icon'
+import { activeNavTarget } from '@/ui/components/navigation/activeNav'
 import type { IconName } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
@@ -25,8 +26,9 @@ export function StudentShell({ title, user, detail, nav = items, home = '/review
   const focusContent = location.state?.focusPlatformContent === true
   useEffect(() => { if (focusContent) contentRef.current?.focus() }, [focusContent, location.key])
   const close = () => setDrawerOpen(false)
+  const active = activeNavTarget(location.pathname, nav)
   const navigation = <nav className={styles.navigation} aria-label="Navigasi siswa">{nav.map((entry) => entry.to
-    ? <NavLink key={entry.label} to={entry.to} end={entry.to === home} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive || (entry.to === home && location.pathname.startsWith(`${home}/missions/`)) ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</NavLink>
+    ? <Link key={entry.label} to={entry.to} state={{ focusPlatformContent: true }} aria-current={entry.to === active ? 'page' : undefined} className={entry.to === active ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</Link>
     : <button key={entry.label} type="button" disabled title={unavailable}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span></button>)}</nav>
 
   // On a phone the sidebar is hidden, so signing out has to live in the drawer too.

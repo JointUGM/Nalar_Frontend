@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { Loading } from '@/ui/components/loading/Loading'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { getRoleChoices, resolveRoleDestination } from '@/domain/model/RoleContext'
 import { Button } from '@/ui/components/button/Button'
@@ -23,7 +24,7 @@ export function RoleSelection({ dependencies }: { dependencies: AccountDependenc
 
   if (leaving) return <p role="status">Sedang keluar…</p>
 
-  if (access.phase === 'checking') return <p role="status">Memeriksa akses akun…</p>
+  if (access.phase === 'checking') return <Loading label="Memeriksa akses akun…" />
   if (access.phase === 'signed-out') return <p role="status">Sesi berakhir. Masuk kembali untuk melihat peran Anda.</p>
   if (access.phase === 'denied') return <p role="alert">{access.error}</p>
   if (access.phase === 'unavailable') return <div role="alert"><p>{access.error}</p><Button onClick={access.retry}>Coba lagi</Button></div>

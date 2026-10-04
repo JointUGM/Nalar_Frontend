@@ -13,6 +13,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import liveStyles from '@/ui/pages/live/Live.module.css'
 import styles from '@/ui/pages/teacher/TeacherRelease.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 // Summaries are written in the background after the last evaluation, so readiness can change while the page is open.
 const previewPollMs = (preview: { released_at: string | null } | null) => preview?.released_at ? null : 15_000
@@ -60,7 +61,7 @@ export function TeacherReleasePage({ service, base }: { service: TeacherService;
       {data && <Button disabled={!data.ready || released !== null} tone={released ? 'secondary' : 'primary'} onClick={() => setConfirming(true)}><Icon name={released ? 'check' : 'send'} size={14} />{released ? 'Sudah dirilis' : `Rilis ${data.eligible_count} ringkasan`}</Button>}
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat pratinjau rilis…</p>}
+    {!data && !error && <Loading label="Memuat pratinjau rilis…" />}
     {failure && (failure.code === 'RELEASE_NOT_READY'
       ? <Feedback tone="warning" title="Rilis belum bisa dilakukan" announce>Data berubah sejak pratinjau dibuka. Periksa daftar terbaru di bawah, lalu coba lagi.</Feedback>
       : <LiveFeedback error={failure} online={online} refresh={refresh} />)}

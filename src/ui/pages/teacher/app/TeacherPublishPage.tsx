@@ -12,6 +12,7 @@ import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherPublication.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const modes = [
   { value: 'live', label: 'Sesi langsung', icon: 'monitor', text: 'Anda mulai di kelas, siswa gabung dengan kode di proyektor.' },
@@ -47,7 +48,7 @@ export function TeacherPublishPage({ service, base, schoolId }: { service: Teach
   const [failure, setFailure] = useState<ApiError | null>(null)
   const back = <Link className={styles.back} to={`${base}/missions`}><Icon name="chevronLeft" size={14} />Misi</Link>
 
-  if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <p role="status">Memuat misi…</p>}</div>
+  if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat misi…" />}</div>
   const mission = data.missions.find((item) => item.id === missionId)
   if (!mission || !mission.latest_version || !publishable(mission)) return <div className={styles.content}>{back}
     <Feedback title="Misi ini belum bisa diterbitkan" announce>Pilih misi yang versinya sudah ditinjau dari daftar misi.</Feedback>

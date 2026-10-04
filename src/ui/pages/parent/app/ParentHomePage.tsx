@@ -13,6 +13,7 @@ import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/parent/ParentHome.module.css'
 import { ConversationCard } from './ConversationCard'
 import { parentPaths } from './parentPaths'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const number = new Intl.NumberFormat('id-ID')
 const paragraphs = (text: string) => text.split(/\n+/).filter((line) => line.trim())
@@ -60,7 +61,7 @@ export function ParentHomePage({ service }: { service: ParentService }) {
     </section>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {loading && <>
-      <p role="status" className={styles.loading}>Memuat kabar {first}…</p>
+      <Loading label={`Memuat kabar ${first}…`} />
       <div className={styles.skeleton} aria-hidden="true"><span /><span /></div>
     </>}
     {/* The calm Nala in the hero is this state's only Nala. */}
