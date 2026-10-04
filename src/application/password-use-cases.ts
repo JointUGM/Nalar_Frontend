@@ -13,6 +13,7 @@ export class RequestPasswordResetUseCase {
     if (address.length < 3 || address.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) throw new OperationError('invalid_credentials')
     await this.auth.requestPasswordReset(address)
   }
+  enabled(): Promise<boolean> { return this.auth.passwordResetEnabled() }
 }
 
 // Sets a new password from the emailed reset link (the link's reset id travels as `activationId`).

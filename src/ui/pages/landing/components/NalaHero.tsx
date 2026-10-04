@@ -67,9 +67,8 @@ function NalaStage() {
   const stage = useRef<HTMLDivElement>(null)
   const reduced = usePrefersReducedMotion()
   const onScreen = useOnScreen(stage)
-  const [paused, setPaused] = useState(false)
   const [index, setIndex] = useState(0)
-  const playing = onScreen && !paused && !reduced
+  const playing = onScreen && !reduced
   useParallax(stage, !reduced)
 
   useEffect(() => {
@@ -135,12 +134,6 @@ function NalaStage() {
           <span className={styles.evidenceFoot}>Bukti dari jawaban ke-2, berubah pikiran</span>
         </div>
       </div>
-    </div>
-    <div className={styles.meta}>
-      <figcaption className={styles.caption}>Contoh percakapan dan data fiktif.</figcaption>
-      {!reduced && <button type="button" className={styles.pause} aria-pressed={paused} onClick={() => setPaused((value) => !value)}>
-        <Icon name={paused ? 'play' : 'pause'} size={14} />{paused ? 'Putar animasi' : 'Jeda animasi'}
-      </button>}
     </div>
   </figure>
 }

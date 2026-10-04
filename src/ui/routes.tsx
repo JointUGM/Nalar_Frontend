@@ -1,8 +1,9 @@
 import { Link, Route, Routes, useLocation } from 'react-router'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useLayoutEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Loading } from '@/ui/components/loading/Loading'
 import { accessContext } from './accessContext'
+import { applyTheme } from './theme'
 import styles from './RouteBoundary.module.css'
 
 const Landing = lazy(() => import('@/ui/pages/landing/Landing').then((module) => ({ default: module.Landing })))
@@ -23,6 +24,9 @@ function PrivateEntryBoundary({ entry }: { entry: ReactNode }) {
 }
 
 export function AppRoutes({ accountEntry, activationEntry, resetEntry, privateEntry }: { accountEntry: ReactNode; activationEntry?: ReactNode; resetEntry?: ReactNode; privateEntry?: ReactNode }) {
+  const { pathname } = useLocation()
+  // Before paint, so neither the landing nor a signed-in page ever shows a frame in the other theme.
+  useLayoutEffect(() => { applyTheme(pathname) }, [pathname])
   return <Routes>
     <Route path="/" element={<Suspense fallback={<Loading variant="screen" label="Membuka NALAR…" />}><Landing /></Suspense>} />
     <Route path="/login" element={<Suspense fallback={<Loading variant="screen" label="Membuka halaman masuk…" />}>{accountEntry}</Suspense>} />

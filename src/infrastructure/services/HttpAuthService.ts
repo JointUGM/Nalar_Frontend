@@ -75,6 +75,13 @@ export class HttpAuthService implements AuthService {
     throw this.error(response, response.status === 429 ? 'rate_limited' : response.ok ? 'invalid_response' : 'unavailable')
   }
 
+  async passwordResetEnabled(): Promise<boolean> {
+    try {
+      const response = await this.request('GET', '/config')
+      return !response.ok || (await response.json())?.password_reset_enabled !== false
+    } catch { return true }
+  }
+
   // A change ends every session of the account, so the caller returns to the login page afterwards.
   async changePassword(current: string, next: string): Promise<void> {
     const body: paths['/api/v1/auth/password']['post']['requestBody']['content']['application/json'] = { current_password: current, new_password: next }

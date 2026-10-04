@@ -11,6 +11,14 @@
     <title>NALAR</title>
   </head>
   <body>
+    <script>
+      // Keep in sync with src/ui/theme.ts: public pages stay light; signed-in pages restore the saved theme.
+      try {
+        var path = location.pathname
+        var open = path === '/' || /^\/(login|activate|reset-password)(\/|$)/.test(path)
+        if (!open && localStorage.getItem('nalar.theme') === 'dark') document.documentElement.dataset.theme = 'dark'
+      } catch (error) {}
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

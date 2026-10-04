@@ -7,6 +7,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { activeNavTarget } from '@/ui/components/navigation/activeNav'
 import { ShellSearch } from '@/ui/components/shell-search/ShellSearch'
 import type { IconName } from '@/ui/components/icon/Icon'
+import { readTheme, saveTheme } from '@/ui/theme'
 import { useTeacherContext } from './useTeacherContext'
 import styles from './TeacherShell.module.css'
 
@@ -17,8 +18,8 @@ export function TeacherShell({ title, user, nav, home, onChangePassword, childre
   const [collapsed, setCollapsed] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [schoolOpen, setSchoolOpen] = useState(false)
-  const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark')
-  const setTheme = (value: boolean) => { document.documentElement.dataset.theme = value ? 'dark' : 'light'; setDark(value) }
+  const [dark, setDark] = useState(() => readTheme() === 'dark')
+  const setTheme = (value: boolean) => { saveTheme(value ? 'dark' : 'light'); setDark(value) }
   const location = useLocation()
   const contentRef = useRef<HTMLElement>(null)
   const focusContent = location.state?.focusPlatformContent === true

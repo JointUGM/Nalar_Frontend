@@ -22,16 +22,27 @@ function dates(value: RecordValue, keys: string[]) {
 export class HttpLiveService implements LiveService {
   constructor(private readonly options: { apiBaseUrl: string; fetch?: typeof globalThis.fetch }) {}
 
-  private async request(path: string, signal?: AbortSignal, method = 'GET', body?: unknown): Promise<unknown> {
+  // The lobby, state and monitor reads answer 304 with no body while nothing changed. `cache: 'no-store'` stops the browser doing that for us, so the last ETag and body are kept here.
+  // The ETag leaves out `server_now`; the 304's Date header refreshes it (whole seconds, enough for a countdown).
+  private readonly seen = new Map<string, { etag: string; body: RecordValue }>()
+
+  private async request(path: string, signal?: AbortSignal, method = 'GET', body?: unknown, revalidate = method === 'GET' && /\/(lobby|state|monitor)$/.test(path)): Promise<unknown> {
+    const known = revalidate ? this.seen.get(path) : undefined
     let response: Response
     try {
       response = await (this.options.fetch ?? globalThis.fetch)(`${this.options.apiBaseUrl}${path}`, {
         method, credentials: 'include', cache: 'no-store',
-        headers: { Accept: 'application/json', ...(method === 'GET' ? {} : { 'X-Nalar-CSRF': '1' }), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+        headers: { Accept: 'application/json', ...(known ? { 'If-None-Match': known.etag } : {}), ...(method === 'GET' ? {} : { 'X-Nalar-CSRF': '1' }), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
         body: body === undefined ? undefined : JSON.stringify(body),
         signal: AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(10_000)]),
       })
     } catch { throw new LiveError(0, 'UNAVAILABLE') }
+    if (response.status === 304 && known) {
+      const sent = Date.parse(response.headers.get('Date') ?? '')
+      if (Number.isFinite(sent)) return { ...known.body, server_now: new Date(sent).toISOString() }
+      this.seen.delete(path)
+      return this.request(path, signal, method, body, false)
+    }
     if (!response.ok) {
       let code = 'HTTP_ERROR'
       try { const error = record(record(await response.json()).error); if (typeof error.code === 'string') code = error.code } catch { /* The status is authoritative when the error body is unreadable. */ }
@@ -41,7 +52,11 @@ export class HttpLiveService implements LiveService {
     }
     if (response.status === 202 && path.endsWith('/reflection')) return null
     if (response.status === 204) return null
-    try { return await response.json() } catch { throw new LiveError(502, 'INVALID_RESPONSE') }
+    let json: unknown
+    try { json = await response.json() } catch { throw new LiveError(502, 'INVALID_RESPONSE') }
+    const etag = response.headers.get('ETag')
+    if (revalidate && etag && json && typeof json === 'object' && !Array.isArray(json)) this.seen.set(path, { etag, body: json as RecordValue })
+    return json
   }
 
   async join(code: string, signal?: AbortSignal): Promise<LiveJoin> {
