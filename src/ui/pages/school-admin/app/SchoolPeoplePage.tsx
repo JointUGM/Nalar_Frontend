@@ -9,6 +9,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { StatusBadge } from '@/ui/components/status-badge/StatusBadge'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { NewPersonDialog } from './NewPersonDialog'
+import { PersonLinks } from './PersonLinks'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import styles from '@/ui/pages/school-admin/SchoolPeople.module.css'
@@ -99,7 +100,6 @@ function PersonDrawer({ service, schoolId, person, onClose }: { service: SchoolA
   async function deactivate() {
     if (await command.run((signal) => service.deactivatePerson(schoolId, person.user_id, signal))) onClose(`${person.full_name} dinonaktifkan. Riwayatnya tetap tersimpan.`)
   }
-  const linked = [...person.linked_parents.map((item) => ({ ...item, as: 'Orang tua' })), ...person.linked_children.map((item) => ({ ...item, as: 'Anak' }))]
 
   return <Dialog open presentation="drawer" onClose={() => onClose()} dismissible={!command.pending} title={person.full_name} description={stateWord[person.account_state] ?? person.account_state}>
     {confirming ? <div className={shared.form}>
@@ -117,7 +117,7 @@ function PersonDrawer({ service, schoolId, person, onClose }: { service: SchoolA
         </select>
         <small>Hasil misi lama tetap tercatat di kelas sebelumnya.</small>
       </label>}
-      {linked.length > 0 && <div><strong>Tertaut</strong><ul>{linked.map((item) => <li key={`${item.as}-${item.user_id}`}>{item.full_name} · {item.as}</li>)}</ul></div>}
+      <PersonLinks service={service} schoolId={schoolId} person={person} editable={person.account_state !== 'inactive' && (person.role === 'parent' || person.role === 'student')} onDone={(done) => onClose(done)} />
       {said && <Feedback tone="warning" title={said} announce>{command.failure?.requestId && <small>Referensi: {command.failure.requestId}</small>}</Feedback>}
       <div className={shared.actions}>
         <Button tone="secondary" disabled={command.pending} onClick={() => onClose()}>Batal</Button>

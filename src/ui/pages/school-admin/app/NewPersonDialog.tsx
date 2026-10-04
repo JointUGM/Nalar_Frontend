@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
 import type { LinkedPerson, NewPersonRole, Relationship } from '@/domain/model/SchoolAdmin'
 import { Button } from '@/ui/components/button/Button'
@@ -7,6 +7,7 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.module.css'
+import { StudentPicker } from './StudentPicker'
 
 const roles: readonly [NewPersonRole, string][] = [['student', 'Siswa'], ['teacher', 'Guru'], ['parent', 'Orang tua']]
 const relationships: readonly [Relationship, string][] = [['ibu', 'Ibu'], ['ayah', 'Ayah'], ['wali', 'Wali']]
@@ -25,8 +26,6 @@ const blank = { role: 'student' as NewPersonRole, name: '', email: '', nisn: '',
 export function NewPersonDialog({ service, schoolId, initialRole, onClose }: { service: SchoolAdminUseCases; schoolId: string; initialRole: NewPersonRole; onClose: (done?: string) => void }) {
   const [fields, setFields] = useState({ ...blank, role: initialRole })
   const [children, setChildren] = useState<LinkedPerson[]>([])
-  const [search, setSearch] = useState('')
-  const [q, setQ] = useState('')
   const command = useCommand()
   // One key per submission: a retry after a lost answer reuses it; any edit makes it a different submission.
   const key = useRef(crypto.randomUUID())
@@ -40,9 +39,6 @@ export function NewPersonDialog({ service, schoolId, initialRole, onClose }: { s
     return year ? service.classes(schoolId, year.id, signal) : []
   }, [service, schoolId])
   const classes = useLiveResource(readClasses, noPollMs).data ?? []
-  useEffect(() => { const timer = setTimeout(() => setQ(search.trim()), 300); return () => clearTimeout(timer) }, [search])
-  const readStudents = useCallback(async (signal: AbortSignal) => fields.role === 'parent' && q ? (await service.people(schoolId, 'student', q, null, signal)).items : [], [service, schoolId, fields.role, q])
-  const found = useLiveResource(readStudents, noPollMs).data ?? []
 
   async function save() {
     const person = { full_name: fields.name, role: fields.role, email: fields.email, nisn: fields.nisn, class_id: fields.classId, child_ids: children.map((child) => child.user_id), relationship: fields.relationship }
@@ -72,10 +68,7 @@ export function NewPersonDialog({ service, schoolId, initialRole, onClose }: { s
         <div>
           <strong>Anak</strong>
           {children.length > 0 && <ul aria-label="Anak dipilih">{children.map((child) => <li key={child.user_id}>{child.full_name} <Button tone="ghost" aria-label={`Lepas ${child.full_name}`} disabled={command.pending} onClick={() => { touch(); setChildren(children.filter((item) => item.user_id !== child.user_id)) }}>Lepas</Button></li>)}</ul>}
-          <Field label="Cari siswa (nama atau NISN)" type="search" value={search} disabled={command.pending} onChange={(event) => setSearch(event.target.value)} />
-          {found.length > 0 && <ul aria-label="Hasil pencarian siswa">{found.filter((student) => !children.some((child) => child.user_id === student.user_id)).map((student) => <li key={student.user_id}>
-            <Button tone="secondary" disabled={command.pending} onClick={() => { touch(); setChildren([...children, { user_id: student.user_id, full_name: student.full_name }]) }}>{student.full_name}{student.class_name ? ` · ${student.class_name}` : ''}</Button>
-          </li>)}</ul>}
+          <StudentPicker service={service} schoolId={schoolId} exclude={children.map((child) => child.user_id)} disabled={command.pending} onPick={(student) => { touch(); setChildren([...children, student]) }} />
         </div>
       </>}
       {said && <Feedback tone="warning" title={said} announce>{command.failure?.requestId && <small>Referensi: {command.failure.requestId}</small>}</Feedback>}
