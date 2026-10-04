@@ -8,6 +8,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
+import { CsvDownload } from '@/ui/components/csv-download/CsvDownload'
 import styles from '@/ui/pages/teacher/TeacherClassMap.module.css'
 import { Loading } from '@/ui/components/loading/Loading'
 
@@ -36,7 +37,7 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
     <Link className={styles.back} to={`${base}/sessions`}><Icon name="chevronLeft" size={14} />Sesi dan hasil</Link>
     <div className={styles.header}>
       <div><h1>Peta miskonsepsi kelas</h1><p>{subtitle}{data ? ` · ${data.denominator} siswa dihitung` : ''}</p></div>
-      <div className={styles.actions}><Link className={styles.release} to={`${base}/publications/${publicationId}/release`} state={location.state}><Icon name="send" size={14} />Rilis ke orang tua</Link></div>
+      <div className={styles.actions}><CsvDownload label="Unduh nilai (CSV)" filename="nalar-nilai-kelas.csv" read={(signal) => service.exportPublication(publicationId, signal)} /><Link className={styles.release} to={`${base}/publications/${publicationId}/release`} state={location.state}><Icon name="send" size={14} />Rilis ke orang tua</Link></div>
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <Loading label="Memuat peta kelas…" />}

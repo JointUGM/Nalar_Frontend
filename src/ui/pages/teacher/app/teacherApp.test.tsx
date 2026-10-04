@@ -188,6 +188,20 @@ describe('signed-in teacher pages', () => {
     expect(screen.getByText('10 paham · 6 berkembang · 0 belum teramati')).toBeInTheDocument()
   })
 
+  it('downloads the class scores as a CSV file through the signed-in session', async () => {
+    const created: Blob[] = []
+    Object.assign(URL, { createObjectURL: (blob: Blob) => { created.push(blob); return 'blob:csv' }, revokeObjectURL: () => {} })
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const request = backend({ [`GET /publications/${publication}/export?format=csv`]: () => new Response('﻿nama,skor\nRaka,3\n', { headers: { 'Content-Type': 'text/csv' } }) })
+    open(`${base}/publications/${publication}/class-map`, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Unduh nilai (CSV)' }))
+    await waitFor(() => expect(click).toHaveBeenCalledTimes(1))
+    expect(await created[0].text()).toContain('Raka,3')
+    const [, init] = request.mock.calls.find(([url]) => String(url).includes('/export?format=csv'))!
+    expect(new Headers(init?.headers).get('Accept')).toBe('text/csv')
+    click.mockRestore()
+  })
+
   it('draws a line between a concept and its prerequisite and lists the prerequisite first', async () => {
     const other = '00000000-0000-4000-8000-0000000000aa'
     const two = { ...classMap, prerequisites: [{ concept_id: other, prerequisite_id: concept }], concepts: [{ ...classMap.concepts[0], concept_id: other, name: 'Tekanan udara', misconceptions: [] }, classMap.concepts[0]] }

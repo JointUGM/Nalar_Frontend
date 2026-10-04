@@ -3,31 +3,16 @@ import { Link } from 'react-router'
 import type { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
 import type { AcademicYear, RosterImportSummary } from '@/domain/model/SchoolAdmin'
 import { Button } from '@/ui/components/button/Button'
-import { Feedback } from '@/ui/components/feedback/Feedback'
+import { CsvDownload } from '@/ui/components/csv-download/CsvDownload'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
-import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
+import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/school-admin/SchoolImport.module.css'
 
 const statusWord = (status: string) => status === 'completed' ? 'Selesai' : status === 'failed' ? 'Gagal' : 'Diproses'
 
-// Saves the backend's row-error CSV (spreadsheet-safe, UTF-8) through the signed-in session.
 export function ErrorsDownload({ service, importId }: { service: SchoolAdminUseCases; importId: string }) {
-  const command = useCommand()
-  async function download() {
-    await command.run(async (signal) => {
-      const url = URL.createObjectURL(await service.rosterImportErrors(importId, signal))
-      const link = document.createElement('a')
-      link.href = url
-      link.download = 'nalar-impor-baris-bermasalah.csv'
-      link.click()
-      URL.revokeObjectURL(url)
-    })
-  }
-  return <>
-    <Button tone="secondary" pending={command.pending} pendingLabel="Mengunduh…" onClick={() => { void download() }}>Unduh baris bermasalah (CSV)</Button>
-    {command.failure && <Feedback tone="warning" title={command.failure.message} announce />}
-  </>
+  return <CsvDownload label="Unduh baris bermasalah (CSV)" filename="nalar-impor-baris-bermasalah.csv" read={(signal) => service.rosterImportErrors(importId, signal)} />
 }
 
 // The imports of this school, newest first, so a result is still there after a reload.
