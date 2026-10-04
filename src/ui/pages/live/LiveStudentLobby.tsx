@@ -34,6 +34,16 @@ export function LiveStudentLobby({ service, runId, base, user }: { service: Live
     catch (cause) { if (!signal?.aborted) { setError(cause instanceof LiveError ? cause : new LiveError(0, 'UNAVAILABLE')); resource.refresh() } }
     finally { busy.current = false; if (!signal?.aborted) setPending(false) }
   }
+  const [leaving, setLeaving] = useState(false)
+  async function leave() {
+    if (busy.current) return
+    busy.current = true; setPending(true); setError(null)
+    const signal = commandSignal()
+    try { await service.leave(runId, signal); if (!signal?.aborted) navigate(base, { replace: true }) }
+    catch (cause) { if (!signal?.aborted) { setError(cause instanceof LiveError ? cause : new LiveError(0, 'UNAVAILABLE')); setLeaving(false); resource.refresh() } }
+    finally { busy.current = false; if (!signal?.aborted) setPending(false) }
+  }
+  const canLeave = state?.run_status === 'lobby' && state.participant_status === 'waiting' && !state.session_id
   const closed = state?.participant_status === 'cancelled' || (state?.run_status === 'closed' && !state.session_id)
   const status = closed ? 'Sesi ditutup sebelum dimulai' : state?.session_id ? 'Membuka sesi…' : 'Menunggu guru memulai sesi'
   const warmup = metadata?.warmup && state?.participant_status === 'waiting' && state.run_status === 'lobby' ? metadata.warmup : null
@@ -52,6 +62,13 @@ export function LiveStudentLobby({ service, runId, base, user }: { service: Live
             {!closed && <span className={styles.dot} aria-hidden="true" />}
             <div><strong role="status">{status}</strong><small>{closed ? <Link to={base}>Kembali ke Misi saya</Link> : 'Layar ini berganti sendiri saat sesi dimulai.'}</small></div>
           </div>
+          {canLeave && (leaving
+            ? <div className={styles.leave} role="group" aria-label="Keluar dari lobi">
+              <p>Kalau keluar sekarang, kamu tidak bisa masuk lagi ke sesi ini.</p>
+              <button type="button" disabled={pending} onClick={() => { void leave() }}>{pending ? 'Keluar…' : 'Ya, keluar'}</button>
+              <button type="button" disabled={pending} onClick={() => setLeaving(false)}>Tetap menunggu</button>
+            </div>
+            : <button type="button" className={styles.leaveLink} disabled={!resource.online} onClick={() => setLeaving(true)}>Keluar dari lobi</button>)}
         </section>
 
         {warmup && <section className={styles.warm} aria-labelledby="warm-title">

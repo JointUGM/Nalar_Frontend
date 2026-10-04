@@ -78,3 +78,8 @@
   .pills { gap: 10px; margin-block-start: 28px; }
   .pills li { padding: 8px 14px; font-size: 14px; }
 }
+.leaveLink { align-self: flex-start; min-block-size: 44px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.leave { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 14px; line-height: 22px; }
+.leave p { flex-basis: 100%; margin: 0; font-weight: 600; }
+.leave button { min-block-size: 44px; padding: 0 18px; border: 1px solid currentColor; border-radius: 999px; background: none; color: inherit; font: inherit; font-weight: 700; cursor: pointer; }
+.leave button:first-of-type { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-surface); }
