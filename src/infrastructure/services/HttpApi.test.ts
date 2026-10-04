@@ -27,6 +27,21 @@ describe('shared HTTP client', () => {
     expect(new Headers(init?.headers).get('X-Nalar-CSRF')).toBe('1')
   })
 
+  it('reuses one Idempotency-Key while the same request is retried and frees it on success', async () => {
+    const request = vi.fn<typeof fetch>().mockRejectedValueOnce(new TypeError('offline')).mockImplementation(async () => Response.json({ publication_id: 'p' }, { status: 201 }))
+    const api = new HttpApi({ apiBaseUrl: '/api/v1', fetch: request })
+    const publish = (class_id: string) => api.request('/publications', { method: 'POST', body: { class_id }, idempotent: true })
+    await expect(publish('a')).rejects.toMatchObject({ code: 'UNAVAILABLE' })
+    await publish('a')
+    await publish('b')
+    await publish('a')
+    const keys = request.mock.calls.map(([, init]) => new Headers(init?.headers).get('Idempotency-Key'))
+    expect(keys[0]).toMatch(/^[0-9a-f-]{36}$/)
+    expect(keys[1]).toBe(keys[0])
+    expect(new Set(keys.slice(1)).size).toBe(3)
+    expect(new Headers((await api.request('/x').then(() => request.mock.calls.at(-1)?.[1]))?.headers).has('Idempotency-Key')).toBe(false)
+  })
+
   it('reports the envelope code and a safe request reference, never the backend message', async () => {
     const request = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ error: { code: 'RELEASE_NOT_READY', message: 'rahasia' }, request_id: 'x' }, { status: 409, headers: { 'X-Request-Id': 'req_1' } }))
     await expect(new HttpApi({ apiBaseUrl: '/api/v1', fetch: request }).request('/x')).rejects.toMatchObject({ status: 409, code: 'RELEASE_NOT_READY', requestId: 'req_1', message: 'Data sudah berubah. Muat ulang lalu coba lagi.' })

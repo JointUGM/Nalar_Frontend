@@ -8,6 +8,7 @@ import { HttpIdentityRepository } from '@/infrastructure/services/HttpIdentityRe
 import { HttpLiveService } from '@/infrastructure/services/HttpLiveService'
 import { LiveUseCases } from '@/application/live-use-cases'
 import { HttpApi } from '@/infrastructure/services/HttpApi'
+import { HttpClientEvents } from '@/infrastructure/services/HttpClientEvents'
 import { HttpParentService } from '@/infrastructure/services/HttpParentService'
 import { ParentUseCases } from '@/application/parent-use-cases'
 import { HttpStudentService } from '@/infrastructure/services/HttpStudentService'
@@ -34,12 +35,13 @@ function resolveApiBaseUrl(input?: string): string | null {
   } catch { return null }
 }
 
-export async function createDependencies(config: PublicAppConfig): Promise<{ account: AccountDependencies | null; live: LiveUseCases | null; parent: ParentUseCases | null; student: StudentUseCases | null; teacher: TeacherUseCases | null; knowledgeBase: KnowledgeBaseUseCases | null; school: SchoolAdminUseCases | null; platform: PlatformAdminUseCases | null; dispose: () => Promise<void> }> {
+export async function createDependencies(config: PublicAppConfig): Promise<{ account: AccountDependencies | null; live: LiveUseCases | null; parent: ParentUseCases | null; student: StudentUseCases | null; teacher: TeacherUseCases | null; knowledgeBase: KnowledgeBaseUseCases | null; school: SchoolAdminUseCases | null; platform: PlatformAdminUseCases | null; reportError: ((code: string, pathname: string) => Promise<void>) | null; dispose: () => Promise<void> }> {
   const apiBaseUrl = resolveApiBaseUrl(config.apiBaseUrl)
-  if (!apiBaseUrl) return { account: null, live: null, parent: null, student: null, teacher: null, knowledgeBase: null, school: null, platform: null, dispose: async () => {} }
+  if (!apiBaseUrl) return { account: null, live: null, parent: null, student: null, teacher: null, knowledgeBase: null, school: null, platform: null, reportError: null, dispose: async () => {} }
   const { HttpAuthService } = await import('@/infrastructure/services/HttpAuthService')
   const auth = new HttpAuthService({ apiBaseUrl })
   const api = new HttpApi({ apiBaseUrl })
+  const events = new HttpClientEvents(api)
   return {
     live: new LiveUseCases(new HttpLiveService({ apiBaseUrl })),
     parent: new ParentUseCases(new HttpParentService(api)),
@@ -48,6 +50,7 @@ export async function createDependencies(config: PublicAppConfig): Promise<{ acc
     knowledgeBase: new KnowledgeBaseUseCases(new HttpKnowledgeBaseService(api)),
     school: new SchoolAdminUseCases(new HttpSchoolAdminService(api)),
     platform: new PlatformAdminUseCases(new HttpPlatformAdminService(api)),
+    reportError: (code, pathname) => events.reportError(code, pathname),
     account: {
       activate: new ActivateAccountUseCase(auth),
       requestReset: new RequestPasswordResetUseCase(auth), reset: new ResetPasswordUseCase(auth), changePassword: new ChangePasswordUseCase(auth),
