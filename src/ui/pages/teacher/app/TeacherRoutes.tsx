@@ -22,6 +22,7 @@ import { TeacherMissionsPage } from './TeacherMissionsPage'
 import { TeacherPublishPage } from './TeacherPublishPage'
 import { TeacherReleasePage } from './TeacherReleasePage'
 import { TeacherReportPage } from './TeacherReportPage'
+import { TeacherStudentHistoryPage } from './TeacherStudentHistoryPage'
 import { TeacherSessionsPage } from './TeacherSessionsPage'
 import { useAttention } from './useAttention'
 
@@ -44,12 +45,13 @@ export function TeacherRoutes({ service, kb, live, identity, changePassword }: {
     { label: 'Basis pengetahuan', icon: 'layers', to: `${base}/knowledge-base` },
     { label: 'Perlu perhatian', icon: 'alert', to: `${base}/attention`, ...(waiting > 0 ? { badge: String(waiting) } : {}) },
   ] as const
-  const title = pathname.includes('/sessions/') ? 'Hasil kelas / Laporan siswa' : pathname.endsWith('/monitor') ? 'Sesi langsung' : pathname.endsWith('/class-map') ? 'Hasil kelas / Peta miskonsepsi' : pathname.endsWith('/release') ? 'Hasil kelas / Rilis ke orang tua' : pathname.includes('/missions') ? 'Misi' : pathname.includes('/knowledge-base') ? 'Basis pengetahuan' : pathname.endsWith('/classes') ? 'Kelas dan siswa' : pathname.endsWith('/attention') ? 'Perlu perhatian' : pathname.endsWith('/sessions') ? 'Sesi dan hasil' : 'Beranda'
+  const title = pathname.includes('/sessions/') ? 'Hasil kelas / Laporan siswa' : pathname.endsWith('/monitor') ? 'Sesi langsung' : pathname.endsWith('/class-map') ? 'Hasil kelas / Peta miskonsepsi' : pathname.endsWith('/release') ? 'Hasil kelas / Rilis ke orang tua' : pathname.includes('/missions') ? 'Misi' : pathname.includes('/knowledge-base') ? 'Basis pengetahuan' : pathname.endsWith('/classes') || pathname.includes('/students/') ? 'Kelas dan siswa' : pathname.endsWith('/attention') ? 'Perlu perhatian' : pathname.endsWith('/sessions') ? 'Sesi dan hasil' : 'Beranda'
   return <TeacherContextProvider schools={schools.map((item) => item.schoolName)} current={school} onChange={(name) => { const next = schools.find((item) => item.schoolName === name); if (next) navigate(`/teacher/${next.schoolId}`) }}>
     <TeacherShell title={title} user={identity.fullName} nav={nav} home={base} onChangePassword={changePassword ? () => setPasswordOpen(true) : undefined}>
       <Routes>
         <Route path=":schoolId" element={<TeacherHomePage service={service} base={base} schoolId={schoolId} user={identity.fullName} attention={attention} />} />
         <Route path=":schoolId/classes" element={<TeacherClassesPage service={service} base={base} schoolId={schoolId} />} />
+        <Route path=":schoolId/students/:studentId" element={<TeacherStudentHistoryPage service={service} base={base} />} />
         <Route path=":schoolId/attention" element={<TeacherAttentionPage data={attention.data} error={attention.error} online={attention.online} refresh={attention.refresh} base={base} />} />
         <Route path=":schoolId/sessions" element={<TeacherSessionsPage service={service} base={base} />} />
         <Route path=":schoolId/publications/:publicationId/monitor" element={<MonitorRoute live={live} base={base} />} />

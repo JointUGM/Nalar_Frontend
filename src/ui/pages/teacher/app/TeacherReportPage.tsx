@@ -95,7 +95,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
     <div className={styles.header}>
       <div className={styles.who}>
         <span className={styles.avatar}><NalaAvatar seed={report.student.name} size={48} /></span>
-        <div><h1>{report.student.name}</h1><p>{[`${report.mission.title} · versi ${report.mission.version_number}`, `Percobaan ${report.session.attempt_number}`, sessionWord[report.session.status] ?? report.session.status, minutes(report.session.started_at, report.session.ended_at)].filter(Boolean).join(' · ')}</p></div>
+        <div><h1><Link to={`${base}/students/${report.student.id}`} state={{ studentName: report.student.name }}>{report.student.name}</Link></h1><p>{[`${report.mission.title} · versi ${report.mission.version_number}`, `Percobaan ${report.session.attempt_number}`, sessionWord[report.session.status] ?? report.session.status, minutes(report.session.started_at, report.session.ended_at)].filter(Boolean).join(' · ')}</p></div>
       </div>
       <div className={styles.headerActions}>
         <CsvDownload label="Unduh laporan (CSV)" filename="nalar-laporan-siswa.csv" read={(signal) => service.exportReport(sessionId, signal)} />

@@ -1,0 +1,10 @@
+.year { margin-block-start: 24px; }
+.year h2 { margin: 0 0 8px; font-size: 15px; line-height: 22px; }
+.year ul { margin: 0; padding: 0; list-style: none; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
+.year li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 14px 16px; }
+.year li + li { border-block-start: 1px solid var(--color-role-border); }
+.year li > div { display: grid; gap: 2px; min-inline-size: 0; }
+.year a { font-size: 14px; font-weight: 650; color: var(--color-ink); overflow-wrap: anywhere; }
+.year a:hover { color: var(--color-primary); }
+.year small { font-size: 12px; line-height: 18px; color: var(--color-text-secondary); }
+.result { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--color-text-secondary); }

@@ -16,7 +16,7 @@ export interface ClassMapMisconception { misconception_id: string; statement: st
 export interface ClassMapConcept { concept_id: string; name: string; mastered_count: number; developing_count: number; not_observed_count: number; misconceptions: ClassMapMisconception[] }
 // `prerequisite_id` is learned before `concept_id`; edges only join the mission's target concepts.
 export interface ClassMapEdge { concept_id: string; prerequisite_id: string }
-export interface ClassMap { denominator: number; incomplete_count: number; concepts: ClassMapConcept[]; prerequisites: ClassMapEdge[]; insight: { narrative: string; generated_at: string } | null }
+export interface ClassMap { denominator: number; incomplete_count: number; concepts: ClassMapConcept[]; prerequisites: ClassMapEdge[]; insight: { narrative: string; generated_at: string; suggestions: string[] } | null }
 
 export interface ReleasePreview {
   ready: boolean
@@ -76,6 +76,10 @@ export type AttentionItem =
   | { kind: 'kb_review'; item_id: string; created_at: string; knowledge_base_id: string; topic_title: string; pending_concepts: number; pending_misconceptions: number }
   | { kind: 'release_ready'; item_id: string; created_at: string; publication_id: string; class_name: string; mission_title: string; eligible_count: number }
 export interface AttentionPage { items: AttentionItem[]; counts: { safety: number; flag: number; kb_review: number; release_ready: number; total: number } }
+
+// One attempt from any school year, with the final (teacher-checked) level per rubric dimension.
+export interface StudentHistoryItem { session_id: string; publication_id: string; mission_title: string; subject_name: string; class_name: string; academic_year_id: string; academic_year_name: string; attempt_number: number; status: string; evaluation_status: string | null; started_at: string; ended_at: string | null; scores: { dimension: string; final_level: number }[] }
+export interface StudentHistoryPage { items: StudentHistoryItem[]; next_cursor: string | null }
 
 export interface ClassStudent {
   student_id: string; full_name: string; session_id: string | null; status: string | null; completed_at: string | null; evaluation_status: string | null

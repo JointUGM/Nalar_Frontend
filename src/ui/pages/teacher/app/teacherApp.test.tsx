@@ -44,7 +44,7 @@ afterAll(() => {
 })
 
 const publications = { items: [{ id: publication, class_id: school, class_name: '8B', mission_title: 'Kenapa kelereng berhenti?', released_to_parents_at: null, run: { id: school, mode: 'live', status: 'closed', join_code: null, opens_at: null, closes_at: null }, counts: { started: 30, completed: 28, timed_out: 2, evaluated: 28 } }], next_cursor: null }
-const classMap = { denominator: 28, incomplete_count: 2, prerequisites: [], concepts: [{ concept_id: concept, name: 'Gaya gesek', mastered_count: 10, developing_count: 6, not_observed_count: 0, misconceptions: [{ misconception_id: misconception, statement: 'Gaya bisa habis', count: 18, resolved_count: 11, student_ids: [student], students: [{ student_id: student, name: 'Raka Pratama', session_id: student }] }] }], insight: { narrative: 'Sebanyak 18 siswa mengira gaya bisa habis.', generated_at: '2026-10-02T03:00:00+00:00' } }
+const classMap = { denominator: 28, incomplete_count: 2, prerequisites: [], concepts: [{ concept_id: concept, name: 'Gaya gesek', mastered_count: 10, developing_count: 6, not_observed_count: 0, misconceptions: [{ misconception_id: misconception, statement: 'Gaya bisa habis', count: 18, resolved_count: 11, student_ids: [student], students: [{ student_id: student, name: 'Raka Pratama', session_id: student }] }] }], insight: { narrative: 'Sebanyak 18 siswa mengira gaya bisa habis.', generated_at: '2026-10-02T03:00:00+00:00', suggestions: ['Mulai dengan dua bola di karpet dan di lantai.'] } }
 const mission = '00000000-0000-4000-8000-00000000000e'
 const version = '00000000-0000-4000-8000-00000000000f'
 const draft = '00000000-0000-4000-8000-000000000010'
@@ -186,6 +186,7 @@ describe('signed-in teacher pages', () => {
     expect(row.getByText('11 dari 18')).toBeInTheDocument()
     expect(screen.getByText('Sebanyak 18 siswa mengira gaya bisa habis.')).toBeInTheDocument()
     expect(screen.getByText('10 paham · 6 berkembang · 0 belum teramati')).toBeInTheDocument()
+    expect(screen.getByText('Mulai dengan dua bola di karpet dan di lantai.')).toBeInTheDocument()
   })
 
   it('downloads the class scores as a CSV file through the signed-in session', async () => {
@@ -364,6 +365,22 @@ describe('signed-in teacher pages', () => {
     expect(row.getByText('1 perlu verifikasi')).toBeInTheDocument()
     expect(row.getAllByRole('term').map((label) => label.textContent)).toEqual(['Paham', 'Berkembang', 'Miskonsepsi'])
     expect(row.getAllByRole('definition').map((count) => count.textContent)).toEqual(['2', '1', '1'])
+  })
+
+  it('opens a student’s history from the roster, grouped by school year with final scores', async () => {
+    const attempt = (year: string, session: string) => ({ session_id: session, publication_id: publication, mission_title: 'Kenapa kelereng berhenti?', subject_name: 'IPA', class_name: '8B', academic_year_id: klass, academic_year_name: year, attempt_number: 1, status: 'completed', evaluation_status: 'succeeded', started_at: '2026-09-24T02:00:00Z', ended_at: '2026-09-24T02:20:00Z', scores: [{ dimension: 'claim', final_level: 3 }, { dimension: 'evidence', final_level: 2 }] })
+    const request = backend({
+      [`GET /teacher/students/${student}/history?limit=50`]: () => Response.json({ items: [attempt('2026/2027', sessionId)], next_cursor: 'c1' }),
+      [`GET /teacher/students/${student}/history?limit=50&cursor=c1`]: () => Response.json({ items: [attempt('2025/2026', draft)], next_cursor: null }),
+    })
+    open(`${base}/classes`, request)
+    fireEvent.click(await screen.findByRole('link', { name: 'Raka Pratama' }))
+    expect(await screen.findByRole('heading', { name: 'Riwayat Raka Pratama' })).toBeInTheDocument()
+    expect(screen.getByText('Klaim 3/4 · Bukti 2/4')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Muat lebih banyak' }))
+    expect(await screen.findByRole('heading', { name: 'Tahun ajaran 2025/2026' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Tahun ajaran 2026/2027' })).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Kenapa kelereng berhenti?' })[0]).toHaveAttribute('href', `${base}/publications/${publication}/sessions/${sessionId}`)
   })
 
   it('uploads a PDF as multipart and follows the reading job on the topic page', async () => {
