@@ -7,6 +7,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
@@ -64,7 +65,7 @@ export function TeacherReleasePage({ service, base }: { service: TeacherService;
       ? <Feedback tone="warning" title="Rilis belum bisa dilakukan" announce>Data berubah sejak pratinjau dibuka. Periksa daftar terbaru di bawah, lalu coba lagi.</Feedback>
       : <LiveFeedback error={failure} online={online} refresh={refresh} />)}
     {data && <>
-      <p role="status" className={styles.banner} data-released={released !== null}><Icon name="info" size={14} />{released ? `Dirilis ${formatDayTime(released)}. Ringkasan sudah dikunci dan dapat dilihat orang tua.` : 'Orang tua belum melihat apa pun dari misi ini. Ringkasan dikunci saat Anda merilis.'}</p>
+      <p role="status" className={styles.banner} data-released={released !== null}><NalaIcon name="info" />{released ? `Dirilis ${formatDayTime(released)}. Ringkasan sudah dikunci dan dapat dilihat orang tua.` : 'Orang tua belum melihat apa pun dari misi ini. Ringkasan dikunci saat Anda merilis.'}</p>
       {!released && data.blockers.length > 0 && <Feedback tone="warning" title="Belum siap dirilis">
         <ul>{data.blockers.map((blocker) => <li key={blocker.code}>{blockerText[blocker.code]?.(blocker.count) ?? `${blocker.code} (${blocker.count})`}</li>)}</ul>
       </Feedback>}
@@ -89,7 +90,7 @@ export function TeacherReleasePage({ service, base }: { service: TeacherService;
           <div aria-live="polite">{shown
             ? <><div className={styles.who}><span aria-hidden="true">{shown.name.trim().charAt(0).toLocaleUpperCase('id-ID')}</span><div><strong>{shown.name}</strong></div></div><p>{shown.summary_text}</p></>
             : <p>Belum ada ringkasan untuk ditampilkan.</p>}</div>
-          <p className={styles.lock}><Icon name="lock" size={12} />Tanpa skor dan catatan verifikasi · dikunci saat dirilis</p>
+          <p className={styles.lock}><NalaIcon name="lock" />Tanpa skor dan catatan verifikasi · dikunci saat dirilis</p>
         </aside>
       </div>
 

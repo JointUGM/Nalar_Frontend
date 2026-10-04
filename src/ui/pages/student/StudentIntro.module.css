@@ -26,7 +26,7 @@
 .card li > span { display: grid; place-items: center; flex: none; inline-size: 34px; block-size: 34px; border-radius: 10px; background: var(--color-info-bg); color: var(--color-primary-hover); font-size: 14px; font-weight: 700; }
 .card strong { display: block; margin-block-end: 4px; font-size: 14px; }
 .card small { display: block; font-family: var(--font-reading); font-size: 15px; line-height: 1.5; color: var(--color-text-secondary); }
-.notes { background: var(--color-paper); }
+.notes { --nala-ring: var(--color-paper); background: var(--color-paper); }
 .notesHead { display: flex; align-items: center; gap: 12px; }
 .notesHead > svg { color: var(--color-warning-text); }
 .notes h2 small { display: block; margin-block-start: 3px; font-size: 12px; font-weight: 500; color: var(--color-text-secondary); }

@@ -7,6 +7,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
@@ -121,7 +122,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
       </div>
       {selected && <div className={styles.column}>
         <section className={styles.card} aria-label={`Konsep: ${selected.name}`}>
-          <div className={styles.misHead}><span className={styles.contentType}><Icon name="layers" size={16} />Konsep yang ditinjau</span>{tag(selected.review_status)}</div>
+          <div className={styles.misHead}><span className={styles.contentType}><NalaIcon name="idea" />Konsep yang ditinjau</span>{tag(selected.review_status)}</div>
           {draft?.kind === 'concept' && draft.id === selected.id ? <>
             <Field label="Nama konsep" required maxLength={300} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
             <label className={styles.area}>Deskripsi<textarea rows={3} maxLength={2000} value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
@@ -140,7 +141,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
         <div className={styles.misconceptions}>
           <div className={styles.sectionHead}><h2>Miskonsepsi terkait</h2><span>{related.length} miskonsepsi</span></div>
           {related.map((item) => <section key={item.id} className={styles.misconception} aria-label={`Miskonsepsi: ${item.statement}`}>
-            <div className={styles.misHead}><span className={styles.misTag}><Icon name="alert" size={16} />Pernyataan keliru</span>{tag(item.review_status)}</div>
+            <div className={styles.misHead}><span className={styles.misTag}><NalaIcon name="alert" />Pernyataan keliru</span>{tag(item.review_status)}</div>
             {draft?.kind === 'misconception' && draft.id === item.id ? <>
               <Field label="Pernyataan keliru" required maxLength={1000} value={draft.statement} onChange={(event) => setDraft({ ...draft, statement: event.target.value })} />
               <label className={styles.area}>Pemahaman yang benar<textarea rows={3} maxLength={2000} value={draft.correct} onChange={(event) => setDraft({ ...draft, correct: event.target.value })} /></label>

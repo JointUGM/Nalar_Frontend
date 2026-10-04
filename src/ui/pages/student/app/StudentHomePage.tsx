@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { formatDayTime, formatToday } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
@@ -51,7 +52,7 @@ export function StudentHomePage({ service, base, user }: { service: StudentServi
           <div className={styles.mascot}><Nala mood={continuing ? 'think' : data.open.length === 0 ? 'calm' : 'hello'} size={184} /></div>
         </section>
         <aside className={styles.joinCard} aria-labelledby="student-code">
-          <span className={styles.joinIcon}><Icon name="monitor" size={24} /></span>
+          <span className={styles.joinIcon}><NalaIcon name="live" size={44} /></span>
           <h2 id="student-code">Punya kode dari guru?</h2>
           <p>Masuk ke sesi kelas dan berpikir bersama teman-temanmu.</p>
           <ButtonLink tone="secondary" to={`${base}/join`}>Gabung dengan kode<Icon name="chevronRight" size={14} /></ButtonLink>
@@ -84,7 +85,7 @@ export function StudentHomePage({ service, base, user }: { service: StudentServi
 
           <section className={styles.table} aria-labelledby="student-all">
             <div className={styles.tableHead}>
-              <h2 id="student-all"><Icon name="calendar" size={16} />Semua misi</h2>
+              <h2 id="student-all"><NalaIcon name="calendar" />Semua misi</h2>
               <div className={styles.tabs} role="group" aria-label="Jenis misi">{tabs.map(([key, label]) => <button key={key} type="button" aria-pressed={tab === key} onClick={() => setTab(key)}>{label}</button>)}</div>
             </div>
             <div className={styles.region} role="region" aria-label="Daftar misi (dapat digulir)" tabIndex={0}>

@@ -5,6 +5,7 @@ import type { LiveAnswer, LiveState } from '@/domain/model/Live'
 import { Button } from '@/ui/components/button/Button'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { LiveFeedback } from './LiveFrame'
 import { sessionPollMs, useCommandSignal, useLiveResource, useServerTime } from './useLiveResource'
@@ -82,7 +83,7 @@ export function LiveStudentSession({ service, sessionId, base, telemetry }: { se
           {state.safety_message && <p>{state.safety_message}</p>}
         </div>
         <div className={stateStyles.pauseBody}>
-          <p className={stateStyles.saved}><Icon name="check" size={16} />Jawabanmu sejauh ini tersimpan. Layar ini berganti sendiri saat gurumu melanjutkan sesi.</p>
+          <p className={stateStyles.saved}><NalaIcon name="done" />Jawabanmu sejauh ini tersimpan. Layar ini berganti sendiri saat gurumu melanjutkan sesi.</p>
           <p className={stateStyles.help}>Butuh teman bicara di luar sekolah? Layanan SAPA 129 bisa dihubungi kapan saja.</p>
         </div>
       </section></div>

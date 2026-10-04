@@ -221,35 +221,6 @@
   }
 }
 
-/* Ambient soft brand glows in background */
-.heroBg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.ambientBlobBlue {
-  position: absolute;
-  top: -60px;
-  left: -80px;
-  width: 520px;
-  height: 520px;
-  background: radial-gradient(circle, rgba(231, 236, 251, 0.8) 0%, rgba(250, 250, 247, 0) 70%);
-  filter: blur(40px);
-}
-
-.ambientBlobAmber {
-  position: absolute;
-  top: 15%;
-  right: -50px;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(254, 246, 226, 0.7) 0%, rgba(250, 250, 247, 0) 70%);
-  filter: blur(50px);
-}
-
 /* ── Hero Left Column ── */
 .heroLeft {
   position: relative;
@@ -492,120 +463,11 @@
   justify-content: center;
 }
 
-.heroVisualStage {
-  position: relative;
-  width: 100%;
-  max-width: 520px;
-  min-height: 520px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Clean backdrop circle matched to Nalar blue & amber */
-.backdropCircle {
-  position: absolute;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #E8EEFD 0%, #DCE6FA 100%);
-  box-shadow: 0 16px 48px rgba(36, 71, 209, 0.1);
-  z-index: 1;
-}
-
-/* Mascot Wrapper */
-.mascotStageWrap {
-  position: relative;
-  z-index: 3;
-}
-
-/* Floating Badges around Mascot (Carefully spaced to never collide) */
-.floatingBadge {
-  position: absolute;
-  z-index: 5;
-  background: var(--color-surface, #FFFFFF);
-  border: 1px solid var(--color-border, #E4E0D7);
-  border-radius: 16px;
-  padding: 10px 14px;
-  box-shadow: 0 10px 28px rgba(21, 33, 59, 0.08), 0 2px 6px rgba(21, 33, 59, 0.03);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  animation: badgeFloat 4.8s ease-in-out infinite;
-}
-
-@keyframes badgeFloat {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-.badgeTopLeft {
-  top: 10px;
-  left: -28px;
-  animation-delay: 0s;
-}
-
-.badgeBottomLeft {
-  bottom: 20px;
-  left: -32px;
-  animation-delay: 1.2s;
-}
-
-.badgeRight {
-  top: 100px;
-  right: -32px;
-  animation-delay: 2.4s;
-}
-
-.badgeIconBox {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  flex-shrink: 0;
-}
-
-.badgeIconBlue {
-  background: var(--color-info-bg, #E7ECFB);
-  color: var(--color-primary, #2447D1);
-}
-
-.badgeIconAmber {
-  background: var(--color-warning-bg, #FCEFD2);
-  color: #B37400;
-}
-
-.badgeIconGreen {
-  background: var(--color-success-bg, #DFF1E9);
-  color: var(--color-success-strong, #185D46);
-}
-
-.badgeContent {
-  display: flex;
-  flex-direction: column;
-}
-
-.badgeNumber {
-  font-size: 1.0625rem;
-  font-weight: 800;
-  color: var(--color-ink, #15213B);
-  line-height: 1.1;
-}
-
-.badgeLabel {
-  font-size: 0.72rem;
-  color: var(--color-text-muted, #636978);
-  font-weight: 600;
-}
-
-
+.heroNala { display: flex; flex-direction: column; align-items: center; inline-size: 100%; }
+.heroNala > svg { inline-size: min(100%, 360px); block-size: auto; }
+.heroNala p { margin: 0; text-align: center; font-family: var(--font-reading); color: var(--color-text-secondary); }
+.heroNala p:first-child { font-size: 22px; }
+.heroNala p:last-child { font-size: 13px; }
 
 /* ═════════════════════════════════════════════════════════════════
    THE 4 FEATURE CARDS (MATCHING REFERENCE LAYOUT)
@@ -1405,7 +1267,6 @@
    REDUCED MOTION
    ═════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .floatingBadge,
   .doodleRaysCta {
     animation: none !important;
   }

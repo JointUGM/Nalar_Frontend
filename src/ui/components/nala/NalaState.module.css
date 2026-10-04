@@ -12,7 +12,7 @@
 .emptyMascot::before { content: ''; position: absolute; inset-block-end: 4px; inline-size: 92px; block-size: 92px; border-radius: 50%; background: color-mix(in srgb, var(--color-accent) 26%, transparent); }
 .emptyMascot > svg { position: relative; }
 .emptyCopy { min-inline-size: 0; }
-.emptyCopy h3 { margin: 8px 0 0; color: var(--color-ink); font-size: 18px; line-height: 26px; font-weight: 650; letter-spacing: -.02em; text-wrap: balance; }
+.emptyCopy :is(h1, h2, h3) { margin: 8px 0 0; color: var(--color-ink); font-size: 18px; line-height: 26px; font-weight: 650; letter-spacing: -.02em; text-wrap: balance; }
 .emptyCopy p { max-inline-size: 48ch; margin: 8px auto 0; color: var(--color-text-secondary); font-size: 14px; line-height: 24px; text-wrap: pretty; }
 .emptyAction { display: flex; justify-content: center; margin-block-start: 20px; }
 
@@ -28,7 +28,7 @@
   .emptyMascot { inline-size: 80px; block-size: 80px; }
   .emptyMascot::before { inset-block-end: 2px; inline-size: 68px; block-size: 68px; }
   .emptyMascot > svg { inline-size: 80px; block-size: auto; }
-  .emptyCopy h3 { margin-block-start: 4px; }
+  .emptyCopy :is(h1, h2, h3) { margin-block-start: 4px; }
   .emptyCopy p { margin-inline: 0; }
   .emptyAction { justify-content: start; }
 }

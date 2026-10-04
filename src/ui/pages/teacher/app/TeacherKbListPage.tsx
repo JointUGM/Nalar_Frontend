@@ -4,6 +4,7 @@ import type { KbSummary } from '@/domain/model/KnowledgeBase'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
@@ -67,7 +68,7 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
             const tone = state(topic), path = `${base}/knowledge-base/${topic.id}`
             const label = filters.find(([value]) => value === tone)![1]
             return <li key={topic.id} className={styles.row}>
-              <div className={styles.identity}><span className={styles.fileIcon}><Icon name="file" size={22} /></span><div>
+              <div className={styles.identity}><span className={styles.fileIcon}><NalaIcon name="book" size={44} /></span><div>
                 <h3><Link to={path}>{topic.topic_title}</Link></h3>
                 <p>{topic.can_edit ? 'Milik Anda' : `Dari ${topic.owner_name ?? 'rekan guru'}`}</p>
                 <p>{number.format(topic.material_count)} materi · {number.format(topic.built_section_count)} bab disusun</p>
@@ -79,7 +80,7 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
             </li>
           })}</ul>
         </>}
-        <p className={styles.note}><Icon name="info" size={16} />Hanya konsep dan miskonsepsi yang Anda setujui dipakai untuk misi.</p>
+        <p className={styles.note}><NalaIcon name="info" />Hanya konsep dan miskonsepsi yang Anda setujui dipakai untuk misi.</p>
       </>}
     </section>
   </div>

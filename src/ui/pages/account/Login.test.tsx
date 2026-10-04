@@ -108,6 +108,9 @@ describe('Account login', () => {
     auth.result = pending.promise
     render(<Login dependencies={dependencies(auth)} />)
     await enterCredentials()
+    fireEvent.click(screen.getByLabelText('Tampilkan kata sandi'))
+    expect(screen.getByLabelText(/^Kata sandi/)).toHaveAttribute('type', 'text')
+    expect(screen.getByLabelText(/^Kata sandi/)).toHaveValue('  original password  ')
     const form = screen.getByRole('form', { name: 'Masuk ke NALAR' })
     fireEvent.submit(form)
     fireEvent.submit(form)
@@ -121,6 +124,8 @@ describe('Account login', () => {
     await userEvent.setup().click(screen.getByRole('button', { name: 'Keluar' }))
     expect(await screen.findByLabelText(/^Email/)).toHaveValue('')
     expect(screen.getByLabelText(/^Kata sandi/)).toHaveValue('')
+    expect(screen.getByLabelText(/^Kata sandi/)).toHaveAttribute('type', 'password')
+    expect(screen.getByLabelText('Tampilkan kata sandi')).not.toBeChecked()
     expect(auth.current).toBeNull()
   })
   it.each(['invalid_credentials', 'unavailable', 'rate_limited'] as const)('retains input after %s and permits deliberate retry', async (code) => {

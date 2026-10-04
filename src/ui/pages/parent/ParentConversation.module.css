@@ -1,0 +1,13 @@
+.card { min-inline-size: 0; padding: 24px; border-radius: 24px; background: var(--color-surface); }
+.head { display: flex; align-items: center; gap: 12px; }
+.head h2 { margin: 0; font-size: 17px; line-height: 24px; font-weight: 650; letter-spacing: -.02em; }
+.head p { margin: 2px 0 0; font-size: 13px; line-height: 20px; color: var(--color-text-secondary); text-wrap: pretty; }
+.avatar { display: grid; place-items: center; flex: none; inline-size: 52px; block-size: 52px; border-radius: 50%; background: color-mix(in srgb, var(--color-accent) 30%, transparent); overflow: hidden; }
+.bubbles { display: grid; justify-items: start; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+.bubbles li { max-inline-size: 100%; padding: 12px 16px; border-radius: 18px 18px 18px 6px; background: var(--color-info-bg); color: var(--color-ink); font-size: 15px; line-height: 24px; font-weight: 500; text-wrap: pretty; overflow-wrap: anywhere; animation: bubble-in 360ms cubic-bezier(.23, 1, .32, 1) both; transform-origin: 0 100%; }
+.bubbles li:nth-child(2) { animation-delay: 90ms; }
+.bubbles li:nth-child(3) { animation-delay: 180ms; }
+@keyframes bubble-in { from { opacity: 0; transform: translateY(6px) scale(.97); } }
+@media (max-width: 767px) { .card { padding: 20px 16px; border-radius: 20px; } }
+@media (prefers-reduced-motion: reduce) { .bubbles li { animation: none; } }
+@media print { .card { display: none; } }

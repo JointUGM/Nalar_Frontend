@@ -6,6 +6,7 @@ import { Button } from '@/ui/components/button/Button'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
@@ -90,9 +91,9 @@ export function StudentStartPage({ service, base }: { service: StudentService; b
 
     <section className={styles.welcome} aria-labelledby="intro-welcome"><div><h2 id="intro-welcome">Mulai dari rasa ingin tahu.</h2><p>Kamu tidak harus langsung yakin. Ceritakan apa yang kamu pikirkan, lalu jelajahi alasanmu bersama Nala.</p></div><Nala mood="ask" size={156} /></section>
     <ul className={styles.stats} aria-label="Tentang misi ini">
-      <li><Icon name="message" size={16} /><strong>1 soal + pertanyaan lanjutan</strong><small>Tentang alasanmu</small></li>
-      <li><Icon name="clock" size={16} /><strong>± {mission.target_duration_minutes} menit</strong><small>Maksimal {mission.max_duration_minutes} menit</small></li>
-      <li><Icon name="lock" size={16} /><strong>Tanpa nilai</strong><small>Tidak ada benar atau salah</small></li>
+      <li><NalaIcon name="message" size={32} /><strong>1 soal + pertanyaan lanjutan</strong><small>Tentang alasanmu</small></li>
+      <li><NalaIcon name="time" size={32} /><strong>± {mission.target_duration_minutes} menit</strong><small>Maksimal {mission.max_duration_minutes} menit</small></li>
+      <li><NalaIcon name="lock" size={32} /><strong>Tanpa nilai</strong><small>Tidak ada benar atau salah</small></li>
     </ul>
     <div className={styles.grid}>
       <section className={styles.card} aria-labelledby="intro-steps">
@@ -100,7 +101,7 @@ export function StudentStartPage({ service, base }: { service: StudentService; b
         <ol>{steps.map(([title, caption], index) => <li key={title}><span aria-hidden="true">{index + 1}</span><div><strong>{title}</strong><small>{caption}</small></div></li>)}</ol>
       </section>
       <section className={styles.notes} aria-labelledby="intro-notes">
-        <div className={styles.notesHead}><Icon name="heart" size={22} /><h2 id="intro-notes">Yang perlu kamu tahu<small>Pesan dari Nala</small></h2></div>
+        <div className={styles.notesHead}><NalaIcon name="care" size={36} /><h2 id="intro-notes">Yang perlu kamu tahu<small>Pesan dari Nala</small></h2></div>
         <ul>{notes.map((note) => <li key={note}>{note}</li>)}</ul>
       </section>
     </div>
