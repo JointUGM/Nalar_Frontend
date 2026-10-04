@@ -53,7 +53,6 @@ export function AdultShell({ children, search = '', onSearch, schoolContext, nav
         {onSearch
           ? <label className={styles.search}><Icon name="search" size={14} /><input aria-label="Cari sekolah" placeholder="Cari…" value={search} onChange={(event) => onSearch(event.target.value)} /></label>
           : <ShellSearch className={styles.search} label="Cari halaman" placeholder="Cari halaman…" targets={pages} />}
-        <button className={styles.notifications} disabled aria-label="Notifikasi belum tersedia"><Icon name="bell" size={16} /></button>
       </header>
       <main ref={contentRef} className={styles.main} id="platform-content" tabIndex={-1}>{children}</main>
     </div>
