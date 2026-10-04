@@ -55,6 +55,10 @@ export class HttpTeacherService implements TeacherService {
     return { job_id: text(record((await this.api.request(`${mission(missionId)}/generate`, { method: 'POST', signal })).data).job_id) }
   }
 
+  async archiveMission(missionId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${mission(missionId)}/archive`, { method: 'POST', signal })
+  }
+
   async missionVersion(missionId: string, number: number, signal?: AbortSignal): Promise<MissionVersion> {
     const value = record((await this.api.request(`${mission(missionId)}/versions/${number}`, { signal })).data), rubric = record(value.rubric)
     return {
