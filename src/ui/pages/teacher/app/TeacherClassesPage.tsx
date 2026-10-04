@@ -4,6 +4,7 @@ import type { ClassStudent } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
@@ -84,7 +85,7 @@ export function TeacherClassesPage({ service, base, schoolId }: { service: Teach
         {missions.length > 0 ? <Select key={chosen} label="Misi yang ditinjau" value={mission} onChange={setPublicationId}
           options={missions.map((item, index) => ({ value: item.id, label: item.mission_title,
             description: `${item.run.mode === 'live' ? 'Langsung' : item.run.mode === 'window' ? 'Jendela waktu' : item.run.mode} · ${({ open: 'Sedang berlangsung', lobby: 'Lobi terbuka', scheduled: 'Belum dimulai', closed: 'Penerimaan ditutup' } as Readonly<Record<string, string>>)[item.run.status] ?? item.run.status}${missions.filter(other => other.mission_title === item.mission_title).length > 1 ? ` · Sesi ${index + 1}` : ''}` }))} />
-          : <div className={styles.noMission}><Icon name="file" size={18} /><div><h3>Belum ada misi di kelas ini</h3><p>Daftar siswa tetap tersedia. Terbitkan misi untuk mulai melihat progresnya.</p></div></div>}
+          : <div className={styles.noMission}><NalaIcon name="file" size={36} /><div><h3>Belum ada misi di kelas ini</h3><p>Daftar siswa tetap tersedia. Terbitkan misi untuk mulai melihat progresnya.</p></div></div>}
         <p className={styles.selectionNote}>{number.format(data.classes.length)} kelas tersedia{missions.length > 0 && ' · Menampilkan percobaan terakhir untuk misi yang dipilih.'}</p>
       </section>
       <section className={styles.roster} aria-labelledby="class-roster-title">

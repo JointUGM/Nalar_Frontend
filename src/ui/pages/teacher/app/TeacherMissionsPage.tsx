@@ -4,6 +4,7 @@ import { publishable, type MissionSummary } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
@@ -87,7 +88,7 @@ export function TeacherMissionsPage({ service, base, schoolId }: { service: Teac
           <div className={styles.columns} aria-hidden="true"><span>Misi dan pembuat</span><span>Versi terakhir</span><span>Tindak lanjut</span></div>
           <ul className={styles.list} aria-label="Misi">{visible.map(mission => <MissionRow key={mission.id} mission={mission} base={base} />)}</ul>
         </>}
-        <p className={styles.note}><Icon name="info" size={14} />Hanya versi yang sudah ditinjau atau terkunci yang dapat diterbitkan ke kelas.</p>
+        <p className={styles.note}><NalaIcon name="info" />Hanya versi yang sudah ditinjau atau terkunci yang dapat diterbitkan ke kelas.</p>
       </>}
     </section>
   </div>

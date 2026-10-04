@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import type { AttentionItem, AttentionPage } from '@/domain/model/Teacher'
 import type { ApiError } from '@/domain/model/ApiError'
 import { Icon } from '@/ui/components/icon/Icon'
-import type { IconName } from '@/ui/components/icon/Icon'
+import { NalaIcon, type NalaIconName } from '@/ui/components/nala/NalaIcon'
 import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
@@ -13,9 +13,9 @@ import styles from '@/ui/pages/teacher/TeacherAttentionQueue.module.css'
 
 type Kind = AttentionItem['kind']
 // Urgency order, the same as the home dashboard: student support first, then verification, material review and release.
-const groups: readonly { kind: Kind; title: string; tab: string; hint: string; icon: IconName; action: string }[] = [
-  { kind: 'safety', title: 'Pendampingan siswa', tab: 'Keselamatan', hint: 'Sesi dijeda untuk keselamatan. Temui siswa lebih dulu.', icon: 'heart', action: 'Dampingi siswa' },
-  { kind: 'flag', title: 'Verifikasi sesi', tab: 'Perlu verifikasi', hint: 'Petunjuk untuk ditinjau, bukan tuduhan. Skor tidak berubah.', icon: 'flag', action: 'Tinjau sesi' },
+const groups: readonly { kind: Kind; title: string; tab: string; hint: string; icon: NalaIconName; action: string }[] = [
+  { kind: 'safety', title: 'Pendampingan siswa', tab: 'Keselamatan', hint: 'Sesi dijeda untuk keselamatan. Temui siswa lebih dulu.', icon: 'care', action: 'Dampingi siswa' },
+  { kind: 'flag', title: 'Verifikasi sesi', tab: 'Perlu verifikasi', hint: 'Petunjuk untuk ditinjau, bukan tuduhan. Skor tidak berubah.', icon: 'verify', action: 'Tinjau sesi' },
   { kind: 'kb_review', title: 'Tinjauan materi', tab: 'Materi', hint: 'Konsep dan miskonsepsi menunggu persetujuan Anda.', icon: 'book', action: 'Tinjau materi' },
   { kind: 'release_ready', title: 'Rilis ke orang tua', tab: 'Siap dirilis', hint: 'Ringkasan siap Anda tinjau sebelum dirilis.', icon: 'send', action: 'Pratinjau rilis' },
 ]
@@ -75,7 +75,7 @@ export function TeacherAttentionPage({ data, error, online, refresh, base }: { d
             <ul className={styles.list}>{items.map(item => {
               const { to, who, summary, student, at } = describe(item, base)
               return <li key={`${item.kind}-${item.item_id}`}><Link className={styles.row} to={to}>
-                <span className={styles.lead} data-person={student} aria-hidden="true">{student ? initials(who) : <Icon name={group.icon} size={20} />}</span>
+                <span className={styles.lead} data-person={student} aria-hidden="true">{student ? initials(who) : <NalaIcon name={group.icon} size={44} />}</span>
                 <span className={styles.body}><strong className={styles.who}>{who}</strong><span className={styles.summary}>{summary}</span><time className={styles.when} dateTime={at}>{item.kind === 'safety' ? 'Dijeda ' : ''}{formatDayTime(at)}</time></span>
                 <span className={styles.action}>{group.action}<Icon name="chevronRight" size={16} /></span>
               </Link></li>

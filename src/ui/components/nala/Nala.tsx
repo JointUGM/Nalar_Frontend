@@ -29,9 +29,11 @@ function Eye({ cx, pose }: { cx: number; pose: Pose }) {
   const [dx, dy] = pose.look
   return <>
     <circle cx={cx} cy="98" r="22" fill="#FFFFFF" />
-    <circle cx={cx + dx * 0.5} cy={98 + dy * 0.5} r={big ? 16 : 14} fill={colors.eye} />
-    <circle cx={cx + dx} cy={98 + dy} r={big ? 11 : 9} fill={colors.ink} />
-    <circle cx={cx + dx - 4} cy={98 + dy - 4} r="3.5" fill="#FFFFFF" />
+    <g data-nala-part="gaze">
+      <circle cx={cx + dx * 0.5} cy={98 + dy * 0.5} r={big ? 16 : 14} fill={colors.eye} />
+      <circle cx={cx + dx} cy={98 + dy} r={big ? 11 : 9} fill={colors.ink} />
+      <circle cx={cx + dx - 4} cy={98 + dy - 4} r="3.5" fill="#FFFFFF" />
+    </g>
   </>
 }
 
@@ -43,30 +45,40 @@ const book = <g>
 </g>
 
 /** The NALAR mascot. Decorative by default (hidden from assistive technology); pass `label` when it carries meaning. */
-export function Nala({ mood = 'hello', size = 120, head = false, label, animate = false }: { mood?: NalaMood; size?: number; head?: boolean; label?: string; animate?: boolean }) {
+export function Nala({ mood = 'hello', size = 120, head = false, label, animate = false, expressive = false }: { mood?: NalaMood; size?: number; head?: boolean; label?: string; animate?: boolean; expressive?: boolean }) {
   const pose = poses[mood]
   const stroke = { fill: 'none', stroke: colors.ink, strokeWidth: 6, strokeLinecap: 'round' as const }
   const beak = <path d="M91 115 Q100 110 109 115 Q105 128 100 132 Q95 128 91 115Z" fill={colors.beak} />
   const play = (name: string) => animate ? styles[name] : undefined
   return <svg className={play('enter')} width={size} height={(head ? size * 126 / 156 : size * 262 / 260).toFixed(1)} viewBox={head ? '22 24 156 126' : '-30 -12 260 262'} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true} style={{ display: 'block', overflow: head ? 'hidden' : 'visible', flexShrink: 0 }}>
-    {!head && <ellipse cx="100" cy="212" rx="56" ry="6" fill={colors.ink} opacity="0.08" />}
-    <g className={head ? undefined : play(pose.motion)}>
+    {!head && <ellipse data-nala-part="shadow" cx="100" cy="212" rx="56" ry="6" fill={colors.ink} opacity="0.08" />}
+    <g data-nala-part="body" className={head ? undefined : play(pose.motion)}>
       <g transform={`rotate(${pose.tilt} 100 130)`}>
         <path d={body} fill={colors.body} stroke={colors.body} strokeWidth="6" strokeLinejoin="round" />
         <ellipse cx="100" cy="166" rx="44" ry="34" fill={colors.belly} />
         <path d="M91 182V173a9 9 0 0 1 18 0V182" fill="none" stroke={colors.body} strokeWidth="5" strokeLinecap="round" />
         <circle cx="100" cy="177" r="3" fill={colors.eye} />
+        <g data-nala-part="face">
         <circle cx="76" cy="98" r="32" fill={colors.face} />
         <circle cx="124" cy="98" r="32" fill={colors.face} />
-        <ellipse cx="58" cy="122" rx="9" ry="5.5" fill={colors.cheek} />
-        <ellipse cx="142" cy="122" rx="9" ry="5.5" fill={colors.cheek} />
+        <g data-nala-part="cheeks"><ellipse cx="58" cy="122" rx="9" ry="5.5" fill={colors.cheek} />
+        <ellipse cx="142" cy="122" rx="9" ry="5.5" fill={colors.cheek} /></g>
         {pose.eyes === 'happy' ? <g {...stroke}><path d="M60 104 Q76 84 92 104" /><path d="M108 104 Q124 84 140 104" /></g>
           : pose.eyes === 'soft' ? <g {...stroke}><path d="M62 98 Q76 109 90 98" /><path d="M110 98 Q124 109 138 98" /></g>
-          : <g className={play('blink')}><Eye cx={76} pose={pose} /><Eye cx={124} pose={pose} /></g>}
-        {pose.brows && <g {...stroke} strokeWidth={5}><path d={pose.brows[0]} /><path d={pose.brows[1]} /></g>}
-        {pose.beak === 'smile' && <path d="M93 124 Q100 138 107 124Z" fill={colors.mouth} />}
-        {pose.beak === 'o' && <ellipse cx="100" cy="127" rx="8" ry="9" fill={colors.mouth} />}
-        {beak}
+          : <g data-nala-part="eyes" className={play('blink')}><Eye cx={76} pose={pose} /><Eye cx={124} pose={pose} /></g>}
+        {expressive && pose.eyes === 'open' && <g data-nala-part="smile-eyes" {...stroke} strokeWidth={5} opacity="0"><path d="M62 101 Q76 84 90 101" /><path d="M110 101 Q124 84 138 101" /></g>}
+        {pose.brows && <g data-nala-part="brows" {...stroke} strokeWidth={5}><path d={pose.brows[0]} /><path d={pose.brows[1]} /></g>}
+        {expressive && !pose.brows && <g data-nala-part="brows" {...stroke} strokeWidth={4}><path d="M65 65Q76 61 87 65M113 65Q124 61 135 65" /></g>}
+        {expressive ? <>
+          <ellipse data-nala-part="mouth" cx="100" cy="125" rx="7" ry="8" fill={colors.mouth} />
+          <path d="M91 115Q100 110 109 115L100 124Z" fill={colors.beak} />
+          <path data-nala-part="jaw" d="M94 126Q100 131 106 126Q103 136 100 138Q97 136 94 126Z" fill={colors.beak} />
+        </> : <>
+          {pose.beak === 'smile' && <path d="M93 124 Q100 138 107 124Z" fill={colors.mouth} />}
+          {pose.beak === 'o' && <ellipse cx="100" cy="127" rx="8" ry="9" fill={colors.mouth} />}
+          {beak}
+        </>}
+        </g>
         <ellipse cx="84" cy="203" rx="13" ry="6" fill={colors.eye} />
         <ellipse cx="116" cy="203" rx="13" ry="6" fill={colors.eye} />
         {pose.prop === 'lens' && <g>
@@ -75,8 +87,8 @@ export function Nala({ mood = 'hello', size = 120, head = false, label, animate 
         </g>}
         {pose.prop === 'sweat' && <path d="M180 62 C186 71 189 77 186 83 C183 88 175 86 175 80 C175 75 178 69 180 62 Z" fill={colors.drop} />}
         {!head && <>
-          <g className={pose.wl === 'wave' ? play('wave') : undefined}><path d={wingPath.left} fill={colors.dark} stroke={colors.dark} strokeWidth="4" strokeLinejoin="round" transform={`rotate(${leftWing[pose.wl]} 38 138)`} /></g>
-          <path d={pose.wr === 'chin' ? wingPath.chin : wingPath.right} fill={colors.dark} stroke={colors.dark} strokeWidth="4" strokeLinejoin="round" transform={`rotate(${rightWing[pose.wr]} 162 138)`} />
+          <g data-nala-part="left-wing" className={pose.wl === 'wave' ? play('wave') : undefined}><path d={wingPath.left} fill={colors.dark} stroke={colors.dark} strokeWidth="4" strokeLinejoin="round" transform={`rotate(${leftWing[pose.wl]} 38 138)`} /></g>
+          <g data-nala-part="right-wing"><path d={pose.wr === 'chin' ? wingPath.chin : wingPath.right} fill={colors.dark} stroke={colors.dark} strokeWidth="4" strokeLinejoin="round" transform={`rotate(${rightWing[pose.wr]} 162 138)`} /></g>
           {pose.prop === 'book' && book}
         </>}
       </g>

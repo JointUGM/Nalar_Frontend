@@ -1,11 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <defs>
-    <linearGradient id="nalarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2B52E8"/>
-      <stop offset="100%" stop-color="#1B38AB"/>
-    </linearGradient>
-  </defs>
-  <rect width="32" height="32" rx="8" fill="url(#nalarGrad)"/>
-  <path d="M7 26.5V15a9 9 0 0 1 18 0v11.5" fill="none" stroke="#FFFFFF" stroke-width="4.8" stroke-linecap="round"/>
-  <circle cx="16" cy="20.5" r="3.2" fill="#F2B23A"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="3 4 26 26">
+  <path d="M5 10.5C5 7 7 5.5 9.5 6.5L13 8.2C15 7.6 17 7.6 19 8.2L22.5 6.5C25 5.5 27 7 27 10.5V19C27 25.5 22.5 29 16 29S5 25.5 5 19Z" fill="#2447D1"/>
+  <g fill="#FCEFD2"><circle cx="11.8" cy="15.5" r="5"/><circle cx="20.2" cy="15.5" r="5"/></g>
+  <g fill="#FFFFFF"><circle cx="11.8" cy="15.5" r="3.5"/><circle cx="20.2" cy="15.5" r="3.5"/></g>
+  <g fill="#F2B23A"><circle cx="11.8" cy="15.8" r="2.6"/><circle cx="20.2" cy="15.8" r="2.6"/></g>
+  <g fill="#15213B"><circle cx="11.8" cy="15.8" r="1.8"/><circle cx="20.2" cy="15.8" r="1.8"/></g>
+  <g fill="#FFFFFF"><circle cx="11.1" cy="15.1" r=".65"/><circle cx="19.5" cy="15.1" r=".65"/></g>
+  <g fill="#F4A98A"><ellipse cx="8.5" cy="19.5" rx="1.7" ry="1"/><ellipse cx="23.5" cy="19.5" rx="1.7" ry="1"/></g>
+  <path d="M14.4 19.7Q16 19 17.6 19.7Q16.8 21.8 16 22.5Q15.2 21.8 14.4 19.7Z" fill="#E7794A"/>
 </svg>

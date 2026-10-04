@@ -4,6 +4,7 @@ import type { TeacherPublication } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { formatDayTime } from '@/ui/formatInstant'
@@ -101,7 +102,7 @@ export function TeacherSessionsPage({ service, base }: { service: TeacherService
         </>}
       </>}
       {!data && error && <NalaEmpty mood="oops" title="Daftar sesi belum tersedia">Gunakan “Coba lagi” di atas untuk memuatnya.</NalaEmpty>}
-      {data && data.length > 0 && <p className={styles.note}><Icon name="info" size={14} />Penerimaan yang ditutup tidak membatalkan tenggat siswa yang sudah mulai.</p>}
+      {data && data.length > 0 && <p className={styles.note}><NalaIcon name="info" />Penerimaan yang ditutup tidak membatalkan tenggat siswa yang sudah mulai.</p>}
     </section>
   </div>
 }

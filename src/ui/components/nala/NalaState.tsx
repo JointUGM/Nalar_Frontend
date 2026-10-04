@@ -12,12 +12,12 @@ export function NalaNote({ mood, text }: { mood: NalaMood; text: string }) {
 }
 
 /** Empty, no-match and unavailable states: Nala, a heading, an explanation and at most one action. */
-export function NalaEmpty({ mood, title, children, action }: { mood: NalaMood; title: string; children?: ReactNode; action?: ReactNode }) {
+export function NalaEmpty({ mood, title, children, action, as: Heading = 'h3' }: { mood: NalaMood; title: string; children?: ReactNode; action?: ReactNode; as?: 'h1' | 'h2' | 'h3' }) {
   return <div className={styles.empty}>
     <div className={styles.emptyInner}>
       <span className={styles.emptyMascot}><Nala mood={mood} size={104} animate /></span>
       <div className={styles.emptyCopy}>
-        <h3>{title}</h3>
+        <Heading>{title}</Heading>
         {children && <p>{children}</p>}
         {action && <div className={styles.emptyAction}>{action}</div>}
       </div>

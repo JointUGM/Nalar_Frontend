@@ -5,6 +5,7 @@ import type { AttentionItem, AttentionPage, DashboardWeek, TeacherDashboard } fr
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { IconName } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { formatDay, formatDayTime } from '@/ui/formatInstant'
@@ -25,10 +26,10 @@ const taskKind = { safety: 'Pendampingan siswa', flag: 'Verifikasi sesi', kb_rev
 function kpis(week: DashboardWeek, last: DashboardWeek) {
   const rate = week.changed_mind_rate, before = last.changed_mind_rate
   return [
-    { icon: 'check' as const, label: 'Sesi selesai', value: number.format(week.sessions_completed), change: change(week.sessions_completed, last.sessions_completed), caption: `Dari ${number.format(week.students)} siswa` },
+    { icon: 'done' as const, label: 'Sesi selesai', value: number.format(week.sessions_completed), change: change(week.sessions_completed, last.sessions_completed), caption: `Dari ${number.format(week.students)} siswa` },
     { icon: 'idea' as const, label: 'Miskonsepsi aktif', value: number.format(week.active_misconceptions), change: change(week.active_misconceptions, last.active_misconceptions), caption: `Di ${number.format(week.concepts_with_misconceptions)} konsep` },
-    { icon: 'message' as const, label: 'Berubah pikiran', value: percent(rate), change: rate === null || before === null ? 'Belum ada pembanding' : change(Math.round(rate * 100), Math.round(before * 100), ' poin'), caption: 'Mengoreksi pemahaman saat sesi' },
-    { icon: 'flag' as const, label: 'Perlu verifikasi', value: number.format(week.open_flags), change: week.open_flags > 0 ? 'Belum ditinjau' : 'Tidak ada catatan terbuka', caption: 'Tidak mengubah skor penalaran' },
+    { icon: 'changed' as const, label: 'Berubah pikiran', value: percent(rate), change: rate === null || before === null ? 'Belum ada pembanding' : change(Math.round(rate * 100), Math.round(before * 100), ' poin'), caption: 'Mengoreksi pemahaman saat sesi' },
+    { icon: 'verify' as const, label: 'Perlu verifikasi', value: number.format(week.open_flags), change: week.open_flags > 0 ? 'Belum ditinjau' : 'Tidak ada catatan terbuka', caption: 'Tidak mengubah skor penalaran' },
   ]
 }
 
@@ -95,7 +96,7 @@ export function TeacherHomePage({ service, base, schoolId, user, attention }: { 
       <LiveFeedback error={error} online={online} refresh={refresh} />
       {!data && !error && <div role="status" className={styles.loading}><span>Memuat ringkasan…</span><div className={styles.skeleton} aria-hidden="true">{Array.from({ length: 4 }, (_, index) => <div key={index} />)}</div></div>}
       {data && <>
-        <ul className={styles.kpis} aria-label="Ringkasan minggu ini">{kpis(data.this_week, data.last_week).map((kpi) => <li key={kpi.label}><span className={styles.label}><Icon name={kpi.icon} size={16} />{kpi.label}</span><strong className={styles.value}>{kpi.value}</strong><span className={styles.comparison}>{kpi.change}</span><span className={styles.caption}>{kpi.caption}</span></li>)}</ul>
+        <ul className={styles.kpis} aria-label="Ringkasan minggu ini">{kpis(data.this_week, data.last_week).map((kpi) => <li key={kpi.label}><span className={styles.label}><NalaIcon name={kpi.icon} />{kpi.label}</span><strong className={styles.value}>{kpi.value}</strong><span className={styles.comparison}>{kpi.change}</span><span className={styles.caption}>{kpi.caption}</span></li>)}</ul>
         {data.this_week.sessions_completed === 0 && <div className={styles.empty}><div><strong>Belum ada sesi selesai minggu ini.</strong><p>Hasil akan terisi setelah siswa menyelesaikan misi dan evaluasi tersedia.</p></div><Link to={`${base}/sessions`}>Lihat sesi<Icon name="chevronRight" size={16} /></Link></div>}
       </>}
     </section>
@@ -104,7 +105,7 @@ export function TeacherHomePage({ service, base, schoolId, user, attention }: { 
     {data && <>
       <Trend trend={data.trend} />
       <section className={sections.changedPanel} aria-labelledby="home-changed"><div className={sections.head}><div><h2 id="home-changed">Berubah pikiran minggu ini</h2><p>Miskonsepsi yang siswa koreksi sendiri saat berdialog.</p></div>{data.top_changed.length > 0 && <Nala mood="proud" size={64} />}</div>
-        {data.top_changed.length === 0 ? <p className={sections.empty}>Belum ada perubahan pikiran minggu ini.</p> : <ol className={sections.changed}>{data.top_changed.map((item) => <li key={item.misconception_id}><span className={sections.conceptIcon} aria-hidden="true"><Icon name="idea" size={20} /></span><div><h3>“{item.statement}”</h3><p><strong><Icon name="check" size={14} />{number.format(item.resolved)} siswa berubah pikiran</strong><span>dari {number.format(item.held)} siswa yang awalnya memegang miskonsepsi ini.</span></p></div></li>)}</ol>}
+        {data.top_changed.length === 0 ? <p className={sections.empty}>Belum ada perubahan pikiran minggu ini.</p> : <ol className={sections.changed}>{data.top_changed.map((item) => <li key={item.misconception_id}><span className={sections.conceptIcon}><NalaIcon name="idea" size={44} /></span><div><h3>“{item.statement}”</h3><p><strong><Icon name="check" size={14} />{number.format(item.resolved)} siswa berubah pikiran</strong><span>dari {number.format(item.held)} siswa yang awalnya memegang miskonsepsi ini.</span></p></div></li>)}</ol>}
         <Link className={sections.link} to={`${base}/sessions`}>Jelajahi hasil kelas<Icon name="chevronRight" size={16} /></Link>
       </section>
     </>}

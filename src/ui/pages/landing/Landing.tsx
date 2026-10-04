@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { NalaMascot, type MascotPose } from '@/ui/components/mascot/NalaMascot'
+import { Nala } from '@/ui/components/nala/Nala'
 import styles from './Landing.module.css'
 
 /* ─────────────────────────────────────────────────────────
@@ -195,29 +196,6 @@ const STEPS = [
 /* ─────────────────────────────────────────────────────────
    Main Component
    ───────────────────────────────────────────────────────── */
-const NALA_EXPRESSIONS: { pose: MascotPose; speech: string }[] = [
-  {
-    pose: 'waving',
-    speech: 'Halo! Aku Nala 👋 Siap berdialog?',
-  },
-  {
-    pose: 'thinking',
-    speech: 'Hmm… apa alasan di balik argumenmu? 🤔',
-  },
-  {
-    pose: 'asking',
-    speech: 'Apa yang membuatmu yakin dengan hal itu? ❓',
-  },
-  {
-    pose: 'proud',
-    speech: 'Penalaranmu runtut dan mandiri! 🌟',
-  },
-  {
-    pose: 'calm',
-    speech: 'Tenang, fokus pada alur logikamu ya 🧘',
-  },
-]
-
 const NAV_ITEMS = [
   { id: 'beranda', label: 'Beranda' },
   { id: 'cara-kerja', label: 'Cara Kerja' },
@@ -230,7 +208,6 @@ const NAV_ITEMS = [
 export function Landing() {
   const [scrolled, setScrolled] = useState(false)
   const [activeNav, setActiveNav] = useState('beranda')
-  const [expressionIndex, setExpressionIndex] = useState(0)
   const [activeSubject, setActiveSubject] = useState<'fisika' | 'biologi' | 'matematika'>('fisika')
   const [dialogStep, setDialogStep] = useState(2)
   const [selectedStudentDot, setSelectedStudentDot] = useState<number | null>(4)
@@ -276,20 +253,6 @@ export function Landing() {
     handleScrollSpy()
     return () => window.removeEventListener('scroll', handleScrollSpy)
   }, [])
-
-  // Otomatis berganti ekspresi Nala setiap 4 detik
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setExpressionIndex((prev) => (prev + 1) % NALA_EXPRESSIONS.length)
-    }, 4000)
-    return () => clearInterval(timer)
-  }, [])
-
-  const currentExpression = NALA_EXPRESSIONS[expressionIndex]
-
-  const handleNextExpression = () => {
-    setExpressionIndex((prev) => (prev + 1) % NALA_EXPRESSIONS.length)
-  }
 
   const currentSubjectData = DIALOG_SUBJECTS[activeSubject]
 
@@ -346,12 +309,6 @@ export function Landing() {
             HERO SECTION
             ═════════════════════════════════════════════════════════════ */}
         <section id="beranda" className={styles.hero} aria-labelledby="hero-title">
-          {/* Ambient soft brand glows */}
-          <div className={styles.heroBg} aria-hidden="true">
-            <div className={styles.ambientBlobBlue} />
-            <div className={styles.ambientBlobAmber} />
-          </div>
-
           {/* Left Column: Heading & Copy */}
           <div className={styles.heroLeft}>
 
@@ -426,57 +383,11 @@ export function Landing() {
             </div>
           </div>
 
-          {/* Right Column: Clean, spacious Mascot Stage with Zero Clutter */}
           <div className={styles.heroRight}>
-            <div className={styles.heroVisualStage}>
-              {/* Harmonious brand circle backdrop */}
-              <div className={styles.backdropCircle} aria-hidden="true" />
-
-              {/* Floating Badge 1 (Top Left) */}
-              <div className={`${styles.floatingBadge} ${styles.badgeTopLeft}`}>
-                <div className={`${styles.badgeIconBox} ${styles.badgeIconBlue}`} aria-hidden="true">
-                  📖
-                </div>
-                <div className={styles.badgeContent}>
-                  <span className={styles.badgeNumber}>1.200+</span>
-                  <span className={styles.badgeLabel}>Sesi &amp; Misi Aktif</span>
-                </div>
-              </div>
-
-              {/* Floating Badge 2 (Bottom Left) */}
-              <div className={`${styles.floatingBadge} ${styles.badgeBottomLeft}`}>
-                <div className={`${styles.badgeIconBox} ${styles.badgeIconAmber}`} aria-hidden="true">
-                  👥
-                </div>
-                <div className={styles.badgeContent}>
-                  <span className={styles.badgeNumber}>30.000+</span>
-                  <span className={styles.badgeLabel}>Siswa Berdialog</span>
-                </div>
-              </div>
-
-              {/* Floating Badge 3 (Middle Right) */}
-              <div className={`${styles.floatingBadge} ${styles.badgeRight}`}>
-                <div className={`${styles.badgeIconBox} ${styles.badgeIconGreen}`} aria-hidden="true">
-                  🛡️
-                </div>
-                <div className={styles.badgeContent}>
-                  <span className={styles.badgeNumber}>100%</span>
-                  <span className={styles.badgeLabel}>Kontrol Penuh Guru</span>
-                </div>
-              </div>
-
-              {/* The Mascot Nala Centerpiece */}
-              <div className={styles.mascotStageWrap}>
-                <NalaMascot
-                  pose={currentExpression.pose}
-                  size={320}
-                  floating={true}
-                  interactive={true}
-                  speechBubble={currentExpression.speech}
-                  onMascotClick={handleNextExpression}
-                  alt="Nala, maskot interaktif asisten penalaran siswa. Klik untuk ganti ekspresi!"
-                />
-              </div>
+            <div className={styles.heroNala}>
+              <p>Apa yang membuatmu penasaran?</p>
+              <Nala mood="ask" size={360} />
+              <p>Satu pertanyaan. Banyak kemungkinan.</p>
             </div>
           </div>
         </section>

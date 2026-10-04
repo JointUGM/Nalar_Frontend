@@ -10,7 +10,7 @@
 .heroStart { min-block-size: 48px; font-size: 14px; }
 .mascot { flex: 0 0 auto; align-self: center; }
 .joinCard { display: flex; flex-direction: column; align-items: flex-start; padding: 24px; border: 1px solid var(--color-border); border-radius: var(--radius-student-card); background: var(--color-surface); }
-.joinIcon { display: grid; place-items: center; inline-size: 44px; block-size: 44px; border-radius: 14px; background: var(--color-info-bg); color: var(--color-primary-hover); }
+.joinIcon { display: grid; place-items: center; inline-size: 44px; block-size: 44px; }
 .joinCard h2 { margin: 16px 0 8px; font-size: 18px; line-height: 1.4; letter-spacing: -.02em; }
 .joinCard p { margin: 0 0 16px; font-size: 14px; line-height: 1.6; }
 .joinCard a { margin-block-start: auto; min-block-size: 44px; inline-size: 100%; padding-inline: 10px; font-size: 13px; }

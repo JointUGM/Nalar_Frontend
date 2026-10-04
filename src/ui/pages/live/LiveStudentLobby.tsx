@@ -4,6 +4,7 @@ import type { LiveService } from '@/domain/services/LiveService'
 import { LiveError } from '@/domain/model/Live'
 import type { LiveJoin } from '@/domain/model/Live'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { LiveFeedback } from './LiveFrame'
 import { lobbyPollMs, useCommandSignal, useLiveResource } from './useLiveResource'
@@ -40,7 +41,7 @@ export function LiveStudentLobby({ service, runId, base, user }: { service: Live
   return <div className={styles.page}>
     <LiveFeedback error={resource.error ?? error} online={resource.online} refresh={resource.refresh} loading={!state && !resource.error} />
     {state && <>
-      {!closed && <p className={styles.welcome}><Icon name="check" size={16} />Kamu sudah masuk. Selamat datang, {user.split(' ')[0]}!</p>}
+      {!closed && <p className={styles.welcome}><NalaIcon name="done" />Kamu sudah masuk. Selamat datang, {user.split(' ')[0]}!</p>}
       <div className={styles.grid}>
         <section className={styles.panel} aria-labelledby="lobby-title">
           <div>

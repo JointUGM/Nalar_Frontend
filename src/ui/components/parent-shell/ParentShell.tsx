@@ -4,6 +4,7 @@ import { Link, NavLink, useLocation } from 'react-router'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Icon } from '@/ui/components/icon/Icon'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { IconName } from '@/ui/components/icon/Icon'
 import { useParentContext } from './useParentContext'
 import styles from './ParentShell.module.css'
@@ -46,6 +47,8 @@ export function ParentShell({ title, user, nav, home, children }: { title: strin
 
   // On a phone the sidebar is hidden, so signing out has to live in the drawer too.
   const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label="Keluar" onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
+  // Parents mostly open this on a phone, so the three places live in a thumb-reach bar there; the drawer keeps the child picker and sign-out.
+  const tabs = <nav className={styles.tabbar} aria-label="Menu utama">{nav.filter((entry) => entry.to).map((entry) => <NavLink key={entry.label} to={entry.to ?? home} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined}><span className={styles.tabIcon}><Icon name={entry.icon} size={22} /></span>{entry.label}</NavLink>)}</nav>
   return <div className={styles.shell} data-collapsed={collapsed}>
     <a className={styles.skipLink} href="#parent-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>
@@ -56,7 +59,7 @@ export function ParentShell({ title, user, nav, home, children }: { title: strin
       {menu}
       <div className={styles.spacer} />
       <div className={[styles.reminder, styles.label].join(' ')} role="note" aria-label="Privasi anak">
-        <p><Icon name="lock" size={14} />Privasi anak</p>
+        <p><NalaIcon name="lock" />Privasi anak</p>
         <p>Anda hanya melihat ringkasan yang sudah dirilis guru. Tanpa skor dan tanpa perbandingan dengan teman sekelas.</p>
       </div>
       <div className={styles.user}>
@@ -76,6 +79,7 @@ export function ParentShell({ title, user, nav, home, children }: { title: strin
       </header>
       <main ref={contentRef} className={styles.main} id="parent-content" tabIndex={-1}>{children}</main>
     </div>
+    {tabs}
     <Dialog open={drawerOpen} onClose={close} title="Menu orang tua" description={`${user} · ${child ? child.name : 'belum ada anak tertaut'}`} presentation="drawer"><div className={styles.drawerNav}>{menu}{signOut}</div></Dialog>
   </div>
 }
