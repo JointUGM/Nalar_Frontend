@@ -13,6 +13,8 @@ import styles from './AdultShell.module.css'
 const platformLinks: readonly { label: string; icon: IconName; to: string }[] = [
   { label: 'Sekolah', icon: 'school', to: '/platform/schools' },
   { label: 'Capaian Pembelajaran', icon: 'book', to: '/platform/cp-versions' },
+  { label: 'Pemakaian AI', icon: 'graph', to: '/platform/ai-usage' },
+  { label: 'Log audit', icon: 'lock', to: '/platform/audit-log' },
 ]
 
 // Without `nav` this is the platform admin shell; the school admin passes its `nav` and `schoolContext`.
@@ -28,8 +30,7 @@ export function AdultShell({ children, search = '', onSearch, schoolContext, nav
   const active = activeNavTarget(location.pathname, links)
   const navigation = <nav className={styles.navigation} aria-label={nav ? 'Navigasi Admin Sekolah' : 'Navigasi Admin Platform'}>{links.map((item) => <Link key={item.to} to={item.to} state={{ focusPlatformContent: true }} aria-current={item.to === active ? 'page' : undefined} className={item.to === active ? styles.active : undefined} onClick={() => setDrawerOpen(false)}><Icon name={item.icon} /><span>{item.label}</span></Link>)}</nav>
 
-  const pages: SearchTarget[] = (nav ? nav.map((item): [string, string] => [item.label, item.to]) : [['Sekolah', '/platform/schools'], ['Capaian Pembelajaran', '/platform/cp-versions']]
-  ).map(([label, to]) => ({ label, hint: 'Halaman', to }))
+  const pages: SearchTarget[] = links.map((item) => ({ label: item.label, hint: 'Halaman', to: item.to }))
 
   // Signing out must stay reachable wherever the sidebar is not: on a phone the navigation lives in the drawer.
   const initials = schoolContext?.admin.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
