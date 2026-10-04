@@ -25,6 +25,7 @@ export interface Released { released_to_parents_at: string; summary_count: numbe
 
 export interface TeacherAssignment { school_id: string; class_id: string; class_name: string; grade_level: number; school_subject_id: string; subject_name: string }
 export interface MissionSummary { id: string; title: string; knowledge_base_id: string; can_edit: boolean; created_by_name: string | null; latest_version: { id: string; version_number: number; status: string } | null }
+export interface PublicationWindow { opens_at: string; closes_at: string }
 export interface PublishInput { class_id: string; mission_version_id: string; mode: 'live' | 'window'; opens_at?: string; closes_at?: string }
 export interface Published { publication_id: string; run_id: string; run_status: string }
 // Only a reviewed version can be published; publishing locks it, and a locked one can still go to another class.

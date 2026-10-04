@@ -1,5 +1,5 @@
 import { ApiError, resourceId } from '@/domain/model/ApiError'
-import type { AttemptGrantInput, FlagDecision, MissionInput, MissionVersionDraft, PublishInput, SafetyAction } from '@/domain/model/Teacher'
+import type { AttemptGrantInput, FlagDecision, MissionInput, MissionVersionDraft, PublicationWindow, PublishInput, SafetyAction } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 
 function required(value: string, max: number): string {
@@ -40,6 +40,12 @@ export class TeacherUseCases implements TeacherService {
     if (!Number.isFinite(opens) || !Number.isFinite(closes) || opens >= closes) throw new ApiError(422, 'INVALID_WINDOW')
     return this.service.publish({ ...base, mode: 'window', opens_at: input.opens_at, closes_at: input.closes_at }, signal)
   }
+  editWindow(publicationId: string, window: PublicationWindow, signal?: AbortSignal) {
+    const opens = Date.parse(window.opens_at), closes = Date.parse(window.closes_at)
+    if (!Number.isFinite(opens) || !Number.isFinite(closes) || opens >= closes) throw new ApiError(422, 'INVALID_WINDOW')
+    return this.service.editWindow(resourceId(publicationId), { opens_at: window.opens_at, closes_at: window.closes_at }, signal)
+  }
+  cancelPublication(publicationId: string, signal?: AbortSignal) { return this.service.cancelPublication(resourceId(publicationId), signal) }
   report(sessionId: string, signal?: AbortSignal) { return this.service.report(resourceId(sessionId), signal) }
   attention(schoolId: string, signal?: AbortSignal) { return this.service.attention(resourceId(schoolId), signal) }
   classStudents(classId: string, publicationId: string | null, signal?: AbortSignal) { return this.service.classStudents(resourceId(classId), publicationId === null ? null : resourceId(publicationId), signal) }

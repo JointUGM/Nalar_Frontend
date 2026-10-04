@@ -1,4 +1,4 @@
-import type { AttemptGrantInput, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import type { AttemptGrantInput, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 
 export interface TeacherService {
   publications(signal?: AbortSignal): Promise<TeacherPublication[]>
@@ -10,6 +10,9 @@ export interface TeacherService {
   saveMissionVersion(missionId: string, draft: MissionVersionDraft, signal?: AbortSignal): Promise<{ version_number: number }>
   reviewMissionVersion(missionId: string, number: number, signal?: AbortSignal): Promise<void>
   publish(input: PublishInput, signal?: AbortSignal): Promise<Published>
+  // Both only while no student has started and nothing is released; the backend refuses otherwise.
+  editWindow(publicationId: string, window: PublicationWindow, signal?: AbortSignal): Promise<void>
+  cancelPublication(publicationId: string, signal?: AbortSignal): Promise<void>
   classMap(publicationId: string, signal?: AbortSignal): Promise<ClassMap>
   report(sessionId: string, signal?: AbortSignal): Promise<SessionReport>
   attention(schoolId: string, signal?: AbortSignal): Promise<AttentionPage>

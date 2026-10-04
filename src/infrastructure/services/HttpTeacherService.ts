@@ -1,4 +1,4 @@
-import type { AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import type { AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 import { ApiError } from '@/domain/model/ApiError'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
@@ -90,6 +90,15 @@ export class HttpTeacherService implements TeacherService {
     const body: Schemas['PublishIn'] = { class_id: input.class_id, mission_version_id: input.mission_version_id, run: { mode: input.mode, ...(input.mode === 'window' ? { opens_at: input.opens_at, closes_at: input.closes_at } : {}) } }
     const value = record((await this.api.request('/publications', { method: 'POST', body, signal })).data)
     return { publication_id: text(value.publication_id), run_id: text(value.run_id), run_status: text(value.run_status) } satisfies Schemas['PublishOut']
+  }
+
+  async editWindow(publicationId: string, window: PublicationWindow, signal?: AbortSignal): Promise<void> {
+    const body: Schemas['PublicationWindowIn'] = window
+    await this.api.request(publication(publicationId), { method: 'PATCH', body, signal })
+  }
+
+  async cancelPublication(publicationId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${publication(publicationId)}/cancel`, { method: 'POST', signal })
   }
 
   async classMap(publicationId: string, signal?: AbortSignal): Promise<ClassMap> {
