@@ -10,6 +10,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/parent/ParentReflections.module.css'
 import { parentPaths } from './parentPaths'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const jakarta = 'Asia/Jakarta'
 const month = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric', timeZone: jakarta })
@@ -50,7 +51,7 @@ export function ParentReflectionsPage({ service }: { service: ParentService }) {
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {loading && <>
-      <p role="status" className={styles.loading}>Memuat refleksi {first}…</p>
+      <Loading label={`Memuat refleksi ${first}…`} />
       <div className={styles.skeleton} aria-hidden="true"><span /><span /><span /></div>
     </>}
     {data && data.length === 0 && <section className={styles.panel}><NalaEmpty mood="calm" title="Belum ada refleksi yang dirilis">Refleksi {first} muncul di sini setelah guru merilisnya.</NalaEmpty></section>}

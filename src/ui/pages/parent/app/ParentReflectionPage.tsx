@@ -12,6 +12,7 @@ import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/parent/ParentReflection.module.css'
 import { ConversationCard } from './ConversationCard'
 import { parentPaths } from './parentPaths'
+import { Loading } from '@/ui/components/loading/Loading'
 
 export function ParentReflectionPage({ service }: { service: ParentService }) {
   const { sessionId = '' } = useParams()
@@ -23,7 +24,7 @@ export function ParentReflectionPage({ service }: { service: ParentService }) {
   const ordered = data ? [...data].sort((a, b) => Date.parse(b.completed_at) - Date.parse(a.completed_at)) : []
   const index = ordered.findIndex((item) => item.session_id === sessionId)
   const reflection = ordered[index]
-  if (child && !data && !error) return <div className={styles.content}><p role="status" className={styles.loading}>Memuat refleksi…</p></div>
+  if (child && !data && !error) return <div className={styles.content}><Loading label="Memuat refleksi…" /></div>
   if (!child || !reflection) return <div className={styles.content}>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!error && <section className={styles.panel}><NalaEmpty mood="search" title="Refleksi ini tidak tersedia" action={<Link className={styles.back} to={parentPaths.reflections}>Kembali ke semua refleksi</Link>}>Pilih refleksi dari daftar refleksi yang sudah dirilis.</NalaEmpty></section>}

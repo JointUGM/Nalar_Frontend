@@ -4,6 +4,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Field } from '@/ui/components/field/Field'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
+import { Loading } from '@/ui/components/loading/Loading'
 import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { NalaMood } from '@/ui/components/nala/Nala'
 import type { AccountDependencies } from './AccountDependencies'
@@ -61,7 +62,7 @@ export function Login({ dependencies }: { dependencies: AccountDependencies | nu
     <section className={styles.account} aria-label="Akun NALAR">
       <div className={styles.content} id="account-form" tabIndex={-1}>
         <div className={styles.cardHeader}>
-          {view.phase === 'checking' && <><h1>Memeriksa sesi…</h1><p role="status">Tunggu sebentar.</p></>}
+          {view.phase === 'checking' && <Loading label="Memeriksa sesi…" />}
           {view.phase === 'check-failed' && <><h1>Sesi belum dapat diperiksa</h1><p>Coba lagi untuk memeriksa sesi masuk Anda.</p></>}
           {view.phase === 'signed-in' && <><h1>Anda sudah masuk</h1><p>Selamat datang kembali di Nalar.</p></>}
           {view.phase === 'signed-out' && <><h1>Selamat datang<br />di Nalar.</h1><p>Masuk dengan akunmu. Ada ruang untuk setiap rasa ingin tahu.</p></>}

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Link, NavLink, useLocation } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Icon } from '@/ui/components/icon/Icon'
+import { activeNavTarget } from '@/ui/components/navigation/activeNav'
 import { NalaAvatar, NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { IconName } from '@/ui/components/icon/Icon'
 import { useParentContext } from './useParentContext'
@@ -35,8 +36,9 @@ export function ParentShell({ title, user, nav, home, children }: { title: strin
         {item.id === child?.id && <span className={styles.kidCheck} aria-hidden="true"><Icon name="check" size={14} /></span>}
       </button>
     </li>)}</ul>
+  const active = activeNavTarget(location.pathname, nav)
   const navigation = <nav className={styles.navigation} aria-label="Menu orang tua">{nav.map((entry) => entry.to
-    ? <NavLink key={entry.label} to={entry.to} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</NavLink>
+    ? <Link key={entry.label} to={entry.to} state={{ focusPlatformContent: true }} aria-current={entry.to === active ? 'page' : undefined} className={entry.to === active ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</Link>
     : <button key={entry.label} type="button" disabled title={unavailable}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span></button>)}</nav>
   const menu = <>
     <p className={styles.group}>Anak</p>
@@ -48,7 +50,7 @@ export function ParentShell({ title, user, nav, home, children }: { title: strin
   // On a phone the sidebar is hidden, so signing out has to live in the drawer too.
   const signOut = <nav className={styles.navigation} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label="Keluar" onClick={close}><Icon name="logout" /><span className={styles.label}>Keluar</span></Link></nav>
   // Parents mostly open this on a phone, so the three places live in a thumb-reach bar there; the drawer keeps the child picker and sign-out.
-  const tabs = <nav className={styles.tabbar} aria-label="Menu utama">{nav.filter((entry) => entry.to).map((entry) => <NavLink key={entry.label} to={entry.to ?? home} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined}><span className={styles.tabIcon}><Icon name={entry.icon} size={22} /></span>{entry.label}</NavLink>)}</nav>
+  const tabs = <nav className={styles.tabbar} aria-label="Menu utama">{nav.filter((entry) => entry.to).map((entry) => <Link key={entry.label} to={entry.to ?? home} state={{ focusPlatformContent: true }} aria-current={entry.to === active ? 'page' : undefined} className={entry.to === active ? styles.active : undefined}><span className={styles.tabIcon}><Icon name={entry.icon} size={22} /></span>{entry.label}</Link>)}</nav>
   return <div className={styles.shell} data-collapsed={collapsed}>
     <a className={styles.skipLink} href="#parent-content">Lewati ke konten</a>
     <aside className={styles.sidebar}>

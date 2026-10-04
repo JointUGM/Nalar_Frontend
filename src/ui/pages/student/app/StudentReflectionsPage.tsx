@@ -10,6 +10,7 @@ import { formatDay } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/student/StudentReflections.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const excerpt = (text: string) => text.length > 180 ? `${text.slice(0, 177).trimEnd()}…` : text
 
@@ -26,7 +27,7 @@ export function StudentReflectionsPage({ service, base }: { service: StudentServ
       <Nala mood="read" size={148} />
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status" className={styles.loading}>Memuat refleksimu…</p>}
+    {!data && !error && <Loading label="Memuat refleksimu…" />}
     {data && data.length === 0 && <div className={styles.empty}><Feedback title="Belum ada refleksi">Refleksi muncul di sini setelah kamu menyelesaikan sebuah misi.</Feedback><ButtonLink to={base}>Lihat Misi saya<Icon name="chevronRight" size={14} /></ButtonLink></div>}
     {data && data.length > 0 && <>
       <div className={styles.toolbar}><p role="status">{query ? `${filtered.length} dari ${data.length}` : data.length} refleksi</p><label className={styles.search}><Icon name="search" size={18} /><span className={styles.hidden}>Cari refleksi</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari misi atau cerita…" /></label></div>

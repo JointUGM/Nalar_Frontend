@@ -154,6 +154,19 @@ describe('production identity and route boundary', () => {
     expect(screen.queryByText('Sekolah B')).not.toBeInTheDocument()
   })
 
+  it('keeps the checked context mounted when moving between pages of the same role and school', async () => {
+    const access = createAccess()
+    render(<MemoryRouter initialEntries={['/teacher/00000000-0000-4000-8000-000000000002']}>
+      <Link to="/teacher/00000000-0000-4000-8000-000000000002/classes">Kelas</Link>
+      <AppRoutes accountEntry={<Login dependencies={access.dependencies} />} privateEntry={<ProtectedRole dependencies={access.dependencies} />} />
+    </MemoryRouter>)
+    await screen.findByRole('heading', { name: 'Halaman peran belum tersedia' })
+    await userEvent.setup().click(screen.getByRole('link', { name: 'Kelas' }))
+    expect(screen.getByRole('heading', { name: 'Halaman peran belum tersedia' })).toBeInTheDocument()
+    expect(screen.queryByRole('status', { name: /Memeriksa akses/ })).not.toBeInTheDocument()
+    expect(access.identityRead).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps the Auth session during /me outage and retries without exposing a role', async () => {
     const access = createAccess()
     access.identityRead.mockRejectedValueOnce(new OperationError('unavailable')).mockResolvedValue(identity)

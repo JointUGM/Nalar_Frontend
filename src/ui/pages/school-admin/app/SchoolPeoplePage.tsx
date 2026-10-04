@@ -13,6 +13,7 @@ import { PersonLinks } from './PersonLinks'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import styles from '@/ui/pages/school-admin/SchoolPeople.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const roles: readonly [PeopleRole, string][] = [['student', 'Siswa'], ['teacher', 'Guru'], ['parent', 'Orang tua'], ['school_admin', 'Admin sekolah']]
 const stateWord: Readonly<Record<string, string>> = { active: 'Aktif', inactive: 'Nonaktif', pending_activation: 'Menunggu aktivasi' }
@@ -52,7 +53,7 @@ export function SchoolPeoplePage({ service, schoolId }: { service: SchoolAdminUs
     {message && <Feedback tone="success" title={message} announce />}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     <section id="people-panel" role="tabpanel" aria-label={label} tabIndex={0}>
-      {!data && !error && <p role="status">Memuat daftar…</p>}
+      {!data && !error && <Loading label="Memuat daftar…" />}
       {data && (data.items.length ? <div className={styles.card}><table className={styles.table}>
         <caption className={styles.hidden}>Daftar {label.toLocaleLowerCase('id-ID')}</caption>
         <thead><tr><th scope="col">Nama</th><th scope="col">{role === 'student' ? 'NISN' : 'Email'}</th><th scope="col">Kelas</th><th scope="col">Status</th><th scope="col"><span className={styles.hidden}>Tindakan</span></th></tr></thead>

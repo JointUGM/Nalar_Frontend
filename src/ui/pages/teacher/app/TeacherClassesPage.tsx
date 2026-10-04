@@ -11,6 +11,7 @@ import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherClasses.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const statusWord: Readonly<Record<string, string>> = { not_started: 'Belum mulai', in_progress: 'Sedang mengerjakan', paused_safety: 'Dijeda', completed: 'Selesai', timed_out: 'Waktu habis', ended_safety: 'Diakhiri' }
 const filters = [['all', 'Semua siswa'], ['not_started', 'Belum mulai'], ['in_progress', 'Mengerjakan'], ['completed', 'Selesai'], ['flagged', 'Perlu verifikasi']] as const
@@ -27,8 +28,8 @@ function companion(classes: number | null, failed: boolean): [NalaMood, string] 
 }
 
 function LoadingRoster({ classes = false }: { classes?: boolean }) {
-  return <div className={styles.loading} role="status">
-    <p>{classes ? 'Memuat kelas…' : 'Memuat daftar siswa…'}</p>
+  return <div className={styles.loading}>
+    <Loading label={classes ? 'Memuat kelas…' : 'Memuat daftar siswa…'} />
     <div className={styles.skeleton} aria-hidden="true">{[0, 1, 2].map(key => <div key={key}><span /><span /><span /></div>)}</div>
   </div>
 }

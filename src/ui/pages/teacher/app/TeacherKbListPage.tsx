@@ -11,6 +11,7 @@ import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherKbLibrary.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const state = (topic: KbSummary) => topic.pending_count > 0 ? 'review' : topic.approved_concept_count > 0 ? 'approved' : 'empty'
 const filters = [['all', 'Semua topik'], ['review', 'Perlu tinjauan'], ['approved', 'Siap dipakai'], ['empty', 'Belum ada konsep']] as const
@@ -48,7 +49,7 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
     <LiveFeedback error={error} online={online} refresh={refresh} />
     <section className={styles.library} aria-labelledby="topic-library-title">
       <div className={styles.libraryHead}><h2 id="topic-library-title">Pustaka materi ajar</h2>{data && <span>{number.format(data.length)} topik dimuat</span>}</div>
-      {!data && !error && <p className={styles.loading} role="status">Memuat basis pengetahuan…</p>}
+      {!data && !error && <Loading label="Memuat basis pengetahuan…" />}
       {!data && error && <NalaEmpty mood="oops" title="Basis pengetahuan belum dapat ditampilkan">Coba muat ulang melalui pilihan di atas.</NalaEmpty>}
       {data && data.length === 0 && <NalaEmpty mood="ask" title="Belum ada basis pengetahuan" action={<ButtonLink tone="secondary" className={styles.emptyAction} to={`${base}/knowledge-base/upload`}><Icon name="upload" size={16} />Unggah materi pertama</ButtonLink>}>
         Unggah materi ajar (PDF) untuk memulai topik pertama.

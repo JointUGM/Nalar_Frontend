@@ -15,6 +15,7 @@ import styles from '@/ui/pages/teacher/TeacherKbReview.module.css'
 import { JobNotice } from './JobNotice'
 import { KbNewItem } from './KbNewItem'
 import { buildWord, kbRefusal, reviewWord } from './kbText'
+import { Loading } from '@/ui/components/loading/Loading'
 
 interface Loaded { detail: KbDetail; sections: KbSection[]; queue: KbReviewQueue }
 // Lists are edited one entry per line.
@@ -48,7 +49,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const [failure, setFailure] = useState<ApiError | null>(null)
   const back = <Link className={styles.back} to={`${base}/knowledge-base`}><Icon name="chevronLeft" size={14} />Basis pengetahuan</Link>
 
-  if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <p role="status">Memuat basis pengetahuan…</p>}</div>
+  if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat basis pengetahuan…" />}</div>
   const { detail, sections, queue } = data
   const canEdit = detail.can_edit
   const waiting = queue.pending_concepts + queue.pending_misconceptions
