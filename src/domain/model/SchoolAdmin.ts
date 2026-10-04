@@ -23,6 +23,10 @@ export interface LinkedPerson { user_id: string; full_name: string }
 export interface Person { user_id: string; full_name: string; role: string; nisn: string | null; email: string | null; class_name: string | null; account_state: string; linked_parents: LinkedPerson[]; linked_children: LinkedPerson[] }
 export interface PeoplePage { items: Person[]; next_cursor: string | null; total: number }
 export interface PersonEdit { full_name?: string; class_id?: string }
+// One account added by hand; the roster import stays the way to add many. Invitations are sent from the invitations page, never here.
+export type NewPersonRole = 'student' | 'teacher' | 'parent'
+export type Relationship = 'ayah' | 'ibu' | 'wali'
+export interface NewPerson { full_name: string; role: NewPersonRole; email?: string; nisn?: string; class_id?: string; child_ids: string[]; relationship?: Relationship }
 export interface SchoolClass { class_id: string; name: string; grade_level: number; academic_year_id: string; homeroom_teacher_id: string | null; student_count: number }
 export interface ClassDraft { name: string; grade_level: number; homeroom_teacher_id: string | null }
 export interface SubjectKnowledgeBase { knowledge_base_id: string; topic_title: string; owner_teacher_id: string; owner_name: string | null }

@@ -1,6 +1,6 @@
 import { ApiError, resourceId } from '@/domain/model/ApiError'
 import { invitationBatchSize, invitationTargetStates, rosterMaxBytes } from '@/domain/model/SchoolAdmin'
-import type { ClassDraft, InvitationSummary, InvitationTarget, LinkedPerson, NewAcademicYear, PersonEdit, PeopleRole } from '@/domain/model/SchoolAdmin'
+import type { ClassDraft, InvitationSummary, InvitationTarget, LinkedPerson, NewAcademicYear, NewPerson, PersonEdit, PeopleRole } from '@/domain/model/SchoolAdmin'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 
 export class SchoolAdminUseCases {
@@ -59,6 +59,23 @@ export class SchoolAdminUseCases {
     if (edit.full_name !== undefined && !name) throw new ApiError(422, 'NAME_REQUIRED')
     return this.service.editPerson(resourceId(schoolId), resourceId(userId), { ...(name ? { full_name: name } : {}), ...(edit.class_id ? { class_id: resourceId(edit.class_id) } : {}) }, signal)
   }
+  // The backend checks every rule again; this spares a request that can only fail.
+  // The key stays the same while the admin retries one submission, so a lost answer never creates the account twice.
+  createPerson(schoolId: string, person: NewPerson, idempotencyKey: string, signal?: AbortSignal) {
+    const name = person.full_name.trim()
+    if (!name || name.length > 200) throw new ApiError(422, 'NAME_REQUIRED')
+    const email = person.email?.trim().toLowerCase() || undefined
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ApiError(422, 'EMAIL_INVALID')
+    if (person.role !== 'student' && !email) throw new ApiError(422, 'EMAIL_REQUIRED')
+    if (person.role === 'student' && (!/^\d{10}$/.test(person.nisn ?? '') || !person.class_id)) throw new ApiError(422, 'STUDENT_FIELDS_REQUIRED')
+    if (person.role === 'parent' && person.child_ids.length === 0) throw new ApiError(422, 'CHILD_REQUIRED')
+    return this.service.createPerson(resourceId(schoolId), {
+      full_name: name, role: person.role, ...(email ? { email } : {}),
+      ...(person.role === 'student' ? { nisn: person.nisn, class_id: resourceId(person.class_id ?? '') } : {}),
+      child_ids: person.role === 'parent' ? person.child_ids.map(resourceId) : [], ...(person.role === 'parent' && person.relationship ? { relationship: person.relationship } : {}),
+    }, resourceId(idempotencyKey), signal)
+  }
+  reactivatePerson(schoolId: string, userId: string, signal?: AbortSignal) { return this.service.reactivatePerson(resourceId(schoolId), resourceId(userId), signal) }
   deactivatePerson(schoolId: string, userId: string, signal?: AbortSignal) { return this.service.deactivatePerson(resourceId(schoolId), resourceId(userId), signal) }
 
   classes(schoolId: string, academicYearId: string, signal?: AbortSignal) { return this.service.classes(resourceId(schoolId), resourceId(academicYearId), signal) }

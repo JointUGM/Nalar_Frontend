@@ -1,4 +1,4 @@
-import type { AcademicYear, Assignment, ClassDraft, CurriculumChoice, InvitationAdmission, InvitationPage, LinkedPerson, NewAcademicYear, PeoplePage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
+import type { AcademicYear, Assignment, ClassDraft, CurriculumChoice, InvitationAdmission, InvitationPage, LinkedPerson, NewAcademicYear, NewPerson, PeoplePage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
@@ -76,6 +76,16 @@ export class HttpSchoolAdminService implements SchoolAdminService {
   async editPerson(schoolId: string, userId: string, edit: PersonEdit, signal?: AbortSignal): Promise<void> {
     const body: Schemas['PersonEditIn'] = edit
     await this.api.request(`${school(schoolId)}/people/${encodeURIComponent(userId)}`, { method: 'PATCH', body, signal })
+  }
+
+  async createPerson(schoolId: string, person: NewPerson, idempotencyKey: string, signal?: AbortSignal): Promise<{ user_id: string }> {
+    const body: Schemas['PersonCreateIn'] = { ...person, invite: false }
+    const value = record((await this.api.request(`${school(schoolId)}/people`, { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey }, signal })).data)
+    return { user_id: text(value.user_id) } satisfies Schemas['PersonCreatedOut']
+  }
+
+  async reactivatePerson(schoolId: string, userId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${school(schoolId)}/people/${encodeURIComponent(userId)}/reactivate`, { method: 'POST', signal })
   }
 
   async deactivatePerson(schoolId: string, userId: string, signal?: AbortSignal): Promise<void> {
