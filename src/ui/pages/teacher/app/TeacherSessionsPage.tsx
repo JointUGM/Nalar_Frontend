@@ -38,15 +38,15 @@ function companion(data: readonly TeacherPublication[] | null, failed: boolean):
 }
 
 function SessionRow({ publication, base, service, onChanged }: { publication: TeacherPublication; base: string; service: TeacherService; onChanged: () => void }) {
-  const { mission_title, class_name, run, counts, released_to_parents_at } = publication
+  const { mission_title, mission_version, class_name, subject_name, run, counts, released_to_parents_at } = publication
   const path = `${base}/publications/${publication.id}`
   const live = run.mode === 'live'
   const monitorFirst = live && isActive(publication)
   const completion = counts.started > 0 ? Math.min(100, counts.completed / counts.started * 100) : 0
   return <li className={styles.row} aria-label={`${mission_title}, kelas ${class_name}`}>
     <div className={styles.identity}>
-      <div className={styles.context}><span className={styles.className}>Kelas {class_name}</span><span className={styles.mode}><Icon name={live ? 'monitor' : run.mode === 'window' ? 'clock' : 'info'} size={14} />{modeLabel(run.mode)}</span></div>
-      <h3>{mission_title}</h3>
+      <div className={styles.context}><span className={styles.className}>Kelas {class_name}{subject_name && ` · ${subject_name}`}</span><span className={styles.mode}><Icon name={live ? 'monitor' : run.mode === 'window' ? 'clock' : 'info'} size={14} />{modeLabel(run.mode)}</span></div>
+      <h3>{mission_title}{mission_version !== null && <small> · v{mission_version}</small>}</h3>
       <span className={styles.status} data-status={run.status}><span aria-hidden="true" />{statusLabel(publication)}</span>
       {run.mode === 'window' && (run.opens_at || run.closes_at) && <p className={styles.schedule}>
         {run.opens_at && <span>Mulai {formatDayTime(run.opens_at)}</span>}
@@ -80,7 +80,7 @@ export function TeacherSessionsPage({ service, base }: { service: TeacherService
   const [classId, setClassId] = useState('')
   const classes = new Map((data ?? []).map((publication) => [publication.class_id, publication.class_name]))
   const search = query.trim().toLocaleLowerCase('id-ID')
-  const visible = (data ?? []).filter((publication) => matchesStatus(publication, filter) && (!classId || publication.class_id === classId) && (!search || `${publication.mission_title} ${publication.class_name}`.toLocaleLowerCase('id-ID').includes(search)))
+  const visible = (data ?? []).filter((publication) => matchesStatus(publication, filter) && (!classId || publication.class_id === classId) && (!search || `${publication.mission_title} ${publication.class_name} ${publication.subject_name}`.toLocaleLowerCase('id-ID').includes(search)))
   const filtered = filter !== 'all' || Boolean(classId) || Boolean(query)
   const reset = () => { setFilter('all'); setQuery(''); setClassId('') }
   const note = visible.length > 0 || !data ? companion(data, Boolean(error)) : null
