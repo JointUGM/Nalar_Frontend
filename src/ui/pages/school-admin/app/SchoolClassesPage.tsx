@@ -10,6 +10,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import styles from '@/ui/pages/school-admin/SchoolClasses.module.css'
+import { PlaceStudentsDialog } from './PlaceStudentsDialog'
 import { useAcademicYears } from './useAcademicYears'
 import { YearSelect } from './YearSelect'
 
@@ -28,6 +29,7 @@ export function SchoolClassesPage({ service, schoolId }: { service: SchoolAdminU
   }, [service, schoolId, years.yearId])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   const [editing, setEditing] = useState<SchoolClass | 'new' | null>(null)
+  const [placing, setPlacing] = useState<SchoolClass | null>(null)
   const [message, setMessage] = useState('')
   const teacherName = (id: string | null) => data?.teachers.find((item) => item.user_id === id)?.full_name ?? 'Belum ditentukan'
   const groups = grades.map((grade) => ({ grade, items: (data?.classes ?? []).filter((item) => item.grade_level === grade).sort((a, b) => a.name.localeCompare(b.name, 'id-ID')) })).filter((group) => group.items.length)
@@ -47,8 +49,10 @@ export function SchoolClassesPage({ service, schoolId }: { service: SchoolAdminU
       <h2 id={`grade-${group.grade}`}>Kelas {group.grade}</h2>
       <ul className={styles.grid}>{group.items.map((item) => <li key={item.class_id}>
         <button type="button" className={styles.card} aria-label={`Ubah kelas ${item.name}`} onClick={() => { setMessage(''); setEditing(item) }}><strong>{item.name}</strong><span>{item.student_count} siswa</span><small>Wali: {teacherName(item.homeroom_teacher_id)}</small></button>
+        <Button tone="ghost" aria-label={`Tempatkan siswa di ${item.name}`} onClick={() => { setMessage(''); setPlacing(item) }}>Tempatkan siswa</Button>
       </li>)}</ul>
     </section>)}
+    {placing && <PlaceStudentsDialog service={service} schoolId={schoolId} klass={placing} onClose={(done) => { setPlacing(null); if (done) { setMessage(done); refresh() } }} />}
     {editing && data && years.yearId && <ClassDialog service={service} schoolId={schoolId} yearId={years.yearId} item={editing === 'new' ? null : editing} teachers={data.teachers} onClose={(done) => { setEditing(null); if (done) { setMessage(done); refresh() } }} />}
   </div>
 }
