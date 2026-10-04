@@ -2,6 +2,7 @@ import type { LinkedChild, ParentPreferences, ParentProgress, ParentReflection, 
 
 export interface ParentService {
   children(signal?: AbortSignal): Promise<LinkedChild[]>
+  markSeen(studentId: string, signal?: AbortSignal): Promise<void>
   progress(studentId: string, signal?: AbortSignal): Promise<ParentProgress>
   reflections(studentId: string, signal?: AbortSignal): Promise<ParentReflection[]>
   preferences(signal?: AbortSignal): Promise<ParentSettings>

@@ -29,7 +29,7 @@ function Login() {
   return <p>Masuk · keluar diminta: {String(state?.signOut === true)}</p>
 }
 
-const child = { id: 'a', name: 'Anak Satu', initials: 'A', detail: '8B · Sekolah', klass: '8B', tone: 'warm' as const }
+const child = { id: 'a', name: 'Anak Satu', initials: 'A', detail: '8B · Sekolah', klass: '8B', tone: 'warm' as const, lastSeenAt: null }
 const shells: readonly (readonly [string, ReactNode])[] = [
   ['Guru', <TeacherContextProvider schools={['Sekolah']}><TeacherShell title="Beranda" user="Bu Guru" nav={[{ label: 'Beranda', icon: 'home', to: '/teacher/x' }]} home="/teacher/x"><p>Isi</p></TeacherShell></TeacherContextProvider>],
   ['Siswa', <StudentShell title="Misi saya" user="Raka Pratama" detail="Kelas 8B"><p>Isi</p></StudentShell>],
