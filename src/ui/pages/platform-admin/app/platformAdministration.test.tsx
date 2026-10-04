@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { PlatformAdminUseCases } from '@/application/platform-admin-use-cases'
 import { HttpApi } from '@/infrastructure/services/HttpApi'
@@ -28,7 +28,8 @@ function open(path: string, answer: (key: string) => Response | undefined) {
     if (!response) throw new Error(`Unexpected request ${key}`)
     return response
   })
-  render(<MemoryRouter initialEntries={[path]}><PlatformRoutes service={new PlatformAdminUseCases(new HttpPlatformAdminService(new HttpApi({ apiBaseUrl: '/api/v1', fetch: request })))} /></MemoryRouter>)
+  // Mounted under /platform/* exactly as AppRoutes mounts it, so relative route paths are checked.
+  render(<MemoryRouter initialEntries={[path]}><Routes><Route path="/platform/*" element={<PlatformRoutes service={new PlatformAdminUseCases(new HttpPlatformAdminService(new HttpApi({ apiBaseUrl: '/api/v1', fetch: request })))} />} /></Routes></MemoryRouter>)
   return request
 }
 const posts = (request: ReturnType<typeof open>) => request.mock.calls.filter(([, init]) => init?.method === 'POST')

@@ -7,16 +7,17 @@ import { PlatformAiUsagePage } from './PlatformAiUsagePage'
 import { PlatformCurriculumPage } from './PlatformCurriculumPage'
 import { PlatformSchoolsPage } from './PlatformSchoolsPage'
 
-// ProtectedRole has already checked that this account is a platform admin.
+// ProtectedRole has already checked that this account is a platform admin. AppRoutes mounts this
+// under /platform/*, so the paths below are relative to /platform.
 export function PlatformRoutes({ service }: { service: PlatformAdminUseCases }) {
   const readAudit = useCallback((cursor: number | null, signal: AbortSignal) => service.auditLog(cursor, signal), [service])
   return <AdultShell>
     <Routes>
-      <Route path="/platform" element={<Navigate to="/platform/schools" replace />} />
-      <Route path="/platform/schools" element={<PlatformSchoolsPage service={service} />} />
-      <Route path="/platform/cp-versions" element={<PlatformCurriculumPage service={service} />} />
-      <Route path="/platform/ai-usage" element={<PlatformAiUsagePage service={service} />} />
-      <Route path="/platform/audit-log" element={<AuditLog read={readAudit} />} />
+      <Route index element={<Navigate to="/platform/schools" replace />} />
+      <Route path="schools" element={<PlatformSchoolsPage service={service} />} />
+      <Route path="cp-versions" element={<PlatformCurriculumPage service={service} />} />
+      <Route path="ai-usage" element={<PlatformAiUsagePage service={service} />} />
+      <Route path="audit-log" element={<AuditLog read={readAudit} />} />
       <Route path="*" element={<h1>Halaman tidak tersedia</h1>} />
     </Routes>
   </AdultShell>
