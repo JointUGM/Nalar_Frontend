@@ -41,6 +41,8 @@ export interface LiveStudent {
   safety_paused: boolean
   // The student's latest session in this run; it opens the teacher report.
   session_id: string | null
+  // Set once the student has joined; it removes a waiting student from the lobby.
+  participant_id: string | null
 }
 export interface LiveMonitor extends LiveClock {
   run: { id: string; mode: string; status: string; join_code: string | null; started_at: string | null }

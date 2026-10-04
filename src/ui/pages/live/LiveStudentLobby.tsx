@@ -45,7 +45,7 @@ export function LiveStudentLobby({ service, runId, base, user }: { service: Live
   }
   const canLeave = state?.run_status === 'lobby' && state.participant_status === 'waiting' && !state.session_id
   const closed = state?.participant_status === 'cancelled' || (state?.run_status === 'closed' && !state.session_id)
-  const status = closed ? 'Sesi ditutup sebelum dimulai' : state?.session_id ? 'Membuka sesi…' : 'Menunggu guru memulai sesi'
+  const status = state?.participant_status === 'cancelled' ? 'Kamu tidak lagi ikut sesi ini' : closed ? 'Sesi ditutup sebelum dimulai' : state?.session_id ? 'Membuka sesi…' : 'Menunggu guru memulai sesi'
   const warmup = metadata?.warmup && state?.participant_status === 'waiting' && state.run_status === 'lobby' ? metadata.warmup : null
 
   return <div className={styles.page}>

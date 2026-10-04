@@ -14,4 +14,6 @@ export interface LiveService {
   endSession(sessionId: string, signal?: AbortSignal): Promise<void>
   // Only while the run is still a lobby; the student cannot rejoin that run afterwards.
   leave(runId: string, signal?: AbortSignal): Promise<void>
+  // The teacher's side of the same rule: a waiting student only, and only while the run is a lobby.
+  removeParticipant(runId: string, participantId: string, signal?: AbortSignal): Promise<void>
 }

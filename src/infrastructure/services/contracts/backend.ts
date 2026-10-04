@@ -3269,6 +3269,8 @@ export interface components {
             name: string;
             /** Open Flag Count */
             open_flag_count: number;
+            /** Participant Id */
+            participant_id: string | null;
             /** Safety Paused */
             safety_paused: boolean;
             /** Session Id */

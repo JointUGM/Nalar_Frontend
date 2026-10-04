@@ -290,6 +290,27 @@ describe('signed-in teacher pages', () => {
     await waitFor(() => expect(request.mock.calls.filter(([url, init]) => init?.method === 'POST' && String(url).endsWith(`/sessions/${draft}/end`))).toHaveLength(1))
   })
 
+  it('removes a waiting student from the lobby only after confirming', async () => {
+    const participant = '00000000-0000-4000-8000-0000000000e1'
+    const request = backend({
+      [`GET /publications/${publication}/monitor`]: () => Response.json({
+        run: { id: school, mode: 'live', status: 'lobby', join_code: 'K7Q2MW', started_at: null }, waiting_count: 1, server_now: '2026-10-02T03:05:00Z',
+        students: [
+          { student_id: student, participant_id: participant, name: 'Raka Pratama', status: 'waiting', current_turn_index: null, max_turns: 4, deadline_at: null, open_flag_count: 0, safety_paused: false, session_id: null },
+          { student_id: klass, participant_id: null, name: 'Bima Putra', status: 'not_joined', current_turn_index: null, max_turns: 4, deadline_at: null, open_flag_count: 0, safety_paused: false, session_id: null },
+        ],
+      }),
+      [`POST /runs/${school}/participants/${participant}/remove`]: () => new Response(null, { status: 204 }),
+    })
+    open(`${base}/publications/${publication}/monitor`, request)
+    const remove = await screen.findAllByRole('button', { name: 'Keluarkan' })
+    expect(remove).toHaveLength(1)
+    fireEvent.click(remove[0])
+    expect(request.mock.calls.some(([url]) => String(url).endsWith('/remove'))).toBe(false)
+    fireEvent.click(within(await screen.findByRole('dialog', { name: 'Keluarkan Raka Pratama dari lobi?' })).getByRole('button', { name: 'Keluarkan' }))
+    await waitFor(() => expect(request.mock.calls.filter(([url, init]) => init?.method === 'POST' && String(url).endsWith(`/participants/${participant}/remove`))).toHaveLength(1))
+  })
+
   it('changes a score only with a reason, once, and keeps the AI level beside it', async () => {
     let final = 2
     const request = backend({
