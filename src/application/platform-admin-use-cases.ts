@@ -1,6 +1,6 @@
 import { ApiError, resourceId } from '@/domain/model/ApiError'
 import { curriculumPhases } from '@/domain/model/PlatformAdmin'
-import type { NewCurriculum, NewSchool } from '@/domain/model/PlatformAdmin'
+import type { NewCurriculum, NewSchool, SchoolDetails } from '@/domain/model/PlatformAdmin'
 import type { PlatformAdminService } from '@/domain/services/PlatformAdminService'
 
 const email = (value: string) => {
@@ -9,17 +9,24 @@ const email = (value: string) => {
   return clean
 }
 
+function details(school: SchoolDetails): SchoolDetails {
+  const [name, npsn, city] = [school.name.trim(), school.npsn.trim(), school.city.trim()]
+  if (!name || !city) throw new ApiError(422, 'NAME_REQUIRED')
+  if (!/^\d{8}$/.test(npsn)) throw new ApiError(422, 'INVALID_NPSN')
+  return { name, npsn, city }
+}
+
 // The backend checks everything again; these checks only spare a request it would refuse.
 export class PlatformAdminUseCases {
   constructor(private readonly service: PlatformAdminService) {}
 
   schools(q: string, cursor: string | null, signal?: AbortSignal) { return this.service.schools(q.trim(), cursor && resourceId(cursor), signal) }
   createSchool(school: NewSchool, idempotencyKey: string, signal?: AbortSignal) {
-    const [name, npsn, city] = [school.name.trim(), school.npsn.trim(), school.city.trim()]
-    if (!name || !city) throw new ApiError(422, 'NAME_REQUIRED')
-    if (!/^\d{8}$/.test(npsn)) throw new ApiError(422, 'INVALID_NPSN')
-    return this.service.createSchool({ name, npsn, city, admin_email: email(school.admin_email) }, idempotencyKey, signal)
+    return this.service.createSchool({ ...details(school), admin_email: email(school.admin_email) }, idempotencyKey, signal)
   }
+  updateSchool(schoolId: string, school: SchoolDetails, signal?: AbortSignal) { return this.service.updateSchool(resourceId(schoolId), details(school), signal) }
+  aiUsage(from: string, to: string, signal?: AbortSignal) { return this.service.aiUsage(from, to, signal) }
+  auditLog(cursor: number | null, signal?: AbortSignal) { return this.service.auditLog(cursor, signal) }
   setSchoolStatus(schoolId: string, status: 'active' | 'suspended', signal?: AbortSignal) { return this.service.setSchoolStatus(resourceId(schoolId), status, signal) }
   replaceAdmin(schoolId: string, address: string, idempotencyKey: string, signal?: AbortSignal) { return this.service.replaceAdmin(resourceId(schoolId), email(address), idempotencyKey, signal) }
 

@@ -14,6 +14,7 @@ export class SchoolAdminUseCases {
     return this.service.uploadRoster(resourceId(schoolId), resourceId(academicYearId), file, signal)
   }
   rosterImport(importId: string, signal?: AbortSignal) { return this.service.rosterImport(resourceId(importId), signal) }
+  auditLog(schoolId: string, cursor: number | null, signal?: AbortSignal) { return this.service.auditLog(resourceId(schoolId), cursor, signal) }
   rosterImports(schoolId: string, cursor: string | null, signal?: AbortSignal) { return this.service.rosterImports(resourceId(schoolId), cursor === null ? null : resourceId(cursor), signal) }
   rosterImportErrors(importId: string, signal?: AbortSignal) { return this.service.rosterImportErrors(resourceId(importId), signal) }
 

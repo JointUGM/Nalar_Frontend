@@ -1,6 +1,8 @@
 import { ApiError } from '@/domain/model/ApiError'
 import type { AcademicYear, Assignment, ClassDraft, CurriculumChoice, InvitationAdmission, InvitationPage, LinkedPerson, NewAcademicYear, NewPerson, PeoplePage, Relationship, RosterImportPage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
+import type { AuditPage } from '@/domain/model/Audit'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
+import { auditPage } from './audit'
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
@@ -51,6 +53,10 @@ export class HttpSchoolAdminService implements SchoolAdminService {
       status: text(value.status), rows_total: nullable(value.rows_total, count), rows_succeeded: nullable(value.rows_succeeded, count), rows_failed: nullable(value.rows_failed, count),
       errors: list(value.errors).map((entry) => { const error = record(entry); return { row_number: count(error.row_number), field: text(error.field), message: text(error.message) } }),
     } satisfies Schemas['RosterImportOut']
+  }
+
+  async auditLog(schoolId: string, cursor: number | null, signal?: AbortSignal): Promise<AuditPage> {
+    return auditPage((await this.api.request(`${school(schoolId)}/audit-log?limit=50${cursor === null ? '' : `&cursor=${cursor}`}`, { signal })).data)
   }
 
   async rosterImports(schoolId: string, cursor: string | null, signal?: AbortSignal): Promise<RosterImportPage> {

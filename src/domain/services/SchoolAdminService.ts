@@ -1,3 +1,4 @@
+import type { AuditPage } from '@/domain/model/Audit'
 import type { AcademicYear, Assignment, ClassDraft, CurriculumChoice, InvitationAdmission, InvitationPage, NewAcademicYear, NewPerson, PeoplePage, Relationship, RosterImportPage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
 
 export interface SchoolAdminService {
@@ -7,6 +8,7 @@ export interface SchoolAdminService {
   uploadRoster(schoolId: string, academicYearId: string, file: File, signal?: AbortSignal): Promise<{ import_id: string }>
   rosterImport(importId: string, signal?: AbortSignal): Promise<RosterImport>
   rosterImports(schoolId: string, cursor: string | null, signal?: AbortSignal): Promise<RosterImportPage>
+  auditLog(schoolId: string, cursor: number | null, signal?: AbortSignal): Promise<AuditPage>
   rosterImportErrors(importId: string, signal?: AbortSignal): Promise<Blob>
   people(schoolId: string, query: { role: PeopleRole; q: string; cursor: string | null }, signal?: AbortSignal): Promise<PeoplePage>
   editPerson(schoolId: string, userId: string, edit: PersonEdit, signal?: AbortSignal): Promise<void>

@@ -21,7 +21,7 @@ const refusals: Readonly<Record<string, string>> = {
   NAME_REQUIRED: 'Isi nama dan kota sekolah.',
   IDEMPOTENCY_CONFLICT: 'Isian berubah setelah dikirim. Kirim ulang.',
 }
-type Modal = { kind: 'onboard' } | { kind: 'admin' | 'status'; school: PlatformSchool }
+type Modal = { kind: 'onboard' } | { kind: 'admin' | 'status' | 'edit'; school: PlatformSchool }
 
 export function Refusal({ failure }: { failure: ApiError | null }) {
   if (!failure) return null
@@ -61,6 +61,7 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
         <td><span className={[styles.badge, styles[school.status]].join(' ')}>{statusWord[school.status] ?? school.status}</span></td>
         <td><button className={styles.rowMenu} aria-label={`Tindakan ${school.name}`} aria-expanded={menu === school.id} onClick={() => setMenu(menu === school.id ? null : school.id)}><Icon name="more" /></button></td>
       </tr>{menu === school.id && <tr><td className={styles.rowActions} colSpan={5}>
+        <Button tone="secondary" className={styles.pillButton} onClick={() => { setMessage(''); setModal({ kind: 'edit', school }) }}><Icon name="pencil" size={14} />Ubah data sekolah</Button>
         <Button tone="secondary" className={styles.pillButton} onClick={() => { setMessage(''); setModal({ kind: 'admin', school }) }}><Icon name="swap" size={14} />Ganti admin sekolah</Button>
         <Button tone="secondary" className={styles.suspendButton} onClick={() => { setMessage(''); setModal({ kind: 'status', school }) }}><Icon name="pause" size={14} />{school.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'}</Button>
       </td></tr>}</Fragment>)}</tbody>
@@ -74,6 +75,7 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
     </nav>}
     {modal?.kind === 'onboard' && <OnboardDialog service={service} onClose={close} />}
     {modal?.kind === 'admin' && <AdminDialog service={service} school={modal.school} onClose={close} />}
+    {modal?.kind === 'edit' && <EditDialog service={service} school={modal.school} onClose={close} />}
     {modal?.kind === 'status' && <StatusDialog service={service} school={modal.school} onClose={close} />}
   </div>
 }
@@ -101,6 +103,24 @@ function OnboardDialog({ service, onClose }: { service: PlatformAdminUseCases; o
       <Field label="Email admin sekolah pertama" type="email" required autoComplete="off" value={fields.admin_email} disabled={command.pending} onChange={(event) => update({ admin_email: event.target.value })} />
       <Refusal failure={command.failure} />
       <div className={styles.dialogActions}><Button tone="ghost" className={styles.pillButton} disabled={command.pending} onClick={() => onClose()}>Batal</Button><Button type="submit" className={styles.pillButton} pending={command.pending} pendingLabel="Mendaftarkan…">Daftarkan</Button></div>
+    </form>
+  </Dialog>
+}
+
+function EditDialog({ service, school, onClose }: { service: PlatformAdminUseCases; school: PlatformSchool; onClose: (done?: string) => void }) {
+  const [fields, setFields] = useState({ name: school.name, npsn: school.npsn ?? '', city: school.city ?? '' })
+  const command = useCommand()
+  const update = (next: Partial<typeof fields>) => { command.reset(); setFields((value) => ({ ...value, ...next })) }
+  async function submit() {
+    if (await command.run((signal) => service.updateSchool(school.id, fields, signal))) onClose(`Data ${fields.name.trim()} tersimpan.`)
+  }
+  return <Dialog open onClose={() => onClose()} dismissible={!command.pending} title={`Ubah data ${school.name}`} description="Status dan admin sekolah diubah dari tindakan masing-masing." className={styles.platformDialog}>
+    <form className={styles.form} noValidate onSubmit={(event) => { event.preventDefault(); void submit() }}>
+      <Field label="Nama sekolah" required maxLength={200} value={fields.name} disabled={command.pending} onChange={(event) => update({ name: event.target.value })} />
+      <Field label="NPSN" required inputMode="numeric" maxLength={8} value={fields.npsn} disabled={command.pending} help="8 angka." onChange={(event) => update({ npsn: event.target.value })} />
+      <Field label="Kota atau kabupaten" required maxLength={200} value={fields.city} disabled={command.pending} onChange={(event) => update({ city: event.target.value })} />
+      <Refusal failure={command.failure} />
+      <div className={styles.dialogActions}><Button tone="ghost" className={styles.pillButton} disabled={command.pending} onClick={() => onClose()}>Batal</Button><Button type="submit" className={styles.pillButton} pending={command.pending} pendingLabel="Menyimpan…">Simpan</Button></div>
     </form>
   </Dialog>
 }
