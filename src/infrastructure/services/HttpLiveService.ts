@@ -124,4 +124,6 @@ export class HttpLiveService implements LiveService {
     }) }
   }
   async control(runId: string, action: 'open-lobby' | 'start' | 'close', signal?: AbortSignal) { await this.request(`/runs/${encodeURIComponent(runId)}/${action}`, signal, 'POST') }
+  async endSession(sessionId: string, signal?: AbortSignal) { await this.request(`/sessions/${encodeURIComponent(sessionId)}/end`, signal, 'POST') }
+  async leave(runId: string, signal?: AbortSignal) { await this.request(`/student/runs/${encodeURIComponent(runId)}/leave`, signal, 'POST') }
 }

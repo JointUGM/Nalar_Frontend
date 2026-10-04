@@ -24,6 +24,8 @@ class FakeLiveService implements LiveService {
   async publications(): Promise<LivePublications> { throw new Error('Unexpected publications') }
   async monitor(): Promise<LiveMonitor> { throw new Error('Unexpected monitor') }
   async control() { throw new Error('Unexpected control') }
+  async endSession() { throw new Error('Unexpected end') }
+  async leave() { throw new Error('Unexpected leave') }
 }
 const renderSession = (service: FakeLiveService) => render(<MemoryRouter><LiveStudentSession service={service} sessionId="session-id" base="/student/school-id" /></MemoryRouter>)
 afterEach(cleanup)
