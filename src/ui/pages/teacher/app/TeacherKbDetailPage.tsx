@@ -7,6 +7,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
+import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherKbReview.module.css'
@@ -38,6 +39,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const busy = useRef(false)
   const [jobId, setJobId] = useState(params.get('job'))
   const [selectedId, setSelectedId] = useState('')
+  const [query, setQuery] = useState(''), [reviewFilter, setReviewFilter] = useState('all')
   const [draft, setDraft] = useState<Draft | null>(null)
   const [pending, setPending] = useState(false)
   const [failure, setFailure] = useState<ApiError | null>(null)
@@ -50,6 +52,10 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const selected = detail.concepts.find((item) => item.id === selectedId) ?? detail.concepts[0]
   const nameOf = (id: string) => detail.concepts.find((item) => item.id === id)?.name ?? ''
   const pendingIn = (conceptId: string) => detail.misconceptions.filter((item) => item.concept_id === conceptId && item.review_status === 'pending').length
+  const related = detail.misconceptions.filter(item => item.concept_id === selected?.id)
+  const visibleConcepts = detail.concepts.filter(item => item.name.toLocaleLowerCase('id-ID').includes(query.trim().toLocaleLowerCase('id-ID'))
+    && (reviewFilter === 'all' || (reviewFilter === 'pending' ? item.review_status === 'pending' || pendingIn(item.id) > 0 : item.review_status === reviewFilter)))
+  function chooseConcept(id: string) { setSelectedId(id); setDraft(null) }
 
   // One command at a time. The page is reread after a refusal too, because a refusal usually means it was stale.
   async function run<T>(action: (signal?: AbortSignal) => Promise<T>, done?: (result: T) => void) {
@@ -86,25 +92,89 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
     <div className={styles.header}><div>
       <div className={styles.title}><h1>{detail.topic_title}</h1>{detail.concepts.length > 0 && <span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span>}</div>
       <p>{waiting > 0 ? `${queue.pending_concepts} konsep dan ${queue.pending_misconceptions} miskonsepsi menunggu tinjauan` : `${detail.concepts.length} konsep · ${detail.misconceptions.length} miskonsepsi`}</p>
-    </div></div>
+    </div><div className={styles.jumpLinks}><a href="#kb-review">Tinjau konsep<Icon name="chevronDown" size={14} /></a><a href="#kb-sources">Materi dan bab<Icon name="chevronDown" size={14} /></a></div></div>
     {!canEdit && <p className={styles.note}>Basis pengetahuan ini milik rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {jobId && <JobNotice key={jobId} kb={kb} jobId={jobId} onDone={refresh} />}
     {said && <Feedback tone="warning" title={said} announce />}
     {failure && !said && <Feedback tone="warning" title={failure.message} announce>{failure.requestId && <small>Referensi: {failure.requestId}</small>}</Feedback>}
-    <div className={styles.grid}>
+    <div id="kb-review" className={styles.grid} data-empty={!selected}>
       <div className={styles.column}>
+        <section className={[styles.card, styles.navigator].join(' ')} aria-labelledby="kb-concepts">
+          <div className={styles.sectionHead}><h2 id="kb-concepts">Konsep</h2><span>{detail.concepts.length} konsep</span></div>
+          {!selected ? <p>Belum ada konsep. Susun satu bab untuk membuat drafnya.</p> : <>
+            <div className={styles.mobilePicker}><Select label="Konsep yang ditinjau" value={selected.id} onChange={chooseConcept} options={detail.concepts.map(item => ({ value: item.id, label: item.name, description: `${reviewWord[item.review_status] ?? item.review_status} · ${pendingIn(item.id)} miskonsepsi menunggu` }))} /></div>
+            <div className={styles.conceptTools}>
+              <label className={styles.search}><Icon name="search" size={16} /><input type="search" aria-label="Cari konsep" placeholder="Cari konsep…" value={query} onChange={event => setQuery(event.target.value)} /></label>
+              <Select compact label="Filter tinjauan konsep" value={reviewFilter} onChange={setReviewFilter} options={[{ value: 'all', label: 'Semua status' }, { value: 'pending', label: 'Perlu tinjauan', description: 'Konsep atau miskonsepsinya menunggu' }, { value: 'approved', label: 'Konsep disetujui' }, { value: 'rejected', label: 'Konsep ditolak' }]} />
+              <p className={styles.note} role="status">{visibleConcepts.length} dari {detail.concepts.length} konsep ditampilkan</p>
+            </div>
+            <ul className={styles.conceptList}>{visibleConcepts.map(concept => {
+              const open = (concept.review_status === 'pending' ? 1 : 0) + pendingIn(concept.id)
+              return <li key={concept.id}><button type="button" className={styles.pick} aria-pressed={concept.id === selected.id} onClick={() => chooseConcept(concept.id)}>
+                <span><strong>{concept.name}</strong><small>{reviewWord[concept.review_status] ?? concept.review_status}</small></span>{open > 0 ? <span className={styles.count}>{open} menunggu</span> : concept.review_status === 'approved' && <Icon name="check" size={16} />}
+              </button></li>
+            })}</ul>
+            {visibleConcepts.length === 0 && <p className={styles.noConcept}>Tidak ada konsep yang cocok. Coba kata kunci atau status lain.</p>}
+          </>}
+        </section>
+      </div>
+      {selected && <div className={styles.column}>
+        <section className={styles.card} aria-label={`Konsep: ${selected.name}`}>
+          <div className={styles.misHead}><span className={styles.contentType}><Icon name="layers" size={16} />Konsep yang ditinjau</span>{tag(selected.review_status)}</div>
+          {draft?.kind === 'concept' && draft.id === selected.id ? <>
+            <Field label="Nama konsep" required maxLength={300} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
+            <label className={styles.area}>Deskripsi<textarea rows={3} maxLength={2000} value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
+            {saveBar}
+          </> : <>
+            <h2 className={styles.conceptTitle}>{selected.name}</h2>
+            {selected.description && <p className={styles.description}>{selected.description}</p>}
+            {pages(selected.sources)}
+            <dl className={styles.relations}>
+              <div><dt>Dipelajari lebih dulu</dt><dd>{detail.prerequisites.filter((link) => link.concept_id === selected.id).map((link) => nameOf(link.prerequisite_concept_id)).join(', ') || 'Tidak ada prasyarat tercatat'}</dd></div>
+              <div><dt>Dilanjutkan ke</dt><dd>{detail.prerequisites.filter((link) => link.prerequisite_concept_id === selected.id).map((link) => nameOf(link.concept_id)).join(', ') || 'Tidak ada lanjutan tercatat'}</dd></div>
+            </dl>
+            {actions('concept', selected, false, () => setDraft({ id: selected.id, kind: 'concept', name: selected.name, description: selected.description ?? '' }))}
+          </>}
+        </section>
+        <div className={styles.misconceptions}>
+          <div className={styles.sectionHead}><h2>Miskonsepsi terkait</h2><span>{related.length} miskonsepsi</span></div>
+          {related.map((item) => <section key={item.id} className={styles.misconception} aria-label={`Miskonsepsi: ${item.statement}`}>
+            <div className={styles.misHead}><span className={styles.misTag}><Icon name="alert" size={16} />Pernyataan keliru</span>{tag(item.review_status)}</div>
+            {draft?.kind === 'misconception' && draft.id === item.id ? <>
+              <Field label="Pernyataan keliru" required maxLength={1000} value={draft.statement} onChange={(event) => setDraft({ ...draft, statement: event.target.value })} />
+              <label className={styles.area}>Pemahaman yang benar<textarea rows={3} maxLength={2000} value={draft.correct} onChange={(event) => setDraft({ ...draft, correct: event.target.value })} /></label>
+              <label className={styles.area}>Contoh ucapan siswa (satu per baris)<textarea rows={3} value={draft.cues} onChange={(event) => setDraft({ ...draft, cues: event.target.value })} /></label>
+              <label className={styles.area}>Contoh pembanding (satu per baris)<textarea rows={3} value={draft.counters} onChange={(event) => setDraft({ ...draft, counters: event.target.value })} /></label>
+              {saveBar}
+            </> : <>
+              <blockquote>“{item.statement}”</blockquote>
+              <h3 className={styles.explanationLabel}>Pemahaman yang benar</h3><p>{item.correct_understanding}</p>
+              {item.detection_cues.length > 0 && <div className={styles.evidence}><h3>Contoh ucapan siswa</h3><ul className={styles.cues} aria-label="Contoh ucapan siswa">{item.detection_cues.map((cue, index) => <li key={`${index}-${cue}`}>{cue}</li>)}</ul></div>}
+              {item.counter_examples.length > 0 && <div className={styles.evidence}><h3>Contoh pembanding</h3><ul className={styles.examples}>{item.counter_examples.map((example, index) => <li key={`${index}-${example}`}>{example}</li>)}</ul></div>}
+              {pages(item.sources)}
+              {actions('misconception', item, selected.review_status !== 'approved', () => setDraft({ id: item.id, kind: 'misconception', statement: item.statement, correct: item.correct_understanding, cues: item.detection_cues.join('\n'), counters: item.counter_examples.join('\n') }))}
+            </>}
+          </section>)}
+          {related.length === 0 && <p className={styles.note}>Tidak ada miskonsepsi untuk konsep ini.</p>}
+        </div>
+      </div>}
+    </div>
+    <div id="kb-sources" className={styles.sources}>
         <section className={styles.card} aria-labelledby="kb-materials">
           <h2 id="kb-materials">Materi</h2>
           <ul className={styles.items}>{detail.materials.map((material) => <li key={material.id}><span>
             <strong>{material.title}</strong>
             <small>{material.page_count === null ? 'Sedang dibaca' : `${material.page_count} halaman`}{material.pages_without_text.length > 0 && ` · ${material.pages_without_text.length} halaman tanpa teks`}{material.archived_at && ' · diarsipkan'}</small>
           </span></li>)}</ul>
-          {canEdit && <Field label="Tambah materi (PDF, maks. 50 MB)" type="file" accept=".pdf,application/pdf" disabled={pending} onChange={(event) => {
+          {detail.materials.length === 0 && <p className={styles.note}>Belum ada materi untuk topik ini.</p>}
+          {canEdit && <div className={styles.upload}><label className={styles.fileControl}>
+            <input aria-label="Tambah materi (PDF, maks. 50 MB)" aria-describedby="kb-upload-help" type="file" accept=".pdf,application/pdf" disabled={pending} onChange={(event) => {
             const file = event.target.files?.[0]
             event.target.value = ''
             if (file) void run((signal) => kb.addMaterial(detail.id, file, signal), followJob)
-          }} />}
+          }} /><Icon name="upload" size={20} /><span><strong>{pending ? 'Mohon tunggu…' : 'Tambah materi PDF'}</strong><small>Pilih berkas · maks. 50 MB</small></span><Icon name="plus" size={18} />
+          </label><p id="kb-upload-help" className={styles.note}>Berkas yang dipilih langsung diunggah dan dibaca.</p></div>}
         </section>
         <section className={styles.card} aria-labelledby="kb-sections">
           <h2 id="kb-sections">Bab</h2>
@@ -113,51 +183,6 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
             {canEdit && !building(section) && section.build_status !== 'built' && <Button tone="secondary" disabled={pending} aria-label={`${section.build_status === 'failed' ? 'Coba lagi' : 'Susun'} ${section.title}`} onClick={() => { void run((signal) => kb.build(detail.id, section.id, signal), followJob) }}>{section.build_status === 'failed' ? 'Coba lagi' : 'Susun'}</Button>}
           </li>)}</ul>}
         </section>
-        <section className={styles.card} aria-labelledby="kb-concepts">
-          <h2 id="kb-concepts">Konsep</h2>
-          {!selected ? <p>Belum ada konsep. Susun satu bab untuk membuat drafnya.</p> : <ul className={styles.items}>{detail.concepts.map((concept) => {
-            const open = (concept.review_status === 'pending' ? 1 : 0) + pendingIn(concept.id)
-            return <li key={concept.id}><button type="button" className={styles.pick} aria-pressed={concept.id === selected.id} onClick={() => { setSelectedId(concept.id); setDraft(null) }}>{concept.name}{open > 0 && <span className={styles.count}>{open} menunggu</span>}</button></li>
-          })}</ul>}
-        </section>
-      </div>
-      {selected && <div className={styles.column}>
-        <section className={styles.card} aria-label={`Konsep: ${selected.name}`}>
-          <div className={styles.misHead}><p className={styles.eyebrow}>KONSEP</p>{tag(selected.review_status)}</div>
-          {draft?.kind === 'concept' && draft.id === selected.id ? <>
-            <Field label="Nama konsep" required maxLength={300} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
-            <label className={styles.area}>Deskripsi<textarea rows={3} maxLength={2000} value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
-            {saveBar}
-          </> : <>
-            <h3>{selected.name}</h3>
-            {selected.description && <p>{selected.description}</p>}
-            {pages(selected.sources)}
-            <dl className={styles.relations}>
-              <div><dt>Dipelajari lebih dulu</dt><dd>{detail.prerequisites.filter((link) => link.concept_id === selected.id).map((link) => nameOf(link.prerequisite_concept_id)).join(', ') || '—'}</dd></div>
-              <div><dt>Dilanjutkan ke</dt><dd>{detail.prerequisites.filter((link) => link.prerequisite_concept_id === selected.id).map((link) => nameOf(link.concept_id)).join(', ') || '—'}</dd></div>
-            </dl>
-            {actions('concept', selected, false, () => setDraft({ id: selected.id, kind: 'concept', name: selected.name, description: selected.description ?? '' }))}
-          </>}
-        </section>
-        {detail.misconceptions.filter((item) => item.concept_id === selected.id).map((item) => <section key={item.id} className={styles.card} aria-label={`Miskonsepsi: ${item.statement}`}>
-          <div className={styles.misHead}><span className={styles.misTag}><Icon name="alert" size={11} />MISKONSEPSI</span>{tag(item.review_status)}</div>
-          {draft?.kind === 'misconception' && draft.id === item.id ? <>
-            <Field label="Pernyataan keliru" required maxLength={1000} value={draft.statement} onChange={(event) => setDraft({ ...draft, statement: event.target.value })} />
-            <label className={styles.area}>Pemahaman yang benar<textarea rows={3} maxLength={2000} value={draft.correct} onChange={(event) => setDraft({ ...draft, correct: event.target.value })} /></label>
-            <label className={styles.area}>Contoh ucapan siswa (satu per baris)<textarea rows={3} value={draft.cues} onChange={(event) => setDraft({ ...draft, cues: event.target.value })} /></label>
-            <label className={styles.area}>Contoh pembanding (satu per baris)<textarea rows={3} value={draft.counters} onChange={(event) => setDraft({ ...draft, counters: event.target.value })} /></label>
-            {saveBar}
-          </> : <>
-            <blockquote>“{item.statement}”</blockquote>
-            <p>{item.correct_understanding}</p>
-            {item.detection_cues.length > 0 && <ul className={styles.cues} aria-label="Contoh ucapan siswa">{item.detection_cues.map((cue) => <li key={cue}>{cue}</li>)}</ul>}
-            {item.counter_examples.map((example) => <p key={example} className={styles.counter}><strong>Contoh pembanding · </strong>{example}</p>)}
-            {pages(item.sources)}
-            {actions('misconception', item, selected.review_status !== 'approved', () => setDraft({ id: item.id, kind: 'misconception', statement: item.statement, correct: item.correct_understanding, cues: item.detection_cues.join('\n'), counters: item.counter_examples.join('\n') }))}
-          </>}
-        </section>)}
-        {detail.misconceptions.every((item) => item.concept_id !== selected.id) && <p className={styles.note}>Tidak ada miskonsepsi untuk konsep ini.</p>}
-      </div>}
     </div>
   </div>
 }

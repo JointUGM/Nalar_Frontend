@@ -60,17 +60,12 @@
 .actions .releaseAction[data-released='true'] { color: var(--color-success-strong); }
 .note { display: flex; align-items: start; gap: 8px; margin: 0 24px; padding: 16px 0 24px; border-block-start: 1px solid var(--color-role-border); font-size: 12px; line-height: 20px; color: var(--color-text-muted); }
 .note > svg { margin-block-start: 3px; }
-.empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 48px 24px; }
-.emptyIcon { display: grid; place-items: center; inline-size: 56px; block-size: 56px; margin-block-end: 16px; border-radius: 16px; background: var(--color-paper); color: var(--color-text-secondary); }
-.empty h3 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 650; letter-spacing: -.025em; }
-.empty p { max-inline-size: 48ch; margin: 8px 0 24px; font-size: 14px; line-height: 24px; color: var(--color-text-secondary); }
-.empty > a, .emptyReset { min-block-size: 44px; padding: 12px 16px; border-radius: var(--radius-pill); font-size: 13px; }
+.content .emptyAction { min-block-size: 44px; padding: 12px 16px; border-radius: var(--radius-pill); font-size: 13px; }
 .loading { padding: 0 24px 24px; color: var(--color-text-secondary); font-size: 14px; }
 .skeleton { margin-block-start: 16px; }
 .skeleton > div { display: grid; grid-template-columns: 1.6fr 1fr .9fr; gap: 32px; padding-block: 24px; }
 .skeleton > div + div { border-block-start: 1px solid var(--color-role-border); }
 .skeleton span { display: block; min-block-size: 64px; border-radius: 8px; background: var(--color-surface-muted); }
-.unavailable { margin: 0; padding: 0 24px 32px; font-size: 14px; line-height: 24px; color: var(--color-text-secondary); }
 .content :is(a, button, input, select):focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; scroll-margin-block: 80px; }
 .content .search input:focus-visible { outline: 0; }
 @media (max-width: 1199px) {
@@ -101,11 +96,8 @@
   .actions a { flex-basis: calc((100% - 16px) / 2); font-size: 13px; }
   .counts dd { font-size: 24px; line-height: 32px; }
   .note { margin-inline: 16px; }
-  .empty { align-items: start; text-align: start; padding: 32px 16px; }
-  .empty h3 { font-size: 18px; line-height: 26px; }
   .loading { padding-inline: 16px; }
   .skeleton > div { grid-template-columns: 1fr; gap: 12px; }
   .skeleton span { min-block-size: 32px; }
-  .unavailable { padding-inline: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { .filters button, .actions a { transition: none; } }

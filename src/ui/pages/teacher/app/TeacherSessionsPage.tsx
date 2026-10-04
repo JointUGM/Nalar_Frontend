@@ -4,6 +4,8 @@ import type { TeacherPublication } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
+import type { NalaMood } from '@/ui/components/nala/Nala'
+import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
@@ -21,6 +23,15 @@ function statusLabel(publication: TeacherPublication) {
   const { status, mode } = publication.run
   if (status === 'closed') return mode === 'live' ? 'Penerimaan ditutup' : 'Jendela ditutup'
   return ({ scheduled: 'Belum dimulai', lobby: 'Lobi terbuka', open: 'Sedang berlangsung' } as Readonly<Record<string, string>>)[status] ?? `Status: ${status}`
+}
+
+// Null while the list itself shows Nala (empty, no match, unavailable): one Nala per view.
+function companion(data: readonly TeacherPublication[] | null, failed: boolean): [NalaMood, string] | null {
+  if (!data) return failed ? null : ['think', 'Sebentar, daftar sesi sedang dimuat.']
+  const active = data.filter(isActive).length, scheduled = data.filter((publication) => publication.run.status === 'scheduled').length
+  if (active > 0) return ['hello', `${number.format(active)} sesi sedang berlangsung.`]
+  if (scheduled > 0) return ['think', `${number.format(scheduled)} sesi menunggu dimulai.`]
+  return ['read', 'Semua sesi sudah ditutup. Saatnya membaca hasil kelas.']
 }
 
 function SessionRow({ publication, base }: { publication: TeacherPublication; base: string }) {
@@ -68,8 +79,9 @@ export function TeacherSessionsPage({ service, base }: { service: TeacherService
   const visible = (data ?? []).filter((publication) => matchesStatus(publication, filter) && (!classId || publication.class_id === classId) && (!search || `${publication.mission_title} ${publication.class_name}`.toLocaleLowerCase('id-ID').includes(search)))
   const filtered = filter !== 'all' || Boolean(classId) || Boolean(query)
   const reset = () => { setFilter('all'); setQuery(''); setClassId('') }
+  const note = visible.length > 0 || !data ? companion(data, Boolean(error)) : null
   return <div className={styles.content}>
-    <div className={styles.header}><div><h1>Sesi dan hasil</h1><p>Pantau sesi kelas. Baca hasil penalaran siswa.</p></div><ButtonLink className={styles.publish} to={`${base}/missions`}><Icon name="plus" size={18} />Terbitkan misi</ButtonLink></div>
+    <div className={styles.header}><div><h1>Sesi dan hasil</h1><p>Pantau sesi kelas. Baca hasil penalaran siswa.</p></div>{note && <NalaNote mood={note[0]} text={note[1]} />}<ButtonLink className={styles.publish} to={`${base}/missions`}><Icon name="plus" size={18} />Terbitkan misi</ButtonLink></div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     <section className={styles.library} aria-labelledby="sessions-list-title" aria-busy={!data && !error}>
       <div className={styles.libraryHead}><h2 id="sessions-list-title">Daftar sesi</h2><span className={styles.sync}>{!data ? 'Menunggu data sesi' : online && !error ? 'Data diperbarui otomatis' : 'Menampilkan data terakhir'}</span></div>
@@ -80,15 +92,15 @@ export function TeacherSessionsPage({ service, base }: { service: TeacherService
         {filtered && <button type="button" className={styles.reset} onClick={reset}>Hapus filter</button>}
       </div>
       {!data && !error && <div className={styles.loading} role="status"><span>Memuat sesi…</span><div className={styles.skeleton} aria-hidden="true">{Array.from({ length: 3 }, (_, index) => <div key={index}><span /><span /><span /></div>)}</div></div>}
-      {data && data.length === 0 && <div className={styles.empty}><span className={styles.emptyIcon} aria-hidden="true"><Icon name="monitor" size={24} /></span><h3>Belum ada sesi kelas</h3><p>Terbitkan misi yang sudah ditinjau ke kelas Anda. Sesi dan hasilnya akan muncul di sini.</p><ButtonLink tone="secondary" to={`${base}/missions`}>Pilih misi untuk diterbitkan<Icon name="chevronRight" size={16} /></ButtonLink></div>}
+      {data && data.length === 0 && <NalaEmpty mood="ask" title="Belum ada sesi kelas" action={<ButtonLink tone="secondary" className={styles.emptyAction} to={`${base}/missions`}>Pilih misi untuk diterbitkan<Icon name="chevronRight" size={16} /></ButtonLink>}>Terbitkan misi yang sudah ditinjau ke kelas Anda. Sesi dan hasilnya akan muncul di sini.</NalaEmpty>}
       {data && data.length > 0 && <>
         <p className={styles.resultCount} role="status">Menampilkan {number.format(visible.length)} dari {number.format(data.length)} sesi yang dimuat</p>
-        {visible.length === 0 ? <div className={styles.empty}><h3>Tidak ada sesi yang cocok</h3><p>Coba kata pencarian lain atau hapus filter untuk melihat sesi Anda.</p><button type="button" className={styles.emptyReset} onClick={reset}>Tampilkan semua sesi</button></div> : <>
+        {visible.length === 0 ? <NalaEmpty mood="search" title="Tidak ada sesi yang cocok" action={<button type="button" className={styles.emptyAction} onClick={reset}>Tampilkan semua sesi</button>}>Coba kata pencarian lain atau hapus filter untuk melihat sesi Anda.</NalaEmpty> : <>
           <div className={styles.columns} aria-hidden="true"><span>Misi dan sesi</span><span>Partisipasi</span><span>Tindak lanjut</span></div>
           <ul className={styles.list} aria-label="Misi yang diterbitkan">{visible.map((publication) => <SessionRow key={publication.id} publication={publication} base={base} />)}</ul>
         </>}
       </>}
-      {!data && error && <p className={styles.unavailable}>Daftar sesi belum tersedia. Gunakan “Coba lagi” di atas untuk memuatnya.</p>}
+      {!data && error && <NalaEmpty mood="oops" title="Daftar sesi belum tersedia">Gunakan “Coba lagi” di atas untuk memuatnya.</NalaEmpty>}
       {data && data.length > 0 && <p className={styles.note}><Icon name="info" size={14} />Penerimaan yang ditutup tidak membatalkan tenggat siswa yang sudah mulai.</p>}
     </section>
   </div>

@@ -74,7 +74,7 @@ export function StudentStartPage({ service, base }: { service: StudentService; b
     <div className={styles.header}>
       <div>
         <div className={styles.titleRow}><h1>{mission.mission_title}</h1><span>{mission.subject_name}</span></div>
-        <p>{mission.closes_at ? `Ditutup ${formatDayTime(mission.closes_at)} · ` : ''}1 kesempatan</p>
+        <p>{mission.closes_at ? `Ditutup ${formatDayTime(mission.closes_at)} · ` : ''}{mission.is_granted_attempt ? `Kesempatan ke-${mission.attempt_number}` : '1 kesempatan'}</p>
       </div>
       {ready && !said && <Button pending={pending} pendingLabel="Membuka sesi…" onClick={() => { void start() }}>{resume ? 'Lanjutkan sesi' : 'Aku siap'}<Icon name="chevronRight" size={13} /></Button>}
       {live && open && <ButtonLink to={`${base}/join`}>Gabung dengan kode</ButtonLink>}
@@ -88,6 +88,7 @@ export function StudentStartPage({ service, base }: { service: StudentService; b
       ? <Feedback title="Misi ini belum dibuka" announce>{mission.opens_at ? `Dibuka ${formatDayTime(mission.opens_at)}. Kamu bisa kembali saat itu.` : 'Kamu bisa kembali setelah gurumu membukanya.'}</Feedback>
       : <Feedback title="Waktu mengerjakan sudah lewat" announce>Kalau kamu belum sempat, tanyakan gurumu.</Feedback>)}
 
+    <section className={styles.welcome} aria-labelledby="intro-welcome"><div><h2 id="intro-welcome">Mulai dari rasa ingin tahu.</h2><p>Kamu tidak harus langsung yakin. Ceritakan apa yang kamu pikirkan, lalu jelajahi alasanmu bersama Nala.</p></div><Nala mood="ask" size={156} /></section>
     <ul className={styles.stats} aria-label="Tentang misi ini">
       <li><Icon name="message" size={16} /><strong>1 soal + pertanyaan lanjutan</strong><small>Tentang alasanmu</small></li>
       <li><Icon name="clock" size={16} /><strong>± {mission.target_duration_minutes} menit</strong><small>Maksimal {mission.max_duration_minutes} menit</small></li>
@@ -99,7 +100,7 @@ export function StudentStartPage({ service, base }: { service: StudentService; b
         <ol>{steps.map(([title, caption], index) => <li key={title}><span aria-hidden="true">{index + 1}</span><div><strong>{title}</strong><small>{caption}</small></div></li>)}</ol>
       </section>
       <section className={styles.notes} aria-labelledby="intro-notes">
-        <div className={styles.notesHead}><Nala mood="ask" size={72} /><h2 id="intro-notes">Yang perlu kamu tahu<small>Pesan dari Nala</small></h2></div>
+        <div className={styles.notesHead}><Icon name="heart" size={22} /><h2 id="intro-notes">Yang perlu kamu tahu<small>Pesan dari Nala</small></h2></div>
         <ul>{notes.map((note) => <li key={note}>{note}</li>)}</ul>
       </section>
     </div>
