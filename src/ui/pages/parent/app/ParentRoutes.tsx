@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Loading } from '@/ui/components/loading/Loading'
 import { Navigate, Route, Routes, useLocation } from 'react-router'
 import type { Identity } from '@/domain/model/Identity'
@@ -11,6 +11,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import boundary from '@/ui/RouteBoundary.module.css'
 import { ParentHomePage } from './ParentHomePage'
+import { ParentNotifications } from './ParentNotifications'
 import { ParentReflectionPage } from './ParentReflectionPage'
 import { ParentReflectionsPage } from './ParentReflectionsPage'
 import { ParentSettingsPage } from './ParentSettingsPage'
@@ -26,7 +27,15 @@ const titles: Readonly<Record<string, string>> = { [parentPaths.home]: 'Ringkasa
 function Frame({ service, user, email }: { service: ParentService; user: string; email: string | null }) {
   const { child } = useParentContext()
   const { pathname } = useLocation()
-  return <ParentShell title={titles[pathname.replace(/\/+$/, '')] ?? (pathname.startsWith(parentPaths.reflections) ? 'Refleksi' : 'Orang tua')} user={user} nav={nav} home={parentPaths.home}>
+  const readNotices = useCallback((signal: AbortSignal) => service.notifications(signal), [service])
+  const notices = useLiveResource(readNotices, noPollMs)
+  const [noticesOpen, setNoticesOpen] = useState(false)
+  // Opening the list reads every notice in it; the count refreshes when it closes.
+  function openNotices() {
+    setNoticesOpen(true)
+    for (const notice of notices.data?.items ?? []) if (notice.read_at === null) service.markNotificationRead(notice.id).catch(() => {})
+  }
+  return <ParentShell bell={{ unread: notices.data?.unread_count ?? 0, onOpen: openNotices }} title={titles[pathname.replace(/\/+$/, '')] ?? (pathname.startsWith(parentPaths.reflections) ? 'Refleksi' : 'Orang tua')} user={user} nav={nav} home={parentPaths.home}>
     {/* Switching child remounts the page, so nothing read for one child is still on screen for the next. */}
     <Routes key={child?.id ?? 'none'}>
       <Route index element={<Navigate to={parentPaths.home} replace />} />
@@ -36,6 +45,7 @@ function Frame({ service, user, email }: { service: ParentService; user: string;
       <Route path="settings" element={<ParentSettingsPage service={service} user={user} email={email} />} />
       <Route path="*" element={<h1>Halaman tidak tersedia</h1>} />
     </Routes>
+    <ParentNotifications open={noticesOpen} data={notices.data} onClose={() => { setNoticesOpen(false); notices.refresh() }} />
   </ParentShell>
 }
 

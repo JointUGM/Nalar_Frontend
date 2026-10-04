@@ -14,7 +14,7 @@ interface NavItem { label: string; icon: IconName; to?: string; badge?: string }
 
 const unavailable = 'Belum tersedia di pratinjau'
 
-export function ParentShell({ title, user, nav, home, children }: { title: string; user: string; nav: readonly NavItem[]; home: string; children: ReactNode }) {
+export function ParentShell({ title, user, nav, home, children, bell }: { title: string; user: string; nav: readonly NavItem[]; home: string; children: ReactNode; bell?: { unread: number; onOpen: () => void } }) {
   const { linkedChildren, child, selectChild } = useParentContext()
   const [collapsed, setCollapsed] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -77,7 +77,7 @@ export function ParentShell({ title, user, nav, home, children }: { title: strin
         {child && <span className={styles.chip} data-switchable={linkedChildren.length > 1}><span><NalaAvatar seed={child.name} size={28} /></span>{chip}</span>}
         {/* On a phone the sidebar is a drawer, so the child can be changed straight from the bar. */}
         {child && linkedChildren.length > 1 && <button type="button" className={[styles.chip, styles.chipButton].join(' ')} aria-label={`Anak: ${child.name}. Ganti anak`} aria-haspopup="dialog" onClick={() => setDrawerOpen(true)}><span><NalaAvatar seed={child.name} size={28} /></span>{chip}<Icon name="chevronDown" size={14} /></button>}
-        <button type="button" className={styles.bell} disabled aria-label="Notifikasi belum tersedia"><Icon name="bell" size={16} /></button>
+        {bell && <button type="button" className={styles.bell} aria-haspopup="dialog" aria-label={bell.unread > 0 ? `Notifikasi, ${bell.unread} belum dibaca` : 'Notifikasi'} onClick={bell.onOpen}><Icon name="bell" size={16} />{bell.unread > 0 && <span className={styles.unread} aria-hidden="true">{bell.unread > 9 ? '9+' : bell.unread}</span>}</button>}
       </header>
       <main ref={contentRef} className={styles.main} id="parent-content" tabIndex={-1}>{children}</main>
     </div>
