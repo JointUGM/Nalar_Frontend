@@ -41,6 +41,9 @@ const progress = { sessions_completed: 4, concepts_understood: ['Gaya gesek'], c
 const nothing = { sessions_completed: 0, concepts_understood: [], concepts_developing: [], summaries: [] }
 const reflections = { items: [{ session_id: session, mission_title: 'Kenapa kelereng berhenti?', completed_at: '2026-09-24T02:00:00+00:00', content: 'Kamu memakai contoh es dan karpet.\n\nApa yang terjadi tanpa gesekan?' }], next_cursor: null }
 
+const notice = '00000000-0000-4000-8000-0000000000a1'
+const notices = { items: [{ id: notice, type: 'parent_periodic_summary', created_at: '2026-09-25T01:00:00+00:00', read_at: null }], unread_count: 1, next_cursor: null }
+
 type Reply = () => Response | Promise<Response>
 function backend(overrides: Record<string, Reply> = {}) {
   const routes: Record<string, Reply> = {
@@ -50,6 +53,8 @@ function backend(overrides: Record<string, Reply> = {}) {
     [`GET /parent/children/${raka}/reflections?limit=100`]: () => Response.json(reflections),
     [`POST /parent/children/${raka}/seen`]: () => new Response(null, { status: 204 }),
     [`POST /parent/children/${nadia}/seen`]: () => new Response(null, { status: 204 }),
+    'GET /notifications?limit=20': () => Response.json(notices),
+    [`POST /notifications/${notice}/read`]: () => new Response(null, { status: 204 }),
     'GET /parent/preferences': () => Response.json({ weekly_digest_enabled: true }),
     'PUT /parent/preferences': () => Response.json({ weekly_digest_enabled: false }),
     ...overrides,
@@ -127,11 +132,20 @@ describe('signed-in parent pages', () => {
     expect(toggle).toBeChecked()
   })
 
-  it('asks a parent with no linked child to contact the school and requests nothing else', async () => {
+  it('asks a parent with no linked child to contact the school and requests no child data', async () => {
     const request = backend({ 'GET /parent/children?limit=100': () => Response.json({ items: [], next_cursor: null }) })
     open('/parent/home', request)
     await screen.findByRole('heading', { name: 'Belum ada anak yang tertaut' })
-    expect(request).toHaveBeenCalledTimes(1)
+    expect(request.mock.calls.filter(([url]) => String(url).includes('/parent/children/'))).toEqual([])
+  })
+
+  it('counts unread notices on the bell, lists them, and marks them read when opened', async () => {
+    const request = backend()
+    open('/parent/home', request)
+    const bell = await screen.findByRole('button', { name: 'Notifikasi, 1 belum dibaca' })
+    fireEvent.click(bell)
+    expect(await screen.findByRole('link', { name: 'Ringkasan berkala dari guru sudah tersedia.' })).toHaveAttribute('href', '/parent/home')
+    await waitFor(() => expect(request.mock.calls.some(([url, init]) => init?.method === 'POST' && String(url).endsWith(`/notifications/${notice}/read`))).toBe(true))
   })
 
   it('sends an expired session back to sign-in', async () => {

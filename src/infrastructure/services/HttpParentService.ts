@@ -1,4 +1,4 @@
-import type { LinkedChild, ParentPreferences, ParentProgress, ParentReflection, ParentSettings } from '@/domain/model/Parent'
+import type { LinkedChild, ParentNotices, ParentPreferences, ParentProgress, ParentReflection, ParentSettings } from '@/domain/model/Parent'
 import type { ParentService } from '@/domain/services/ParentService'
 import { allItems, count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
@@ -17,6 +17,18 @@ export class HttpParentService implements ParentService {
       const value = record(item)
       return { student_id: text(value.student_id), name: text(value.name), school_name: text(value.school_name), class_name: nullable(value.class_name, text), last_seen_at: nullable(value.last_seen_at, instant) } satisfies Schemas['ParentChildOut']
     })
+  }
+
+  async notifications(signal?: AbortSignal): Promise<ParentNotices> {
+    const value = record((await this.api.request('/notifications?limit=20', { signal })).data)
+    return {
+      unread_count: count(value.unread_count),
+      items: list(value.items).map((item) => { const notice = record(item); return { id: text(notice.id), type: text(notice.type), created_at: instant(notice.created_at), read_at: nullable(notice.read_at, instant) } satisfies Schemas['NotificationOut'] }),
+    }
+  }
+
+  async markNotificationRead(notificationId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`/notifications/${encodeURIComponent(notificationId)}/read`, { method: 'POST', signal })
   }
 
   async markSeen(studentId: string, signal?: AbortSignal): Promise<void> {

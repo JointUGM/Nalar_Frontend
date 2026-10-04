@@ -36,9 +36,8 @@
 .search input { inline-size: 100%; min-inline-size: 0; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--color-ink); font-size: 13px; font-weight: 500; }
 .search input::placeholder { color: var(--color-text-muted); }
 .search input:disabled { opacity: .65; }
-.notifications, .menuButton { display: flex; align-items: center; justify-content: center; flex-shrink: 0; inline-size: 38px; block-size: 38px; padding: 0; border: 1px solid var(--color-role-border); border-radius: 10px; background: var(--color-surface); color: var(--color-text-secondary); transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease; cursor: pointer; }
-.notifications:hover:not(:disabled), .menuButton:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-info-bg); }
-.notifications:disabled { opacity: .65; cursor: not-allowed; }
+.menuButton { display: flex; align-items: center; justify-content: center; flex-shrink: 0; inline-size: 38px; block-size: 38px; padding: 0; border: 1px solid var(--color-role-border); border-radius: 10px; background: var(--color-surface); color: var(--color-text-secondary); transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease; cursor: pointer; }
+.menuButton:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-info-bg); }
 .menuButton { display: none; border-radius: 10px; }
 .main { min-inline-size: 0; padding: 24px 32px 64px; overflow-wrap: anywhere; }
 .skipLink { position: fixed; inset-block-start: 8px; inset-inline-start: 8px; padding: 12px 16px; background: var(--color-surface); z-index: 2; transform: translateY(-200%); }
@@ -57,5 +56,4 @@
   .topbar { padding-inline: 16px; gap: 8px; flex-wrap: wrap; block-size: auto; min-block-size: 56px; }
   .search { flex: 1 1 100%; margin-block-end: 12px; }
   .main { padding: 24px 16px 48px; }
-  .notifications { display: none; }
 }

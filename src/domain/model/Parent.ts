@@ -1,5 +1,9 @@
 // What a linked parent may see: teacher-released results only. No score, flag, class comparison or unreleased title exists in these shapes.
 // last_seen_at is when this parent last opened the child's summary (null before the first visit).
+// The newest 20 notices; the backend sends no text or link, only the type and time.
+export interface ParentNotice { id: string; type: string; created_at: string; read_at: string | null }
+export interface ParentNotices { items: ParentNotice[]; unread_count: number }
+
 export interface LinkedChild { student_id: string; name: string; school_name: string; class_name: string | null; last_seen_at: string | null }
 export interface ParentSummary { publication_id: string; mission_title: string; released_at: string; text: string }
 export interface ParentProgress { sessions_completed: number; concepts_understood: string[]; concepts_developing: string[]; summaries: ParentSummary[] }
