@@ -48,7 +48,7 @@
 .table tbody tr:hover { background: var(--color-nav-hover); }
 .table tbody th, .table td { padding-block: 20px; text-align: start; }
 .student { display: flex; align-items: center; gap: 12px; font-size: 14px; line-height: 22px; font-weight: 600; overflow-wrap: anywhere; }
-.avatar { display: grid; place-items: center; flex: none; inline-size: 32px; block-size: 32px; border-radius: 50%; background: var(--color-paper); color: var(--color-text-secondary); font-size: 11px; line-height: 16px; font-weight: 600; }
+.avatar { display: grid; place-items: center; flex: none; inline-size: 36px; block-size: 36px; }
 .studentStatus { display: grid; gap: 4px; }
 .status { font-size: 12px; line-height: 20px; color: var(--color-text-secondary); overflow-wrap: anywhere; }
 .status[data-status='completed'] { color: var(--color-success-strong); }

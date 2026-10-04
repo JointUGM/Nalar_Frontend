@@ -40,9 +40,8 @@
 .row:hover { background: var(--color-paper); }
 .group[data-kind='safety'] .row:hover { background: color-mix(in srgb, var(--color-surface) 55%, transparent); }
 .lead { display: grid; place-items: center; flex: none; inline-size: 40px; block-size: 40px; border-radius: 12px; background: var(--color-paper); color: var(--color-text-secondary); }
-.lead[data-person='true'] { border-radius: 50%; background: var(--color-verification-bg); color: var(--color-ink); font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+.lead[data-person='true'] { background: none; }
 .lead[data-person='false'] { background: none; }
-.group[data-kind='safety'] .lead { background: var(--color-surface); color: var(--color-danger-text); }
 .body { display: grid; gap: 2px; min-inline-size: 0; }
 .who { font-size: 15px; line-height: 24px; font-weight: 600; overflow-wrap: anywhere; }
 .summary { max-inline-size: 68ch; font-size: 13px; line-height: 22px; color: var(--color-text-secondary); overflow-wrap: anywhere; }

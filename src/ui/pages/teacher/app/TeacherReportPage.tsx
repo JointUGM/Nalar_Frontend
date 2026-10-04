@@ -7,7 +7,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
-import { NalaIcon } from '@/ui/components/nala/NalaIcon'
+import { NalaAvatar, NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherReport.module.css'
@@ -92,7 +92,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
     {back}
     <div className={styles.header}>
       <div className={styles.who}>
-        <span className={styles.avatar} aria-hidden="true">{report.student.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')}</span>
+        <span className={styles.avatar}><NalaAvatar seed={report.student.name} size={48} /></span>
         <div><h1>{report.student.name}</h1><p>{[`${report.mission.title} · versi ${report.mission.version_number}`, `Percobaan ${report.session.attempt_number}`, sessionWord[report.session.status] ?? report.session.status, minutes(report.session.started_at, report.session.ended_at)].filter(Boolean).join(' · ')}</p></div>
       </div>
       {finished && <Button tone="secondary" disabled={pending || granted} onClick={() => open({ kind: 'grant' })}><Icon name="refresh" size={14} />{granted ? 'Kesempatan lagi diberikan' : 'Beri kesempatan lagi'}</Button>}
