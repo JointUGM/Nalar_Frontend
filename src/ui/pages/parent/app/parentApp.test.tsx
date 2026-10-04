@@ -106,6 +106,12 @@ describe('signed-in parent pages', () => {
     expect(JSON.parse(String(puts(request)[0][1]?.body))).toEqual({ weekly_digest_enabled: false })
   })
 
+  it('says weekly mail is not sent yet when the backend has it switched off', async () => {
+    open('/parent/settings', backend({ 'GET /config': () => Response.json({ password_reset_enabled: true, account_email_enabled: true, weekly_digest_enabled: false }) }))
+    await screen.findByText(/Pengiriman email belum aktif/)
+    expect(screen.queryByText('Ringkasan mingguan akan dikirim ke email Anda.')).not.toBeInTheDocument()
+  })
+
   it('keeps the switch on the server value and says so when saving fails', async () => {
     open('/parent/settings', backend({ 'PUT /parent/preferences': () => Response.json({ error: { code: 'DEPENDENCY_UNAVAILABLE' } }, { status: 503 }) }))
     const toggle = await screen.findByRole('switch', { name: /ringkasan mingguan/i })

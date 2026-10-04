@@ -1,4 +1,4 @@
-import type { LinkedChild, ParentPreferences, ParentProgress, ParentReflection } from '@/domain/model/Parent'
+import type { LinkedChild, ParentPreferences, ParentProgress, ParentReflection, ParentSettings } from '@/domain/model/Parent'
 import type { ParentService } from '@/domain/services/ParentService'
 import { count, flag, instant, list, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
@@ -41,8 +41,13 @@ export class HttpParentService implements ParentService {
     })
   }
 
-  async preferences(signal?: AbortSignal): Promise<ParentPreferences> {
-    return { weekly_digest_enabled: flag(record((await this.api.request('/parent/preferences', { signal })).data).weekly_digest_enabled) }
+  // An unreadable /config counts as mail on: the page then promises nothing the server has denied.
+  async preferences(signal?: AbortSignal): Promise<ParentSettings> {
+    const [saved, config] = await Promise.all([
+      this.api.request('/parent/preferences', { signal }),
+      this.api.request('/config', { signal }).then(({ data }) => record(data).weekly_digest_enabled !== false, () => true),
+    ])
+    return { weekly_digest_enabled: flag(record(saved.data).weekly_digest_enabled), mail_enabled: config }
   }
 
   async setPreferences(preferences: ParentPreferences, signal?: AbortSignal): Promise<ParentPreferences> {
