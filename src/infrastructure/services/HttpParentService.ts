@@ -1,6 +1,6 @@
 import type { LinkedChild, ParentPreferences, ParentProgress, ParentReflection, ParentSettings } from '@/domain/model/Parent'
 import type { ParentService } from '@/domain/services/ParentService'
-import { count, flag, instant, list, record, text } from './HttpApi'
+import { allItems, count, flag, instant, list, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
 
@@ -11,10 +11,9 @@ const child = (studentId: string) => `/parent/children/${encodeURIComponent(stud
 export class HttpParentService implements ParentService {
   constructor(private readonly api: HttpApi) {}
 
-  // ponytail: one page of 100 children and 100 reflections; follow next_cursor if a family or a history can ever exceed that.
+  // Up to 500 children and 500 reflections (five pages each).
   async children(signal?: AbortSignal): Promise<LinkedChild[]> {
-    const { data } = await this.api.request('/parent/children?limit=100', { signal })
-    return list(record(data).items).map((item) => {
+    return (await allItems(this.api, '/parent/children?limit=100', signal)).map((item) => {
       const value = record(item)
       return { student_id: text(value.student_id), name: text(value.name), school_name: text(value.school_name) } satisfies Schemas['ParentChildOut']
     })
@@ -34,8 +33,7 @@ export class HttpParentService implements ParentService {
   }
 
   async reflections(studentId: string, signal?: AbortSignal): Promise<ParentReflection[]> {
-    const { data } = await this.api.request(`${child(studentId)}/reflections?limit=100`, { signal })
-    return list(record(data).items).map((item) => {
+    return (await allItems(this.api, `${child(studentId)}/reflections?limit=100`, signal)).map((item) => {
       const value = record(item)
       return { session_id: text(value.session_id), mission_title: text(value.mission_title), completed_at: instant(value.completed_at), content: text(value.content) } satisfies Schemas['ParentReflectionOut']
     })

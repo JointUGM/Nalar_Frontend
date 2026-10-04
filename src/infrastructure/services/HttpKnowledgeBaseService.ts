@@ -1,6 +1,6 @@
 import type { Job, KbCreateInput, KbDetail, KbItemKind, KbItemPatch, KbQueued, KbReviewQueue, KbSection, KbSummary, NewConcept, NewMisconception, ReviewStatus } from '@/domain/model/KnowledgeBase'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
-import { count, flag, instant, list, nullable, record, text } from './HttpApi'
+import { allItems, count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
 
@@ -23,10 +23,9 @@ function upload(file: File, fields: Record<string, string> = {}): FormData {
 export class HttpKnowledgeBaseService implements KnowledgeBaseService {
   constructor(private readonly api: HttpApi) {}
 
-  // ponytail: one page of 100 topics per school; follow next_cursor when a school can have more.
+  // Up to 500 topics per school (five pages).
   async list(schoolId: string, signal?: AbortSignal): Promise<KbSummary[]> {
-    const { data } = await this.api.request(`/schools/${encodeURIComponent(schoolId)}/knowledge-bases?limit=100`, { signal })
-    return list(record(data).items).map((entry) => {
+    return (await allItems(this.api, `/schools/${encodeURIComponent(schoolId)}/knowledge-bases?limit=100`, signal)).map((entry) => {
       const value = record(entry)
       return {
         id: text(value.id), topic_title: text(value.topic_title), owner_name: nullable(value.owner_name, text), school_subject_id: text(value.school_subject_id), can_edit: flag(value.can_edit),
