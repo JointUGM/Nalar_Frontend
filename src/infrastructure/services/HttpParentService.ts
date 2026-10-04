@@ -1,6 +1,6 @@
 import type { LinkedChild, ParentPreferences, ParentProgress, ParentReflection, ParentSettings } from '@/domain/model/Parent'
 import type { ParentService } from '@/domain/services/ParentService'
-import { allItems, count, flag, instant, list, record, text } from './HttpApi'
+import { allItems, count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
 
@@ -35,7 +35,7 @@ export class HttpParentService implements ParentService {
   async reflections(studentId: string, signal?: AbortSignal): Promise<ParentReflection[]> {
     return (await allItems(this.api, `${child(studentId)}/reflections?limit=100`, signal)).map((item) => {
       const value = record(item)
-      return { session_id: text(value.session_id), mission_title: text(value.mission_title), completed_at: instant(value.completed_at), content: text(value.content) } satisfies Schemas['ParentReflectionOut']
+      return { session_id: text(value.session_id), mission_title: text(value.mission_title), subject_name: nullable(value.subject_name, text) ?? '', completed_at: instant(value.completed_at), content: text(value.content) } satisfies Schemas['ParentReflectionOut']
     })
   }
 

@@ -26,7 +26,7 @@ export class HttpStudentService implements StudentService {
   async reflections(signal?: AbortSignal): Promise<StudentReflection[]> {
     return (await allItems(this.api, '/student/reflections?limit=100', signal)).map((entry) => {
       const value = record(entry)
-      return { session_id: text(value.session_id), mission_title: text(value.mission_title), completed_at: instant(value.completed_at), content: text(value.content) } satisfies Schemas['StudentReflectionOut']
+      return { session_id: text(value.session_id), mission_title: text(value.mission_title), subject_name: nullable(value.subject_name, text) ?? '', completed_at: instant(value.completed_at), content: text(value.content) } satisfies Schemas['StudentReflectionOut']
     })
   }
 

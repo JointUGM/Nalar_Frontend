@@ -19,7 +19,7 @@ export class HttpTeacherService implements TeacherService {
     return (await allItems(this.api, '/teacher/publications?limit=100', signal)).map((item) => {
       const value = record(item), run = record(value.run), counts = record(value.counts)
       return {
-        id: text(value.id), class_id: text(value.class_id), class_name: text(value.class_name), mission_title: text(value.mission_title),
+        id: text(value.id), class_id: text(value.class_id), class_name: text(value.class_name), mission_title: text(value.mission_title), subject_name: nullable(value.subject_name, text) ?? '',
         released_to_parents_at: nullable(value.released_to_parents_at, instant),
         run: { id: text(run.id), mode: text(run.mode), status: text(run.status), join_code: nullable(run.join_code, text), opens_at: nullable(run.opens_at, instant), closes_at: nullable(run.closes_at, instant) },
         counts: { started: count(counts.started), completed: count(counts.completed), timed_out: count(counts.timed_out), evaluated: count(counts.evaluated) },
@@ -48,7 +48,7 @@ export class HttpTeacherService implements TeacherService {
 
   async createMission(input: MissionInput, signal?: AbortSignal): Promise<{ mission_id: string }> {
     const body: Schemas['MissionIn'] = input
-    return { mission_id: text(record((await this.api.request('/missions', { method: 'POST', body, signal })).data).mission_id) }
+    return { mission_id: text(record((await this.api.request('/missions', { method: 'POST', body, idempotent: true, signal })).data).mission_id) }
   }
 
   async generateMission(missionId: string, signal?: AbortSignal): Promise<{ job_id: string }> {
@@ -86,7 +86,7 @@ export class HttpTeacherService implements TeacherService {
 
   async publish(input: PublishInput, signal?: AbortSignal): Promise<Published> {
     const body: Schemas['PublishIn'] = { class_id: input.class_id, mission_version_id: input.mission_version_id, run: { mode: input.mode, ...(input.mode === 'window' ? { opens_at: input.opens_at, closes_at: input.closes_at } : {}) } }
-    const value = record((await this.api.request('/publications', { method: 'POST', body, signal })).data)
+    const value = record((await this.api.request('/publications', { method: 'POST', body, idempotent: true, signal })).data)
     return { publication_id: text(value.publication_id), run_id: text(value.run_id), run_status: text(value.run_status) } satisfies Schemas['PublishOut']
   }
 

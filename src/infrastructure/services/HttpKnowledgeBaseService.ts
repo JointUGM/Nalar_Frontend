@@ -36,7 +36,7 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
 
   async create(schoolId: string, input: KbCreateInput, signal?: AbortSignal): Promise<KbQueued> {
     const form = upload(input.file, { school_subject_id: input.school_subject_id, topic_title: input.topic_title })
-    return queued((await this.api.request(`/schools/${encodeURIComponent(schoolId)}/knowledge-bases`, { method: 'POST', form, signal })).data)
+    return queued((await this.api.request(`/schools/${encodeURIComponent(schoolId)}/knowledge-bases`, { method: 'POST', form, idempotent: true, signal })).data)
   }
 
   async detail(kbId: string, signal?: AbortSignal): Promise<KbDetail> {
@@ -66,7 +66,7 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
   }
 
   async addMaterial(kbId: string, file: File, signal?: AbortSignal): Promise<KbQueued> {
-    return queued((await this.api.request(`${kb(kbId)}/materials`, { method: 'POST', form: upload(file), signal })).data)
+    return queued((await this.api.request(`${kb(kbId)}/materials`, { method: 'POST', form: upload(file), idempotent: true, signal })).data)
   }
 
   async sections(kbId: string, signal?: AbortSignal): Promise<KbSection[]> {
