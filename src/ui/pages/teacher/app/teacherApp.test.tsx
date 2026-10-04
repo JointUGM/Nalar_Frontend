@@ -368,6 +368,43 @@ describe('signed-in teacher pages', () => {
     })
   })
 
+  it('adds a concept by hand, retrying with the same key and renewing it when the text changes', async () => {
+    let attempts = 0
+    const request = backend({ [`POST /knowledge-bases/${kbId}/concepts`]: () => ++attempts === 1 ? Response.json({ error: { code: 'DEPENDENCY_UNAVAILABLE' } }, { status: 503 }) : Response.json({ id: concept, name: 'Tekanan udara' }, { status: 201 }) })
+    open(kbPath, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Tambah konsep' }))
+    const form = within(screen.getByRole('form', { name: 'Konsep baru' }))
+    fireEvent.change(form.getByLabelText(/Nama konsep/), { target: { value: ' Tekanan udara ' } })
+    fireEvent.click(form.getByRole('button', { name: 'Tambah' }))
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1))
+    await screen.findAllByText('Layanan sedang sibuk. Coba lagi sebentar.')
+    fireEvent.click(form.getByRole('button', { name: 'Tambah' }))
+    await waitFor(() => expect(screen.queryByRole('form', { name: 'Konsep baru' })).not.toBeInTheDocument())
+    const [first, second] = request.mock.calls.filter(([, init]) => init?.method === 'POST')
+    expect(new Headers(first[1]?.headers).get('Idempotency-Key')).toBe(new Headers(second[1]?.headers).get('Idempotency-Key'))
+    expect(JSON.parse(String(second[1]?.body))).toEqual({ name: 'Tekanan udara', source_chunk_ids: [] })
+  })
+
+  it('adds a misconception to the chosen concept with one cue per line, and gives a colleague no way to add', async () => {
+    const request = backend({ [`POST /knowledge-bases/${kbId}/concepts/${concept}/misconceptions`]: () => Response.json({ id: misconception }, { status: 201 }) })
+    const { unmount } = open(kbPath, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Tambah miskonsepsi' }))
+    const form = within(screen.getByRole('form', { name: 'Miskonsepsi baru' }))
+    fireEvent.change(form.getByLabelText(/Pernyataan keliru/), { target: { value: 'Air makin banyak, tekanan makin besar' } })
+    fireEvent.change(form.getByLabelText(/Pemahaman yang benar/), { target: { value: 'Tekanan bergantung pada kedalaman.' } })
+    fireEvent.change(form.getByLabelText(/Contoh ucapan siswa/), { target: { value: 'airnya banyak\n\n kolamnya besar ' } })
+    fireEvent.click(form.getByRole('button', { name: 'Tambah' }))
+    await waitFor(() => expect(request.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(true))
+    expect(JSON.parse(String(request.mock.calls.find(([, init]) => init?.method === 'POST')![1]?.body))).toEqual({
+      statement: 'Air makin banyak, tekanan makin besar', correct_understanding: 'Tekanan bergantung pada kedalaman.', detection_cues: ['airnya banyak', 'kolamnya besar'], counter_examples: [], source_chunk_ids: [],
+    })
+    unmount()
+    open(kbPath, backend({ [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail('pending', false)) }))
+    await screen.findByText(/milik rekan guru/)
+    expect(screen.queryByRole('button', { name: 'Tambah konsep' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Tambah miskonsepsi' })).not.toBeInTheDocument()
+  })
+
   it('builds a chapter once and says why its job failed', async () => {
     const request = backend({
       [`POST /knowledge-bases/${kbId}/sections/${section}/build`]: () => Response.json({ job_id: job, section_id: section, status: 'queued' }, { status: 202 }),
