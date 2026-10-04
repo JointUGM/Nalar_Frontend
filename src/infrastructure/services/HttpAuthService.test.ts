@@ -56,6 +56,14 @@ describe('Redis cookie authentication', () => {
     ])
   })
 
+  it('reads the reset switch from /config and treats an unreadable answer as available', async () => {
+    const replies = [Response.json({ password_reset_enabled: false }), Response.json({ password_reset_enabled: true }), new Response(null, { status: 503 })]
+    const { auth } = service(vi.fn<typeof globalThis.fetch>(async () => replies.shift()!))
+    expect(await auth.passwordResetEnabled()).toBe(false)
+    expect(await auth.passwordResetEnabled()).toBe(true)
+    expect(await auth.passwordResetEnabled()).toBe(true)
+  })
+
   it('removes legacy tokens and signs in with credentials included and CSRF protection', async () => {
     const { auth, storage } = service(async (input, init) => {
       expect(input).toBe('/api/v1/auth/login')

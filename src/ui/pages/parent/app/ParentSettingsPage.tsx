@@ -38,6 +38,7 @@ export function ParentSettingsPage({ service, user }: { service: ParentService; 
   // Nala reflects the setting the server last confirmed, and steps aside while an error banner is up.
   const note: [NalaMood, string] | null = !data ? (error ? null : ['think', 'Sebentar, pengaturan sedang dimuat.'])
     : status === 'failed' ? ['oops', 'Pengaturan belum tersimpan. Coba lagi.']
+    : !data.mail_enabled ? ['calm', 'Email mingguan belum dikirim. Ringkasan tetap bisa dibuka di sini.']
     : enabled ? ['hello', 'Ringkasan mingguan akan dikirim ke email Anda.'] : ['calm', 'Email mingguan mati. Ringkasan tetap bisa dibuka di sini.']
   return <div className={styles.content}>
     <div className={styles.header}>
@@ -51,7 +52,7 @@ export function ParentSettingsPage({ service, user }: { service: ParentService; 
         <div className={styles.row}>
           <div>
             <span id="email-label" className={styles.rowTitle}>Kirim ringkasan mingguan</span>
-            <span id="email-help" className={styles.rowHelp}>Ke email akun ini, hanya hasil yang sudah dirilis guru.</span>
+            <span id="email-help" className={styles.rowHelp}>{data && !data.mail_enabled ? 'Pengiriman email belum aktif. Pilihan Anda tersimpan dan berlaku saat pengiriman dimulai.' : 'Ke email akun ini, hanya hasil yang sudah dirilis guru.'}</span>
           </div>
           <button type="button" role="switch" aria-checked={enabled} aria-labelledby="email-label" aria-describedby="email-help" aria-busy={pending || undefined} disabled={pending || !data} className={styles.switch} onClick={() => { void toggle() }}><span aria-hidden="true" /></button>
         </div>

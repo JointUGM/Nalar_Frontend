@@ -7,7 +7,7 @@ import type { ChangePasswordUseCase, RequestPasswordResetUseCase, ResetPasswordU
 
 export interface AccountDependencies {
   readonly activate?: Pick<ActivateAccountUseCase, 'execute'>
-  readonly requestReset?: Pick<RequestPasswordResetUseCase, 'execute'>
+  readonly requestReset?: Pick<RequestPasswordResetUseCase, 'execute' | 'enabled'>
   readonly reset?: Pick<ResetPasswordUseCase, 'execute'>
   readonly changePassword?: Pick<ChangePasswordUseCase, 'execute'>
   readonly signIn: Pick<SignInUseCase, 'execute'>
