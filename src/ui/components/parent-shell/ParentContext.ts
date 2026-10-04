@@ -9,6 +9,8 @@ export interface ParentChild {
   /** Class label shown beside the first name in the top bar. */
   klass: string
   tone: 'warm' | 'info'
+  /** When this parent last opened the child's summary; null before the first visit. */
+  lastSeenAt: string | null
 }
 
 export interface ParentContextValue {

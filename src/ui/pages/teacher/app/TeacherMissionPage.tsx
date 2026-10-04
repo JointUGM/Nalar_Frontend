@@ -1,3 +1,4 @@
+import { ConfirmAction } from './ConfirmAction'
 import { useCallback, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
@@ -90,6 +91,7 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
         {mission.can_edit && <Button tone="secondary" pending={pending === 'generate'} pendingLabel="Meminta draf…" disabled={pending !== '' || draft !== null} onClick={() => { void run('generate', (signal) => service.generateMission(mission.id, signal), (queued) => setJobId(queued.job_id)) }}><Icon name="sparkle" size={14} />{version ? 'Buat ulang dengan AI' : 'Buat draf dengan AI'}</Button>}
         {version?.can_edit && version.status === 'draft' && <Button pending={pending === 'review'} pendingLabel="Memeriksa…" disabled={pending !== '' || draft !== null} onClick={() => { void run('review', (signal) => service.reviewMissionVersion(mission.id, version.version_number, signal)) }}><Icon name="check" size={14} />Tandai sudah ditinjau</Button>}
         {isLatest && publishable(mission) && <Link className={styles.publish} to={`${path}/publish`}><Icon name="send" size={14} />Terbitkan ke kelas</Link>}
+        {mission.can_edit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan</>} title="Arsipkan misi ini?" description={`${mission.title}. Misi hilang dari daftar dan tidak bisa diterbitkan lagi. Sesi dan hasil yang sudah ada tetap tersimpan. Arsip tidak bisa dibuka kembali dari aplikasi.`} confirm="Arsipkan misi" pendingLabel="Mengarsipkan…" disabled={pending !== ''} action={(signal) => service.archiveMission(mission.id, signal)} onDone={() => navigate(`${base}/missions`)} refusal={missionRefusal} />}
       </div>
     </div>
     {!mission.can_edit && <p className={styles.note}>Misi ini dibuat rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Loading } from '@/ui/components/loading/Loading'
 import { Navigate, Route, Routes, useLocation } from 'react-router'
 import type { Identity } from '@/domain/model/Identity'
@@ -11,6 +11,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import boundary from '@/ui/RouteBoundary.module.css'
 import { ParentHomePage } from './ParentHomePage'
+import { ParentNotifications } from './ParentNotifications'
 import { ParentReflectionPage } from './ParentReflectionPage'
 import { ParentReflectionsPage } from './ParentReflectionsPage'
 import { ParentSettingsPage } from './ParentSettingsPage'
@@ -23,19 +24,28 @@ const nav = [
 ] as const
 const titles: Readonly<Record<string, string>> = { [parentPaths.home]: 'Ringkasan', [parentPaths.reflections]: 'Refleksi', [parentPaths.settings]: 'Pengaturan' }
 
-function Frame({ service, user }: { service: ParentService; user: string }) {
+function Frame({ service, user, email }: { service: ParentService; user: string; email: string | null }) {
   const { child } = useParentContext()
   const { pathname } = useLocation()
-  return <ParentShell title={titles[pathname.replace(/\/+$/, '')] ?? (pathname.startsWith(parentPaths.reflections) ? 'Refleksi' : 'Orang tua')} user={user} nav={nav} home={parentPaths.home}>
+  const readNotices = useCallback((signal: AbortSignal) => service.notifications(signal), [service])
+  const notices = useLiveResource(readNotices, noPollMs)
+  const [noticesOpen, setNoticesOpen] = useState(false)
+  // Opening the list reads every notice in it; the count refreshes when it closes.
+  function openNotices() {
+    setNoticesOpen(true)
+    for (const notice of notices.data?.items ?? []) if (notice.read_at === null) service.markNotificationRead(notice.id).catch(() => {})
+  }
+  return <ParentShell bell={{ unread: notices.data?.unread_count ?? 0, onOpen: openNotices }} title={titles[pathname.replace(/\/+$/, '')] ?? (pathname.startsWith(parentPaths.reflections) ? 'Refleksi' : 'Orang tua')} user={user} nav={nav} home={parentPaths.home}>
     {/* Switching child remounts the page, so nothing read for one child is still on screen for the next. */}
     <Routes key={child?.id ?? 'none'}>
       <Route index element={<Navigate to={parentPaths.home} replace />} />
       <Route path="home" element={<ParentHomePage service={service} />} />
       <Route path="reflections" element={<ParentReflectionsPage service={service} />} />
       <Route path="reflections/:sessionId" element={<ParentReflectionPage service={service} />} />
-      <Route path="settings" element={<ParentSettingsPage service={service} user={user} />} />
+      <Route path="settings" element={<ParentSettingsPage service={service} user={user} email={email} />} />
       <Route path="*" element={<h1>Halaman tidak tersedia</h1>} />
     </Routes>
+    <ParentNotifications open={noticesOpen} data={notices.data} onClose={() => { setNoticesOpen(false); notices.refresh() }} />
   </ParentShell>
 }
 
@@ -44,12 +54,12 @@ export function ParentRoutes({ service, identity }: { service: ParentService; id
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   const all = useMemo<ParentChild[]>(() => (data ?? []).map((item, index) => ({
     id: item.student_id, name: item.name, initials: item.name.trim().charAt(0).toLocaleUpperCase('id-ID') || '?',
-    detail: item.school_name, klass: '', tone: index % 2 ? 'info' : 'warm',
+    detail: item.school_name, klass: item.class_name ?? '', tone: index % 2 ? 'info' : 'warm', lastSeenAt: item.last_seen_at,
   })), [data])
   if (!data && !error) return <Loading variant="screen" label="Membuka halaman orang tua…" />
   if (!data) return <main className={boundary.page}>
     <h1>Halaman orang tua belum dapat dibuka</h1>
     <LiveFeedback error={error} online={online} refresh={refresh} />
   </main>
-  return <ParentContextProvider all={all}><Frame service={service} user={identity.fullName} /></ParentContextProvider>
+  return <ParentContextProvider all={all}><Frame service={service} user={identity.fullName} email={identity.email ?? null} /></ParentContextProvider>
 }

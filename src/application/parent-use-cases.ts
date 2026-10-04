@@ -5,6 +5,9 @@ import type { ParentService } from '@/domain/services/ParentService'
 export class ParentUseCases implements ParentService {
   constructor(private readonly service: ParentService) {}
   children(signal?: AbortSignal) { return this.service.children(signal) }
+  notifications(signal?: AbortSignal) { return this.service.notifications(signal) }
+  markNotificationRead(notificationId: string, signal?: AbortSignal) { return this.service.markNotificationRead(resourceId(notificationId), signal) }
+  markSeen(studentId: string, signal?: AbortSignal) { return this.service.markSeen(resourceId(studentId), signal) }
   progress(studentId: string, signal?: AbortSignal) { return this.service.progress(resourceId(studentId), signal) }
   reflections(studentId: string, signal?: AbortSignal) { return this.service.reflections(resourceId(studentId), signal) }
   preferences(signal?: AbortSignal) { return this.service.preferences(signal) }

@@ -3,6 +3,9 @@ export interface TeacherPublication {
   class_id: string
   class_name: string
   mission_title: string
+  // Empty until the backend that sends it is deployed.
+  subject_name: string
+  mission_version: number | null
   released_to_parents_at: string | null
   run: { id: string; mode: string; status: string; join_code: string | null; opens_at: string | null; closes_at: string | null }
   counts: { started: number; completed: number; timed_out: number; evaluated: number }
@@ -11,7 +14,9 @@ export interface TeacherPublication {
 // Every number here is counted by the database (AI-4); the narrative is the only AI-written part.
 export interface ClassMapMisconception { misconception_id: string; statement: string; count: number; resolved_count: number; student_ids: string[]; students: { student_id: string; name: string; session_id: string }[] }
 export interface ClassMapConcept { concept_id: string; name: string; mastered_count: number; developing_count: number; not_observed_count: number; misconceptions: ClassMapMisconception[] }
-export interface ClassMap { denominator: number; incomplete_count: number; concepts: ClassMapConcept[]; insight: { narrative: string; generated_at: string } | null }
+// `prerequisite_id` is learned before `concept_id`; edges only join the mission's target concepts.
+export interface ClassMapEdge { concept_id: string; prerequisite_id: string }
+export interface ClassMap { denominator: number; incomplete_count: number; concepts: ClassMapConcept[]; prerequisites: ClassMapEdge[]; insight: { narrative: string; generated_at: string; suggestions: string[] } | null }
 
 export interface ReleasePreview {
   ready: boolean
@@ -25,6 +30,7 @@ export interface Released { released_to_parents_at: string; summary_count: numbe
 
 export interface TeacherAssignment { school_id: string; class_id: string; class_name: string; grade_level: number; school_subject_id: string; subject_name: string }
 export interface MissionSummary { id: string; title: string; knowledge_base_id: string; can_edit: boolean; created_by_name: string | null; latest_version: { id: string; version_number: number; status: string } | null }
+export interface PublicationWindow { opens_at: string; closes_at: string }
 export interface PublishInput { class_id: string; mission_version_id: string; mode: 'live' | 'window'; opens_at?: string; closes_at?: string }
 export interface Published { publication_id: string; run_id: string; run_status: string }
 // Only a reviewed version can be published; publishing locks it, and a locked one can still go to another class.
@@ -71,6 +77,10 @@ export type AttentionItem =
   | { kind: 'release_ready'; item_id: string; created_at: string; publication_id: string; class_name: string; mission_title: string; eligible_count: number }
 export interface AttentionPage { items: AttentionItem[]; counts: { safety: number; flag: number; kb_review: number; release_ready: number; total: number } }
 
+// One attempt from any school year, with the final (teacher-checked) level per rubric dimension.
+export interface StudentHistoryItem { session_id: string; publication_id: string; mission_title: string; subject_name: string; class_name: string; academic_year_id: string; academic_year_name: string; attempt_number: number; status: string; evaluation_status: string | null; started_at: string; ended_at: string | null; scores: { dimension: string; final_level: number }[] }
+export interface StudentHistoryPage { items: StudentHistoryItem[]; next_cursor: string | null }
+
 export interface ClassStudent {
   student_id: string; full_name: string; session_id: string | null; status: string | null; completed_at: string | null; evaluation_status: string | null
   concept_counts: { mastered: number; developing: number; misconception: number }; open_flag_count: number
@@ -86,3 +96,18 @@ export interface TeacherDashboard {
 
 export interface VersionHistory { version_number: number; status: string; created_at: string; created_by_name: string | null; reviewed_at: string | null; locked_at: string | null }
 export interface AttemptGrantInput { student_id: string; reason: string; opens_at?: string; closes_at?: string }
+
+// Prerequisites first, so a map laid out left to right and top to bottom reads in learning order. Concepts that tie, or sit in a cycle, keep their given order.
+export function orderByPrerequisites<T extends { concept_id: string }>(concepts: readonly T[], edges: readonly ClassMapEdge[]): T[] {
+  const known = new Set(concepts.map((concept) => concept.concept_id))
+  const waiting = edges.filter((edge) => known.has(edge.concept_id) && known.has(edge.prerequisite_id) && edge.concept_id !== edge.prerequisite_id)
+  const placed: T[] = []
+  let left = [...concepts]
+  while (left.length > 0) {
+    const ready = left.filter((concept) => waiting.every((edge) => edge.concept_id !== concept.concept_id || placed.some((done) => done.concept_id === edge.prerequisite_id)))
+    const next = ready.length > 0 ? ready : left
+    placed.push(next[0])
+    left = left.filter((concept) => concept !== next[0])
+  }
+  return placed
+}

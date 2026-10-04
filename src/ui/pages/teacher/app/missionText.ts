@@ -9,6 +9,7 @@ export const moveWord: Readonly<Record<string, string>> = {
 }
 
 const refusals: Readonly<Record<string, string>> = {
+  MISSION_BUSY: 'Draf misi ini sedang disusun. Tunggu sampai selesai, lalu arsipkan.',
   MISSION_VERSION_INVALID: 'Versi ini belum bisa dipakai.',
   VERSION_LOCKED: 'Versi ini sudah diterbitkan dan terkunci. Simpan perubahan sebagai versi baru.',
   MISSION_TARGETS_UNAVAILABLE: 'Basis pengetahuan misi ini perlu sedikitnya dua konsep yang disetujui sebelum draf bisa disusun.',

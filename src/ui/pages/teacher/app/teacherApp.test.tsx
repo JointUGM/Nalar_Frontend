@@ -44,7 +44,7 @@ afterAll(() => {
 })
 
 const publications = { items: [{ id: publication, class_id: school, class_name: '8B', mission_title: 'Kenapa kelereng berhenti?', released_to_parents_at: null, run: { id: school, mode: 'live', status: 'closed', join_code: null, opens_at: null, closes_at: null }, counts: { started: 30, completed: 28, timed_out: 2, evaluated: 28 } }], next_cursor: null }
-const classMap = { denominator: 28, incomplete_count: 2, concepts: [{ concept_id: concept, name: 'Gaya gesek', mastered_count: 10, developing_count: 6, not_observed_count: 0, misconceptions: [{ misconception_id: misconception, statement: 'Gaya bisa habis', count: 18, resolved_count: 11, student_ids: [student], students: [{ student_id: student, name: 'Raka Pratama', session_id: student }] }] }], insight: { narrative: 'Sebanyak 18 siswa mengira gaya bisa habis.', generated_at: '2026-10-02T03:00:00+00:00' } }
+const classMap = { denominator: 28, incomplete_count: 2, prerequisites: [], concepts: [{ concept_id: concept, name: 'Gaya gesek', mastered_count: 10, developing_count: 6, not_observed_count: 0, misconceptions: [{ misconception_id: misconception, statement: 'Gaya bisa habis', count: 18, resolved_count: 11, student_ids: [student], students: [{ student_id: student, name: 'Raka Pratama', session_id: student }] }] }], insight: { narrative: 'Sebanyak 18 siswa mengira gaya bisa habis.', generated_at: '2026-10-02T03:00:00+00:00', suggestions: ['Mulai dengan dua bola di karpet dan di lantai.'] } }
 const mission = '00000000-0000-4000-8000-00000000000e'
 const version = '00000000-0000-4000-8000-00000000000f'
 const draft = '00000000-0000-4000-8000-000000000010'
@@ -151,6 +151,34 @@ describe('signed-in teacher pages', () => {
     expect(screen.queryByText('Pratinjau · data contoh')).not.toBeInTheDocument()
   })
 
+  it('moves a scheduled window once, sending the new times as WIB', async () => {
+    const scheduled = { items: [{ ...publications.items[0], run: { id: school, mode: 'window', status: 'scheduled', join_code: null, opens_at: '2030-01-02T01:00:00Z', closes_at: '2030-01-02T03:00:00Z' }, counts: { started: 0, completed: 0, timed_out: 0, evaluated: 0 } }], next_cursor: null }
+    const request = backend({ 'GET /teacher/publications?limit=100': () => Response.json(scheduled), [`PATCH /publications/${publication}`]: () => new Response(null, { status: 204 }) })
+    open(`${base}/sessions`, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Ubah jadwal' }))
+    expect(screen.getByLabelText(/Dibuka \(WIB\)/)).toHaveValue('2030-01-02T08:00')
+    fireEvent.change(screen.getByLabelText(/Ditutup \(WIB\)/), { target: { value: '2030-01-02T11:30' } })
+    const save = screen.getByRole('button', { name: 'Simpan jadwal' })
+    fireEvent.click(save)
+    fireEvent.click(save)
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'PATCH')).toHaveLength(1))
+    const [, init] = request.mock.calls.find(([, options]) => options?.method === 'PATCH')!
+    expect(JSON.parse(String(init?.body))).toEqual({ opens_at: '2030-01-02T08:00:00+07:00', closes_at: '2030-01-02T11:30:00+07:00' })
+  })
+  it('cancels a publication nobody has started and says why when students have started meanwhile', async () => {
+    const idle = { items: [{ ...publications.items[0], run: { ...publications.items[0].run, status: 'scheduled' }, counts: { started: 0, completed: 0, timed_out: 0, evaluated: 0 } }], next_cursor: null }
+    const request = backend({ 'GET /teacher/publications?limit=100': () => Response.json(idle), [`POST /publications/${publication}/cancel`]: () => Response.json({ error: { code: 'PUBLICATION_HAS_SESSIONS' } }, { status: 409 }) })
+    open(`${base}/sessions`, request)
+    expect(screen.queryByRole('button', { name: 'Ubah jadwal' })).not.toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('button', { name: 'Batalkan sesi' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Batalkan sesi' }))
+    expect((await screen.findAllByText('Sudah ada siswa yang memulai, jadi sesi ini tidak bisa diubah atau dibatalkan.')).length).toBeGreaterThan(0)
+  })
+  it('offers no change once students have started', async () => {
+    open(`${base}/sessions`, backend())
+    await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?, kelas 8B' })
+    expect(screen.queryByRole('button', { name: 'Batalkan sesi' })).not.toBeInTheDocument()
+  })
   it('shows the class map with the exact counts and the saved explanation', async () => {
     open(`${base}/publications/${publication}/class-map`, backend())
     const row = within((await screen.findByRole('rowheader', { name: '“Gaya bisa habis”' })).closest('tr')!)
@@ -158,8 +186,32 @@ describe('signed-in teacher pages', () => {
     expect(row.getByText('11 dari 18')).toBeInTheDocument()
     expect(screen.getByText('Sebanyak 18 siswa mengira gaya bisa habis.')).toBeInTheDocument()
     expect(screen.getByText('10 paham · 6 berkembang · 0 belum teramati')).toBeInTheDocument()
+    expect(screen.getByText('Mulai dengan dua bola di karpet dan di lantai.')).toBeInTheDocument()
   })
 
+  it('downloads the class scores as a CSV file through the signed-in session', async () => {
+    const created: Blob[] = []
+    Object.assign(URL, { createObjectURL: (blob: Blob) => { created.push(blob); return 'blob:csv' }, revokeObjectURL: () => {} })
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const request = backend({ [`GET /publications/${publication}/export?format=csv`]: () => new Response('﻿nama,skor\nRaka,3\n', { headers: { 'Content-Type': 'text/csv' } }) })
+    open(`${base}/publications/${publication}/class-map`, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Unduh nilai (CSV)' }))
+    await waitFor(() => expect(click).toHaveBeenCalledTimes(1))
+    expect(await created[0].text()).toContain('Raka,3')
+    const [, init] = request.mock.calls.find(([url]) => String(url).includes('/export?format=csv'))!
+    expect(new Headers(init?.headers).get('Accept')).toBe('text/csv')
+    click.mockRestore()
+  })
+
+  it('draws a line between a concept and its prerequisite and lists the prerequisite first', async () => {
+    const other = '00000000-0000-4000-8000-0000000000aa'
+    const two = { ...classMap, prerequisites: [{ concept_id: other, prerequisite_id: concept }], concepts: [{ ...classMap.concepts[0], concept_id: other, name: 'Tekanan udara', misconceptions: [] }, classMap.concepts[0]] }
+    open(`${base}/publications/${publication}/class-map`, backend({ [`GET /publications/${publication}/class-map`]: () => Response.json(two) }))
+    const map = await screen.findByTestId('map-edges')
+    expect(map.querySelectorAll('path')).toHaveLength(1)
+    const names = screen.getAllByText(/^(Gaya gesek|Tekanan udara)$/).map((node) => node.textContent)
+    expect(names.indexOf('Gaya gesek')).toBeLessThan(names.indexOf('Tekanan udara'))
+  })
   it('releases once, with the count the teacher saw, only after confirming', async () => {
     let released: string | null = null
     const request = backend({
@@ -216,6 +268,26 @@ describe('signed-in teacher pages', () => {
     expect(within(screen.getByRole('region', { name: /Siswa/ })).queryByText('Raka Pratama')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Kode K7Q2MW/ })).toHaveAttribute('href', `${base}/publications/${publication}/projector`)
     expect(within(screen.getByRole('alert')).getByRole('link', { name: 'Raka Pratama' })).toHaveAttribute('href', reportPath)
+  })
+
+  it('ends one running session only after confirming, and never a session paused for safety', async () => {
+    const request = backend({
+      [`GET /publications/${publication}/monitor`]: () => Response.json({
+        run: { id: school, mode: 'live', status: 'open', join_code: 'K7Q2MW', started_at: '2026-10-02T03:00:00Z' }, waiting_count: 0, server_now: '2026-10-02T03:05:00Z',
+        students: [
+          { student_id: student, name: 'Raka Pratama', status: 'in_progress', current_turn_index: 2, max_turns: 4, deadline_at: null, open_flag_count: 0, safety_paused: true, session_id: sessionId },
+          { student_id: klass, name: 'Bima Putra', status: 'in_progress', current_turn_index: 1, max_turns: 4, deadline_at: null, open_flag_count: 0, safety_paused: false, session_id: draft },
+        ],
+      }),
+      [`POST /sessions/${draft}/end`]: () => new Response(null, { status: 204 }),
+    })
+    open(`${base}/publications/${publication}/monitor`, request)
+    const end = await screen.findAllByRole('button', { name: 'Akhiri sesi' })
+    expect(end).toHaveLength(1)
+    fireEvent.click(end[0])
+    expect(request.mock.calls.some(([url]) => String(url).endsWith('/end'))).toBe(false)
+    fireEvent.click(within(await screen.findByRole('dialog', { name: 'Akhiri sesi Bima Putra?' })).getByRole('button', { name: 'Akhiri sesi' }))
+    await waitFor(() => expect(request.mock.calls.filter(([url, init]) => init?.method === 'POST' && String(url).endsWith(`/sessions/${draft}/end`))).toHaveLength(1))
   })
 
   it('changes a score only with a reason, once, and keeps the AI level beside it', async () => {
@@ -295,6 +367,22 @@ describe('signed-in teacher pages', () => {
     expect(row.getAllByRole('definition').map((count) => count.textContent)).toEqual(['2', '1', '1'])
   })
 
+  it('opens a student’s history from the roster, grouped by school year with final scores', async () => {
+    const attempt = (year: string, session: string) => ({ session_id: session, publication_id: publication, mission_title: 'Kenapa kelereng berhenti?', subject_name: 'IPA', class_name: '8B', academic_year_id: klass, academic_year_name: year, attempt_number: 1, status: 'completed', evaluation_status: 'succeeded', started_at: '2026-09-24T02:00:00Z', ended_at: '2026-09-24T02:20:00Z', scores: [{ dimension: 'claim', final_level: 3 }, { dimension: 'evidence', final_level: 2 }] })
+    const request = backend({
+      [`GET /teacher/students/${student}/history?limit=50`]: () => Response.json({ items: [attempt('2026/2027', sessionId)], next_cursor: 'c1' }),
+      [`GET /teacher/students/${student}/history?limit=50&cursor=c1`]: () => Response.json({ items: [attempt('2025/2026', draft)], next_cursor: null }),
+    })
+    open(`${base}/classes`, request)
+    fireEvent.click(await screen.findByRole('link', { name: 'Raka Pratama' }))
+    expect(await screen.findByRole('heading', { name: 'Riwayat Raka Pratama' })).toBeInTheDocument()
+    expect(screen.getByText('Klaim 3/4 · Bukti 2/4')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Muat lebih banyak' }))
+    expect(await screen.findByRole('heading', { name: 'Tahun ajaran 2025/2026' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Tahun ajaran 2026/2027' })).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Kenapa kelereng berhenti?' })[0]).toHaveAttribute('href', `${base}/publications/${publication}/sessions/${sessionId}`)
+  })
+
   it('uploads a PDF as multipart and follows the reading job on the topic page', async () => {
     const request = backend({ [`POST /schools/${school}/knowledge-bases`]: () => Response.json({ knowledge_base_id: kbId, material_id: school, job_id: job, status: 'queued' }, { status: 202 }) })
     open(`${base}/knowledge-base/upload`, request)
@@ -340,6 +428,43 @@ describe('signed-in teacher pages', () => {
     })
   })
 
+  it('adds a concept by hand, retrying with the same key and renewing it when the text changes', async () => {
+    let attempts = 0
+    const request = backend({ [`POST /knowledge-bases/${kbId}/concepts`]: () => ++attempts === 1 ? Response.json({ error: { code: 'DEPENDENCY_UNAVAILABLE' } }, { status: 503 }) : Response.json({ id: concept, name: 'Tekanan udara' }, { status: 201 }) })
+    open(kbPath, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Tambah konsep' }))
+    const form = within(screen.getByRole('form', { name: 'Konsep baru' }))
+    fireEvent.change(form.getByLabelText(/Nama konsep/), { target: { value: ' Tekanan udara ' } })
+    fireEvent.click(form.getByRole('button', { name: 'Tambah' }))
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1))
+    await screen.findAllByText('Layanan sedang sibuk. Coba lagi sebentar.')
+    fireEvent.click(form.getByRole('button', { name: 'Tambah' }))
+    await waitFor(() => expect(screen.queryByRole('form', { name: 'Konsep baru' })).not.toBeInTheDocument())
+    const [first, second] = request.mock.calls.filter(([, init]) => init?.method === 'POST')
+    expect(new Headers(first[1]?.headers).get('Idempotency-Key')).toBe(new Headers(second[1]?.headers).get('Idempotency-Key'))
+    expect(JSON.parse(String(second[1]?.body))).toEqual({ name: 'Tekanan udara', source_chunk_ids: [] })
+  })
+
+  it('adds a misconception to the chosen concept with one cue per line, and gives a colleague no way to add', async () => {
+    const request = backend({ [`POST /knowledge-bases/${kbId}/concepts/${concept}/misconceptions`]: () => Response.json({ id: misconception }, { status: 201 }) })
+    const { unmount } = open(kbPath, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Tambah miskonsepsi' }))
+    const form = within(screen.getByRole('form', { name: 'Miskonsepsi baru' }))
+    fireEvent.change(form.getByLabelText(/Pernyataan keliru/), { target: { value: 'Air makin banyak, tekanan makin besar' } })
+    fireEvent.change(form.getByLabelText(/Pemahaman yang benar/), { target: { value: 'Tekanan bergantung pada kedalaman.' } })
+    fireEvent.change(form.getByLabelText(/Contoh ucapan siswa/), { target: { value: 'airnya banyak\n\n kolamnya besar ' } })
+    fireEvent.click(form.getByRole('button', { name: 'Tambah' }))
+    await waitFor(() => expect(request.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(true))
+    expect(JSON.parse(String(request.mock.calls.find(([, init]) => init?.method === 'POST')![1]?.body))).toEqual({
+      statement: 'Air makin banyak, tekanan makin besar', correct_understanding: 'Tekanan bergantung pada kedalaman.', detection_cues: ['airnya banyak', 'kolamnya besar'], counter_examples: [], source_chunk_ids: [],
+    })
+    unmount()
+    open(kbPath, backend({ [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail('pending', false)) }))
+    await screen.findByText(/milik rekan guru/)
+    expect(screen.queryByRole('button', { name: 'Tambah konsep' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Tambah miskonsepsi' })).not.toBeInTheDocument()
+  })
+
   it('builds a chapter once and says why its job failed', async () => {
     const request = backend({
       [`POST /knowledge-bases/${kbId}/sections/${section}/build`]: () => Response.json({ job_id: job, section_id: section, status: 'queued' }, { status: 202 }),
@@ -357,8 +482,26 @@ describe('signed-in teacher pages', () => {
   it('shows a colleague’s knowledge base without any way to change it', async () => {
     open(kbPath, backend({ [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail('pending', false)) }))
     await screen.findByText(/milik rekan guru/)
-    for (const name of ['Setujui', 'Tolak', 'Edit', 'Susun Bab 1 Tekanan']) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
+    for (const name of ['Setujui', 'Tolak', 'Edit', 'Susun Bab 1 Tekanan', 'Arsipkan topik', 'Arsipkan konsep', 'Hapus']) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
     expect(screen.queryByLabelText(/Tambah materi/)).not.toBeInTheDocument()
+  })
+
+  it('deletes a material only after confirming, and opens its PDF through the signed link', async () => {
+    const request = backend({
+      [`DELETE /knowledge-bases/${kbId}/materials/${school}`]: () => new Response(null, { status: 204 }),
+      [`GET /knowledge-bases/${kbId}/materials/${school}/file`]: () => Response.json({ url: 'https://storage.example/materi.pdf?token=t', expires_in: 300 }),
+    })
+    const tab = { opener: {}, location: { href: 'about:blank' }, close: vi.fn() }
+    const opened = vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window)
+    open(kbPath, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Buka PDF IPA Kelas 8.pdf' }))
+    await waitFor(() => expect(tab.location.href).toBe('https://storage.example/materi.pdf?token=t'))
+    expect(tab.opener).toBeNull()
+    opened.mockRestore()
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus' }))
+    expect(request.mock.calls.some(([, init]) => init?.method === 'DELETE')).toBe(false)
+    fireEvent.click(await screen.findByRole('button', { name: 'Hapus materi' }))
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'DELETE')).toHaveLength(1))
   })
 
   it('creates a mission once, asks for its draft and opens the generated version', async () => {

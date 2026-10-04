@@ -10,6 +10,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { NalaAvatar, NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
+import { CsvDownload } from '@/ui/components/csv-download/CsvDownload'
 import styles from '@/ui/pages/teacher/TeacherReport.module.css'
 import dialogStyles from '@/ui/pages/teacher/ReportDialogs.module.css'
 import { moveWord, rubricWord } from './missionText'
@@ -94,9 +95,12 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
     <div className={styles.header}>
       <div className={styles.who}>
         <span className={styles.avatar}><NalaAvatar seed={report.student.name} size={48} /></span>
-        <div><h1>{report.student.name}</h1><p>{[`${report.mission.title} · versi ${report.mission.version_number}`, `Percobaan ${report.session.attempt_number}`, sessionWord[report.session.status] ?? report.session.status, minutes(report.session.started_at, report.session.ended_at)].filter(Boolean).join(' · ')}</p></div>
+        <div><h1><Link to={`${base}/students/${report.student.id}`} state={{ studentName: report.student.name }}>{report.student.name}</Link></h1><p>{[`${report.mission.title} · versi ${report.mission.version_number}`, `Percobaan ${report.session.attempt_number}`, sessionWord[report.session.status] ?? report.session.status, minutes(report.session.started_at, report.session.ended_at)].filter(Boolean).join(' · ')}</p></div>
       </div>
-      {finished && <Button tone="secondary" disabled={pending || granted} onClick={() => open({ kind: 'grant' })}><Icon name="refresh" size={14} />{granted ? 'Kesempatan lagi diberikan' : 'Beri kesempatan lagi'}</Button>}
+      <div className={styles.headerActions}>
+        <CsvDownload label="Unduh laporan (CSV)" filename="nalar-laporan-siswa.csv" read={(signal) => service.exportReport(sessionId, signal)} />
+        {finished && <Button tone="secondary" disabled={pending || granted} onClick={() => open({ kind: 'grant' })}><Icon name="refresh" size={14} />{granted ? 'Kesempatan lagi diberikan' : 'Beri kesempatan lagi'}</Button>}
+      </div>
     </div>
     {granted && <Feedback tone="success" title="Kesempatan lagi diberikan" announce>Siswa melihatnya sebagai misi baru di Misi saya. Hasil percobaan ini tetap tersimpan.</Feedback>}
     <p className={styles.note}>Hanya untuk guru · tidak ditampilkan kepada siswa atau orang tua.</p>

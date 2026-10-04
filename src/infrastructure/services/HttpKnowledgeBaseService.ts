@@ -1,6 +1,7 @@
-import type { Job, KbCreateInput, KbDetail, KbItemKind, KbItemPatch, KbQueued, KbReviewQueue, KbSection, KbSummary, ReviewStatus } from '@/domain/model/KnowledgeBase'
+import type { Job, KbCreateInput, KbDetail, KbItemKind, KbItemPatch, KbQueued, KbReviewQueue, KbSection, KbSummary, NewConcept, NewMisconception, ReviewStatus } from '@/domain/model/KnowledgeBase'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
-import { count, flag, instant, list, nullable, record, text } from './HttpApi'
+import { ApiError } from '@/domain/model/ApiError'
+import { allItems, count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
 
@@ -23,10 +24,9 @@ function upload(file: File, fields: Record<string, string> = {}): FormData {
 export class HttpKnowledgeBaseService implements KnowledgeBaseService {
   constructor(private readonly api: HttpApi) {}
 
-  // ponytail: one page of 100 topics per school; follow next_cursor when a school can have more.
+  // Up to 500 topics per school (five pages).
   async list(schoolId: string, signal?: AbortSignal): Promise<KbSummary[]> {
-    const { data } = await this.api.request(`/schools/${encodeURIComponent(schoolId)}/knowledge-bases?limit=100`, { signal })
-    return list(record(data).items).map((entry) => {
+    return (await allItems(this.api, `/schools/${encodeURIComponent(schoolId)}/knowledge-bases?limit=100`, signal)).map((entry) => {
       const value = record(entry)
       return {
         id: text(value.id), topic_title: text(value.topic_title), owner_name: nullable(value.owner_name, text), school_subject_id: text(value.school_subject_id), can_edit: flag(value.can_edit),
@@ -37,7 +37,7 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
 
   async create(schoolId: string, input: KbCreateInput, signal?: AbortSignal): Promise<KbQueued> {
     const form = upload(input.file, { school_subject_id: input.school_subject_id, topic_title: input.topic_title })
-    return queued((await this.api.request(`/schools/${encodeURIComponent(schoolId)}/knowledge-bases`, { method: 'POST', form, signal })).data)
+    return queued((await this.api.request(`/schools/${encodeURIComponent(schoolId)}/knowledge-bases`, { method: 'POST', form, idempotent: true, signal })).data)
   }
 
   async detail(kbId: string, signal?: AbortSignal): Promise<KbDetail> {
@@ -67,7 +67,27 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
   }
 
   async addMaterial(kbId: string, file: File, signal?: AbortSignal): Promise<KbQueued> {
-    return queued((await this.api.request(`${kb(kbId)}/materials`, { method: 'POST', form: upload(file), signal })).data)
+    return queued((await this.api.request(`${kb(kbId)}/materials`, { method: 'POST', form: upload(file), idempotent: true, signal })).data)
+  }
+
+  async archive(kbId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${kb(kbId)}/archive`, { method: 'POST', signal })
+  }
+
+  async archiveConcept(kbId: string, conceptId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${kb(kbId)}/concepts/${encodeURIComponent(conceptId)}/archive`, { method: 'POST', signal })
+  }
+
+  async deleteMaterial(kbId: string, materialId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${kb(kbId)}/materials/${encodeURIComponent(materialId)}`, { method: 'DELETE', signal })
+  }
+
+  // The link is opened in a new tab, so only an https address is accepted.
+  async materialFile(kbId: string, materialId: string, signal?: AbortSignal): Promise<string> {
+    const value = record((await this.api.request(`${kb(kbId)}/materials/${encodeURIComponent(materialId)}/file`, { signal })).data)
+    const url = text(value.url)
+    if (!URL.canParse(url) || new URL(url).protocol !== 'https:') throw new ApiError(502, 'INVALID_RESPONSE')
+    return url
   }
 
   async sections(kbId: string, signal?: AbortSignal): Promise<KbSection[]> {
@@ -96,6 +116,18 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
       ? { name: patch.name, description: patch.description } satisfies Schemas['ConceptPatchIn']
       : { statement: patch.statement, correct_understanding: patch.correct_understanding, detection_cues: patch.detection_cues, counter_examples: patch.counter_examples } satisfies Schemas['MisconceptionPatchIn']
     await this.api.request(item(patch.kind, itemId), { method: 'PATCH', body, signal })
+  }
+
+  async addConcept(kbId: string, concept: NewConcept, idempotencyKey: string, signal?: AbortSignal): Promise<{ id: string }> {
+    const body: Schemas['ConceptCreateIn'] = { name: concept.name, ...(concept.description ? { description: concept.description } : {}), source_chunk_ids: [] }
+    const value = record((await this.api.request(`/knowledge-bases/${encodeURIComponent(kbId)}/concepts`, { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey }, signal })).data)
+    return { id: text(value.id) } satisfies Pick<Schemas['ConceptOut'], 'id'>
+  }
+
+  async addMisconception(kbId: string, conceptId: string, misconception: NewMisconception, idempotencyKey: string, signal?: AbortSignal): Promise<{ id: string }> {
+    const body: Schemas['MisconceptionCreateIn'] = { ...misconception, source_chunk_ids: [] }
+    const value = record((await this.api.request(`/knowledge-bases/${encodeURIComponent(kbId)}/concepts/${encodeURIComponent(conceptId)}/misconceptions`, { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey }, signal })).data)
+    return { id: text(value.id) } satisfies Pick<Schemas['MisconceptionOut'], 'id'>
   }
 
   async review(kind: KbItemKind, itemId: string, status: ReviewStatus, signal?: AbortSignal): Promise<void> {

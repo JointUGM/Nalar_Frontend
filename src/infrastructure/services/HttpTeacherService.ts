@@ -1,7 +1,7 @@
-import type { AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import type { StudentHistoryPage, AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 import { ApiError } from '@/domain/model/ApiError'
 import type { TeacherService } from '@/domain/services/TeacherService'
-import { count, flag, instant, list, nullable, record, text } from './HttpApi'
+import { allItems, count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
 
@@ -9,18 +9,18 @@ type Schemas = components['schemas']
 const publication = (id: string) => `/publications/${encodeURIComponent(id)}`
 const mission = (id: string) => `/missions/${encodeURIComponent(id)}`
 const texts = (value: unknown) => list(value).map((entry) => text(entry))
+const csv = (data: unknown) => { if (!(data instanceof Blob)) throw new ApiError(502, 'INVALID_RESPONSE'); return data }
 const seconds = (value: unknown) => { if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new ApiError(502, 'INVALID_RESPONSE'); return value }
 
 export class HttpTeacherService implements TeacherService {
   constructor(private readonly api: HttpApi) {}
 
-  // ponytail: one page of 100 publications, across every class the teacher is assigned to; follow next_cursor when a teacher can have more.
+  // Every class the teacher is assigned to; up to 500 publications (five pages).
   async publications(signal?: AbortSignal): Promise<TeacherPublication[]> {
-    const { data } = await this.api.request('/teacher/publications?limit=100', { signal })
-    return list(record(data).items).map((item) => {
+    return (await allItems(this.api, '/teacher/publications?limit=100', signal)).map((item) => {
       const value = record(item), run = record(value.run), counts = record(value.counts)
       return {
-        id: text(value.id), class_id: text(value.class_id), class_name: text(value.class_name), mission_title: text(value.mission_title),
+        id: text(value.id), class_id: text(value.class_id), class_name: text(value.class_name), mission_title: text(value.mission_title), subject_name: nullable(value.subject_name, text) ?? '', mission_version: nullable(value.mission_version, count),
         released_to_parents_at: nullable(value.released_to_parents_at, instant),
         run: { id: text(run.id), mode: text(run.mode), status: text(run.status), join_code: nullable(run.join_code, text), opens_at: nullable(run.opens_at, instant), closes_at: nullable(run.closes_at, instant) },
         counts: { started: count(counts.started), completed: count(counts.completed), timed_out: count(counts.timed_out), evaluated: count(counts.evaluated) },
@@ -36,10 +36,9 @@ export class HttpTeacherService implements TeacherService {
     })
   }
 
-  // ponytail: one page of 100 missions per school; follow next_cursor when a school can have more.
+  // Up to 500 missions per school (five pages).
   async missions(schoolId: string, signal?: AbortSignal): Promise<MissionSummary[]> {
-    const { data } = await this.api.request(`/schools/${encodeURIComponent(schoolId)}/missions?limit=100`, { signal })
-    return list(record(data).items).map((item) => {
+    return (await allItems(this.api, `/schools/${encodeURIComponent(schoolId)}/missions?limit=100`, signal)).map((item) => {
       const value = record(item)
       return {
         id: text(value.id), title: text(value.title), knowledge_base_id: text(value.knowledge_base_id), can_edit: flag(value.can_edit), created_by_name: nullable(value.created_by_name, text),
@@ -50,11 +49,39 @@ export class HttpTeacherService implements TeacherService {
 
   async createMission(input: MissionInput, signal?: AbortSignal): Promise<{ mission_id: string }> {
     const body: Schemas['MissionIn'] = input
-    return { mission_id: text(record((await this.api.request('/missions', { method: 'POST', body, signal })).data).mission_id) }
+    return { mission_id: text(record((await this.api.request('/missions', { method: 'POST', body, idempotent: true, signal })).data).mission_id) }
   }
 
   async generateMission(missionId: string, signal?: AbortSignal): Promise<{ job_id: string }> {
     return { job_id: text(record((await this.api.request(`${mission(missionId)}/generate`, { method: 'POST', signal })).data).job_id) }
+  }
+
+  async studentHistory(studentId: string, cursor: string | null, signal?: AbortSignal): Promise<StudentHistoryPage> {
+    const value = record((await this.api.request(`/teacher/students/${encodeURIComponent(studentId)}/history?limit=50${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`, { signal })).data)
+    return {
+      next_cursor: nullable(value.next_cursor, text),
+      items: list(value.items).map((entry) => {
+        const item = record(entry)
+        return {
+          session_id: text(item.session_id), publication_id: text(item.publication_id), mission_title: text(item.mission_title), subject_name: text(item.subject_name), class_name: text(item.class_name),
+          academic_year_id: text(item.academic_year_id), academic_year_name: text(item.academic_year_name), attempt_number: count(item.attempt_number), status: text(item.status), evaluation_status: nullable(item.evaluation_status, text),
+          started_at: instant(item.started_at), ended_at: nullable(item.ended_at, instant),
+          scores: list(item.scores).map((raw) => { const score = record(raw); return { dimension: text(score.dimension), final_level: count(score.final_level) } }),
+        } satisfies Schemas['StudentHistoryItemOut']
+      }),
+    }
+  }
+
+  async exportPublication(publicationId: string, signal?: AbortSignal): Promise<Blob> {
+    return csv((await this.api.request(`${publication(publicationId)}/export?format=csv`, { raw: true, signal })).data)
+  }
+
+  async exportReport(sessionId: string, signal?: AbortSignal): Promise<Blob> {
+    return csv((await this.api.request(`/sessions/${encodeURIComponent(sessionId)}/report/export?format=csv`, { raw: true, signal })).data)
+  }
+
+  async archiveMission(missionId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${mission(missionId)}/archive`, { method: 'POST', signal })
   }
 
   async missionVersion(missionId: string, number: number, signal?: AbortSignal): Promise<MissionVersion> {
@@ -88,8 +115,17 @@ export class HttpTeacherService implements TeacherService {
 
   async publish(input: PublishInput, signal?: AbortSignal): Promise<Published> {
     const body: Schemas['PublishIn'] = { class_id: input.class_id, mission_version_id: input.mission_version_id, run: { mode: input.mode, ...(input.mode === 'window' ? { opens_at: input.opens_at, closes_at: input.closes_at } : {}) } }
-    const value = record((await this.api.request('/publications', { method: 'POST', body, signal })).data)
+    const value = record((await this.api.request('/publications', { method: 'POST', body, idempotent: true, signal })).data)
     return { publication_id: text(value.publication_id), run_id: text(value.run_id), run_status: text(value.run_status) } satisfies Schemas['PublishOut']
+  }
+
+  async editWindow(publicationId: string, window: PublicationWindow, signal?: AbortSignal): Promise<void> {
+    const body: Schemas['PublicationWindowIn'] = window
+    await this.api.request(publication(publicationId), { method: 'PATCH', body, signal })
+  }
+
+  async cancelPublication(publicationId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${publication(publicationId)}/cancel`, { method: 'POST', signal })
   }
 
   async classMap(publicationId: string, signal?: AbortSignal): Promise<ClassMap> {
@@ -108,7 +144,8 @@ export class HttpTeacherService implements TeacherService {
           }),
         }
       }),
-      insight: nullable(value.insight, (raw) => { const insight = record(raw); return { narrative: text(insight.narrative), generated_at: instant(insight.generated_at) } }),
+      prerequisites: list(value.prerequisites).map((entry) => { const edge = record(entry); return { concept_id: text(edge.concept_id), prerequisite_id: text(edge.prerequisite_id) } }),
+      insight: nullable(value.insight, (raw) => { const insight = record(raw); return { narrative: text(insight.narrative), generated_at: instant(insight.generated_at), suggestions: insight.suggestions === undefined ? [] : texts(insight.suggestions) } }),
     } satisfies Schemas['ClassMapOut']
   }
 

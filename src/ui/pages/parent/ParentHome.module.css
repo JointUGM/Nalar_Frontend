@@ -23,6 +23,7 @@
 .letter h2, .concepts h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; line-height: 24px; font-weight: 650; color: var(--color-text-secondary); }
 .letter h2 svg, .concepts h2 svg { color: var(--color-primary); }
 .letter h3 { margin: 16px 0 0; font-size: 22px; line-height: 30px; font-weight: 700; letter-spacing: -.025em; text-wrap: balance; }
+.fresh { display: inline-block; margin-inline-start: 8px; padding: 2px 10px; border-radius: var(--radius-pill); background: var(--color-success-bg); color: var(--color-success-strong); font-size: 12px; line-height: 18px; font-weight: 650; letter-spacing: 0; vertical-align: middle; }
 .date { margin: 4px 0 0; font-size: 13px; line-height: 20px; color: var(--color-text-muted); }
 .text { max-inline-size: 62ch; margin-block-start: 16px; }
 .text p { margin: 0; font-size: 16px; line-height: 28px; color: var(--color-ink); text-wrap: pretty; overflow-wrap: anywhere; }

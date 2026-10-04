@@ -5,6 +5,7 @@ import type { TelemetryBatch } from './domain/model/Student'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import { AccountLoadFailure } from './ui/routes'
+import { RouteErrorBoundary } from './ui/RouteErrorBoundary'
 import './index.css'
 
 const activationProof = captureActivationLink(window.location, window.history)
@@ -87,7 +88,9 @@ const privateEntry = createElement(lazy(async () => {
 if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('preview') === 'foundation') {
   void import('./ui/pages/foundation-preview/FoundationPreview').then(({ FoundationPreview }) => render(<FoundationPreview />))
 } else {
+  // A failed report is dropped: the crash screen is already showing and the console keeps the detail.
+  const reportError = (code: string, pathname: string) => { void getDependencies().then((created) => created.reportError?.(code, pathname)).catch(() => {}) }
   void import('./ui/ReviewRoutes').then(({ ReviewRoutes }) => {
-    render(<BrowserRouter><ReviewRoutes accountEntry={accountEntry} activationEntry={activationEntry} resetEntry={resetEntry} privateEntry={privateEntry} /></BrowserRouter>)
+    render(<BrowserRouter><RouteErrorBoundary report={reportError}><ReviewRoutes accountEntry={accountEntry} activationEntry={activationEntry} resetEntry={resetEntry} privateEntry={privateEntry} /></RouteErrorBoundary></BrowserRouter>)
   })
 }

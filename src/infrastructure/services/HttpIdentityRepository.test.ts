@@ -25,10 +25,10 @@ describe('Current identity HTTP boundary', () => {
       expect(new Headers(init?.headers).has('Authorization')).toBe(false)
       expect(init?.cache).toBe('no-store')
       expect(init?.credentials).toBe('include')
-      return Response.json({ ...me, reports: ['private report'], roles: me.roles.map((role) => ({ ...role, answers: ['private answer'] })) })
+      return Response.json({ ...me, email: 'ayu@sekolah.id', reports: ['private report'], roles: me.roles.map((role) => ({ ...role, answers: ['private answer'] })) })
     }).execute()
     expect(identity).toEqual({
-      userId: '00000000-0000-4000-8000-000000000001', fullName: 'Ayu',
+      userId: '00000000-0000-4000-8000-000000000001', fullName: 'Ayu', email: 'ayu@sekolah.id',
       memberships: [
         { role: 'teacher', schoolId: '00000000-0000-4000-8000-000000000002', schoolName: 'Sekolah A' },
         { role: 'school_admin', schoolId: '00000000-0000-4000-8000-000000000003', schoolName: 'Sekolah B' },

@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
+import { orderByPrerequisites } from '@/domain/model/Teacher'
 import type { TeacherPublication } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { Feedback } from '@/ui/components/feedback/Feedback'
@@ -7,6 +8,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
+import { CsvDownload } from '@/ui/components/csv-download/CsvDownload'
 import styles from '@/ui/pages/teacher/TeacherClassMap.module.css'
 import { Loading } from '@/ui/components/loading/Loading'
 
@@ -23,12 +25,19 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
   const { data, error, online, refresh } = useLiveResource(read, mapPollMs)
   const rows = data?.concepts.flatMap((concept) => concept.misconceptions.map((item) => ({ ...item, concept: concept.name }))).filter((item) => item.count > 0) ?? []
   const lines = Math.ceil((data?.concepts.length ?? 0) / perRow)
+  // Prerequisites come first, then each concept gets a grid slot (as percentages of the map) and the edges join the slots.
+  const ordered = data ? orderByPrerequisites(data.concepts, data.prerequisites) : []
+  const slot = (index: number) => { const inRow = Math.min(perRow, ordered.length - Math.floor(index / perRow) * perRow); return { x: ((index % perRow) + 0.5) / inRow * 100, y: (Math.floor(index / perRow) + 0.5) / lines * 100 } }
+  const edges = (data?.prerequisites ?? []).flatMap((edge) => {
+    const from = ordered.findIndex((concept) => concept.concept_id === edge.prerequisite_id), to = ordered.findIndex((concept) => concept.concept_id === edge.concept_id)
+    return from < 0 || to < 0 || from === to ? [] : [{ key: `${edge.prerequisite_id}-${edge.concept_id}`, from: slot(from), to: slot(to) }]
+  })
 
   return <div className={styles.content}>
     <Link className={styles.back} to={`${base}/sessions`}><Icon name="chevronLeft" size={14} />Sesi dan hasil</Link>
     <div className={styles.header}>
       <div><h1>Peta miskonsepsi kelas</h1><p>{subtitle}{data ? ` · ${data.denominator} siswa dihitung` : ''}</p></div>
-      <div className={styles.actions}><Link className={styles.release} to={`${base}/publications/${publicationId}/release`} state={location.state}><Icon name="send" size={14} />Rilis ke orang tua</Link></div>
+      <div className={styles.actions}><CsvDownload label="Unduh nilai (CSV)" filename="nalar-nilai-kelas.csv" read={(signal) => service.exportPublication(publicationId, signal)} /><Link className={styles.release} to={`${base}/publications/${publicationId}/release`} state={location.state}><Icon name="send" size={14} />Rilis ke orang tua</Link></div>
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <Loading label="Memuat peta kelas…" />}
@@ -48,12 +57,14 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
             <ul className={styles.legend} aria-label="Keterangan warna"><li data-kind="understood">Paham</li><li data-kind="developing">Berkembang</li></ul>
           </div>
           <p className={styles.system}><strong>DIHITUNG SISTEM</strong> Semua angka dihitung dari data sesi. AI hanya menulis penjelasan.</p>
+          {edges.length > 0 && <p className={styles.system}>Garis menghubungkan konsep prasyarat dengan konsep lanjutannya. Konsep yang dipelajari lebih dulu ada di kiri atau atas.</p>}
           <div className={styles.mapRegion} role="region" aria-label="Pemahaman per konsep (dapat digulir)" tabIndex={0}>
             <div className={styles.map}>
               {/* The API gives no layout, so concepts sit on an even grid, three to a row. */}
-              <ul>{data.concepts.map((concept, index) => {
-                const inRow = Math.min(perRow, data.concepts.length - Math.floor(index / perRow) * perRow)
-                return <li key={concept.concept_id} style={{ left: `${((index % perRow) + 0.5) / inRow * 100}%`, top: `${(Math.floor(index / perRow) + 0.5) / lines * 100}%` }}>
+              {edges.length > 0 && <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" data-testid="map-edges">{edges.map((edge) => <path key={edge.key} d={`M${edge.from.x} ${edge.from.y}L${edge.to.x} ${edge.to.y}`} />)}</svg>}
+              <ul>{ordered.map((concept, index) => {
+                const { x, y } = slot(index)
+                return <li key={concept.concept_id} style={{ left: `${x}%`, top: `${y}%` }}>
                   <strong>{concept.name}</strong>
                   <span className={styles.bar} aria-hidden="true"><span style={{ inlineSize: `${concept.mastered_count / data.denominator * 100}%` }} /><span style={{ inlineSize: `${concept.developing_count / data.denominator * 100}%` }} /></span>
                   <small>{concept.mastered_count} paham · {concept.developing_count} berkembang · {concept.not_observed_count} belum teramati</small>
@@ -65,6 +76,7 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
         <section className={styles.card} aria-labelledby="happening-title">
           <h2 id="happening-title">Yang terjadi di kelas</h2>
           {data.insight ? <p className={styles.story}>{data.insight.narrative}</p> : <p className={styles.story}>Penjelasan ditulis setelah semua sesi selesai dan dinilai.</p>}
+          {data.insight && data.insight.suggestions.length > 0 && <><h3 className={styles.suggestTitle}>Saran untuk pertemuan berikutnya</h3><ul className={styles.suggestions}>{data.insight.suggestions.map((suggestion, index) => <li key={index}>{suggestion}</li>)}</ul></>}
         </section>
       </div>
 

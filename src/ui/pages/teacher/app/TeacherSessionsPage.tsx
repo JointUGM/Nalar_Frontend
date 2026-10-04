@@ -10,6 +10,7 @@ import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
+import { PublicationManage } from './PublicationManage'
 import styles from '@/ui/pages/teacher/TeacherSessions.module.css'
 import { Loading } from '@/ui/components/loading/Loading'
 
@@ -36,16 +37,16 @@ function companion(data: readonly TeacherPublication[] | null, failed: boolean):
   return ['read', 'Semua sesi sudah ditutup. Saatnya membaca hasil kelas.']
 }
 
-function SessionRow({ publication, base }: { publication: TeacherPublication; base: string }) {
-  const { mission_title, class_name, run, counts, released_to_parents_at } = publication
+function SessionRow({ publication, base, service, onChanged }: { publication: TeacherPublication; base: string; service: TeacherService; onChanged: () => void }) {
+  const { mission_title, mission_version, class_name, subject_name, run, counts, released_to_parents_at } = publication
   const path = `${base}/publications/${publication.id}`
   const live = run.mode === 'live'
   const monitorFirst = live && isActive(publication)
   const completion = counts.started > 0 ? Math.min(100, counts.completed / counts.started * 100) : 0
   return <li className={styles.row} aria-label={`${mission_title}, kelas ${class_name}`}>
     <div className={styles.identity}>
-      <div className={styles.context}><span className={styles.className}>Kelas {class_name}</span><span className={styles.mode}><Icon name={live ? 'monitor' : run.mode === 'window' ? 'clock' : 'info'} size={14} />{modeLabel(run.mode)}</span></div>
-      <h3>{mission_title}</h3>
+      <div className={styles.context}><span className={styles.className}>Kelas {class_name}{subject_name && ` · ${subject_name}`}</span><span className={styles.mode}><Icon name={live ? 'monitor' : run.mode === 'window' ? 'clock' : 'info'} size={14} />{modeLabel(run.mode)}</span></div>
+      <h3>{mission_title}{mission_version !== null && <small> · v{mission_version}</small>}</h3>
       <span className={styles.status} data-status={run.status}><span aria-hidden="true" />{statusLabel(publication)}</span>
       {run.mode === 'window' && (run.opens_at || run.closes_at) && <p className={styles.schedule}>
         {run.opens_at && <span>Mulai {formatDayTime(run.opens_at)}</span>}
@@ -66,6 +67,7 @@ function SessionRow({ publication, base }: { publication: TeacherPublication; ba
       {live && <Link className={styles.secondaryAction} to={`${path}/projector`} state={{ publication }}>Proyektor<Icon name="chevronRight" size={14} /></Link>}
       {(monitorFirst || live) && <Link className={styles.secondaryAction} to={`${path}/${monitorFirst ? 'class-map' : 'monitor'}`} state={{ publication }}>{monitorFirst ? 'Peta kelas' : 'Pantau'}<Icon name="chevronRight" size={14} /></Link>}
       <Link className={styles.releaseAction} to={`${path}/release`} state={{ publication }} data-released={Boolean(released_to_parents_at)}>{released_to_parents_at && <Icon name="check" size={14} />}{released_to_parents_at ? 'Sudah dirilis' : 'Rilis ke orang tua'}<Icon name="chevronRight" size={14} /></Link>
+      <PublicationManage publication={publication} service={service} onChanged={onChanged} />
     </div>
   </li>
 }
@@ -78,7 +80,7 @@ export function TeacherSessionsPage({ service, base }: { service: TeacherService
   const [classId, setClassId] = useState('')
   const classes = new Map((data ?? []).map((publication) => [publication.class_id, publication.class_name]))
   const search = query.trim().toLocaleLowerCase('id-ID')
-  const visible = (data ?? []).filter((publication) => matchesStatus(publication, filter) && (!classId || publication.class_id === classId) && (!search || `${publication.mission_title} ${publication.class_name}`.toLocaleLowerCase('id-ID').includes(search)))
+  const visible = (data ?? []).filter((publication) => matchesStatus(publication, filter) && (!classId || publication.class_id === classId) && (!search || `${publication.mission_title} ${publication.class_name} ${publication.subject_name}`.toLocaleLowerCase('id-ID').includes(search)))
   const filtered = filter !== 'all' || Boolean(classId) || Boolean(query)
   const reset = () => { setFilter('all'); setQuery(''); setClassId('') }
   const note = visible.length > 0 || !data ? companion(data, Boolean(error)) : null
@@ -99,7 +101,7 @@ export function TeacherSessionsPage({ service, base }: { service: TeacherService
         <p className={styles.resultCount} role="status">Menampilkan {number.format(visible.length)} dari {number.format(data.length)} sesi yang dimuat</p>
         {visible.length === 0 ? <NalaEmpty mood="search" title="Tidak ada sesi yang cocok" action={<button type="button" className={styles.emptyAction} onClick={reset}>Tampilkan semua sesi</button>}>Coba kata pencarian lain atau hapus filter untuk melihat sesi Anda.</NalaEmpty> : <>
           <div className={styles.columns} aria-hidden="true"><span>Misi dan sesi</span><span>Partisipasi</span><span>Tindak lanjut</span></div>
-          <ul className={styles.list} aria-label="Misi yang diterbitkan">{visible.map((publication) => <SessionRow key={publication.id} publication={publication} base={base} />)}</ul>
+          <ul className={styles.list} aria-label="Misi yang diterbitkan">{visible.map((publication) => <SessionRow key={publication.id} publication={publication} base={base} service={service} onChanged={refresh} />)}</ul>
         </>}
       </>}
       {!data && error && <NalaEmpty mood="oops" title="Daftar sesi belum tersedia">Gunakan “Coba lagi” di atas untuk memuatnya.</NalaEmpty>}

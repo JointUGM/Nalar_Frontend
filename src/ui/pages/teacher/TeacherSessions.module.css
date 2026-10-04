@@ -101,3 +101,5 @@
   .skeleton span { min-block-size: 32px; }
 }
 @media (prefers-reduced-motion: reduce) { .filters button, .actions a { transition: none; } }
+.dialogForm { display: grid; gap: 16px; }
+.dialogActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-block-start: 16px; }

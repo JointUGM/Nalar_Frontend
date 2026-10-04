@@ -1,6 +1,6 @@
 import { ApiError, resourceId } from '@/domain/model/ApiError'
-import { invitationBatchSize, invitationTargetStates, rosterMaxBytes } from '@/domain/model/SchoolAdmin'
-import type { ClassDraft, InvitationSummary, InvitationTarget, LinkedPerson, NewAcademicYear, PersonEdit, PeopleRole } from '@/domain/model/SchoolAdmin'
+import { invitationBatchSize, placementMax, invitationTargetStates, rosterMaxBytes } from '@/domain/model/SchoolAdmin'
+import type { ClassDraft, InvitationSummary, InvitationTarget, LinkedPerson, NewAcademicYear, NewPerson, PersonEdit, Relationship, PeopleRole } from '@/domain/model/SchoolAdmin'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 
 export class SchoolAdminUseCases {
@@ -14,6 +14,9 @@ export class SchoolAdminUseCases {
     return this.service.uploadRoster(resourceId(schoolId), resourceId(academicYearId), file, signal)
   }
   rosterImport(importId: string, signal?: AbortSignal) { return this.service.rosterImport(resourceId(importId), signal) }
+  auditLog(schoolId: string, cursor: number | null, signal?: AbortSignal) { return this.service.auditLog(resourceId(schoolId), cursor, signal) }
+  rosterImports(schoolId: string, cursor: string | null, signal?: AbortSignal) { return this.service.rosterImports(resourceId(schoolId), cursor === null ? null : resourceId(cursor), signal) }
+  rosterImportErrors(importId: string, signal?: AbortSignal) { return this.service.rosterImportErrors(resourceId(importId), signal) }
 
   invitations(schoolId: string, signal?: AbortSignal) { return this.service.invitations(resourceId(schoolId), null, signal) }
 
@@ -58,6 +61,33 @@ export class SchoolAdminUseCases {
     const name = edit.full_name?.trim()
     if (edit.full_name !== undefined && !name) throw new ApiError(422, 'NAME_REQUIRED')
     return this.service.editPerson(resourceId(schoolId), resourceId(userId), { ...(name ? { full_name: name } : {}), ...(edit.class_id ? { class_id: resourceId(edit.class_id) } : {}) }, signal)
+  }
+  // The backend checks every rule again; this spares a request that can only fail.
+  // The key stays the same while the admin retries one submission, so a lost answer never creates the account twice.
+  createPerson(schoolId: string, person: NewPerson, idempotencyKey: string, signal?: AbortSignal) {
+    const name = person.full_name.trim()
+    if (!name || name.length > 200) throw new ApiError(422, 'NAME_REQUIRED')
+    const email = person.email?.trim().toLowerCase() || undefined
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ApiError(422, 'EMAIL_INVALID')
+    if (person.role !== 'student' && !email) throw new ApiError(422, 'EMAIL_REQUIRED')
+    if (person.role === 'student' && (!/^\d{10}$/.test(person.nisn ?? '') || !person.class_id)) throw new ApiError(422, 'STUDENT_FIELDS_REQUIRED')
+    if (person.role === 'parent' && person.child_ids.length === 0) throw new ApiError(422, 'CHILD_REQUIRED')
+    return this.service.createPerson(resourceId(schoolId), {
+      full_name: name, role: person.role, ...(email ? { email } : {}),
+      ...(person.role === 'student' ? { nisn: person.nisn, class_id: resourceId(person.class_id ?? '') } : {}),
+      child_ids: person.role === 'parent' ? person.child_ids.map(resourceId) : [], ...(person.role === 'parent' && person.relationship ? { relationship: person.relationship } : {}),
+    }, resourceId(idempotencyKey), signal)
+  }
+  reactivatePerson(schoolId: string, userId: string, signal?: AbortSignal) { return this.service.reactivatePerson(resourceId(schoolId), resourceId(userId), signal) }
+  linkParent(schoolId: string, parentId: string, studentId: string, relationship: Relationship | null, signal?: AbortSignal) {
+    return this.service.linkParent(resourceId(schoolId), resourceId(parentId), resourceId(studentId), relationship, signal)
+  }
+  unlinkParent(schoolId: string, parentId: string, studentId: string, signal?: AbortSignal) { return this.service.unlinkParent(resourceId(schoolId), resourceId(parentId), resourceId(studentId), signal) }
+  // One request places up to 500 students atomically; asking again with the same students changes nothing.
+  placeStudents(schoolId: string, classId: string, userIds: string[], signal?: AbortSignal) {
+    const ids = [...new Set(userIds.map(resourceId))]
+    if (ids.length === 0 || ids.length > placementMax) throw new ApiError(422, 'INVALID_INPUT')
+    return this.service.placeStudents(resourceId(schoolId), resourceId(classId), ids, signal)
   }
   deactivatePerson(schoolId: string, userId: string, signal?: AbortSignal) { return this.service.deactivatePerson(resourceId(schoolId), resourceId(userId), signal) }
 

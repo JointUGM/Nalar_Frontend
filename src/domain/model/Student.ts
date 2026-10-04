@@ -28,4 +28,4 @@ export type TelemetryEvent =
 export interface TelemetryBatch { client_seq: number; turn_index: number | null; events: TelemetryEvent[] }
 
 // A finished mission's reflection, written for the student; it never carries a score.
-export interface StudentReflection { session_id: string; mission_title: string; completed_at: string; content: string }
+export interface StudentReflection { session_id: string; mission_title: string; subject_name: string; completed_at: string; content: string }

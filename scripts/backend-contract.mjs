@@ -29,7 +29,8 @@ if (write) {
   await mkdir(dirname(fileURLToPath(target)), { recursive: true })
   await writeFile(target, generated, 'utf8')
   process.stdout.write('Generated backend contract types.\n')
-} else if (await readFile(target, 'utf8') !== generated) {
+// A Windows checkout with core.autocrlf turns the generated file's endings into CRLF; only the content counts.
+} else if ((await readFile(target, 'utf8')).replace(/\r\n/g, '\n') !== generated) {
   throw new Error('Generated backend types differ from the pinned contract. Run npm run contract:generate and review both files.')
 } else {
   process.stdout.write('Pinned backend contract and generated types agree.\n')

@@ -1,6 +1,6 @@
-import type { LinkedChild, ParentPreferences, ParentProgress, ParentReflection, ParentSettings } from '@/domain/model/Parent'
+import type { LinkedChild, ParentNotices, ParentPreferences, ParentProgress, ParentReflection, ParentSettings } from '@/domain/model/Parent'
 import type { ParentService } from '@/domain/services/ParentService'
-import { count, flag, instant, list, record, text } from './HttpApi'
+import { allItems, count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
 
@@ -11,13 +11,28 @@ const child = (studentId: string) => `/parent/children/${encodeURIComponent(stud
 export class HttpParentService implements ParentService {
   constructor(private readonly api: HttpApi) {}
 
-  // ponytail: one page of 100 children and 100 reflections; follow next_cursor if a family or a history can ever exceed that.
+  // Up to 500 children and 500 reflections (five pages each).
   async children(signal?: AbortSignal): Promise<LinkedChild[]> {
-    const { data } = await this.api.request('/parent/children?limit=100', { signal })
-    return list(record(data).items).map((item) => {
+    return (await allItems(this.api, '/parent/children?limit=100', signal)).map((item) => {
       const value = record(item)
-      return { student_id: text(value.student_id), name: text(value.name), school_name: text(value.school_name) } satisfies Schemas['ParentChildOut']
+      return { student_id: text(value.student_id), name: text(value.name), school_name: text(value.school_name), class_name: nullable(value.class_name, text), last_seen_at: nullable(value.last_seen_at, instant) } satisfies Schemas['ParentChildOut']
     })
+  }
+
+  async notifications(signal?: AbortSignal): Promise<ParentNotices> {
+    const value = record((await this.api.request('/notifications?limit=20', { signal })).data)
+    return {
+      unread_count: count(value.unread_count),
+      items: list(value.items).map((item) => { const notice = record(item); return { id: text(notice.id), type: text(notice.type), created_at: instant(notice.created_at), read_at: nullable(notice.read_at, instant) } satisfies Schemas['NotificationOut'] }),
+    }
+  }
+
+  async markNotificationRead(notificationId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`/notifications/${encodeURIComponent(notificationId)}/read`, { method: 'POST', signal })
+  }
+
+  async markSeen(studentId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${child(studentId)}/seen`, { method: 'POST', signal })
   }
 
   async progress(studentId: string, signal?: AbortSignal): Promise<ParentProgress> {
@@ -34,10 +49,9 @@ export class HttpParentService implements ParentService {
   }
 
   async reflections(studentId: string, signal?: AbortSignal): Promise<ParentReflection[]> {
-    const { data } = await this.api.request(`${child(studentId)}/reflections?limit=100`, { signal })
-    return list(record(data).items).map((item) => {
+    return (await allItems(this.api, `${child(studentId)}/reflections?limit=100`, signal)).map((item) => {
       const value = record(item)
-      return { session_id: text(value.session_id), mission_title: text(value.mission_title), completed_at: instant(value.completed_at), content: text(value.content) } satisfies Schemas['ParentReflectionOut']
+      return { session_id: text(value.session_id), mission_title: text(value.mission_title), subject_name: nullable(value.subject_name, text) ?? '', completed_at: instant(value.completed_at), content: text(value.content) } satisfies Schemas['ParentReflectionOut']
     })
   }
 

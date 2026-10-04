@@ -11,7 +11,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/parent/ParentSettings.module.css'
 
-export function ParentSettingsPage({ service, user }: { service: ParentService; user: string }) {
+export function ParentSettingsPage({ service, user, email = null }: { service: ParentService; user: string; email?: string | null }) {
   const { linkedChildren } = useParentContext()
   const read = useCallback((signal: AbortSignal) => service.preferences(signal), [service])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
@@ -52,7 +52,7 @@ export function ParentSettingsPage({ service, user }: { service: ParentService; 
         <div className={styles.row}>
           <div>
             <span id="email-label" className={styles.rowTitle}>Kirim ringkasan mingguan</span>
-            <span id="email-help" className={styles.rowHelp}>{data && !data.mail_enabled ? 'Pengiriman email belum aktif. Pilihan Anda tersimpan dan berlaku saat pengiriman dimulai.' : 'Ke email akun ini, hanya hasil yang sudah dirilis guru.'}</span>
+            <span id="email-help" className={styles.rowHelp}>{data && !data.mail_enabled ? 'Pengiriman email belum aktif. Pilihan Anda tersimpan dan berlaku saat pengiriman dimulai.' : `Ke ${email ?? 'email akun ini'}, hanya hasil yang sudah dirilis guru.`}</span>
           </div>
           <button type="button" role="switch" aria-checked={enabled} aria-labelledby="email-label" aria-describedby="email-help" aria-busy={pending || undefined} disabled={pending || !data} className={styles.switch} onClick={() => { void toggle() }}><span aria-hidden="true" /></button>
         </div>

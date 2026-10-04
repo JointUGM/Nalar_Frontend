@@ -1,5 +1,5 @@
 import { ApiError, resourceId } from '@/domain/model/ApiError'
-import type { AttemptGrantInput, FlagDecision, MissionInput, MissionVersionDraft, PublishInput, SafetyAction } from '@/domain/model/Teacher'
+import type { AttemptGrantInput, FlagDecision, MissionInput, MissionVersionDraft, PublicationWindow, PublishInput, SafetyAction } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 
 function required(value: string, max: number): string {
@@ -27,6 +27,7 @@ export class TeacherUseCases implements TeacherService {
     return this.service.createMission({ knowledge_base_id: resourceId(input.knowledge_base_id), title: required(input.title, 200), learning_objective: required(input.learning_objective, 1000) }, signal)
   }
   generateMission(missionId: string, signal?: AbortSignal) { return this.service.generateMission(resourceId(missionId), signal) }
+  archiveMission(missionId: string, signal?: AbortSignal) { return this.service.archiveMission(resourceId(missionId), signal) }
   missionVersion(missionId: string, number: number, signal?: AbortSignal) { return this.service.missionVersion(resourceId(missionId), versionNumber(number), signal) }
   saveMissionVersion(missionId: string, draft: MissionVersionDraft, signal?: AbortSignal) {
     return this.service.saveMissionVersion(resourceId(missionId), { ...draft, base_version_id: resourceId(draft.base_version_id), anchor_problem: required(draft.anchor_problem, 4000), reference_reasoning: required(draft.reference_reasoning, 8000) }, signal)
@@ -40,12 +41,21 @@ export class TeacherUseCases implements TeacherService {
     if (!Number.isFinite(opens) || !Number.isFinite(closes) || opens >= closes) throw new ApiError(422, 'INVALID_WINDOW')
     return this.service.publish({ ...base, mode: 'window', opens_at: input.opens_at, closes_at: input.closes_at }, signal)
   }
+  editWindow(publicationId: string, window: PublicationWindow, signal?: AbortSignal) {
+    const opens = Date.parse(window.opens_at), closes = Date.parse(window.closes_at)
+    if (!Number.isFinite(opens) || !Number.isFinite(closes) || opens >= closes) throw new ApiError(422, 'INVALID_WINDOW')
+    return this.service.editWindow(resourceId(publicationId), { opens_at: window.opens_at, closes_at: window.closes_at }, signal)
+  }
+  cancelPublication(publicationId: string, signal?: AbortSignal) { return this.service.cancelPublication(resourceId(publicationId), signal) }
   report(sessionId: string, signal?: AbortSignal) { return this.service.report(resourceId(sessionId), signal) }
   attention(schoolId: string, signal?: AbortSignal) { return this.service.attention(resourceId(schoolId), signal) }
   classStudents(classId: string, publicationId: string | null, signal?: AbortSignal) { return this.service.classStudents(resourceId(classId), publicationId === null ? null : resourceId(publicationId), signal) }
   dashboard(schoolId: string, signal?: AbortSignal) { return this.service.dashboard(resourceId(schoolId), signal) }
   missionVersions(missionId: string, signal?: AbortSignal) { return this.service.missionVersions(resourceId(missionId), signal) }
   // The key stays the same when the teacher retries one submission, so a lost answer never grants twice.
+  studentHistory(studentId: string, cursor: string | null, signal?: AbortSignal) { return this.service.studentHistory(resourceId(studentId), cursor, signal) }
+  exportPublication(publicationId: string, signal?: AbortSignal) { return this.service.exportPublication(resourceId(publicationId), signal) }
+  exportReport(sessionId: string, signal?: AbortSignal) { return this.service.exportReport(resourceId(sessionId), signal) }
   grantAttempt(publicationId: string, input: AttemptGrantInput, idempotencyKey: string, signal?: AbortSignal) {
     const opens = input.opens_at === undefined ? NaN : Date.parse(input.opens_at), closes = input.closes_at === undefined ? NaN : Date.parse(input.closes_at)
     const window = input.opens_at === undefined && input.closes_at === undefined ? {} : Number.isFinite(opens) && Number.isFinite(closes) && opens < closes ? { opens_at: input.opens_at, closes_at: input.closes_at } : null

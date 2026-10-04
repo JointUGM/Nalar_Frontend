@@ -1,4 +1,7 @@
-import type { AdminSetup, CurriculumDetail, CurriculumVersion, NewCurriculum, NewSchool, SchoolsPage } from '@/domain/model/PlatformAdmin'
+import { ApiError } from '@/domain/model/ApiError'
+import type { AuditPage } from '@/domain/model/Audit'
+import type { AdminSetup, AiUsageRow, CurriculumDetail, CurriculumVersion, NewCurriculum, NewSchool, PlatformSchool, SchoolDetails, SchoolsPage } from '@/domain/model/PlatformAdmin'
+import { auditPage } from './audit'
 import type { PlatformAdminService } from '@/domain/services/PlatformAdminService'
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
@@ -6,6 +9,12 @@ import type { components } from './contracts/backend'
 
 type Schemas = components['schemas']
 const school = (schoolId: string) => `/platform/schools/${encodeURIComponent(schoolId)}`
+
+function schoolOf(value: unknown): PlatformSchool {
+  const item = record(value)
+  return { id: text(item.id), name: text(item.name), npsn: nullable(item.npsn, text), city: nullable(item.city, text), status: text(item.status), admin_name: nullable(item.admin_name, text), user_count: count(item.user_count) }
+}
+const amount = (value: unknown) => { if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new ApiError(502, 'INVALID_RESPONSE'); return value }
 
 function version(value: unknown): CurriculumVersion {
   const item = record(value)
@@ -19,13 +28,26 @@ export class HttpPlatformAdminService implements PlatformAdminService {
     const params = new URLSearchParams({ limit: '50', ...(q ? { q } : {}), ...(cursor ? { cursor } : {}) })
     const value = record((await this.api.request(`/platform/schools?${params}`, { signal })).data)
     return {
-      items: list(value.items).map((entry) => {
-        const item = record(entry)
-        return { id: text(item.id), name: text(item.name), npsn: nullable(item.npsn, text), city: nullable(item.city, text), status: text(item.status), admin_name: nullable(item.admin_name, text), user_count: count(item.user_count) }
-      }),
+      items: list(value.items).map(schoolOf),
       next_cursor: nullable(value.next_cursor, text), total: count(value.total),
       counts: Object.fromEntries(Object.entries(record(value.counts)).map(([key, value]) => [key, count(value)])),
     }
+  }
+
+  async updateSchool(schoolId: string, details: SchoolDetails, signal?: AbortSignal): Promise<PlatformSchool> {
+    const body: Schemas['SchoolPatchIn'] = details
+    return schoolOf((await this.api.request(school(schoolId), { method: 'PATCH', body, signal })).data)
+  }
+
+  async aiUsage(from: string, to: string, signal?: AbortSignal): Promise<AiUsageRow[]> {
+    return list((await this.api.request(`/platform/ai-usage?${new URLSearchParams({ from, to })}`, { signal })).data).map((entry) => {
+      const item = record(entry)
+      return { day: text(item.day), school_id: nullable(item.school_id, text), purpose: text(item.purpose), model: text(item.model), calls: count(item.calls), failed_calls: count(item.failed_calls), input_tokens: count(item.input_tokens), output_tokens: count(item.output_tokens), cost_usd: amount(item.cost_usd) } satisfies Schemas['AiUsageOut']
+    })
+  }
+
+  async auditLog(cursor: number | null, signal?: AbortSignal): Promise<AuditPage> {
+    return auditPage((await this.api.request(`/platform/audit-log?limit=50${cursor === null ? '' : `&cursor=${cursor}`}`, { signal })).data)
   }
 
   async createSchool(details: NewSchool, idempotencyKey: string, signal?: AbortSignal): Promise<AdminSetup> {
