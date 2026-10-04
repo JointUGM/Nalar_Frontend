@@ -19,6 +19,21 @@ describe('live HTTP adapter', () => {
     expect(request.mock.calls[0][0]).toBe('/api/v1/student/sessions/session-id/state')
   })
 
+  it('sends the last ETag and reuses the last body on a 304, taking the clock from Date', async () => {
+    const request = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json(state, { headers: { ETag: 'W/"a"' } }))
+      .mockResolvedValueOnce(new Response(null, { status: 304, headers: { Date: 'Fri, 02 Oct 2026 00:01:30 GMT' } }))
+      .mockResolvedValueOnce(new Response(null, { status: 304 }))
+      .mockResolvedValueOnce(Response.json({ ...state, turn_index: 1 }))
+    const service = new HttpLiveService({ apiBaseUrl: '/api/v1', fetch: request })
+    await service.state('session-id')
+    expect(await service.state('session-id')).toEqual({ ...state, server_now: '2026-10-02T00:01:30.000Z' })
+    expect(new Headers(request.mock.calls[1][1]?.headers).get('If-None-Match')).toBe('W/"a"')
+    // A 304 without a readable Date cannot refresh the clock, so the state is read again without the validator.
+    expect(await service.state('session-id')).toEqual({ ...state, turn_index: 1 })
+    expect(new Headers(request.mock.calls[3][1]?.headers).has('If-None-Match')).toBe(false)
+  })
+
   it('maps scope failures and treats a pending reflection as pending data', async () => {
     const request = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json({ error: { code: 'NOT_FOUND' } }, { status: 404 })).mockResolvedValueOnce(Response.json({ status: 'pending' }, { status: 202 }))
     const service = new HttpLiveService({ apiBaseUrl: '/api/v1', fetch: request })
