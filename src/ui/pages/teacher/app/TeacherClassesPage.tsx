@@ -1,9 +1,12 @@
-import { useCallback, useState, type ReactNode } from 'react'
+import { useCallback, useState } from 'react'
 import { Link } from 'react-router'
 import type { ClassStudent } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
+import type { NalaMood } from '@/ui/components/nala/Nala'
+import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
+import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherClasses.module.css'
@@ -15,11 +18,11 @@ const nameOrder = new Intl.Collator('id-ID', { numeric: true, sensitivity: 'base
 const number = new Intl.NumberFormat('id-ID')
 const matches = (student: ClassStudent, filter: StudentFilter) => filter === 'all' || (filter === 'flagged' ? student.open_flag_count > 0 : (student.status ?? 'not_started') === filter)
 
-function EmptyState({ title, children }: { title: string; children: ReactNode }) {
-  return <div className={styles.empty}>
-    <span className={styles.emptyIcon}><Icon name="users" size={24} /></span>
-    <h3>{title}</h3><p>{children}</p>
-  </div>
+// Null while the page body shows Nala (no classes, unavailable): one Nala per view.
+function companion(classes: number | null, failed: boolean): [NalaMood, string] | null {
+  if (classes === null) return failed ? null : ['think', 'Sebentar, daftar kelas sedang dimuat.']
+  if (classes === 0) return null
+  return ['hello', `Anda mengajar ${number.format(classes)} kelas. Pilih satu untuk melihat progresnya.`]
 }
 
 function LoadingRoster({ classes = false }: { classes?: boolean }) {
@@ -58,42 +61,36 @@ export function TeacherClassesPage({ service, base, schoolId }: { service: Teach
   const missions = data?.publications.filter(item => item.class_id === chosen) ?? []
   const publication = missions.find(item => item.id === publicationId) ?? missions[0]
   const mission = publication?.id ?? ''
+  const note = companion(data ? data.classes.length : null, Boolean(error))
   const subjects = [...new Set(data?.assignments.filter(item => item.class_id === chosen).map(item => item.subject_name) ?? [])]
 
   return <div className={styles.content}>
-    <header className={styles.header}>
+    <div className={styles.header}>
       <div><h1>Kelas dan siswa</h1><p>Kenali progres siswa, lalu buka laporan untuk melihat penalarannya.</p></div>
+      {note && <NalaNote mood={note[0]} text={note[1]} />}
       <ButtonLink className={styles.publish} to={`${base}/missions`}><Icon name="plus" size={16} />Terbitkan misi</ButtonLink>
-    </header>
+    </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <section className={styles.roster}><LoadingRoster classes /></section>}
-    {!data && error && <p className={styles.unavailable}>Daftar kelas belum dapat ditampilkan.</p>}
+    {!data && error && <section className={styles.roster}><NalaEmpty mood="oops" title="Daftar kelas belum dapat ditampilkan">Gunakan “Coba lagi” di atas untuk memuatnya.</NalaEmpty></section>}
     {data && data.classes.length === 0 && <section className={styles.roster}>
-      <EmptyState title="Belum ada kelas yang ditugaskan">Kelas akan muncul setelah admin sekolah menugaskan Anda sebagai guru.</EmptyState>
+      <NalaEmpty mood="ask" title="Belum ada kelas yang ditugaskan">Kelas akan muncul setelah admin sekolah menugaskan Anda sebagai guru.</NalaEmpty>
     </section>}
     {data && selectedClass && <div className={styles.workspace}>
-      <aside className={styles.classPicker} aria-label="Pilih kelas">
-        <div className={styles.pickerHeading}><h2>Kelas saya</h2><span>{number.format(data.classes.length)}</span></div>
-        <div className={styles.classes} role="group" aria-label="Kelas">
-          {data.classes.map(item => {
-            const missionCount = data.publications.filter(publication => publication.class_id === item.class_id).length
-            return <button key={item.class_id} type="button" aria-pressed={item.class_id === chosen} onClick={() => { setClassId(item.class_id); setPublicationId('') }}>
-              <span><strong>Kelas {item.class_name}</strong><small>{number.format(missionCount)} misi dimuat</small></span><Icon name="chevronRight" size={16} />
-            </button>
-          })}
-        </div>
-      </aside>
+      <section className={styles.selectionBar} aria-label="Pilih kelas dan misi">
+        <Select label="Kelas saya" value={chosen} onChange={value => { setClassId(value); setPublicationId('') }}
+          options={data.classes.map(item => ({ value: item.class_id, label: `Kelas ${item.class_name}`,
+            description: `Tingkat ${item.grade_level} · ${number.format(data.publications.filter(publication => publication.class_id === item.class_id).length)} misi dimuat` }))} />
+        {missions.length > 0 ? <Select key={chosen} label="Misi yang ditinjau" value={mission} onChange={setPublicationId}
+          options={missions.map((item, index) => ({ value: item.id, label: item.mission_title,
+            description: `${item.run.mode === 'live' ? 'Langsung' : item.run.mode === 'window' ? 'Jendela waktu' : item.run.mode} · ${({ open: 'Sedang berlangsung', lobby: 'Lobi terbuka', scheduled: 'Belum dimulai', closed: 'Penerimaan ditutup' } as Readonly<Record<string, string>>)[item.run.status] ?? item.run.status}${missions.filter(other => other.mission_title === item.mission_title).length > 1 ? ` · Sesi ${index + 1}` : ''}` }))} />
+          : <div className={styles.noMission}><Icon name="file" size={18} /><div><h3>Belum ada misi di kelas ini</h3><p>Daftar siswa tetap tersedia. Terbitkan misi untuk mulai melihat progresnya.</p></div></div>}
+        <p className={styles.selectionNote}>{number.format(data.classes.length)} kelas tersedia{missions.length > 0 && ' · Menampilkan percobaan terakhir untuk misi yang dipilih.'}</p>
+      </section>
       <section className={styles.roster} aria-labelledby="class-roster-title">
         <div className={styles.rosterHeading}><div><h2 id="class-roster-title">Kelas {selectedClass.class_name}</h2><p>Tingkat {selectedClass.grade_level}{subjects.length > 0 && ` · ${subjects.join(' / ')}`}</p></div>
           {publication && <Link className={styles.classMap} to={`${base}/publications/${mission}/class-map`} state={{ publication }}>Peta kelas<Icon name="chevronRight" size={16} /></Link>}
         </div>
-        {missions.length > 0 ? <div className={styles.missionContext}>
-          <label htmlFor="class-mission">Misi yang ditinjau</label>
-          <select id="class-mission" value={mission} onChange={event => setPublicationId(event.target.value)}>
-            {missions.map((item, index) => <option key={item.id} value={item.id}>{item.mission_title} · {item.run.mode === 'live' ? 'Langsung' : item.run.mode === 'window' ? 'Jendela waktu' : item.run.mode}{missions.filter(other => other.mission_title === item.mission_title).length > 1 ? ` · Sesi ${index + 1}` : ''}</option>)}
-          </select>
-          <p>Menampilkan percobaan terakhir setiap siswa untuk misi yang dipilih.</p>
-        </div> : <div className={styles.noMission}><Icon name="file" size={18} /><div><h3>Belum ada misi di kelas ini</h3><p>Daftar siswa tetap tersedia. Terbitkan misi untuk mulai melihat progresnya.</p></div></div>}
         <Roster key={`${chosen}-${mission}`} service={service} classId={chosen} publicationId={mission || null} base={base} />
       </section>
     </div>}
@@ -115,17 +112,17 @@ function Roster({ service, classId, publicationId, base }: { service: TeacherSer
   return <>
     <div className={styles.resourceFeedback}><LiveFeedback error={error} online={online} refresh={refresh} /></div>
     {!data && !error && <LoadingRoster />}
-    {!data && error && <p className={styles.unavailable}>Daftar siswa belum dapat ditampilkan.</p>}
-    {data && data.length === 0 && <EmptyState title="Belum ada siswa di kelas ini">Siswa akan muncul setelah admin sekolah memperbarui daftar kelas.</EmptyState>}
+    {!data && error && <NalaEmpty mood="oops" title="Daftar siswa belum dapat ditampilkan">Gunakan “Coba lagi” di atas untuk memuatnya.</NalaEmpty>}
+    {data && data.length === 0 && <NalaEmpty mood="ask" title="Belum ada siswa di kelas ini">Siswa akan muncul setelah admin sekolah memperbarui daftar kelas.</NalaEmpty>}
     {data && data.length > 0 && <>
       {publicationId && <div className={styles.filters} role="group" aria-label="Filter siswa">{filters.map(([value, label]) => <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}<span>{number.format(data.filter(student => matches(student, value)).length)}</span></button>)}</div>}
       <div className={styles.toolbar}>
         <label className={styles.search}><Icon name="search" size={18} /><input type="search" aria-label="Cari nama siswa" placeholder="Cari nama siswa…" value={query} onChange={event => setQuery(event.target.value)} /></label>
-        <label className={styles.sort}><span>Urutan</span><select aria-label="Urutkan siswa" value={sort} onChange={event => setSort(event.target.value)}><option value="name-asc">Nama A–Z</option><option value="name-desc">Nama Z–A</option></select></label>
+        <div className={styles.sort}><Select label="Urutkan siswa" value={sort} onChange={setSort} compact options={[{ value: 'name-asc', label: 'Nama A–Z' }, { value: 'name-desc', label: 'Nama Z–A' }]} /></div>
         {filtered && <button className={styles.reset} type="button" onClick={reset}>Hapus filter</button>}
       </div>
       <p className={styles.resultCount} role="status">{number.format(visible.length)} dari {number.format(data.length)} siswa ditampilkan{publicationId && ` · ${number.format(done)} selesai untuk misi ini`}</p>
-      {visible.length === 0 ? <EmptyState title="Tidak ada siswa yang cocok">Coba nama lain atau <button className={styles.inlineReset} type="button" onClick={reset}>hapus filter</button> untuk melihat daftar siswa.</EmptyState> : <table className={styles.table} role="table">
+      {visible.length === 0 ? <NalaEmpty mood="search" title="Tidak ada siswa yang cocok">Coba nama lain atau <button className={styles.inlineReset} type="button" onClick={reset}>hapus filter</button> untuk melihat daftar siswa.</NalaEmpty> : <table className={styles.table} role="table">
         <caption className={styles.hidden}>Daftar siswa, status percobaan terakhir, hasil konsep, dan laporan</caption>
         <thead role="rowgroup"><tr role="row"><th scope="col">Siswa</th><th scope="col">Status</th><th scope="col">Hasil konsep</th><th scope="col"><span className={styles.hidden}>Laporan</span></th></tr></thead>
         <tbody role="rowgroup">{visible.map(student => <tr key={student.student_id} role="row">

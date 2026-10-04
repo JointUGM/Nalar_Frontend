@@ -26,7 +26,7 @@ export function StudentShell({ title, user, detail, nav = items, home = '/review
   const close = () => setDrawerOpen(false)
   const initials = user.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
   const navigation = <nav className={styles.navigation} aria-label="Navigasi siswa">{nav.map((entry) => entry.to
-    ? <NavLink key={entry.label} to={entry.to} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</NavLink>
+    ? <NavLink key={entry.label} to={entry.to} end={entry.to === home} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive || (entry.to === home && location.pathname.startsWith(`${home}/missions/`)) ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</NavLink>
     : <button key={entry.label} type="button" disabled title={unavailable}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span></button>)}</nav>
 
   // On a phone the sidebar is hidden, so signing out has to live in the drawer too.
@@ -42,8 +42,9 @@ export function StudentShell({ title, user, detail, nav = items, home = '/review
       {navigation}
       <div className={styles.spacer} />
       <div className={[styles.reminder, styles.label].join(' ')} role="note" aria-label="Pengingat">
-        <p><Nala mood="ask" size={22} head />Ingat</p>
-        <p>NALAR tidak memberi jawaban. Ia hanya bertanya supaya kamu bisa menemukan alasanmu sendiri.</p>
+        <Nala mood="think" size={76} />
+        <p>Alasanmu punya ruang.</p>
+        <p>Nala bertanya supaya kamu bisa menemukan alasanmu sendiri.</p>
       </div>
       <div className={styles.user}>
         <span className={styles.avatar} aria-hidden="true">{initials}</span>
@@ -57,7 +58,6 @@ export function StudentShell({ title, user, detail, nav = items, home = '/review
         <span className={styles.title}>{title}</span>
         {review && <span className={styles.reviewLabel}>Pratinjau · data contoh</span>}
         <Link className={styles.join} to={join}><span aria-hidden="true"><Icon name="monitor" size={12} /></span>Gabung sesi kelas</Link>
-        <button type="button" className={styles.bell} disabled aria-label="Notifikasi belum tersedia"><Icon name="bell" size={16} /></button>
       </header>
       <main ref={contentRef} className={styles.main} id="student-content" tabIndex={-1}>{children}</main>
     </div>
