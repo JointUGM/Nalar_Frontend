@@ -27,6 +27,7 @@ export class TeacherUseCases implements TeacherService {
     return this.service.createMission({ knowledge_base_id: resourceId(input.knowledge_base_id), title: required(input.title, 200), learning_objective: required(input.learning_objective, 1000) }, signal)
   }
   generateMission(missionId: string, signal?: AbortSignal) { return this.service.generateMission(resourceId(missionId), signal) }
+  archiveMission(missionId: string, signal?: AbortSignal) { return this.service.archiveMission(resourceId(missionId), signal) }
   missionVersion(missionId: string, number: number, signal?: AbortSignal) { return this.service.missionVersion(resourceId(missionId), versionNumber(number), signal) }
   saveMissionVersion(missionId: string, draft: MissionVersionDraft, signal?: AbortSignal) {
     return this.service.saveMissionVersion(resourceId(missionId), { ...draft, base_version_id: resourceId(draft.base_version_id), anchor_problem: required(draft.anchor_problem, 4000), reference_reasoning: required(draft.reference_reasoning, 8000) }, signal)

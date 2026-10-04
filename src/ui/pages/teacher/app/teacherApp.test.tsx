@@ -255,6 +255,26 @@ describe('signed-in teacher pages', () => {
     expect(within(screen.getByRole('alert')).getByRole('link', { name: 'Raka Pratama' })).toHaveAttribute('href', reportPath)
   })
 
+  it('ends one running session only after confirming, and never a session paused for safety', async () => {
+    const request = backend({
+      [`GET /publications/${publication}/monitor`]: () => Response.json({
+        run: { id: school, mode: 'live', status: 'open', join_code: 'K7Q2MW', started_at: '2026-10-02T03:00:00Z' }, waiting_count: 0, server_now: '2026-10-02T03:05:00Z',
+        students: [
+          { student_id: student, name: 'Raka Pratama', status: 'in_progress', current_turn_index: 2, max_turns: 4, deadline_at: null, open_flag_count: 0, safety_paused: true, session_id: sessionId },
+          { student_id: klass, name: 'Bima Putra', status: 'in_progress', current_turn_index: 1, max_turns: 4, deadline_at: null, open_flag_count: 0, safety_paused: false, session_id: draft },
+        ],
+      }),
+      [`POST /sessions/${draft}/end`]: () => new Response(null, { status: 204 }),
+    })
+    open(`${base}/publications/${publication}/monitor`, request)
+    const end = await screen.findAllByRole('button', { name: 'Akhiri sesi' })
+    expect(end).toHaveLength(1)
+    fireEvent.click(end[0])
+    expect(request.mock.calls.some(([url]) => String(url).endsWith('/end'))).toBe(false)
+    fireEvent.click(within(await screen.findByRole('dialog', { name: 'Akhiri sesi Bima Putra?' })).getByRole('button', { name: 'Akhiri sesi' }))
+    await waitFor(() => expect(request.mock.calls.filter(([url, init]) => init?.method === 'POST' && String(url).endsWith(`/sessions/${draft}/end`))).toHaveLength(1))
+  })
+
   it('changes a score only with a reason, once, and keeps the AI level beside it', async () => {
     let final = 2
     const request = backend({
@@ -431,8 +451,26 @@ describe('signed-in teacher pages', () => {
   it('shows a colleague’s knowledge base without any way to change it', async () => {
     open(kbPath, backend({ [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail('pending', false)) }))
     await screen.findByText(/milik rekan guru/)
-    for (const name of ['Setujui', 'Tolak', 'Edit', 'Susun Bab 1 Tekanan']) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
+    for (const name of ['Setujui', 'Tolak', 'Edit', 'Susun Bab 1 Tekanan', 'Arsipkan topik', 'Arsipkan konsep', 'Hapus']) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
     expect(screen.queryByLabelText(/Tambah materi/)).not.toBeInTheDocument()
+  })
+
+  it('deletes a material only after confirming, and opens its PDF through the signed link', async () => {
+    const request = backend({
+      [`DELETE /knowledge-bases/${kbId}/materials/${school}`]: () => new Response(null, { status: 204 }),
+      [`GET /knowledge-bases/${kbId}/materials/${school}/file`]: () => Response.json({ url: 'https://storage.example/materi.pdf?token=t', expires_in: 300 }),
+    })
+    const tab = { opener: {}, location: { href: 'about:blank' }, close: vi.fn() }
+    const opened = vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window)
+    open(kbPath, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Buka PDF IPA Kelas 8.pdf' }))
+    await waitFor(() => expect(tab.location.href).toBe('https://storage.example/materi.pdf?token=t'))
+    expect(tab.opener).toBeNull()
+    opened.mockRestore()
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus' }))
+    expect(request.mock.calls.some(([, init]) => init?.method === 'DELETE')).toBe(false)
+    fireEvent.click(await screen.findByRole('button', { name: 'Hapus materi' }))
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'DELETE')).toHaveLength(1))
   })
 
   it('creates a mission once, asks for its draft and opens the generated version', async () => {

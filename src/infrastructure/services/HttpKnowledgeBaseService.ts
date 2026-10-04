@@ -1,5 +1,6 @@
 import type { Job, KbCreateInput, KbDetail, KbItemKind, KbItemPatch, KbQueued, KbReviewQueue, KbSection, KbSummary, NewConcept, NewMisconception, ReviewStatus } from '@/domain/model/KnowledgeBase'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
+import { ApiError } from '@/domain/model/ApiError'
 import { allItems, count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
@@ -67,6 +68,26 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
 
   async addMaterial(kbId: string, file: File, signal?: AbortSignal): Promise<KbQueued> {
     return queued((await this.api.request(`${kb(kbId)}/materials`, { method: 'POST', form: upload(file), idempotent: true, signal })).data)
+  }
+
+  async archive(kbId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${kb(kbId)}/archive`, { method: 'POST', signal })
+  }
+
+  async archiveConcept(kbId: string, conceptId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${kb(kbId)}/concepts/${encodeURIComponent(conceptId)}/archive`, { method: 'POST', signal })
+  }
+
+  async deleteMaterial(kbId: string, materialId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${kb(kbId)}/materials/${encodeURIComponent(materialId)}`, { method: 'DELETE', signal })
+  }
+
+  // The link is opened in a new tab, so only an https address is accepted.
+  async materialFile(kbId: string, materialId: string, signal?: AbortSignal): Promise<string> {
+    const value = record((await this.api.request(`${kb(kbId)}/materials/${encodeURIComponent(materialId)}/file`, { signal })).data)
+    const url = text(value.url)
+    if (!URL.canParse(url) || new URL(url).protocol !== 'https:') throw new ApiError(502, 'INVALID_RESPONSE')
+    return url
   }
 
   async sections(kbId: string, signal?: AbortSignal): Promise<KbSection[]> {

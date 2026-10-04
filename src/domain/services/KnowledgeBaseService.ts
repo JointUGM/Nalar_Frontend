@@ -5,6 +5,12 @@ export interface KnowledgeBaseService {
   create(schoolId: string, input: KbCreateInput, signal?: AbortSignal): Promise<KbQueued>
   detail(kbId: string, signal?: AbortSignal): Promise<KbDetail>
   addMaterial(kbId: string, file: File, signal?: AbortSignal): Promise<KbQueued>
+  // Archiving and deleting keep history: cited material and locked mission versions stay readable.
+  archive(kbId: string, signal?: AbortSignal): Promise<void>
+  archiveConcept(kbId: string, conceptId: string, signal?: AbortSignal): Promise<void>
+  deleteMaterial(kbId: string, materialId: string, signal?: AbortSignal): Promise<void>
+  /** A signed link that expires after a few minutes. */
+  materialFile(kbId: string, materialId: string, signal?: AbortSignal): Promise<string>
   sections(kbId: string, signal?: AbortSignal): Promise<KbSection[]>
   build(kbId: string, sectionId: string, signal?: AbortSignal): Promise<{ job_id: string }>
   reviewQueue(kbId: string, signal?: AbortSignal): Promise<KbReviewQueue>

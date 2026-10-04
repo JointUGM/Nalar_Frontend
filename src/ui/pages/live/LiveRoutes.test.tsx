@@ -58,6 +58,22 @@ describe('protected live routes', () => {
     expect(request.mock.calls.some(([path]) => String(path).includes(`/sessions/${sessionId}/state`))).toBe(true)
   })
 
+  it('leaves the lobby only after a second, explicit choice and goes back home', async () => {
+    const request = vi.fn<typeof fetch>(async (input, init) => {
+      const path = String(input)
+      if (path.endsWith('/lobby')) return Response.json({ run_status: 'lobby', participant_status: 'waiting', session_id: null, warmup_choice_id: null, started_at: null, deadline_at: null, server_now: '2026-10-02T00:01:00Z' })
+      if (path.endsWith('/leave') && init?.method === 'POST') return new Response(null, { status: 204 })
+      throw new Error(`Unexpected request ${path}`)
+    })
+    route(`/student/${schoolId}/runs/${runId}/lobby`, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Keluar dari lobi' }))
+    expect(screen.getByText(/tidak bisa masuk lagi/)).toBeInTheDocument()
+    expect(request.mock.calls.some(([path]) => String(path).endsWith('/leave'))).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: 'Ya, keluar' }))
+    await waitFor(() => expect(request.mock.calls.filter(([path]) => String(path).endsWith(`/student/runs/${runId}/leave`))).toHaveLength(1))
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Ya, keluar' })).not.toBeInTheDocument())
+  })
+
   it('checks school membership before rendering or fetching live data', async () => {
     const request = vi.fn<typeof fetch>()
     route('/student/00000000-0000-4000-8000-000000000099', request)

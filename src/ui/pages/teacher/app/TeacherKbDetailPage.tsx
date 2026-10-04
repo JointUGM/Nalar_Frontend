@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
 import type { KbDetail, KbItemKind, KbItemPatch, KbReviewQueue, KbSection } from '@/domain/model/KnowledgeBase'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
@@ -12,6 +12,7 @@ import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherKbReview.module.css'
+import { ConfirmAction } from './ConfirmAction'
 import { JobNotice } from './JobNotice'
 import { KbNewItem } from './KbNewItem'
 import { buildWord, kbRefusal, reviewWord } from './kbText'
@@ -33,6 +34,7 @@ const tag = (status: string) => <span className={[styles.tag, status === 'approv
 export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; base: string }) {
   const { kbId = '' } = useParams()
   const [params] = useSearchParams()
+  const navigate = useNavigate()
   const read = useCallback(async (signal: AbortSignal): Promise<Loaded> => {
     const [detail, sections, queue] = await Promise.all([kb.detail(kbId, signal), kb.sections(kbId, signal), kb.reviewQueue(kbId, signal)])
     return { detail, sections, queue }
@@ -79,6 +81,17 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
     }
   }
   const followJob = (queued: { job_id: string }) => setJobId(queued.job_id)
+  // The tab opens on the click itself, so a popup blocker allows it; the signed link arrives a moment later.
+  function openPdf(materialId: string) {
+    const tab = window.open('about:blank', '_blank')
+    if (tab) tab.opener = null
+    let opened = false
+    void run((signal) => kb.materialFile(detail.id, materialId, signal), (url) => {
+      opened = true
+      if (tab) tab.location.href = url
+      else window.open(url, '_blank', 'noopener')
+    }).then(() => { if (!opened) tab?.close() })
+  }
   const actions = (kind: KbItemKind, item: { id: string; review_status: string }, blocked: boolean, edit: () => void) => canEdit && item.review_status === 'pending' && <div className={styles.actions}>
     <Button disabled={pending || blocked} onClick={() => { void run((signal) => kb.review(kind, item.id, 'approved', signal)) }}><Icon name="check" size={14} />Setujui</Button>
     <Button tone="secondary" disabled={pending} onClick={() => { void run((signal) => kb.review(kind, item.id, 'rejected', signal)) }}>Tolak</Button>
@@ -96,7 +109,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
     <div className={styles.header}><div>
       <div className={styles.title}><h1>{detail.topic_title}</h1>{detail.concepts.length > 0 && <span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span>}</div>
       <p>{waiting > 0 ? `${queue.pending_concepts} konsep dan ${queue.pending_misconceptions} miskonsepsi menunggu tinjauan` : `${detail.concepts.length} konsep · ${detail.misconceptions.length} miskonsepsi`}</p>
-    </div><div className={styles.jumpLinks}><a href="#kb-review">Tinjau konsep<Icon name="chevronDown" size={14} /></a><a href="#kb-sources">Materi dan bab<Icon name="chevronDown" size={14} /></a></div></div>
+    </div><div className={styles.jumpLinks}><a href="#kb-review">Tinjau konsep<Icon name="chevronDown" size={14} /></a><a href="#kb-sources">Materi dan bab<Icon name="chevronDown" size={14} /></a>{canEdit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan topik</>} title="Arsipkan topik ini?" description={`${detail.topic_title}. Topik hilang dari daftar dan tidak bisa dipakai untuk misi baru. Misi dan sesi yang sudah memakainya tetap tersimpan. Arsip tidak bisa dibuka kembali dari aplikasi.`} confirm="Arsipkan topik" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archive(detail.id, signal)} onDone={() => navigate(`${base}/knowledge-base`)} refusal={kbRefusal} />}</div></div>
     {!canEdit && <p className={styles.note}>Basis pengetahuan ini milik rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {jobId && <JobNotice key={jobId} kb={kb} jobId={jobId} onDone={refresh} />}
@@ -141,6 +154,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
               <div><dt>Dilanjutkan ke</dt><dd>{detail.prerequisites.filter((link) => link.prerequisite_concept_id === selected.id).map((link) => nameOf(link.concept_id)).join(', ') || 'Tidak ada lanjutan tercatat'}</dd></div>
             </dl>
             {actions('concept', selected, false, () => setDraft({ id: selected.id, kind: 'concept', name: selected.name, description: selected.description ?? '' }))}
+            {canEdit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan konsep</>} title="Arsipkan konsep ini?" description={`${selected.name}. Konsep dan miskonsepsinya tidak dipakai lagi untuk misi baru. Misi yang sudah memakainya tidak berubah.`} confirm="Arsipkan konsep" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archiveConcept(detail.id, selected.id, signal)} onDone={() => { setSelectedId(''); refresh() }} refusal={kbRefusal} />}
           </>}
         </section>
         <div className={styles.misconceptions}>
@@ -173,7 +187,10 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
           <h2 id="kb-materials">Materi</h2>
           <ul className={styles.items}>{detail.materials.map((material) => <li key={material.id}><span>
             <strong>{material.title}</strong>
-            <small>{material.page_count === null ? 'Sedang dibaca' : `${material.page_count} halaman`}{material.pages_without_text.length > 0 && ` · ${material.pages_without_text.length} halaman tanpa teks`}{material.archived_at && ' · diarsipkan'}</small>
+            <small>{material.page_count === null ? 'Sedang dibaca' : `${material.page_count} halaman`}{material.pages_without_text.length > 0 && ` · ${material.pages_without_text.length} halaman tanpa teks`}{material.archived_at && ' · dihapus'}</small>
+          </span><span className={styles.materialActions}>
+            <Button tone="ghost" disabled={pending} aria-label={`Buka PDF ${material.title}`} onClick={() => openPdf(material.id)}><Icon name="file" size={14} />Buka PDF</Button>
+            {canEdit && !material.archived_at && <ConfirmAction label={<><Icon name="x" size={14} />Hapus</>} title="Hapus materi ini?" description={`${material.title}. Materi tidak dipakai lagi untuk menyusun bab baru. Bab, konsep, dan sumber yang sudah dikutip tetap tersimpan.`} confirm="Hapus materi" pendingLabel="Menghapus…" disabled={pending} action={(signal) => kb.deleteMaterial(detail.id, material.id, signal)} onDone={refresh} refusal={kbRefusal} />}
           </span></li>)}</ul>
           {detail.materials.length === 0 && <p className={styles.note}>Belum ada materi untuk topik ini.</p>}
           {canEdit && <div className={styles.upload}><label className={styles.fileControl}>

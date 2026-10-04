@@ -26,6 +26,10 @@ export class KnowledgeBaseUseCases implements KnowledgeBaseService {
   }
   detail(kbId: string, signal?: AbortSignal) { return this.service.detail(resourceId(kbId), signal) }
   addMaterial(kbId: string, file: File, signal?: AbortSignal) { return this.service.addMaterial(resourceId(kbId), pdf(file), signal) }
+  archive(kbId: string, signal?: AbortSignal) { return this.service.archive(resourceId(kbId), signal) }
+  archiveConcept(kbId: string, conceptId: string, signal?: AbortSignal) { return this.service.archiveConcept(resourceId(kbId), resourceId(conceptId), signal) }
+  deleteMaterial(kbId: string, materialId: string, signal?: AbortSignal) { return this.service.deleteMaterial(resourceId(kbId), resourceId(materialId), signal) }
+  materialFile(kbId: string, materialId: string, signal?: AbortSignal) { return this.service.materialFile(resourceId(kbId), resourceId(materialId), signal) }
   sections(kbId: string, signal?: AbortSignal) { return this.service.sections(resourceId(kbId), signal) }
   build(kbId: string, sectionId: string, signal?: AbortSignal) { return this.service.build(resourceId(kbId), resourceId(sectionId), signal) }
   reviewQueue(kbId: string, signal?: AbortSignal) { return this.service.reviewQueue(resourceId(kbId), signal) }
