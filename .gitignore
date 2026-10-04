@@ -19,6 +19,7 @@ test-results/
 .agents/
 .claude/
 .codex/
+.impeccable/
 .github/agents/
 .github/hooks/
 .github/skills/

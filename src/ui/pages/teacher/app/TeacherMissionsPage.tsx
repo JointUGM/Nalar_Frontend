@@ -9,6 +9,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherMissions.module.css'
 import { versionWord } from './missionText'
+import { Loading } from '@/ui/components/loading/Loading'
 
 export function TeacherMissionsPage({ service, base, schoolId }: { service: TeacherService; base: string; schoolId: string }) {
   const read = useCallback((signal: AbortSignal) => service.missions(schoolId, signal), [service, schoolId])
@@ -19,7 +20,7 @@ export function TeacherMissionsPage({ service, base, schoolId }: { service: Teac
       <Link className={styles.create} to={`${base}/missions/new`}><Icon name="sparkle" size={14} />Misi baru</Link>
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat misi…</p>}
+    {!data && !error && <Loading label="Memuat misi…" />}
     {data && data.length === 0 && <Feedback title="Belum ada misi">Buat misi pertama dari basis pengetahuan yang konsepnya sudah Anda setujui.</Feedback>}
     {data && data.length > 0 && <ul className={styles.grid} aria-label="Misi">{data.map((mission) => {
       const version = mission.latest_version

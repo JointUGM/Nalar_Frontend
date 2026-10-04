@@ -10,6 +10,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/parent/ParentReflections.module.css'
 import { parentPaths } from './parentPaths'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const fold = (value: string) => value.toLocaleLowerCase('id-ID')
 const excerpt = (content: string) => content.length > 140 ? `${content.slice(0, 140).trimEnd()}…` : content
@@ -38,7 +39,7 @@ export function ParentReflectionsPage({ service }: { service: ParentService }) {
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {loading && <>
-      <p role="status" className={styles.loading}>Memuat refleksi {first}…</p>
+      <Loading label={`Memuat refleksi ${first}…`} />
       <div className={styles.skeleton} aria-hidden="true"><span /><span /><span /></div>
     </>}
     {data && data.length === 0 && <p className={styles.none}>Belum ada refleksi yang dirilis untuk {first}.</p>}

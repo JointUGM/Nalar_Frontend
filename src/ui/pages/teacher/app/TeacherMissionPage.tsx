@@ -15,6 +15,7 @@ import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/use
 import styles from '@/ui/pages/teacher/TeacherMissionReview.module.css'
 import { JobNotice } from './JobNotice'
 import { missionRefusal, moveWord, problemWord, rubricWord, versionWord } from './missionText'
+import { Loading } from '@/ui/components/loading/Loading'
 
 interface Loaded { mission: MissionSummary; version: MissionVersion | null; detail: KbDetail | null; history: VersionHistory[] }
 type Command = '' | 'generate' | 'review' | 'save'
@@ -48,7 +49,7 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
   }, [navigate, path, refresh])
   const back = <Link className={styles.back} to={`${base}/missions`}><Icon name="chevronLeft" size={14} />Misi</Link>
 
-  if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <p role="status">Memuat misi…</p>}</div>
+  if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat misi…" />}</div>
   const { mission, version, detail, history } = data
   const latest = mission.latest_version
   const isLatest = version !== null && latest?.id === version.id

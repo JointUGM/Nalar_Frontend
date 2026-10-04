@@ -6,6 +6,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
 import liveStyles from '@/ui/pages/live/Live.module.css'
 import styles from '@/ui/pages/teacher/TeacherMissions.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const sessionsPollMs = () => 15_000
 const runStatus: Readonly<Record<string, string>> = { scheduled: 'Belum dimulai', lobby: 'Lobi terbuka', open: 'Sedang berlangsung', closed: 'Ditutup' }
@@ -18,7 +19,7 @@ export function TeacherSessionsPage({ service, base }: { service: TeacherService
       <div><h1>Sesi dan hasil</h1><p>{data ? `${data.length} misi sudah diterbitkan ke kelas Anda` : 'Misi yang sudah Anda terbitkan ke kelas'}</p></div>
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat sesi…</p>}
+    {!data && !error && <Loading label="Memuat sesi…" />}
     {data && data.length === 0 && <Feedback title="Belum ada misi yang diterbitkan">Sesi muncul di sini setelah sebuah misi diterbitkan ke kelas.</Feedback>}
     {data && data.length > 0 && <ul className={styles.grid} aria-label="Misi yang diterbitkan">{data.map((publication) => {
       const path = `${base}/publications/${publication.id}`

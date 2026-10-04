@@ -10,6 +10,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/parent/ParentReflection.module.css'
 import { parentPaths } from './parentPaths'
+import { Loading } from '@/ui/components/loading/Loading'
 
 export function ParentReflectionPage({ service }: { service: ParentService }) {
   const { sessionId = '' } = useParams()
@@ -19,7 +20,7 @@ export function ParentReflectionPage({ service }: { service: ParentService }) {
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   // Looked up inside the selected child's own released list, so another child's reflection (or an unreleased one) is simply not found.
   const reflection = data?.find((item) => item.session_id === sessionId)
-  if (child && !data && !error) return <div className={styles.content}><p role="status">Memuat refleksi…</p></div>
+  if (child && !data && !error) return <div className={styles.content}><Loading label="Memuat refleksi…" /></div>
   if (!child || !reflection) return <div className={styles.content}>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!error && <Feedback title="Refleksi ini tidak tersedia" announce>Pilih refleksi dari daftar refleksi yang sudah dirilis.</Feedback>}

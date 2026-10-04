@@ -7,6 +7,7 @@ import type { IconName } from '@/ui/components/icon/Icon'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import styles from '@/ui/pages/teacher/TeacherAttention.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 type Kind = AttentionItem['kind']
 const kinds: readonly [Kind, string, string, IconName, string][] = [
@@ -32,7 +33,7 @@ export function TeacherAttentionPage({ data, error, online, refresh, base }: { d
   return <div className={styles.content}>
     <div className={styles.header}><div><h1>Perlu perhatian</h1><p>Keselamatan siswa, catatan verifikasi, tinjauan basis pengetahuan, dan hasil yang siap dirilis.</p></div></div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat daftar…</p>}
+    {!data && !error && <Loading label="Memuat daftar…" />}
     {data && <>
       <ul className={styles.stats} aria-label="Ringkasan catatan">{kinds.map(([key, label]) => <li key={key}><strong>{data.counts[key]} {label.toLowerCase()}</strong></li>)}</ul>
       <section className={styles.card} aria-labelledby="attention-list">

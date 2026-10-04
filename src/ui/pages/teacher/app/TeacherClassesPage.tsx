@@ -5,6 +5,7 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherClasses.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const statusWord: Readonly<Record<string, string>> = { not_started: 'Belum mulai', in_progress: 'Sedang mengerjakan', paused_safety: 'Dijeda', completed: 'Selesai', timed_out: 'Waktu habis', ended_safety: 'Diakhiri' }
 const tone = (status: string | null, flags: number) => flags > 0 ? 'verify' : status === 'completed' ? 'done' : 'idle'
@@ -27,7 +28,7 @@ export function TeacherClassesPage({ service, base, schoolId }: { service: Teach
   return <div className={styles.content}>
     <div className={styles.header}><div><h1>Kelas dan siswa</h1><p>Siapa yang sudah mengerjakan, dan hasil konsep dari percobaan terakhirnya.</p></div></div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat kelas…</p>}
+    {!data && !error && <Loading label="Memuat kelas…" />}
     {data && data.classes.length === 0 && <Feedback title="Belum ada kelas">Anda belum ditugaskan ke kelas mana pun di sekolah ini.</Feedback>}
     {data && data.classes.length > 0 && <>
       <div className={styles.tabs} role="group" aria-label="Kelas">{data.classes.map((item) => <button key={item.class_id} type="button" aria-pressed={item.class_id === chosen} onClick={() => { setClassId(item.class_id); setPublicationId('') }}>{item.class_name}</button>)}</div>

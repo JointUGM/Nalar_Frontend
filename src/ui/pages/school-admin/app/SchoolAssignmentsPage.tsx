@@ -10,6 +10,7 @@ import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import styles from '@/ui/pages/school-admin/SchoolAssignments.module.css'
 import { useAcademicYears } from './useAcademicYears'
 import { YearSelect } from './YearSelect'
+import { Loading } from '@/ui/components/loading/Loading'
 
 interface Cell { item: SchoolClass; subject: SchoolSubject; teachers: { id: string; name: string }[] }
 
@@ -32,7 +33,7 @@ export function SchoolAssignmentsPage({ service, schoolId }: { service: SchoolAd
     <p className={styles.lead}>Guru melihat siswa dari kelas dan mata pelajaran yang ditugaskan.</p>
     <YearSelect years={years} />
     <LiveFeedback error={years.error ?? error} online={online} refresh={() => { years.refresh(); refresh() }} />
-    {((!years.loaded && !years.error) || (years.yearId && !data && !error)) && <p role="status">Memuat penugasan…</p>}
+    {((!years.loaded && !years.error) || (years.yearId && !data && !error)) && <Loading label="Memuat penugasan…" />}
     {message && <Feedback tone="success" title={message} announce />}
     {data && (cells.length === 0 ? <p className={styles.note}>Belum ada kelas atau mata pelajaran di tahun ajaran ini.</p> : <>
       <p className={styles.summary} role="status">{filled} dari {cells.length} penugasan terisi</p>

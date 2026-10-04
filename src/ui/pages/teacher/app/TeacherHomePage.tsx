@@ -9,6 +9,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherHome.module.css'
 import sections from '@/ui/pages/teacher/HomeSections.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const percent = (rate: number | null) => rate === null ? '—' : `${Math.round(rate * 100)}%`
 const change = (now: number, before: number, unit = '') => now === before ? 'Sama dengan minggu lalu' : `${now > before ? '+' : '−'}${Math.abs(now - before)}${unit} dari minggu lalu`
@@ -62,7 +63,7 @@ export function TeacherHomePage({ service, base, schoolId, user }: { service: Te
       <div className={styles.actions}><ButtonLink className={styles.start} to={`${base}/sessions`}><Icon name="monitor" size={14} />Sesi dan hasil</ButtonLink></div>
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat ringkasan…</p>}
+    {!data && !error && <Loading label="Memuat ringkasan…" />}
     {data && <>
       <ul className={styles.kpis} aria-label="Ringkasan minggu ini">{kpis(data.this_week, data.last_week).map((kpi) => <li key={kpi.label}>
         <span className={styles.label}>{kpi.label}</span>

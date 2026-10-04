@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Link, NavLink, useLocation } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Icon } from '@/ui/components/icon/Icon'
+import { activeNavTarget } from '@/ui/components/navigation/activeNav'
 import { ShellSearch } from '@/ui/components/shell-search/ShellSearch'
 import type { IconName } from '@/ui/components/icon/Icon'
 import { useTeacherContext } from './useTeacherContext'
 import styles from './TeacherShell.module.css'
 
-interface NavItem { label: string; icon: IconName; to: string; badge?: string; /** Paths under `to` that belong to a sibling item instead. */ exclude?: RegExp; /** Paths outside `to` that still belong to this item. */ match?: RegExp }
+interface NavItem { label: string; icon: IconName; to: string; badge?: string; /** Paths outside `to` that still belong to this item. */ match?: RegExp }
 
 export function TeacherShell({ title, user, nav, home, onChangePassword, children }: { title: string; user: string; nav: readonly NavItem[]; home: string; onChangePassword?: () => void; children: ReactNode }) {
   const { school, schools, changeSchool } = useTeacherContext()
@@ -24,7 +25,8 @@ export function TeacherShell({ title, user, nav, home, onChangePassword, childre
   useEffect(() => { if (focusContent) contentRef.current?.focus() }, [focusContent, location.key])
   const close = () => setDrawerOpen(false)
   const initials = user.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
-  const item = (entry: NavItem) => <NavLink key={entry.label} to={entry.to} end={entry.exclude?.test(location.pathname)} state={{ focusPlatformContent: true }} className={({ isActive }) => isActive || entry.match?.test(location.pathname) ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</NavLink>
+  const active = activeNavTarget(location.pathname, nav)
+  const item = (entry: NavItem) => <Link key={entry.label} to={entry.to} state={{ focusPlatformContent: true }} aria-current={entry.to === active ? 'page' : undefined} className={entry.to === active ? styles.active : undefined} onClick={close}><Icon name={entry.icon} /><span className={styles.label}>{entry.label}</span>{entry.badge && <span className={styles.badge}>{entry.badge}</span>}</Link>
   const navigation = <>
     <p className={styles.group}>Ruang kerja</p>
     <nav className={styles.navigation} aria-label="Ruang kerja guru">{nav.map(item)}</nav>

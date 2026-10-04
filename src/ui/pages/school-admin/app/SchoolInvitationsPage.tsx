@@ -9,6 +9,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/school-admin/SchoolImport.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const stateWord: readonly [string, string][] = [
   ['not_requested', 'Belum diundang'], ['pending', 'Dalam antrean'], ['sent', 'Terkirim, belum diaktivasi'], ['activated', 'Sudah diaktivasi'],
@@ -27,7 +28,7 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
   const [failure, setFailure] = useState<ApiError | null>(null)
   const [result, setResult] = useState<InvitationSummary | null>(null)
 
-  if (!data) return <div className={styles.content}><h1>Undangan akun</h1><LiveFeedback error={error} online={online} refresh={refresh} />{!error && <p role="status">Memuat status undangan…</p>}</div>
+  if (!data) return <div className={styles.content}><h1>Undangan akun</h1><LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat status undangan…" />}</div>
   const counts = data.counts
   const waiting = { new: counts.not_requested ?? 0, retry: (counts.failed ?? 0) + (counts.expired ?? 0) }
 

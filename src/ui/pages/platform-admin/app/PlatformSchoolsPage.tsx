@@ -10,6 +10,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/platform-admin/Platform.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const number = new Intl.NumberFormat('id-ID')
 const statusWord: Readonly<Record<string, string>> = { active: 'Aktif', suspended: 'Ditangguhkan' }
@@ -49,7 +50,7 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
       <div><span>Semua sekolah</span><strong>{number.format(data.counts.total ?? data.total)}</strong></div>
     </div>}
     <Field label="Cari nama, NPSN, atau kota" type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
-    {!data && !error && <p role="status" className={styles.readState}>Memuat sekolah…</p>}
+    {!data && !error && <Loading label="Memuat sekolah…" />}
     {data && (data.items.length ? <div className={styles.tableCard}><table className={styles.table}>
       <caption className={styles.visuallyHidden}>Sekolah pada halaman ini</caption>
       <thead><tr><th scope="col">Sekolah</th><th scope="col">Admin sekolah</th><th scope="col">Pengguna</th><th scope="col">Status</th><th scope="col"><span className={styles.visuallyHidden}>Tindakan</span></th></tr></thead>

@@ -7,6 +7,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherKnowledgeBase.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const state = (topic: KbSummary) => topic.pending_count > 0 ? ['review', 'Perlu tinjauan'] : topic.approved_concept_count > 0 ? ['approved', 'Siap dipakai'] : ['empty', 'Belum ada konsep']
 
@@ -19,7 +20,7 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
       <Link className={styles.upload} to={`${base}/knowledge-base/upload`}><Icon name="upload" size={14} />Unggah materi</Link>
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat basis pengetahuan…</p>}
+    {!data && !error && <Loading label="Memuat basis pengetahuan…" />}
     {data && data.length === 0 && <Feedback title="Belum ada basis pengetahuan">Unggah materi ajar (PDF) untuk memulai topik pertama.</Feedback>}
     {data && data.length > 0 && <ul className={styles.grid} aria-label="Topik basis pengetahuan">{data.map((topic) => {
       const [tone, label] = state(topic)

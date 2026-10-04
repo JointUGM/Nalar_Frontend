@@ -10,6 +10,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/parent/ParentHome.module.css'
 import { parentPaths } from './parentPaths'
+import { Loading } from '@/ui/components/loading/Loading'
 
 export function ParentHomePage({ service }: { service: ParentService }) {
   const { child } = useParentContext()
@@ -31,7 +32,7 @@ export function ParentHomePage({ service }: { service: ParentService }) {
     <div className={styles.header}><div><h1>Kabar {first}</h1><p>{child.detail}</p></div></div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {loading && <>
-      <p role="status" className={styles.loading}>Memuat kabar {first}…</p>
+      <Loading label={`Memuat kabar ${first}…`} />
       <div className={styles.skeleton} aria-hidden="true"><span /><span /><span /></div>
     </>}
     {empty && <section className={styles.empty} aria-labelledby="empty-title">

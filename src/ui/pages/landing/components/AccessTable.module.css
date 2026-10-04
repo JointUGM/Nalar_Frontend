@@ -1,0 +1,42 @@
+.table {
+  inline-size: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+}
+
+.table thead th {
+  padding: 0 8px 12px;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  text-align: start;
+  vertical-align: bottom;
+  border-block-end: 1px solid var(--color-border);
+}
+
+.table tbody th { inline-size: 34%; padding: 14px 8px; font-weight: 600; text-align: start; vertical-align: top; }
+
+.table tbody tr:nth-child(even) > * { background: color-mix(in srgb, var(--color-surface-muted) 55%, transparent); }
+.table tbody tr > :first-child { border-start-start-radius: 12px; border-end-start-radius: 12px; }
+.table tbody tr > :last-child { border-start-end-radius: 12px; border-end-end-radius: 12px; }
+
+.cell { padding: 14px 8px; vertical-align: top; }
+.cell span { display: inline-flex; align-items: flex-start; gap: 6px; }
+.cell svg { margin-block-start: 2px; }
+.cell[data-access='ya'] { color: var(--color-ink); font-weight: 600; }
+.cell[data-access='tidak'] { color: var(--color-text-muted); }
+.cell[data-access='setelah-rilis'] { color: var(--color-primary); font-weight: 600; }
+
+@media (min-width: 640px) {
+  .table { font-size: 0.9375rem; }
+  .table thead th { padding: 0 16px 16px; font-size: 0.875rem; }
+  .table tbody th, .cell { padding: 18px 16px; }
+  .cell span { gap: 8px; }
+}
+
+/* The table switches on row by row, and each answer lands as its icon pops in. */
+.reveal tbody tr { transition: opacity 520ms var(--ease-out) calc(var(--i) * 80ms + 160ms), transform 520ms var(--ease-out) calc(var(--i) * 80ms + 160ms); }
+.reveal tbody svg { transition: transform 420ms cubic-bezier(0.23, 1, 0.32, 1) calc(var(--i) * 80ms + 320ms); }
+.reveal[data-in='false'] tbody tr { opacity: 0; transform: translateX(-10px); }
+.reveal[data-in='false'] tbody svg { transform: scale(0.4); }

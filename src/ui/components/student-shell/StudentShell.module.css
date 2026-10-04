@@ -49,6 +49,10 @@
 .shell[data-collapsed='true'] .sidebar .navigation a, .shell[data-collapsed='true'] .sidebar .navigation button { justify-content: center; padding-inline: 0; }
 .shell[data-collapsed='true'] .sidebar .user { justify-content: center; padding: 8px 0; border: 0; flex-direction: column; }
 .shell[data-collapsed='true'] .sidebar .exit { margin: 0; }
+
+/* Icon controls get their own hover; without it the global button hover paints them solid Tinta. */
+.collapse, .bell, .menuButton { transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
+.collapse:hover:not(:disabled), .bell:hover:not(:disabled), .menuButton:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-info-bg); }
 @media (min-width: 768px) and (max-width: 1023px) {
   .shell, .shell[data-collapsed='false'] { grid-template-columns: 64px minmax(0, 1fr); }
   .collapse { display: none; }

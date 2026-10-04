@@ -10,6 +10,7 @@ import { formatDayTime, formatTime, formatToday } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/student/StudentHome.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 // A teacher can open a run at any moment, so the list refreshes on its own.
 const missionsPollMs = () => 15_000
@@ -36,7 +37,7 @@ export function StudentHomePage({ service, base, user }: { service: StudentServi
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {loading && <>
-      <p role="status" className={styles.loading}>Memuat misimu…</p>
+      <Loading label="Memuat misimu…" />
       <div className={styles.skeleton} aria-hidden="true"><span /><span /><span /></div>
     </>}
     {data && <>

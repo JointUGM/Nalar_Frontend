@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react'
+import { Loading } from '@/ui/components/loading/Loading'
 import { Navigate, Route, Routes, useLocation } from 'react-router'
 import type { Identity } from '@/domain/model/Identity'
 import type { ParentService } from '@/domain/services/ParentService'
@@ -45,10 +46,10 @@ export function ParentRoutes({ service, identity }: { service: ParentService; id
     id: item.student_id, name: item.name, initials: item.name.trim().charAt(0).toLocaleUpperCase('id-ID') || '?',
     detail: item.school_name, klass: '', tone: index % 2 ? 'info' : 'warm',
   })), [data])
+  if (!data && !error) return <Loading variant="screen" label="Membuka halaman orang tua…" />
   if (!data) return <main className={boundary.page}>
-    <h1>Membuka halaman orang tua…</h1>
+    <h1>Halaman orang tua belum dapat dibuka</h1>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!error && <p role="status">Tunggu sebentar.</p>}
   </main>
   return <ParentContextProvider all={all}><Frame service={service} user={identity.fullName} /></ParentContextProvider>
 }

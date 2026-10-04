@@ -7,6 +7,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherClassMap.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 // Evaluations and the saved insight arrive after the sessions end, so the map refreshes on its own.
 const mapPollMs = () => 15_000
@@ -29,7 +30,7 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
       <div className={styles.actions}><Link className={styles.release} to={`${base}/publications/${publicationId}/release`} state={location.state}><Icon name="send" size={14} />Rilis ke orang tua</Link></div>
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat peta kelas…</p>}
+    {!data && !error && <Loading label="Memuat peta kelas…" />}
     {data && data.denominator === 0 && <Feedback title="Belum ada hasil untuk dipetakan" announce>Peta muncul setelah ada sesi yang selesai dan dinilai.{data.incomplete_count > 0 ? ` ${data.incomplete_count} siswa belum selesai atau belum dinilai.` : ''}</Feedback>}
     {data && data.denominator > 0 && <>
       <dl className={styles.kpis}>

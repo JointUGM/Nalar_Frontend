@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { Loading } from '@/ui/components/loading/Loading'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Button } from '@/ui/components/button/Button'
 import { Field } from '@/ui/components/field/Field'
@@ -56,14 +57,7 @@ export function Login({ dependencies }: { dependencies: AccountDependencies | nu
         <div className={styles.formArea}>
           <div className={styles.content} id="account-form" tabIndex={-1}>
             <div className={styles.cardHeader}>
-              {view.phase === 'checking' && (
-                <>
-                  <h1 className={styles.title}>Memeriksa sesi…</h1>
-                  <p role="status" className={styles.subtitle}>
-                    Tunggu sebentar.
-                  </p>
-                </>
-              )}
+              {view.phase === 'checking' && <Loading label="Memeriksa sesi…" />}
 
               {view.phase === 'check-failed' && (
                 <>

@@ -8,6 +8,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import styles from '@/ui/pages/school-admin/SchoolSubjects.module.css'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const refusals: Readonly<Record<string, string>> = {
   CURRICULUM_SUBJECT_REQUIRED: 'Pilih mata pelajaran CP yang sesuai.',
@@ -39,7 +40,7 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
     <p className={styles.lead}>Setiap mata pelajaran sekolah dipetakan ke Capaian Pembelajaran nasional. Hanya pemilik basis pengetahuan yang bisa menyetujui dan mengubahnya.</p>
     {message && <Feedback tone="success" title={message} announce />}
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat mata pelajaran…</p>}
+    {!data && !error && <Loading label="Memuat mata pelajaran…" />}
     {data && (data.subjects.length === 0 ? <p className={styles.note}>Belum ada mata pelajaran di sekolah ini.</p> : <div className={styles.card}><table className={styles.table}>
       <caption className={styles.hidden}>Mata pelajaran, pemetaan CP, dan basis pengetahuan</caption>
       <thead><tr><th scope="col">Mata pelajaran</th><th scope="col">Capaian Pembelajaran</th><th scope="col">Basis pengetahuan</th><th scope="col"><span className={styles.hidden}>Tindakan</span></th></tr></thead>
