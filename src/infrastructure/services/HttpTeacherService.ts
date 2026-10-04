@@ -9,6 +9,7 @@ type Schemas = components['schemas']
 const publication = (id: string) => `/publications/${encodeURIComponent(id)}`
 const mission = (id: string) => `/missions/${encodeURIComponent(id)}`
 const texts = (value: unknown) => list(value).map((entry) => text(entry))
+const csv = (data: unknown) => { if (!(data instanceof Blob)) throw new ApiError(502, 'INVALID_RESPONSE'); return data }
 const seconds = (value: unknown) => { if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new ApiError(502, 'INVALID_RESPONSE'); return value }
 
 export class HttpTeacherService implements TeacherService {
@@ -53,6 +54,14 @@ export class HttpTeacherService implements TeacherService {
 
   async generateMission(missionId: string, signal?: AbortSignal): Promise<{ job_id: string }> {
     return { job_id: text(record((await this.api.request(`${mission(missionId)}/generate`, { method: 'POST', signal })).data).job_id) }
+  }
+
+  async exportPublication(publicationId: string, signal?: AbortSignal): Promise<Blob> {
+    return csv((await this.api.request(`${publication(publicationId)}/export?format=csv`, { raw: true, signal })).data)
+  }
+
+  async exportReport(sessionId: string, signal?: AbortSignal): Promise<Blob> {
+    return csv((await this.api.request(`/sessions/${encodeURIComponent(sessionId)}/report/export?format=csv`, { raw: true, signal })).data)
   }
 
   async archiveMission(missionId: string, signal?: AbortSignal): Promise<void> {

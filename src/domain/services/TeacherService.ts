@@ -20,6 +20,9 @@ export interface TeacherService {
   classStudents(classId: string, publicationId: string | null, signal?: AbortSignal): Promise<ClassStudent[]>
   dashboard(schoolId: string, signal?: AbortSignal): Promise<TeacherDashboard>
   missionVersions(missionId: string, signal?: AbortSignal): Promise<VersionHistory[]>
+  // Spreadsheet-safe CSV: final, teacher-adjusted scores of the latest attempts, and one student's report.
+  exportPublication(publicationId: string, signal?: AbortSignal): Promise<Blob>
+  exportReport(sessionId: string, signal?: AbortSignal): Promise<Blob>
   grantAttempt(publicationId: string, input: AttemptGrantInput, idempotencyKey: string, signal?: AbortSignal): Promise<{ run_id: string }>
   overrideScore(scoreId: string, level: number, reason: string, signal?: AbortSignal): Promise<void>
   reviewFlag(flagId: string, decision: FlagDecision, note: string | null, signal?: AbortSignal): Promise<void>
