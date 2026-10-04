@@ -255,6 +255,26 @@ describe('signed-in teacher pages', () => {
     expect(within(screen.getByRole('alert')).getByRole('link', { name: 'Raka Pratama' })).toHaveAttribute('href', reportPath)
   })
 
+  it('ends one running session only after confirming, and never a session paused for safety', async () => {
+    const request = backend({
+      [`GET /publications/${publication}/monitor`]: () => Response.json({
+        run: { id: school, mode: 'live', status: 'open', join_code: 'K7Q2MW', started_at: '2026-10-02T03:00:00Z' }, waiting_count: 0, server_now: '2026-10-02T03:05:00Z',
+        students: [
+          { student_id: student, name: 'Raka Pratama', status: 'in_progress', current_turn_index: 2, max_turns: 4, deadline_at: null, open_flag_count: 0, safety_paused: true, session_id: sessionId },
+          { student_id: klass, name: 'Bima Putra', status: 'in_progress', current_turn_index: 1, max_turns: 4, deadline_at: null, open_flag_count: 0, safety_paused: false, session_id: draft },
+        ],
+      }),
+      [`POST /sessions/${draft}/end`]: () => new Response(null, { status: 204 }),
+    })
+    open(`${base}/publications/${publication}/monitor`, request)
+    const end = await screen.findAllByRole('button', { name: 'Akhiri sesi' })
+    expect(end).toHaveLength(1)
+    fireEvent.click(end[0])
+    expect(request.mock.calls.some(([url]) => String(url).endsWith('/end'))).toBe(false)
+    fireEvent.click(within(await screen.findByRole('dialog', { name: 'Akhiri sesi Bima Putra?' })).getByRole('button', { name: 'Akhiri sesi' }))
+    await waitFor(() => expect(request.mock.calls.filter(([url, init]) => init?.method === 'POST' && String(url).endsWith(`/sessions/${draft}/end`))).toHaveLength(1))
+  })
+
   it('changes a score only with a reason, once, and keeps the AI level beside it', async () => {
     let final = 2
     const request = backend({
