@@ -80,4 +80,40 @@ describe('platform administration', () => {
       { description: 'Menjelaskan gaya', element: 'Pemahaman IPA', ordinal: 2 },
     ] }])
   })
+
+  it('edits a school\'s name, NPSN and city with one PATCH of the trimmed values', async () => {
+    const request = open('/platform/schools', (key) => {
+      if (key === 'GET /platform/schools?limit=50') return Response.json({ items: [school], next_cursor: null, total: 1, counts: { total: 1, active: 1, suspended: 0 } })
+      if (key === `PATCH /platform/schools/${schoolId}`) return Response.json({ ...school, name: 'SMPN 5 Kota Yogyakarta' })
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Tindakan SMPN 5 Yogyakarta' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ubah data sekolah' }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByLabelText(/^NPSN/)).toHaveValue('20403010')
+    fireEvent.change(within(dialog).getByLabelText(/^Nama sekolah/), { target: { value: ' SMPN 5 Kota Yogyakarta ' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Simpan' }))
+    expect(await screen.findByText('Data SMPN 5 Kota Yogyakarta tersimpan.')).toBeInTheDocument()
+    const patches = request.mock.calls.filter(([, init]) => init?.method === 'PATCH')
+    expect(patches).toHaveLength(1)
+    expect(JSON.parse(String(patches[0][1]?.body))).toEqual({ name: 'SMPN 5 Kota Yogyakarta', npsn: '20403010', city: 'Yogyakarta' })
+  })
+
+  it('sums AI usage per purpose and model over the chosen period', async () => {
+    const row = { day: '2026-10-01', school_id: schoolId, purpose: 'turn_analyze', model: 'claude-x', calls: 10, failed_calls: 1, input_tokens: 1000, output_tokens: 200, cost_usd: 0.5 }
+    const request = open('/platform/ai-usage', (key) => key.startsWith('GET /platform/ai-usage?') ? Response.json([row, { ...row, day: '2026-10-02', calls: 5, failed_calls: 0, cost_usd: 0.25 }]) : undefined)
+    const table = within(await screen.findByRole('region', { name: 'Pemakaian per tujuan' }))
+    expect(table.getAllByRole('row')).toHaveLength(2)
+    expect(table.getByText('15')).toBeInTheDocument()
+    const query = new URL(String(request.mock.calls[0][0]), 'http://x').searchParams
+    expect(Date.parse(query.get('to')!) - Date.parse(query.get('from')!)).toBe(30 * 86_400_000)
+  })
+
+  it('pages through the audit log with the integer cursor', async () => {
+    const entry = (id: number) => ({ id, school_id: schoolId, actor_id: null, action: 'school.updated', entity_table: 'schools', entity_id: schoolId, created_at: '2026-10-04T01:00:00Z' })
+    const request = open('/platform/audit-log', (key) => key === 'GET /platform/audit-log?limit=50' ? Response.json({ items: [entry(9)], next_cursor: 9 }) : key === 'GET /platform/audit-log?limit=50&cursor=9' ? Response.json({ items: [entry(4)], next_cursor: null }) : undefined)
+    fireEvent.click(await screen.findByRole('button', { name: 'Muat lebih banyak' }))
+    await waitFor(() => expect(screen.getAllByText('school.updated')).toHaveLength(2))
+    expect(screen.queryByRole('button', { name: 'Muat lebih banyak' })).not.toBeInTheDocument()
+    expect(request).toHaveBeenCalledTimes(2)
+  })
 })
