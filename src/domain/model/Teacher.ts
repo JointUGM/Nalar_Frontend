@@ -5,6 +5,7 @@ export interface TeacherPublication {
   mission_title: string
   // Empty until the backend that sends it is deployed.
   subject_name: string
+  mission_version: number | null
   released_to_parents_at: string | null
   run: { id: string; mode: string; status: string; join_code: string | null; opens_at: string | null; closes_at: string | null }
   counts: { started: number; completed: number; timed_out: number; evaluated: number }

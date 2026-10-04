@@ -1,4 +1,4 @@
-import { useCallback, type ReactNode } from 'react'
+import { useCallback, useEffect, type ReactNode } from 'react'
 import type { ParentProgress } from '@/domain/model/Parent'
 import type { ParentService } from '@/domain/services/ParentService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
@@ -36,6 +36,9 @@ export function ParentHomePage({ service }: { service: ParentService }) {
   const childId = child?.id
   const read = useCallback((signal: AbortSignal) => childId ? service.progress(childId, signal) : Promise.resolve(null), [service, childId])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
+  // Opening the summary counts as a visit; the "Baru" marks below still compare against the previous one.
+  const loaded = data !== null
+  useEffect(() => { if (childId && loaded) service.markSeen(childId).catch(() => {}) }, [service, childId, loaded])
   if (!child) return <div className={styles.content}>
     <NalaEmpty as="h1" mood="ask" title="Belum ada anak yang tertaut">Hubungi wali kelas atau admin sekolah supaya akunmu bisa melihat kabar anakmu.</NalaEmpty>
   </div>
@@ -44,6 +47,8 @@ export function ParentHomePage({ service }: { service: ParentService }) {
   const loading = !data && !error
   const summaries = data ? [...data.summaries].sort((a, b) => Date.parse(b.released_at) - Date.parse(a.released_at)) : []
   const [latest, ...earlier] = summaries
+  const lastSeen = child.lastSeenAt ? Date.parse(child.lastSeenAt) : null
+  const fresh = (releasedAt: string) => lastSeen !== null && Date.parse(releasedAt) > lastSeen
   // Nothing released is one neutral state: no count, title or status of work that is still with the teacher.
   const empty = data !== null && data.sessions_completed === 0 && summaries.length === 0 && data.concepts_understood.length + data.concepts_developing.length === 0
   return <div className={styles.content} aria-busy={loading}>
@@ -70,7 +75,7 @@ export function ParentHomePage({ service }: { service: ParentService }) {
       <div className={styles.main}>
         {latest && <section className={styles.letter} aria-labelledby="latest-title">
           <h2 id="latest-title"><NalaIcon name="file" />Ringkasan dari guru</h2>
-          <h3>{latest.mission_title}</h3>
+          <h3>{latest.mission_title}{fresh(latest.released_at) && <span className={styles.fresh}>Baru</span>}</h3>
           <p className={styles.date}>Dirilis {formatDayTime(latest.released_at)}</p>
           <div className={styles.text}>{paragraphs(latest.text).map((line, index) => <p key={index}>{line}</p>)}</div>
           <ButtonLink tone="secondary" to={parentPaths.reflections}>Baca refleksi {first}<Icon name="chevronRight" size={16} /></ButtonLink>
@@ -78,7 +83,7 @@ export function ParentHomePage({ service }: { service: ParentService }) {
         {earlier.length > 0 && <section className={styles.earlier} aria-labelledby="earlier-title">
           <h2 id="earlier-title">Ringkasan sebelumnya</h2>
           <ul>{earlier.map((summary) => <li key={summary.publication_id}>
-            <h3>{summary.mission_title}</h3>
+            <h3>{summary.mission_title}{fresh(summary.released_at) && <span className={styles.fresh}>Baru</span>}</h3>
             <p className={styles.date}>Dirilis {formatDayTime(summary.released_at)}</p>
             <div className={styles.text}>{paragraphs(summary.text).map((line, index) => <p key={index}>{line}</p>)}</div>
           </li>)}</ul>

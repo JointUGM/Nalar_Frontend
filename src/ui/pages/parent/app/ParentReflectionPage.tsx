@@ -36,7 +36,7 @@ export function ParentReflectionPage({ service }: { service: ParentService }) {
   return <div className={styles.content}>
     <Link className={styles.back} to={parentPaths.reflections}><Icon name="chevronLeft" size={16} />Semua refleksi</Link>
     <div className={styles.header}>
-      <div><h1>{reflection.mission_title}</h1><p>{formatDay(reflection.completed_at)}</p></div>
+      <div><h1>{reflection.mission_title}</h1><p>{[reflection.subject_name, formatDay(reflection.completed_at)].filter(Boolean).join(' · ')}</p></div>
       <NalaNote mood="read" text={`Baca pelan-pelan, lalu ngobrol bersama ${first}.`} />
     </div>
     <article className={styles.paper} aria-labelledby="reflection-title">

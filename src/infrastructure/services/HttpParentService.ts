@@ -15,8 +15,12 @@ export class HttpParentService implements ParentService {
   async children(signal?: AbortSignal): Promise<LinkedChild[]> {
     return (await allItems(this.api, '/parent/children?limit=100', signal)).map((item) => {
       const value = record(item)
-      return { student_id: text(value.student_id), name: text(value.name), school_name: text(value.school_name) } satisfies Schemas['ParentChildOut']
+      return { student_id: text(value.student_id), name: text(value.name), school_name: text(value.school_name), class_name: nullable(value.class_name, text), last_seen_at: nullable(value.last_seen_at, instant) } satisfies Schemas['ParentChildOut']
     })
+  }
+
+  async markSeen(studentId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${child(studentId)}/seen`, { method: 'POST', signal })
   }
 
   async progress(studentId: string, signal?: AbortSignal): Promise<ParentProgress> {

@@ -36,9 +36,9 @@ function mapIdentity(value: unknown): Identity | null {
   const checked: MeResponse = {
     user_id: value.user_id, full_name: value.full_name,
     roles: memberships.map(({ role, schoolId, schoolName }) => ({ role, school_id: schoolId, school_name: schoolName })),
-    is_parent: value.is_parent, is_platform_admin: value.is_platform_admin,
+    is_parent: value.is_parent, is_platform_admin: value.is_platform_admin, email: typeof value.email === 'string' ? value.email : null,
   }
-  return { userId: checked.user_id, fullName: checked.full_name, memberships, isParent: checked.is_parent, isPlatformAdmin: checked.is_platform_admin }
+  return { userId: checked.user_id, fullName: checked.full_name, email: checked.email ?? null, memberships, isParent: checked.is_parent, isPlatformAdmin: checked.is_platform_admin }
 }
 
 const statusCodes: Partial<Record<number, OperationErrorCode>> = {

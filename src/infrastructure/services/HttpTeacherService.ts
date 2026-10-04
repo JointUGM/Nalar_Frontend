@@ -19,7 +19,7 @@ export class HttpTeacherService implements TeacherService {
     return (await allItems(this.api, '/teacher/publications?limit=100', signal)).map((item) => {
       const value = record(item), run = record(value.run), counts = record(value.counts)
       return {
-        id: text(value.id), class_id: text(value.class_id), class_name: text(value.class_name), mission_title: text(value.mission_title), subject_name: nullable(value.subject_name, text) ?? '',
+        id: text(value.id), class_id: text(value.class_id), class_name: text(value.class_name), mission_title: text(value.mission_title), subject_name: nullable(value.subject_name, text) ?? '', mission_version: nullable(value.mission_version, count),
         released_to_parents_at: nullable(value.released_to_parents_at, instant),
         run: { id: text(run.id), mode: text(run.mode), status: text(run.status), join_code: nullable(run.join_code, text), opens_at: nullable(run.opens_at, instant), closes_at: nullable(run.closes_at, instant) },
         counts: { started: count(counts.started), completed: count(counts.completed), timed_out: count(counts.timed_out), evaluated: count(counts.evaluated) },
