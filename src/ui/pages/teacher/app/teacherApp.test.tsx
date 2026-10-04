@@ -44,7 +44,7 @@ afterAll(() => {
 })
 
 const publications = { items: [{ id: publication, class_id: school, class_name: '8B', mission_title: 'Kenapa kelereng berhenti?', released_to_parents_at: null, run: { id: school, mode: 'live', status: 'closed', join_code: null, opens_at: null, closes_at: null }, counts: { started: 30, completed: 28, timed_out: 2, evaluated: 28 } }], next_cursor: null }
-const classMap = { denominator: 28, incomplete_count: 2, concepts: [{ concept_id: concept, name: 'Gaya gesek', mastered_count: 10, developing_count: 6, not_observed_count: 0, misconceptions: [{ misconception_id: misconception, statement: 'Gaya bisa habis', count: 18, resolved_count: 11, student_ids: [student], students: [{ student_id: student, name: 'Raka Pratama', session_id: student }] }] }], insight: { narrative: 'Sebanyak 18 siswa mengira gaya bisa habis.', generated_at: '2026-10-02T03:00:00+00:00' } }
+const classMap = { denominator: 28, incomplete_count: 2, prerequisites: [], concepts: [{ concept_id: concept, name: 'Gaya gesek', mastered_count: 10, developing_count: 6, not_observed_count: 0, misconceptions: [{ misconception_id: misconception, statement: 'Gaya bisa habis', count: 18, resolved_count: 11, student_ids: [student], students: [{ student_id: student, name: 'Raka Pratama', session_id: student }] }] }], insight: { narrative: 'Sebanyak 18 siswa mengira gaya bisa habis.', generated_at: '2026-10-02T03:00:00+00:00' } }
 const mission = '00000000-0000-4000-8000-00000000000e'
 const version = '00000000-0000-4000-8000-00000000000f'
 const draft = '00000000-0000-4000-8000-000000000010'
@@ -151,6 +151,34 @@ describe('signed-in teacher pages', () => {
     expect(screen.queryByText('Pratinjau · data contoh')).not.toBeInTheDocument()
   })
 
+  it('moves a scheduled window once, sending the new times as WIB', async () => {
+    const scheduled = { items: [{ ...publications.items[0], run: { id: school, mode: 'window', status: 'scheduled', join_code: null, opens_at: '2030-01-02T01:00:00Z', closes_at: '2030-01-02T03:00:00Z' }, counts: { started: 0, completed: 0, timed_out: 0, evaluated: 0 } }], next_cursor: null }
+    const request = backend({ 'GET /teacher/publications?limit=100': () => Response.json(scheduled), [`PATCH /publications/${publication}`]: () => new Response(null, { status: 204 }) })
+    open(`${base}/sessions`, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Ubah jadwal' }))
+    expect(screen.getByLabelText(/Dibuka \(WIB\)/)).toHaveValue('2030-01-02T08:00')
+    fireEvent.change(screen.getByLabelText(/Ditutup \(WIB\)/), { target: { value: '2030-01-02T11:30' } })
+    const save = screen.getByRole('button', { name: 'Simpan jadwal' })
+    fireEvent.click(save)
+    fireEvent.click(save)
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'PATCH')).toHaveLength(1))
+    const [, init] = request.mock.calls.find(([, options]) => options?.method === 'PATCH')!
+    expect(JSON.parse(String(init?.body))).toEqual({ opens_at: '2030-01-02T08:00:00+07:00', closes_at: '2030-01-02T11:30:00+07:00' })
+  })
+  it('cancels a publication nobody has started and says why when students have started meanwhile', async () => {
+    const idle = { items: [{ ...publications.items[0], run: { ...publications.items[0].run, status: 'scheduled' }, counts: { started: 0, completed: 0, timed_out: 0, evaluated: 0 } }], next_cursor: null }
+    const request = backend({ 'GET /teacher/publications?limit=100': () => Response.json(idle), [`POST /publications/${publication}/cancel`]: () => Response.json({ error: { code: 'PUBLICATION_HAS_SESSIONS' } }, { status: 409 }) })
+    open(`${base}/sessions`, request)
+    expect(screen.queryByRole('button', { name: 'Ubah jadwal' })).not.toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('button', { name: 'Batalkan sesi' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Batalkan sesi' }))
+    expect((await screen.findAllByText('Sudah ada siswa yang memulai, jadi sesi ini tidak bisa diubah atau dibatalkan.')).length).toBeGreaterThan(0)
+  })
+  it('offers no change once students have started', async () => {
+    open(`${base}/sessions`, backend())
+    await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?, kelas 8B' })
+    expect(screen.queryByRole('button', { name: 'Batalkan sesi' })).not.toBeInTheDocument()
+  })
   it('shows the class map with the exact counts and the saved explanation', async () => {
     open(`${base}/publications/${publication}/class-map`, backend())
     const row = within((await screen.findByRole('rowheader', { name: '“Gaya bisa habis”' })).closest('tr')!)
@@ -160,6 +188,15 @@ describe('signed-in teacher pages', () => {
     expect(screen.getByText('10 paham · 6 berkembang · 0 belum teramati')).toBeInTheDocument()
   })
 
+  it('draws a line between a concept and its prerequisite and lists the prerequisite first', async () => {
+    const other = '00000000-0000-4000-8000-0000000000aa'
+    const two = { ...classMap, prerequisites: [{ concept_id: other, prerequisite_id: concept }], concepts: [{ ...classMap.concepts[0], concept_id: other, name: 'Tekanan udara', misconceptions: [] }, classMap.concepts[0]] }
+    open(`${base}/publications/${publication}/class-map`, backend({ [`GET /publications/${publication}/class-map`]: () => Response.json(two) }))
+    const map = await screen.findByTestId('map-edges')
+    expect(map.querySelectorAll('path')).toHaveLength(1)
+    const names = screen.getAllByText(/^(Gaya gesek|Tekanan udara)$/).map((node) => node.textContent)
+    expect(names.indexOf('Gaya gesek')).toBeLessThan(names.indexOf('Tekanan udara'))
+  })
   it('releases once, with the count the teacher saw, only after confirming', async () => {
     let released: string | null = null
     const request = backend({
@@ -338,6 +375,43 @@ describe('signed-in teacher pages', () => {
       statement: 'Tekanan bergantung pada jumlah air', correct_understanding: 'Tekanan bergantung pada kedalaman.',
       detection_cues: ['airnya lebih banyak', 'wadahnya besar'], counter_examples: ['Dua wadah beda lebar'],
     })
+  })
+
+  it('adds a concept by hand, retrying with the same key and renewing it when the text changes', async () => {
+    let attempts = 0
+    const request = backend({ [`POST /knowledge-bases/${kbId}/concepts`]: () => ++attempts === 1 ? Response.json({ error: { code: 'DEPENDENCY_UNAVAILABLE' } }, { status: 503 }) : Response.json({ id: concept, name: 'Tekanan udara' }, { status: 201 }) })
+    open(kbPath, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Tambah konsep' }))
+    const form = within(screen.getByRole('form', { name: 'Konsep baru' }))
+    fireEvent.change(form.getByLabelText(/Nama konsep/), { target: { value: ' Tekanan udara ' } })
+    fireEvent.click(form.getByRole('button', { name: 'Tambah' }))
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1))
+    await screen.findAllByText('Layanan sedang sibuk. Coba lagi sebentar.')
+    fireEvent.click(form.getByRole('button', { name: 'Tambah' }))
+    await waitFor(() => expect(screen.queryByRole('form', { name: 'Konsep baru' })).not.toBeInTheDocument())
+    const [first, second] = request.mock.calls.filter(([, init]) => init?.method === 'POST')
+    expect(new Headers(first[1]?.headers).get('Idempotency-Key')).toBe(new Headers(second[1]?.headers).get('Idempotency-Key'))
+    expect(JSON.parse(String(second[1]?.body))).toEqual({ name: 'Tekanan udara', source_chunk_ids: [] })
+  })
+
+  it('adds a misconception to the chosen concept with one cue per line, and gives a colleague no way to add', async () => {
+    const request = backend({ [`POST /knowledge-bases/${kbId}/concepts/${concept}/misconceptions`]: () => Response.json({ id: misconception }, { status: 201 }) })
+    const { unmount } = open(kbPath, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Tambah miskonsepsi' }))
+    const form = within(screen.getByRole('form', { name: 'Miskonsepsi baru' }))
+    fireEvent.change(form.getByLabelText(/Pernyataan keliru/), { target: { value: 'Air makin banyak, tekanan makin besar' } })
+    fireEvent.change(form.getByLabelText(/Pemahaman yang benar/), { target: { value: 'Tekanan bergantung pada kedalaman.' } })
+    fireEvent.change(form.getByLabelText(/Contoh ucapan siswa/), { target: { value: 'airnya banyak\n\n kolamnya besar ' } })
+    fireEvent.click(form.getByRole('button', { name: 'Tambah' }))
+    await waitFor(() => expect(request.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(true))
+    expect(JSON.parse(String(request.mock.calls.find(([, init]) => init?.method === 'POST')![1]?.body))).toEqual({
+      statement: 'Air makin banyak, tekanan makin besar', correct_understanding: 'Tekanan bergantung pada kedalaman.', detection_cues: ['airnya banyak', 'kolamnya besar'], counter_examples: [], source_chunk_ids: [],
+    })
+    unmount()
+    open(kbPath, backend({ [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail('pending', false)) }))
+    await screen.findByText(/milik rekan guru/)
+    expect(screen.queryByRole('button', { name: 'Tambah konsep' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Tambah miskonsepsi' })).not.toBeInTheDocument()
   })
 
   it('builds a chapter once and says why its job failed', async () => {

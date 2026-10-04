@@ -1,4 +1,5 @@
-import type { AcademicYear, Assignment, ClassDraft, CurriculumChoice, InvitationAdmission, InvitationPage, LinkedPerson, NewAcademicYear, PeoplePage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
+import { ApiError } from '@/domain/model/ApiError'
+import type { AcademicYear, Assignment, ClassDraft, CurriculumChoice, InvitationAdmission, InvitationPage, LinkedPerson, NewAcademicYear, NewPerson, PeoplePage, Relationship, RosterImportPage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
@@ -52,6 +53,27 @@ export class HttpSchoolAdminService implements SchoolAdminService {
     } satisfies Schemas['RosterImportOut']
   }
 
+  async rosterImports(schoolId: string, cursor: string | null, signal?: AbortSignal): Promise<RosterImportPage> {
+    const params = new URLSearchParams({ limit: '20', ...(cursor ? { cursor } : {}) })
+    const value = record((await this.api.request(`${school(schoolId)}/roster-imports?${params}`, { signal })).data)
+    return {
+      items: list(value.items).map((entry) => {
+        const item = record(entry)
+        return {
+          import_id: text(item.import_id), academic_year_id: text(item.academic_year_id), status: text(item.status), created_at: instant(item.created_at), completed_at: nullable(item.completed_at, instant),
+          rows_total: nullable(item.rows_total, count), rows_succeeded: nullable(item.rows_succeeded, count), rows_failed: nullable(item.rows_failed, count),
+        }
+      }),
+      next_cursor: nullable(value.next_cursor, text), total: count(value.total),
+    } satisfies Schemas['RosterImportsPageOut']
+  }
+
+  async rosterImportErrors(importId: string, signal?: AbortSignal): Promise<Blob> {
+    const { data } = await this.api.request(`/roster-imports/${encodeURIComponent(importId)}/errors.csv`, { raw: true, signal })
+    if (!(data instanceof Blob)) throw new ApiError(502, 'INVALID_RESPONSE')
+    return data
+  }
+
   async invite(schoolId: string, userIds: string[], resend: boolean, signal?: AbortSignal): Promise<InvitationAdmission[]> {
     const body: Schemas['InvitationRequestIn'] = { user_ids: userIds, resend }
     const value = record((await this.api.request(invitations(schoolId), { method: 'POST', body, signal })).data)
@@ -76,6 +98,30 @@ export class HttpSchoolAdminService implements SchoolAdminService {
   async editPerson(schoolId: string, userId: string, edit: PersonEdit, signal?: AbortSignal): Promise<void> {
     const body: Schemas['PersonEditIn'] = edit
     await this.api.request(`${school(schoolId)}/people/${encodeURIComponent(userId)}`, { method: 'PATCH', body, signal })
+  }
+
+  async createPerson(schoolId: string, person: NewPerson, idempotencyKey: string, signal?: AbortSignal): Promise<{ user_id: string }> {
+    const body: Schemas['PersonCreateIn'] = { ...person, invite: false }
+    const value = record((await this.api.request(`${school(schoolId)}/people`, { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey }, signal })).data)
+    return { user_id: text(value.user_id) } satisfies Schemas['PersonCreatedOut']
+  }
+
+  async reactivatePerson(schoolId: string, userId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${school(schoolId)}/people/${encodeURIComponent(userId)}/reactivate`, { method: 'POST', signal })
+  }
+
+  async linkParent(schoolId: string, parentId: string, studentId: string, relationship: Relationship | null, signal?: AbortSignal): Promise<void> {
+    const body: Schemas['ParentLinkIn'] = { relationship }
+    await this.api.request(`${school(schoolId)}/people/${encodeURIComponent(parentId)}/children/${encodeURIComponent(studentId)}`, { method: 'PUT', body, signal })
+  }
+
+  async unlinkParent(schoolId: string, parentId: string, studentId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${school(schoolId)}/people/${encodeURIComponent(parentId)}/children/${encodeURIComponent(studentId)}`, { method: 'DELETE', signal })
+  }
+
+  async placeStudents(schoolId: string, classId: string, userIds: string[], signal?: AbortSignal): Promise<void> {
+    const body: Schemas['StudentPlacementIn'] = { user_ids: userIds }
+    await this.api.request(`${school(schoolId)}/classes/${encodeURIComponent(classId)}/students`, { method: 'POST', body, signal })
   }
 
   async deactivatePerson(schoolId: string, userId: string, signal?: AbortSignal): Promise<void> {

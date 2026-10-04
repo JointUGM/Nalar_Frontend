@@ -13,6 +13,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherKbReview.module.css'
 import { JobNotice } from './JobNotice'
+import { KbNewItem } from './KbNewItem'
 import { buildWord, kbRefusal, reviewWord } from './kbText'
 import { Loading } from '@/ui/components/loading/Loading'
 
@@ -43,6 +44,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const [selectedId, setSelectedId] = useState('')
   const [query, setQuery] = useState(''), [reviewFilter, setReviewFilter] = useState('all')
   const [draft, setDraft] = useState<Draft | null>(null)
+  const [adding, setAdding] = useState<'concept' | 'misconception' | null>(null)
   const [pending, setPending] = useState(false)
   const [failure, setFailure] = useState<ApiError | null>(null)
   const back = <Link className={styles.back} to={`${base}/knowledge-base`}><Icon name="chevronLeft" size={14} />Basis pengetahuan</Link>
@@ -57,7 +59,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const related = detail.misconceptions.filter(item => item.concept_id === selected?.id)
   const visibleConcepts = detail.concepts.filter(item => item.name.toLocaleLowerCase('id-ID').includes(query.trim().toLocaleLowerCase('id-ID'))
     && (reviewFilter === 'all' || (reviewFilter === 'pending' ? item.review_status === 'pending' || pendingIn(item.id) > 0 : item.review_status === reviewFilter)))
-  function chooseConcept(id: string) { setSelectedId(id); setDraft(null) }
+  function chooseConcept(id: string) { setSelectedId(id); setDraft(null); setAdding(null) }
 
   // One command at a time. The page is reread after a refusal too, because a refusal usually means it was stale.
   async function run<T>(action: (signal?: AbortSignal) => Promise<T>, done?: (result: T) => void) {
@@ -104,6 +106,8 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
       <div className={styles.column}>
         <section className={[styles.card, styles.navigator].join(' ')} aria-labelledby="kb-concepts">
           <div className={styles.sectionHead}><h2 id="kb-concepts">Konsep</h2><span>{detail.concepts.length} konsep</span></div>
+          {canEdit && adding !== 'concept' && <Button tone="secondary" disabled={pending} onClick={() => { setDraft(null); setAdding('concept') }}><Icon name="plus" size={14} />Tambah konsep</Button>}
+          {adding === 'concept' && <KbNewItem kind="concept" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addConcept(detail.id, value, key, signal), (created) => { setAdding(null); setSelectedId(created.id) }) }} />}
           {!selected ? <p>Belum ada konsep. Susun satu bab untuk membuat drafnya.</p> : <>
             <div className={styles.mobilePicker}><Select label="Konsep yang ditinjau" value={selected.id} onChange={chooseConcept} options={detail.concepts.map(item => ({ value: item.id, label: item.name, description: `${reviewWord[item.review_status] ?? item.review_status} · ${pendingIn(item.id)} miskonsepsi menunggu` }))} /></div>
             <div className={styles.conceptTools}>
@@ -141,6 +145,8 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
         </section>
         <div className={styles.misconceptions}>
           <div className={styles.sectionHead}><h2>Miskonsepsi terkait</h2><span>{related.length} miskonsepsi</span></div>
+          {canEdit && adding !== 'misconception' && <Button tone="secondary" disabled={pending} onClick={() => { setDraft(null); setAdding('misconception') }}><Icon name="plus" size={14} />Tambah miskonsepsi</Button>}
+          {adding === 'misconception' && <KbNewItem kind="misconception" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addMisconception(detail.id, selected.id, value, key, signal), () => setAdding(null)) }} />}
           {related.map((item) => <section key={item.id} className={styles.misconception} aria-label={`Miskonsepsi: ${item.statement}`}>
             <div className={styles.misHead}><span className={styles.misTag}><NalaIcon name="alert" />Pernyataan keliru</span>{tag(item.review_status)}</div>
             {draft?.kind === 'misconception' && draft.id === item.id ? <>

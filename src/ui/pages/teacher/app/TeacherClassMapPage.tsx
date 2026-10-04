@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
+import { orderByPrerequisites } from '@/domain/model/Teacher'
 import type { TeacherPublication } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { Feedback } from '@/ui/components/feedback/Feedback'
@@ -23,6 +24,13 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
   const { data, error, online, refresh } = useLiveResource(read, mapPollMs)
   const rows = data?.concepts.flatMap((concept) => concept.misconceptions.map((item) => ({ ...item, concept: concept.name }))).filter((item) => item.count > 0) ?? []
   const lines = Math.ceil((data?.concepts.length ?? 0) / perRow)
+  // Prerequisites come first, then each concept gets a grid slot (as percentages of the map) and the edges join the slots.
+  const ordered = data ? orderByPrerequisites(data.concepts, data.prerequisites) : []
+  const slot = (index: number) => { const inRow = Math.min(perRow, ordered.length - Math.floor(index / perRow) * perRow); return { x: ((index % perRow) + 0.5) / inRow * 100, y: (Math.floor(index / perRow) + 0.5) / lines * 100 } }
+  const edges = (data?.prerequisites ?? []).flatMap((edge) => {
+    const from = ordered.findIndex((concept) => concept.concept_id === edge.prerequisite_id), to = ordered.findIndex((concept) => concept.concept_id === edge.concept_id)
+    return from < 0 || to < 0 || from === to ? [] : [{ key: `${edge.prerequisite_id}-${edge.concept_id}`, from: slot(from), to: slot(to) }]
+  })
 
   return <div className={styles.content}>
     <Link className={styles.back} to={`${base}/sessions`}><Icon name="chevronLeft" size={14} />Sesi dan hasil</Link>
@@ -48,12 +56,14 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
             <ul className={styles.legend} aria-label="Keterangan warna"><li data-kind="understood">Paham</li><li data-kind="developing">Berkembang</li></ul>
           </div>
           <p className={styles.system}><strong>DIHITUNG SISTEM</strong> Semua angka dihitung dari data sesi. AI hanya menulis penjelasan.</p>
+          {edges.length > 0 && <p className={styles.system}>Garis menghubungkan konsep prasyarat dengan konsep lanjutannya. Konsep yang dipelajari lebih dulu ada di kiri atau atas.</p>}
           <div className={styles.mapRegion} role="region" aria-label="Pemahaman per konsep (dapat digulir)" tabIndex={0}>
             <div className={styles.map}>
               {/* The API gives no layout, so concepts sit on an even grid, three to a row. */}
-              <ul>{data.concepts.map((concept, index) => {
-                const inRow = Math.min(perRow, data.concepts.length - Math.floor(index / perRow) * perRow)
-                return <li key={concept.concept_id} style={{ left: `${((index % perRow) + 0.5) / inRow * 100}%`, top: `${(Math.floor(index / perRow) + 0.5) / lines * 100}%` }}>
+              {edges.length > 0 && <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" data-testid="map-edges">{edges.map((edge) => <path key={edge.key} d={`M${edge.from.x} ${edge.from.y}L${edge.to.x} ${edge.to.y}`} />)}</svg>}
+              <ul>{ordered.map((concept, index) => {
+                const { x, y } = slot(index)
+                return <li key={concept.concept_id} style={{ left: `${x}%`, top: `${y}%` }}>
                   <strong>{concept.name}</strong>
                   <span className={styles.bar} aria-hidden="true"><span style={{ inlineSize: `${concept.mastered_count / data.denominator * 100}%` }} /><span style={{ inlineSize: `${concept.developing_count / data.denominator * 100}%` }} /></span>
                   <small>{concept.mastered_count} paham · {concept.developing_count} berkembang · {concept.not_observed_count} belum teramati</small>

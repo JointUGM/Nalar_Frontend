@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { HttpApi } from './HttpApi'
+import { HttpApi, allItems } from './HttpApi'
 
 describe('shared HTTP client', () => {
   it('sends the session cookie on every request and the CSRF header only on unsafe ones', async () => {
@@ -38,5 +38,17 @@ describe('shared HTTP client', () => {
     // A host without the /api/v1 rewrite answers the SPA's index.html with 200.
     const html = vi.fn<typeof fetch>().mockResolvedValue(new Response('<html>', { status: 200 }))
     await expect(new HttpApi({ apiBaseUrl: '/api/v1', fetch: html }).request('/x')).rejects.toMatchObject({ status: 502, code: 'INVALID_RESPONSE' })
+  })
+
+  it('reads a list in one request when there is no next page, follows cursors otherwise and stops at the page cap', async () => {
+    const one = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ items: [1, 2], next_cursor: null }))
+    expect(await allItems(new HttpApi({ apiBaseUrl: '/api/v1', fetch: one }), '/x?limit=100')).toEqual([1, 2])
+    expect(one).toHaveBeenCalledTimes(1)
+    const pages = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json({ items: [1], next_cursor: 'a b' })).mockResolvedValueOnce(Response.json({ items: [2], next_cursor: null }))
+    expect(await allItems(new HttpApi({ apiBaseUrl: '/api/v1', fetch: pages }), '/x?limit=100')).toEqual([1, 2])
+    expect(pages.mock.calls[1][0]).toBe('/api/v1/x?limit=100&cursor=a%20b')
+    const endless = vi.fn<typeof fetch>().mockImplementation(async () => Response.json({ items: [0], next_cursor: 'more' }))
+    expect(await allItems(new HttpApi({ apiBaseUrl: '/api/v1', fetch: endless }), '/x?limit=100', undefined, 3)).toHaveLength(3)
+    expect(endless).toHaveBeenCalledTimes(3)
   })
 })

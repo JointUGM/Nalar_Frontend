@@ -1,7 +1,7 @@
-import type { AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import type { AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 import { ApiError } from '@/domain/model/ApiError'
 import type { TeacherService } from '@/domain/services/TeacherService'
-import { count, flag, instant, list, nullable, record, text } from './HttpApi'
+import { allItems, count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
 
@@ -14,10 +14,9 @@ const seconds = (value: unknown) => { if (typeof value !== 'number' || !Number.i
 export class HttpTeacherService implements TeacherService {
   constructor(private readonly api: HttpApi) {}
 
-  // ponytail: one page of 100 publications, across every class the teacher is assigned to; follow next_cursor when a teacher can have more.
+  // Every class the teacher is assigned to; up to 500 publications (five pages).
   async publications(signal?: AbortSignal): Promise<TeacherPublication[]> {
-    const { data } = await this.api.request('/teacher/publications?limit=100', { signal })
-    return list(record(data).items).map((item) => {
+    return (await allItems(this.api, '/teacher/publications?limit=100', signal)).map((item) => {
       const value = record(item), run = record(value.run), counts = record(value.counts)
       return {
         id: text(value.id), class_id: text(value.class_id), class_name: text(value.class_name), mission_title: text(value.mission_title),
@@ -36,10 +35,9 @@ export class HttpTeacherService implements TeacherService {
     })
   }
 
-  // ponytail: one page of 100 missions per school; follow next_cursor when a school can have more.
+  // Up to 500 missions per school (five pages).
   async missions(schoolId: string, signal?: AbortSignal): Promise<MissionSummary[]> {
-    const { data } = await this.api.request(`/schools/${encodeURIComponent(schoolId)}/missions?limit=100`, { signal })
-    return list(record(data).items).map((item) => {
+    return (await allItems(this.api, `/schools/${encodeURIComponent(schoolId)}/missions?limit=100`, signal)).map((item) => {
       const value = record(item)
       return {
         id: text(value.id), title: text(value.title), knowledge_base_id: text(value.knowledge_base_id), can_edit: flag(value.can_edit), created_by_name: nullable(value.created_by_name, text),
@@ -92,6 +90,15 @@ export class HttpTeacherService implements TeacherService {
     return { publication_id: text(value.publication_id), run_id: text(value.run_id), run_status: text(value.run_status) } satisfies Schemas['PublishOut']
   }
 
+  async editWindow(publicationId: string, window: PublicationWindow, signal?: AbortSignal): Promise<void> {
+    const body: Schemas['PublicationWindowIn'] = window
+    await this.api.request(publication(publicationId), { method: 'PATCH', body, signal })
+  }
+
+  async cancelPublication(publicationId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${publication(publicationId)}/cancel`, { method: 'POST', signal })
+  }
+
   async classMap(publicationId: string, signal?: AbortSignal): Promise<ClassMap> {
     const value = record((await this.api.request(`${publication(publicationId)}/class-map`, { signal })).data)
     return {
@@ -108,6 +115,7 @@ export class HttpTeacherService implements TeacherService {
           }),
         }
       }),
+      prerequisites: list(value.prerequisites).map((entry) => { const edge = record(entry); return { concept_id: text(edge.concept_id), prerequisite_id: text(edge.prerequisite_id) } }),
       insight: nullable(value.insight, (raw) => { const insight = record(raw); return { narrative: text(insight.narrative), generated_at: instant(insight.generated_at) } }),
     } satisfies Schemas['ClassMapOut']
   }

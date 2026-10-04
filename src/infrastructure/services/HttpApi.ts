@@ -30,19 +30,33 @@ export function nullable<T>(value: unknown, read: (value: unknown) => T): T | nu
   return value === null || value === undefined ? null : read(value)
 }
 
+// Reads a cursor-paged list in full: one request when there is no next page, and at most `maxPages` (500 items at a limit of 100) so a runaway list cannot keep a poll busy.
+export async function allItems(api: Pick<HttpApi, 'request'>, path: string, signal?: AbortSignal, maxPages = 5): Promise<unknown[]> {
+  const items: unknown[] = []
+  let cursor: string | null = null
+  for (let page = 0; page < maxPages; page += 1) {
+    const { data } = await api.request(cursor ? `${path}${path.includes('?') ? '&' : '?'}cursor=${encodeURIComponent(cursor)}` : path, { signal })
+    const value = record(data)
+    items.push(...list(value.items))
+    cursor = nullable(value.next_cursor, text)
+    if (!cursor) break
+  }
+  return items
+}
+
 // ponytail: HttpLiveService keeps its own copy of this request path until the pilot is over; fold it in when that file next changes.
 export class HttpApi {
   constructor(private readonly options: { apiBaseUrl: string; fetch?: typeof globalThis.fetch }) {}
 
   // `form` sends a multipart upload: the browser writes its own Content-Type with the boundary, and a file of up to 50 MB gets two minutes instead of ten seconds.
   // `timeoutMs` is for the few calls that wait on the AI before answering.
-  async request(path: string, init: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH'; body?: unknown; form?: FormData; timeoutMs?: number; headers?: Record<string, string>; signal?: AbortSignal } = {}): Promise<{ status: number; data: unknown }> {
+  async request(path: string, init: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: unknown; form?: FormData; timeoutMs?: number; raw?: boolean; headers?: Record<string, string>; signal?: AbortSignal } = {}): Promise<{ status: number; data: unknown }> {
     const method = init.method ?? 'GET'
     let response: Response
     try {
       response = await (this.options.fetch ?? globalThis.fetch)(`${this.options.apiBaseUrl}${path}`, {
         method, credentials: 'include', cache: 'no-store',
-        headers: { ...init.headers, Accept: 'application/json', ...(method === 'GET' ? {} : { 'X-Nalar-CSRF': '1' }), ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+        headers: { ...init.headers, Accept: init.raw ? 'text/csv' : 'application/json', ...(method === 'GET' ? {} : { 'X-Nalar-CSRF': '1' }), ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }) },
         body: init.form ?? (init.body === undefined ? undefined : JSON.stringify(init.body)),
         signal: AbortSignal.any([...(init.signal ? [init.signal] : []), AbortSignal.timeout(init.timeoutMs ?? (init.form ? 120_000 : 10_000))]),
       })
@@ -60,6 +74,8 @@ export class HttpApi {
       throw new ApiError(response.status, code, reference && /^[A-Za-z0-9_-]{1,64}$/.test(reference) ? reference : undefined, undefined, problems)
     }
     if (response.status === 204) return { status: 204, data: null }
+    // `raw` is for a file answer (the row-error CSV): the body is handed over untouched, as a Blob.
+    if (init.raw) return { status: response.status, data: await response.blob() }
     try { return { status: response.status, data: await response.json() } } catch { throw invalid() }
   }
 }

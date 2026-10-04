@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
@@ -41,6 +41,8 @@ let importChecks = 0
 const routes: Record<string, () => Response> = {
   [`GET /schools/${school}/academic-years`]: () => Response.json([{ id: cursor, name: '2025/2026', starts_on: '2025-07-14', ends_on: '2026-06-30', is_current: false }, { id: year, name: '2026/2027', starts_on: '2026-07-13', ends_on: '2027-06-30', is_current: true }]),
   [`POST /schools/${school}/roster-imports`]: () => Response.json({ import_id: importId, job_id: importId, status: 'pending' }, { status: 202 }),
+  [`GET /schools/${school}/roster-imports?limit=20`]: () => Response.json({ items: [{ import_id: importId, academic_year_id: year, status: 'completed', rows_total: 3, rows_succeeded: 2, rows_failed: 1, created_at: '2026-10-03T03:00:00Z', completed_at: '2026-10-03T03:01:00Z' }], next_cursor: null, total: 1 }),
+  [`GET /roster-imports/${importId}/errors.csv`]: () => new Response('\ufeffrow_number,field,message\n3,nisn,salah\n', { headers: { 'Content-Type': 'text/csv' } }),
   [`GET /roster-imports/${importId}`]: () => (importChecks += 1) === 1
     ? Response.json({ status: 'processing', rows_total: null, rows_succeeded: null, rows_failed: null, errors: [] })
     : Response.json({ status: 'completed', rows_total: 3, rows_succeeded: 2, rows_failed: 1, errors: [{ row_number: 3, field: 'nisn', message: 'NISN wajib diisi dan terdiri dari 10 angka.' }] }),
@@ -70,6 +72,27 @@ describe('school admin roster import', () => {
     const form = request.mock.calls.find(([, init]) => init?.method === 'POST')![1]?.body as FormData
     expect([form.get('academic_year_id'), (form.get('file') as File).name]).toEqual([year, 'kelas8.csv'])
     expect(screen.getByRole('link', { name: 'Kirim undangan ke akun baru' })).toHaveAttribute('href', `/school/${school}`)
+  })
+})
+
+describe('school admin import history', () => {
+  it('lists earlier imports, reopens one from the address, and downloads its row errors as a file', async () => {
+    importChecks = 1
+    const created: Blob[] = []
+    Object.assign(URL, { createObjectURL: (blob: Blob) => { created.push(blob); return 'blob:csv' }, revokeObjectURL: () => {} })
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const request = open(`/school/${school}/import`)
+    const row = within(await screen.findByRole('table', {}, { timeout: 5000 }))
+    expect(row.getByText('2 berhasil, 1 perlu diperbaiki, dari 3 baris')).toBeInTheDocument()
+    fireEvent.click(row.getByRole('button', { name: 'Unduh baris bermasalah (CSV)' }))
+    await waitFor(() => expect(click).toHaveBeenCalledTimes(1))
+    expect(await created[0].text()).toContain('row_number,field,message')
+    const [, init] = request.mock.calls.find(([url]) => String(url).endsWith('/errors.csv'))!
+    expect(new Headers(init?.headers).get('Accept')).toBe('text/csv')
+    fireEvent.click(row.getByRole('link', { name: /Lihat impor/ }))
+    expect(await screen.findByText('NISN wajib diisi dan terdiri dari 10 angka.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Kembali ke riwayat impor' })).toHaveAttribute('href', `/school/${school}/import`)
+    click.mockRestore()
   })
 })
 

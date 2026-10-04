@@ -12,6 +12,7 @@ const refusals: Readonly<Record<string, string>> = {
   ITEM_NOT_PENDING: 'Butir ini sudah ditinjau, jadi tidak bisa diubah lagi.',
   ITEM_CHANGED: 'Butir ini baru saja diubah. Periksa isi terbarunya, lalu simpan lagi.',
   CONCEPT_NOT_APPROVED: 'Setujui konsepnya dulu, baru miskonsepsinya.',
+  IDEMPOTENCY_CONFLICT: 'Isian berubah setelah dikirim. Periksa lagi lalu kirim ulang.',
   SECTION_OVERLAP: 'Halaman bab ini tumpang-tindih dengan bab lain yang sudah disusun.',
 }
 // A refusal the teacher can act on; anything else falls back to the status message.

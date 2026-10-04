@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import type { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
 import { ApiError } from '@/domain/model/ApiError'
 import { rosterColumns, rosterImportEnded } from '@/domain/model/SchoolAdmin'
@@ -11,6 +11,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/school-admin/SchoolImport.module.css'
+import { ErrorsDownload, ImportHistory } from './ImportHistory'
 
 const template = `${rosterColumns.join(',')}\nstudent,Adinda Putri,,0098123401,8B,8,ibu.adinda@example.test,Rina Putri,ibu\nteacher,Sari Wulandari,sari@example.test,,,,,,\n`
 const refusals: Readonly<Record<string, string>> = { FILE_TOO_LARGE: 'Berkas lebih dari 5 MB.', FILE_NOT_CSV: 'Pilih berkas CSV (.csv).' }
@@ -33,7 +34,11 @@ function ImportResult({ service, importId, base }: { service: SchoolAdminUseCase
       <thead><tr><th scope="col">Baris</th><th scope="col">Kolom</th><th scope="col">Masalah</th></tr></thead>
       <tbody>{data.errors.map((item) => <tr key={`${item.row_number}-${item.field}`}><td>{item.row_number}</td><td>{item.field}</td><td>{item.message}</td></tr>)}</tbody>
     </table></div>}
-    {(data.rows_succeeded ?? 0) > 0 && <div className={styles.actions}><Link to={base}>Kirim undangan ke akun baru</Link></div>}
+    <div className={styles.actions}>
+      {(data.rows_succeeded ?? 0) > 0 && <Link to={base}>Kirim undangan ke akun baru</Link>}
+      {(data.rows_failed ?? data.errors.length) > 0 && <ErrorsDownload service={service} importId={importId} />}
+      <Link to={`${base}/import`}>Kembali ke riwayat impor</Link>
+    </div>
   </section>
 }
 
@@ -46,7 +51,8 @@ export function SchoolImportPage({ service, schoolId, base }: { service: SchoolA
   const [file, setFile] = useState<File | null>(null)
   const [pending, setPending] = useState(false)
   const [failure, setFailure] = useState<ApiError | null>(null)
-  const [importId, setImportId] = useState<string | null>(null)
+  const [params, setParams] = useSearchParams()
+  const importId = params.get('import')
   const chosen = year || data?.find((item) => item.is_current)?.id || ''
 
   async function upload() {
@@ -55,7 +61,7 @@ export function SchoolImportPage({ service, schoolId, base }: { service: SchoolA
     const signal = commandSignal()
     try {
       const queued = await service.uploadRoster(schoolId, chosen, file, signal)
-      if (!signal?.aborted) setImportId(queued.import_id)
+      if (!signal?.aborted) setParams({ import: queued.import_id })
     } catch (cause) {
       if (!signal?.aborted) setFailure(cause instanceof ApiError ? cause : new ApiError(0, 'UNAVAILABLE'))
     } finally { busy.current = false; if (!signal?.aborted) setPending(false) }
@@ -86,5 +92,6 @@ export function SchoolImportPage({ service, schoolId, base }: { service: SchoolA
         <p className={styles.note}>{rosterColumns.join(', ')}</p>
       </section>
     </div>}
+    {!importId && data && <ImportHistory service={service} schoolId={schoolId} years={data} base={base} />}
   </div>
 }
