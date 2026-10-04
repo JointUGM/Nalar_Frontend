@@ -120,10 +120,12 @@ export class HttpLiveService implements LiveService {
       dates(record(student), ['deadline_at'])
       if (student.current_turn_index !== null && (!Number.isInteger(student.current_turn_index) || student.current_turn_index < 0)) throw new LiveError(502, 'INVALID_RESPONSE')
       if (student.session_id != null && typeof student.session_id !== 'string') throw new LiveError(502, 'INVALID_RESPONSE')
-      return { student_id: student.student_id, name: student.name, status: student.status, current_turn_index: student.current_turn_index, max_turns: student.max_turns, deadline_at: student.deadline_at, open_flag_count: student.open_flag_count, safety_paused: student.safety_paused, session_id: student.session_id ?? null }
+      if (student.participant_id != null && typeof student.participant_id !== 'string') throw new LiveError(502, 'INVALID_RESPONSE')
+      return { student_id: student.student_id, name: student.name, status: student.status, current_turn_index: student.current_turn_index, max_turns: student.max_turns, deadline_at: student.deadline_at, open_flag_count: student.open_flag_count, safety_paused: student.safety_paused, session_id: student.session_id ?? null, participant_id: student.participant_id ?? null }
     }) }
   }
   async control(runId: string, action: 'open-lobby' | 'start' | 'close', signal?: AbortSignal) { await this.request(`/runs/${encodeURIComponent(runId)}/${action}`, signal, 'POST') }
   async endSession(sessionId: string, signal?: AbortSignal) { await this.request(`/sessions/${encodeURIComponent(sessionId)}/end`, signal, 'POST') }
   async leave(runId: string, signal?: AbortSignal) { await this.request(`/student/runs/${encodeURIComponent(runId)}/leave`, signal, 'POST') }
+  async removeParticipant(runId: string, participantId: string, signal?: AbortSignal) { await this.request(`/runs/${encodeURIComponent(runId)}/participants/${encodeURIComponent(participantId)}/remove`, signal, 'POST') }
 }

@@ -28,4 +28,5 @@ export class LiveUseCases implements LiveService {
   control(runId: string, action: 'open-lobby' | 'start' | 'close', signal?: AbortSignal) { return this.service.control(id(runId), action, signal) }
   endSession(sessionId: string, signal?: AbortSignal) { return this.service.endSession(id(sessionId), signal) }
   leave(runId: string, signal?: AbortSignal) { return this.service.leave(id(runId), signal) }
+  removeParticipant(runId: string, participantId: string, signal?: AbortSignal) { return this.service.removeParticipant(id(runId), id(participantId), signal) }
 }
