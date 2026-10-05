@@ -87,7 +87,7 @@ describe('platform administration', () => {
       if (key === 'GET /platform/schools?limit=50') return Response.json({ items: [school], next_cursor: null, total: 1, counts: { total: 1, active: 1, suspended: 0 } })
       if (key === `PATCH /platform/schools/${schoolId}`) return Response.json({ ...school, name: 'SMPN 5 Kota Yogyakarta' })
     })
-    fireEvent.click(await screen.findByRole('button', { name: 'Tindakan SMPN 5 Yogyakarta' }))
+    await screen.findByRole('group', { name: 'Tindakan SMPN 5 Yogyakarta' })
     fireEvent.click(screen.getByRole('button', { name: 'Ubah data sekolah' }))
     const dialog = screen.getByRole('dialog')
     expect(within(dialog).getByLabelText(/^NPSN/)).toHaveValue('20403010')

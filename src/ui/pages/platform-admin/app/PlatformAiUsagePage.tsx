@@ -4,6 +4,9 @@ import type { AiUsageRow } from '@/domain/model/PlatformAdmin'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/components/admin-records/AdminRecords.module.css'
+import { AdminPageHeader } from '@/ui/components/adult-shell/AdminPageHeader'
+import { NalaEmpty } from '@/ui/components/nala/NalaState'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const number = new Intl.NumberFormat('id-ID')
 const dollars = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })
@@ -30,17 +33,17 @@ export function PlatformAiUsagePage({ service }: { service: PlatformAdminUseCase
   const groups = data ? byPurpose(data) : []
   const total = groups.reduce((sum, row) => ({ calls: sum.calls + row.calls, failed: sum.failed + row.failed_calls, cost: sum.cost + row.cost_usd }), { calls: 0, failed: 0, cost: 0 })
   return <section className={styles.card} aria-labelledby="usage-title">
-    <h1 id="usage-title">Pemakaian AI</h1>
+    <AdminPageHeader title="Pemakaian AI" titleId="usage-title" description="Pantau panggilan, token, dan biaya AI di seluruh sekolah." guidance="Pilih periode untuk melihat rincian pemakaian per tujuan dan model." mood={error ? 'calm' : 'think'} />
     <div className={styles.controls} role="group" aria-label="Periode">{periods.map((value) => <button key={value} type="button" aria-pressed={days === value} onClick={() => setDays(value)}>{value} hari terakhir</button>)}</div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat pemakaian…</p>}
+    {!data && !error && <Loading label="Memuat pemakaian…" />}
     {data && <dl className={styles.totals}>
       <div><dt>Panggilan</dt><dd>{number.format(total.calls)}</dd></div>
       <div><dt>Gagal</dt><dd>{number.format(total.failed)}</dd></div>
       <div><dt>Biaya</dt><dd>{dollars.format(total.cost)}</dd></div>
     </dl>}
-    {data && groups.length === 0 && <p className={styles.note}>Belum ada pemakaian pada periode ini.</p>}
-    {groups.length > 0 && <div className={styles.tableRegion} role="region" aria-label="Pemakaian per tujuan" tabIndex={0}><table>
+    {data && groups.length === 0 && <NalaEmpty mood="calm" title="Belum ada pemakaian pada periode ini.">Pilih periode yang lebih panjang untuk melihat pemakaian sebelumnya.</NalaEmpty>}
+    {groups.length > 0 && <div className={[styles.tableRegion, styles.usageTableRegion].join(' ')} role="region" aria-label="Pemakaian per tujuan" tabIndex={0}><table>
       <thead><tr><th scope="col">Tujuan</th><th scope="col">Model</th><th scope="col">Panggilan</th><th scope="col">Gagal</th><th scope="col">Token masuk</th><th scope="col">Token keluar</th><th scope="col">Biaya</th></tr></thead>
       <tbody>{groups.map((row) => <tr key={`${row.purpose} ${row.model}`}>
         <td><code>{row.purpose}</code></td><td><code>{row.model}</code></td><td>{number.format(row.calls)}</td><td>{number.format(row.failed_calls)}</td>
