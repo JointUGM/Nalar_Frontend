@@ -6,6 +6,8 @@ import type { PlatformAdminService } from '@/domain/services/PlatformAdminServic
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
+import type { NationalReference, ReferenceDetail, ReferenceReceipt, ReferenceReview, ReferenceUpload } from '@/domain/model/NationalReference'
+import { referenceDetail, referenceReceipt, referenceSummary } from './nationalReference'
 
 type Schemas = components['schemas']
 const school = (schoolId: string) => `/platform/schools/${encodeURIComponent(schoolId)}`
@@ -23,6 +25,35 @@ function version(value: unknown): CurriculumVersion {
 
 export class HttpPlatformAdminService implements PlatformAdminService {
   constructor(private readonly api: HttpApi) {}
+
+  async references(signal?: AbortSignal): Promise<NationalReference[]> {
+    return list((await this.api.request('/platform/references', { signal })).data).map(referenceSummary)
+  }
+  async reference(id: string, signal?: AbortSignal): Promise<ReferenceDetail> {
+    return referenceDetail((await this.api.request(`/platform/references/${encodeURIComponent(id)}`, { signal })).data)
+  }
+  async referenceFile(id: string, signal?: AbortSignal): Promise<Blob> {
+    const { data } = await this.api.request(`/platform/references/${encodeURIComponent(id)}/file`, { raw: true, signal })
+    if (!(data instanceof Blob)) throw new ApiError(502, 'INVALID_RESPONSE')
+    return data
+  }
+  async uploadReference(input: ReferenceUpload, key: string, signal?: AbortSignal): Promise<ReferenceReceipt> {
+    const form = new FormData()
+    form.set('kind', input.kind); form.set('title', input.title); form.set('issuer', input.issuer); form.set('source_url', input.source_url); form.set('file', input.file, input.file.name)
+    return referenceReceipt((await this.api.request('/platform/references', { method: 'POST', form, headers: { 'Idempotency-Key': key }, signal })).data)
+  }
+  async saveReferenceReview(id: string, review: ReferenceReview, revision: number, signal?: AbortSignal): Promise<number> {
+    const body: Schemas['ReferenceReviewIn'] = { ...review, base_revision: revision }
+    return count(record((await this.api.request(`/platform/references/${encodeURIComponent(id)}/review`, { method: 'PUT', body, signal })).data).revision)
+  }
+  async publishReference(id: string, revision: number, key: string, signal?: AbortSignal): Promise<ReferenceReceipt> {
+    const body: Schemas['ReferenceRevisionIn'] = { base_revision: revision }
+    return referenceReceipt((await this.api.request(`/platform/references/${encodeURIComponent(id)}/publish`, { method: 'POST', body, headers: { 'Idempotency-Key': key }, signal })).data)
+  }
+  async retryReference(id: string, revision: number, key: string, signal?: AbortSignal): Promise<ReferenceReceipt> {
+    const body: Schemas['ReferenceRevisionIn'] = { base_revision: revision }
+    return referenceReceipt((await this.api.request(`/platform/references/${encodeURIComponent(id)}/retry`, { method: 'POST', body, headers: { 'Idempotency-Key': key }, signal })).data)
+  }
 
   async schools(q: string, cursor: string | null, signal?: AbortSignal): Promise<SchoolsPage> {
     const params = new URLSearchParams({ limit: '50', ...(q ? { q } : {}), ...(cursor ? { cursor } : {}) })

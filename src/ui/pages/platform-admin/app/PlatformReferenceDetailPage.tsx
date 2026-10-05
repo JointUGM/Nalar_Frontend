@@ -1,0 +1,73 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, useParams } from 'react-router'
+import type { PlatformAdminUseCases } from '@/application/platform-admin-use-cases'
+import type { ReferenceDetail } from '@/domain/model/NationalReference'
+import { ApiError } from '@/domain/model/ApiError'
+import { AdminPageHeader } from '@/ui/components/adult-shell/AdminPageHeader'
+import { Button } from '@/ui/components/button/Button'
+import { Feedback } from '@/ui/components/feedback/Feedback'
+import { Loading } from '@/ui/components/loading/Loading'
+import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
+import { useLiveResource } from '@/ui/pages/live/useLiveResource'
+import { ReferenceReviewEditor } from './ReferenceReviewEditor'
+import { processingError, referenceStatuses, sourceLink } from './referenceText'
+import styles from './PlatformReferences.module.css'
+
+export function PlatformReferenceDetailPage({ service }: { service: PlatformAdminUseCases }) {
+  const { documentId = '' } = useParams()
+  return <ReferenceDocument key={documentId} documentId={documentId} service={service} />
+}
+
+function ReferenceDocument({ service, documentId }: { service: PlatformAdminUseCases; documentId: string }) {
+  const failures = useRef(0)
+  const queued = useRef(false)
+  const [queueNotice, setQueueNotice] = useState(false)
+  const read = useCallback(async (signal: AbortSignal) => {
+    try { const result = await service.reference(documentId, signal); failures.current = 0; queued.current = false; if (!signal.aborted) setQueueNotice(false); return result }
+    catch (cause) { failures.current += 1; throw cause }
+  }, [service, documentId])
+  const cadence = useCallback((document: ReferenceDetail | null) => {
+    if (failures.current) return Math.min(3000 * 2 ** Math.min(failures.current, 4), 30000)
+    return !document || queued.current || ['extracting', 'indexing'].includes(document.status) ? 3000 : null
+  }, [])
+  const resource = useLiveResource(read, cadence)
+  const document = resource.data
+  return <div className={styles.content}>
+    <Link to="/platform/references">← Daftar referensi resmi</Link>
+    <LiveFeedback error={resource.error} online={resource.online} refresh={resource.refresh} />
+    {!document && !resource.error && <Loading label="Memuat sumber dan tinjauan…" />}
+    {document && <>
+      <AdminPageHeader title={document.title} description={`${document.issuer} · ${document.kind === 'curriculum' ? 'Kurikulum / CP' : 'Buku / panduan'}`} guidance={referenceStatuses[document.status]} mood={['extracting', 'indexing'].includes(document.status) ? 'think' : 'read'} />
+      <div className={styles.panel}><div className={styles.actions}><strong>{referenceStatuses[document.status]}</strong><span>Revisi {document.revision}</span><a href={sourceLink(document.source_url)} target="_blank" rel="noreferrer">Sumber resmi ↗</a><Button tone="secondary" onClick={resource.refresh}>Muat ulang status</Button></div>
+        {(queueNotice || ['extracting', 'indexing'].includes(document.status)) && <Feedback title="Pemrosesan berjalan di latar belakang" announce>Anda dapat kembali ke daftar. Status diperbarui otomatis; pemrosesan yang lama belum berarti gagal.</Feedback>}
+        {document.status === 'uploading' && <Feedback tone="warning" title="Unggahan belum selesai">Jika formulir pengiriman masih terbuka, coba ulang dengan PDF dan isian yang sama. Setelah halaman dimuat ulang, kunci dan berkas tidak tersedia di layar ini; hubungi dukungan untuk memulihkan unggahan. Coba ulang pemrosesan belum tersedia.</Feedback>}
+        {document.status === 'failed' && <Feedback tone="warning" title={processingError(document.error_code ?? 'REFERENCE_PROCESSING_FAILED')}><small>Kode: {document.error_code ?? 'REFERENCE_PROCESSING_FAILED'}</small></Feedback>}
+        {document.status === 'published' && <Feedback tone="success" title="Sumber sudah diterbitkan">Sumber dan tinjauan tidak dapat diubah. {document.curriculum_version_id && <Link to={`/platform/cp-versions?v=${encodeURIComponent(document.curriculum_version_id)}`}>Lihat versi CP</Link>}</Feedback>}
+      </div>
+      {!['uploading', 'extracting'].includes(document.status) && <>
+        <SourceViewer service={service} documentId={document.id} pages={document.pages} />
+        <ReferenceReviewEditor service={service} document={document} refresh={resource.refresh} processing={queueNotice} onQueued={() => { queued.current = true; setQueueNotice(true) }} />
+      </>}
+    </>}
+  </div>
+}
+
+function SourceViewer({ service, documentId, pages }: { service: PlatformAdminUseCases; documentId: string; pages: ReferenceDetail['pages'] }) {
+  const [url, setUrl] = useState('')
+  const [error, setError] = useState<ApiError | null>(null)
+  const [attempt, setAttempt] = useState(0)
+  useEffect(() => {
+    const controller = new AbortController()
+    let objectUrl = ''
+    void service.referenceFile(documentId, controller.signal).then((blob) => {
+      if (!controller.signal.aborted) { objectUrl = URL.createObjectURL(blob); setUrl(objectUrl); setError(null) }
+    }).catch((cause: unknown) => { if (!controller.signal.aborted) setError(cause instanceof ApiError ? cause : new ApiError(0, 'UNAVAILABLE')) })
+    return () => { controller.abort(); if (objectUrl) URL.revokeObjectURL(objectUrl) }
+  }, [service, documentId, attempt])
+  const [pageNumber, setPageNumber] = useState(pages[0]?.page_number ?? 1)
+  const page = pages.find((item) => item.page_number === pageNumber)
+  return <section className={styles.panel} aria-label="Sumber PDF dan teks"><h2>Sumber dan teks halaman</h2><div className={styles.sourceGrid}>
+    <div>{url && !error ? <><a href={url} target="_blank" rel="noreferrer">Buka PDF asli di tab baru</a><iframe className={styles.pdf} title="PDF sumber resmi" src={`${url}#page=${pageNumber}`} /></> : error ? <><Feedback tone="warning" title={error.message} />{![401, 403, 404].includes(error.status) && <Button tone="secondary" onClick={() => setAttempt((value) => value + 1)}>Muat ulang PDF</Button>}{error.status === 401 && <Link to="/login">Masuk kembali</Link>}</> : <Loading label="Memuat PDF asli…" />}</div>
+    <div className={styles.extracted}><label>Halaman PDF<select value={pageNumber} onChange={(e) => setPageNumber(Number(e.target.value))}>{pages.map((page) => <option key={page.page_number} value={page.page_number}>Halaman {page.page_number}</option>)}</select></label><h3>Halaman PDF {pageNumber}</h3><p className={styles.sourceText}>{page?.text || 'Halaman ini tidak memiliki teks yang dapat diekstrak.'}</p></div>
+  </div></section>
+}

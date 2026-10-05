@@ -2,6 +2,7 @@ import { ApiError, resourceId } from '@/domain/model/ApiError'
 import { curriculumPhases } from '@/domain/model/PlatformAdmin'
 import type { NewCurriculum, NewSchool, SchoolDetails } from '@/domain/model/PlatformAdmin'
 import type { PlatformAdminService } from '@/domain/services/PlatformAdminService'
+import type { ReferenceReview, ReferenceUpload } from '@/domain/model/NationalReference'
 
 const email = (value: string) => {
   const clean = value.trim().toLowerCase()
@@ -19,6 +20,21 @@ function details(school: SchoolDetails): SchoolDetails {
 // The backend checks everything again; these checks only spare a request it would refuse.
 export class PlatformAdminUseCases {
   constructor(private readonly service: PlatformAdminService) {}
+
+  references(signal?: AbortSignal) { return this.service.references(signal) }
+  reference(id: string, signal?: AbortSignal) { return this.service.reference(resourceId(id), signal) }
+  referenceFile(id: string, signal?: AbortSignal) { return this.service.referenceFile(resourceId(id), signal) }
+  uploadReference(input: ReferenceUpload, key: string, signal?: AbortSignal) {
+    const title = input.title.trim(), issuer = input.issuer.trim(), source_url = input.source_url.trim()
+    if (!title || !issuer || title.length > 200 || issuer.length > 200 || !/^https?:\/\/\S+$/i.test(source_url)) throw new ApiError(422, 'REFERENCE_METADATA_REQUIRED')
+    try { new URL(source_url) } catch { throw new ApiError(422, 'REFERENCE_METADATA_REQUIRED') }
+    if (!input.file.size || !/\.pdf$/i.test(input.file.name) || (input.file.type && input.file.type !== 'application/pdf')) throw new ApiError(422, 'FILE_NOT_PDF')
+    if (input.file.size > 50 * 1024 * 1024) throw new ApiError(422, 'FILE_TOO_LARGE')
+    return this.service.uploadReference({ ...input, title, issuer, source_url }, key, signal)
+  }
+  saveReferenceReview(id: string, review: ReferenceReview, revision: number, signal?: AbortSignal) { return this.service.saveReferenceReview(resourceId(id), review, revision, signal) }
+  publishReference(id: string, revision: number, key: string, signal?: AbortSignal) { return this.service.publishReference(resourceId(id), revision, key, signal) }
+  retryReference(id: string, revision: number, key: string, signal?: AbortSignal) { return this.service.retryReference(resourceId(id), revision, key, signal) }
 
   schools(q: string, cursor: string | null, signal?: AbortSignal) { return this.service.schools(q.trim(), cursor && resourceId(cursor), signal) }
   createSchool(school: NewSchool, idempotencyKey: string, signal?: AbortSignal) {

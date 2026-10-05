@@ -374,6 +374,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/knowledge-bases/{kb_id}/national-references/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adopt */
+        post: operations["adopt_api_v1_knowledge_bases__kb_id__national_references__document_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/knowledge-bases/{kb_id}/owner": {
         parameters: {
             query?: never;
@@ -778,6 +795,109 @@ export interface paths {
         /** Curriculum Version */
         get: operations["curriculum_version_api_v1_platform_curriculum_versions__version_id__get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Platform */
+        get: operations["list_platform_api_v1_platform_references_get"];
+        put?: never;
+        /** Upload */
+        post: operations["upload_api_v1_platform_references_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/references/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detail */
+        get: operations["detail_api_v1_platform_references__document_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/references/{document_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Source File */
+        get: operations["source_file_api_v1_platform_references__document_id__file_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/references/{document_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish */
+        post: operations["publish_api_v1_platform_references__document_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/references/{document_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry */
+        post: operations["retry_api_v1_platform_references__document_id__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/references/{document_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Review */
+        put: operations["review_api_v1_platform_references__document_id__review_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1278,6 +1398,23 @@ export interface paths {
         };
         /** List Missions */
         get: operations["list_missions_api_v1_schools__school_id__missions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{school_id}/national-references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Teacher */
+        get: operations["list_teacher_api_v1_schools__school_id__national_references_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2112,6 +2249,25 @@ export interface components {
             /** Topic Title */
             topic_title: string;
         };
+        /** Body_upload_api_v1_platform_references_post */
+        Body_upload_api_v1_platform_references_post: {
+            /** File */
+            file: string;
+            /** Issuer */
+            issuer: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "curriculum" | "guidance";
+            /**
+             * Source Url
+             * Format: uri
+             */
+            source_url: string;
+            /** Title */
+            title: string;
+        };
         /** Body_upload_roster_api_v1_schools__school_id__roster_imports_post */
         Body_upload_roster_api_v1_schools__school_id__roster_imports_post: {
             /**
@@ -2898,6 +3054,7 @@ export interface components {
             /** Topic Title */
             topic_title: string;
         };
+        Label: string;
         /** LearningOutcomeIn */
         LearningOutcomeIn: {
             /** Description */
@@ -3767,6 +3924,168 @@ export interface components {
             /** Run Status */
             run_status: string;
         };
+        /** ReferenceCurriculumIn */
+        ReferenceCurriculumIn: {
+            decree_code: components["schemas"]["Label"];
+            /**
+             * Effective On
+             * Format: date
+             */
+            effective_on: string;
+            /**
+             * Is Current
+             * @default true
+             */
+            is_current: boolean;
+            name: components["schemas"]["Label"];
+            /** Subjects */
+            subjects: components["schemas"]["ReferenceSubjectIn"][];
+        };
+        /** ReferenceDetailOut */
+        ReferenceDetailOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Curriculum Version Id */
+            curriculum_version_id: string | null;
+            /** Error Code */
+            error_code: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Issuer */
+            issuer: string;
+            /** Job Id */
+            job_id: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "curriculum" | "guidance";
+            /** Pages */
+            pages: components["schemas"]["ReferencePageOut"][];
+            /** Published At */
+            published_at: string | null;
+            review: components["schemas"]["ReferenceReviewDraft"] | null;
+            /** Revision */
+            revision: number;
+            /** Sha256 */
+            sha256: string;
+            /** Source Url */
+            source_url: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "uploading" | "extracting" | "review" | "indexing" | "published" | "failed";
+            /** Title */
+            title: string;
+        };
+        /** ReferencePageOut */
+        ReferencePageOut: {
+            /** Page Number */
+            page_number: number;
+            /** Text */
+            text: string;
+        };
+        /** ReferenceQueuedOut */
+        ReferenceQueuedOut: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /**
+             * Job Id
+             * Format: uuid
+             */
+            job_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "extracting" | "indexing";
+        };
+        /** ReferenceReviewDraft */
+        ReferenceReviewDraft: {
+            curriculum?: components["schemas"]["ReferenceCurriculumIn"] | null;
+            /** Selected Pages */
+            selected_pages?: number[];
+        };
+        /** ReferenceReviewIn */
+        ReferenceReviewIn: {
+            /** Base Revision */
+            base_revision: number;
+            curriculum?: components["schemas"]["ReferenceCurriculumIn"] | null;
+            /** Selected Pages */
+            selected_pages?: number[];
+        };
+        /** ReferenceRevisionIn */
+        ReferenceRevisionIn: {
+            /** Base Revision */
+            base_revision: number;
+        };
+        /** ReferenceRevisionOut */
+        ReferenceRevisionOut: {
+            /** Revision */
+            revision: number;
+        };
+        /** ReferenceSubjectIn */
+        ReferenceSubjectIn: {
+            /** Elements */
+            elements: components["schemas"]["SourceElementIn"][];
+            name: components["schemas"]["Label"];
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "A" | "B" | "C" | "D" | "E" | "F";
+        };
+        /** ReferenceSummaryOut */
+        ReferenceSummaryOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Curriculum Version Id */
+            curriculum_version_id: string | null;
+            /** Error Code */
+            error_code: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Issuer */
+            issuer: string;
+            /** Job Id */
+            job_id: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "curriculum" | "guidance";
+            /** Published At */
+            published_at: string | null;
+            /** Revision */
+            revision: number;
+            /** Sha256 */
+            sha256: string;
+            /** Source Url */
+            source_url: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "uploading" | "extracting" | "review" | "indexing" | "published" | "failed";
+            /** Title */
+            title: string;
+        };
         /** ReflectionOut */
         ReflectionOut: {
             /** Completed At */
@@ -4404,6 +4723,25 @@ export interface components {
              */
             user_id: string;
         };
+        /** SourceElementIn */
+        SourceElementIn: {
+            description: components["schemas"]["Text"];
+            element: components["schemas"]["Label"];
+            /** Page End */
+            page_end: number;
+            /** Page Start */
+            page_start: number;
+            /** Statements */
+            statements: components["schemas"]["SourceStatementIn"][];
+        };
+        /** SourceStatementIn */
+        SourceStatementIn: {
+            description: components["schemas"]["Text"];
+            /** Page End */
+            page_end: number;
+            /** Page Start */
+            page_start: number;
+        };
         /** StartedOut */
         StartedOut: {
             /**
@@ -4648,6 +4986,7 @@ export interface components {
             /** Turn Index */
             turn_index?: number | null;
         };
+        Text: string;
         /** TypingEvent */
         TypingEvent: {
             /**
@@ -5560,6 +5899,40 @@ export interface operations {
             };
         };
     };
+    adopt_api_v1_knowledge_bases__kb_id__national_references__document_id__post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                kb_id: string;
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialQueuedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     transfer_kb_api_v1_knowledge_bases__kb_id__owner_post: {
         parameters: {
             query?: never;
@@ -6379,6 +6752,230 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CurriculumDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_platform_api_v1_platform_references_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceSummaryOut"][];
+                };
+            };
+        };
+    };
+    upload_api_v1_platform_references_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_api_v1_platform_references_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceQueuedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    detail_api_v1_platform_references__document_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    source_file_api_v1_platform_references__document_id__file_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_api_v1_platform_references__document_id__publish_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReferenceRevisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceQueuedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_api_v1_platform_references__document_id__retry_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReferenceRevisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceQueuedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_api_v1_platform_references__document_id__review_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReferenceReviewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceRevisionOut"];
                 };
             };
             /** @description Validation Error */
@@ -7624,6 +8221,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MissionPageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_teacher_api_v1_schools__school_id__national_references_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceSummaryOut"][];
                 };
             };
             /** @description Validation Error */

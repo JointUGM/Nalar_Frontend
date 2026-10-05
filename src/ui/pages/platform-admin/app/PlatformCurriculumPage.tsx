@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router'
 import type { PlatformAdminUseCases } from '@/application/platform-admin-use-cases'
 import { curriculumPhases, parseOutcomes } from '@/domain/model/PlatformAdmin'
 import { Button } from '@/ui/components/button/Button'
@@ -28,7 +29,8 @@ const refusals: Readonly<Record<string, string>> = {
 export function PlatformCurriculumPage({ service }: { service: PlatformAdminUseCases }) {
   const read = useCallback((signal: AbortSignal) => service.curriculumVersions(signal), [service])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
-  const [chosen, setChosen] = useState('')
+  const [params] = useSearchParams()
+  const [chosen, setChosen] = useState(params.get('v') ?? '')
   const [publishing, setPublishing] = useState(false)
   const [message, setMessage] = useState('')
   const versionId = chosen || data?.find((item) => item.is_current)?.id || data?.[0]?.id || ''
@@ -39,6 +41,7 @@ export function PlatformCurriculumPage({ service }: { service: PlatformAdminUseC
         <h1>Capaian Pembelajaran nasional</h1>
         <p>Versi baru tidak mengubah pemetaan CP sekolah yang sudah ada. Kelola standar fase dan capaian belajar siswa.</p>
         <div className={styles.welcomeActions}>
+          <Link to="/platform/references">Unggah dan tinjau CP dari PDF resmi</Link>
           <Button className={styles.compactButton} onClick={() => { setMessage(''); setPublishing(true) }}><Icon name="upload" size={16} />Terbitkan versi baru</Button>
         </div>
       </div>
