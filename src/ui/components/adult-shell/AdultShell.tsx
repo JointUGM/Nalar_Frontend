@@ -21,6 +21,7 @@ export interface NavItem {
 const platformLinks: readonly NavItem[] = [
   { label: 'Sekolah', icon: 'school', to: '/platform/schools' },
   { label: 'Capaian Pembelajaran', icon: 'book', to: '/platform/cp-versions' },
+  { label: 'Referensi resmi', icon: 'book', to: '/platform/references' },
   { label: 'Pemakaian AI', icon: 'graph', to: '/platform/ai-usage' },
   { label: 'Log audit', icon: 'lock', to: '/platform/audit-log' },
 ]
@@ -81,6 +82,7 @@ export function AdultShell({
   const pageDescriptions: Record<string, string> = {
     'Sekolah': 'Kelola status dan data sekolah terdaftar',
     'Capaian Pembelajaran': 'Kelola kurikulum, fase, dan materi CP',
+    'Referensi resmi': 'Unggah dan tinjau PDF kurikulum, buku, dan panduan resmi',
     'Pemakaian AI': 'Pantau kuota dan statistik token AI',
     'Log audit': 'Riwayat aktivitas dan catatan keamanan',
     'Undangan akun': 'Kelola dan pantau aktivasi akun pengguna',

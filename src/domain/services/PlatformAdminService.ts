@@ -1,8 +1,16 @@
 import type { AuditPage } from '@/domain/model/Audit'
+import type { NationalReference, ReferenceDetail, ReferenceReceipt, ReferenceReview, ReferenceUpload } from '@/domain/model/NationalReference'
 import type { AdminSetup, AiUsageRow, CurriculumDetail, CurriculumVersion, NewCurriculum, NewSchool, PlatformSchool, SchoolDetails, SchoolsPage } from '@/domain/model/PlatformAdmin'
 
 // Every create that sends email or publishes takes an idempotency key the caller keeps across retries.
 export interface PlatformAdminService {
+  references(signal?: AbortSignal): Promise<NationalReference[]>
+  reference(documentId: string, signal?: AbortSignal): Promise<ReferenceDetail>
+  referenceFile(documentId: string, signal?: AbortSignal): Promise<Blob>
+  uploadReference(input: ReferenceUpload, key: string, signal?: AbortSignal): Promise<ReferenceReceipt>
+  saveReferenceReview(documentId: string, review: ReferenceReview, revision: number, signal?: AbortSignal): Promise<number>
+  publishReference(documentId: string, revision: number, key: string, signal?: AbortSignal): Promise<ReferenceReceipt>
+  retryReference(documentId: string, revision: number, key: string, signal?: AbortSignal): Promise<ReferenceReceipt>
   schools(q: string, cursor: string | null, signal?: AbortSignal): Promise<SchoolsPage>
   createSchool(school: NewSchool, idempotencyKey: string, signal?: AbortSignal): Promise<AdminSetup>
   updateSchool(schoolId: string, details: SchoolDetails, signal?: AbortSignal): Promise<PlatformSchool>
