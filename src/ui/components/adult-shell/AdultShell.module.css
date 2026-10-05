@@ -19,13 +19,9 @@
 .schoolContext strong { font-weight: 650; }
 .schoolContext small { margin-block-start: 3px; font-size: 12px; line-height: 18px; color: var(--color-text-muted); }
 .schoolCard { margin-block: 8px; padding: 12px 10px; border-block: 1px solid var(--color-role-border); }
-.schoolCard > svg { color: var(--color-primary); }
 .avatar { display: grid; place-items: center; inline-size: 36px; block-size: 36px; flex-shrink: 0; border-radius: 12px; background: var(--color-info-bg); color: var(--color-primary); font-weight: 700; }
 .sidebarSpacer { flex: 1; }
 .sidebarFooter { display: grid; gap: 16px; }
-.scopeNote { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; padding: 16px 12px; border-radius: 12px; background: var(--color-surface-muted); font-size: 12px; line-height: 20px; color: var(--color-text-secondary); }
-.scopeNote strong { color: var(--color-ink); font-size: 12px; font-weight: 650; }
-.scopeNote p { grid-column: 1 / -1; margin: 0; line-height: 20px; }
 .exit { display: flex; align-items: center; gap: 12px; min-block-size: 44px; padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--color-text-secondary); text-decoration: none; transition: background-color 160ms ease, color 160ms ease; }
 .drawerExit { margin-block-start: 16px; border-block-start: 1px solid var(--color-role-border); border-radius: 0; }
 .workspace { min-inline-size: 0; display: flex; flex-direction: column; }
@@ -45,14 +41,14 @@
 .shell[data-collapsed='true'] .sidebar { padding-inline: 8px; }
 .shell[data-collapsed='true'] .sidebar .brandRow { flex-direction: column; padding-inline: 0; }
 .shell[data-collapsed='true'] .sidebar .brand { flex: none; justify-content: center; }
-.shell[data-collapsed='true'] .sidebar :is(.brand span, .brand small, .scopeNote, .exit span, .navigation a span, .schoolContext) { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+.shell[data-collapsed='true'] .sidebar :is(.brand span, .brand small, .exit span, .navigation a span, .schoolContext) { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
 .shell[data-collapsed='true'] .sidebar :is(.navigation a, .exit) { justify-content: center; padding-inline: 0; }
 @media (hover: hover) and (pointer: fine) {
   .navigation a:not(.active):hover { background: var(--color-nav-hover); }
   .navigation .active:hover { background: var(--color-info-bg); }
   .exit:hover { background: var(--color-danger-bg); color: var(--color-danger-text); }
   .menuButton:hover { background: var(--color-info-bg); color: var(--color-primary); }
-  .collapse:hover { background: var(--color-info-bg); color: var(--color-primary); }
+  .collapse:hover:not(:disabled) { background: var(--color-nav-hover); color: var(--color-text-secondary); }
 }
 @media (min-width: 768px) and (max-width: 1023px) {
   .shell { grid-template-columns: 64px minmax(0, 1fr); }
@@ -60,7 +56,7 @@
   .brandRow { justify-content: center; padding-inline: 0; }
   .collapse { display: none; }
   .brand { justify-content: center; padding: 0; }
-  .brand span, .brand small, .scopeNote, .exit span, .navigation a span, .schoolContext { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+  .brand span, .brand small, .exit span, .navigation a span, .schoolContext { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
   .navigation a, .exit { justify-content: center; padding: 12px 0; }
 }
 @media (max-width: 767px) {

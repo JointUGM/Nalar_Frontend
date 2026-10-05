@@ -57,7 +57,7 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
       <caption className={styles.visuallyHidden}>Sekolah pada halaman ini</caption>
       <thead><tr><th scope="col">Sekolah</th><th scope="col">Admin sekolah</th><th scope="col">Pengguna</th><th scope="col">Status</th><th scope="col">Tindakan</th></tr></thead>
       <tbody>{data.items.map((school) => <tr key={school.id}>
-        <td><div className={styles.schoolIdentity}><span className={styles.schoolIcon}><Icon name="school" size={20} /></span><div><span className={styles.schoolName}>{school.name}</span><span className={styles.city}>{[school.city, school.npsn && `NPSN ${school.npsn}`].filter(Boolean).join(' · ')}</span></div></div></td>
+        <td><div className={styles.schoolIdentity}><span className={styles.schoolName}>{school.name}</span><span className={styles.city}>{[school.city, school.npsn && `NPSN ${school.npsn}`].filter(Boolean).join(' · ')}</span></div></td>
         <td className={styles.admin}><span className={styles.mobileLabel}>Admin sekolah</span>{school.admin_name ?? 'Belum ada'}</td>
         <td className={styles.userCount}>{number.format(school.user_count)}</td>
         <td><span className={[styles.badge, styles[school.status]].join(' ')}>{statusWord[school.status] ?? school.status}</span></td>

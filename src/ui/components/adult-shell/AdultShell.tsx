@@ -43,12 +43,11 @@ export function AdultShell({ children, search = '', onSearch, schoolContext, nav
         <Link to={nav ? nav[0].to : '/platform/schools'} className={styles.brand}><BrandMark /><span>nalar</span><small>{schoolContext ? 'sekolah' : 'platform'}</small></Link>
         <button type="button" className={styles.collapse} aria-expanded={!collapsed} aria-label={collapsed ? 'Perluas navigasi' : 'Ciutkan navigasi'} title={collapsed ? 'Perluas navigasi' : 'Ciutkan navigasi'} onClick={() => setCollapsed((value) => !value)}><Icon name={collapsed ? 'chevronRight' : 'chevronLeft'} size={12} /></button>
       </div>
-      {schoolContext && <div className={[styles.schoolContext, styles.schoolCard].join(' ')}><Icon name="school" /><span><strong>{schoolContext.name}</strong><small>Admin sekolah{schoolContext.year && ` · ${schoolContext.year}`}</small></span></div>}
-      {!schoolContext && <div className={[styles.schoolContext, styles.schoolCard].join(' ')}><Icon name="school" /><span><strong>Ruang administrasi</strong><small>Seluruh sekolah Nalar</small></span></div>}
+      {schoolContext && <div className={[styles.schoolContext, styles.schoolCard].join(' ')}><span><strong>{schoolContext.name}</strong><small>Admin sekolah{schoolContext.year && ` · ${schoolContext.year}`}</small></span></div>}
+      {!schoolContext && <div className={[styles.schoolContext, styles.schoolCard].join(' ')}><span><strong>Ruang administrasi</strong><small>Seluruh sekolah Nalar</small></span></div>}
       {navigation}
       <div className={styles.sidebarSpacer} />
       <div className={styles.sidebarFooter}>
-        {!schoolContext && <div className={styles.scopeNote}><Icon name="lock" size={18} /><strong>Privasi tetap terjaga</strong><p>Anda hanya melihat data sekolah. Sesi, transkrip, dan hasil siswa tidak dapat diakses dari sini.</p></div>}
         <Link to="/login" state={{ signOut: true }} className={styles.exit}><Icon name="logout" /><span>Keluar</span></Link>
         {schoolContext && <div className={styles.schoolContext}><span className={styles.avatar}>{initials}</span><span><strong>{schoolContext.admin}</strong><small>Admin sekolah</small></span></div>}
       </div>

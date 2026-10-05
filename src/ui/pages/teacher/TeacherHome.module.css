@@ -31,7 +31,7 @@
 .workbench[data-has-insights='false'] { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'tasks'; }
 .workbench[data-has-insights='false'] .insights { display: none; }
 .workbench[data-has-insights='false'] .rail { grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); align-items: start; }
-.prepare { display: grid; gap: 16px; padding: 24px; border-radius: 20px; background: var(--color-info-bg); }
+.prepare { display: grid; gap: 16px; padding: 24px; border-radius: 20px; background: var(--color-surface); border: 1px solid var(--color-role-border); }
 .prepareHeading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .prepare h2 { margin: 0; font-size: 20px; line-height: 28px; letter-spacing: -.025em; font-weight: 650; }
 .prepare p { margin: 0; font-size: 13px; line-height: 22px; color: var(--color-text-secondary); }

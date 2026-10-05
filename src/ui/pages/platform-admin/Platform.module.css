@@ -22,9 +22,7 @@
 .table th:nth-child(3) { inline-size: 10%; }
 .table th:nth-child(4) { inline-size: 13%; }
 .table th:nth-child(5) { inline-size: 1%; }
-.schoolIdentity { display: flex; align-items: center; gap: 12px; }
-.schoolIdentity > div { min-inline-size: 0; }
-.schoolIcon { display: grid; place-items: center; inline-size: 40px; block-size: 40px; flex-shrink: 0; border-radius: 10px; background: var(--color-info-bg); color: var(--color-primary); }
+.schoolIdentity { min-inline-size: 0; }
 .schoolName { display: block; color: var(--color-ink); font-size: 14px; font-weight: 650; }
 .city { display: block; margin-block-start: 4px; font-size: 12px; line-height: 20px; color: var(--color-text-muted); }
 .admin { font-size: 13px; color: var(--color-text-secondary); }
