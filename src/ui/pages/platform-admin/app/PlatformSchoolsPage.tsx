@@ -11,7 +11,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/platform-admin/Platform.module.css'
 import { Loading } from '@/ui/components/loading/Loading'
-import { AdminPageHeader } from '@/ui/components/adult-shell/AdminPageHeader'
+import { Nala } from '@/ui/components/nala/Nala'
 import { NalaEmpty } from '@/ui/components/nala/NalaState'
 
 const number = new Intl.NumberFormat('id-ID')
@@ -42,7 +42,19 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
   const close = (done?: string) => { setModal(null); if (done) { setMessage(done); refresh() } }
 
   return <div className={styles.content}>
-    <AdminPageHeader title="Sekolah" description="Kelola sekolah dan akses admin dalam satu tempat." guidance="Sekolah baru? Mulai dengan mendaftarkan sekolah dan admin pertamanya." mood={error ? 'calm' : message ? 'proud' : 'hello'} action={<Button className={styles.compactButton} onClick={() => { setMessage(''); setModal({ kind: 'onboard' }) }}><Icon name="plus" size={16} />Daftarkan sekolah</Button>} />
+    <div className={styles.welcome}>
+      <div className={styles.welcomeCopy}>
+        <h1>Sekolah</h1>
+        <p>Kelola pendaftaran sekolah baru, pantau status keaktifan, dan atur akses administrator sekolah di ekosistem Nalar.</p>
+        <div className={styles.welcomeActions}>
+          <Button className={styles.compactButton} onClick={() => { setMessage(''); setModal({ kind: 'onboard' }) }}><Icon name="plus" size={16} />Daftarkan sekolah</Button>
+        </div>
+      </div>
+      <div className={styles.nalaWelcome}>
+        <p className={styles.speech}>Halo Admin! Semua sekolah terpantau aktif dan lancar 🚀</p>
+        <div className={styles.mascot}><Nala mood="proud" size={130} animate /></div>
+      </div>
+    </div>
     {message && <Feedback tone="success" title={message} announce />}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {data && <dl className={styles.metrics} aria-label="Ringkasan seluruh sekolah">
@@ -65,8 +77,12 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
         <Button tone="secondary" className={styles.pillButton} aria-label="Ubah data sekolah" onClick={() => { setMessage(''); setModal({ kind: 'edit', school }) }}><Icon name="pencil" size={14} />Ubah data</Button>
         <Button tone="secondary" className={styles.pillButton} aria-label="Ganti admin sekolah" onClick={() => { setMessage(''); setModal({ kind: 'admin', school }) }}><Icon name="swap" size={14} />Ganti admin</Button>
         <Button tone="secondary" className={styles.suspendButton} onClick={() => { setMessage(''); setModal({ kind: 'status', school }) }}><Icon name="pause" size={14} />{school.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'}</Button>
-      </div></td></tr>)}</tbody>
-    </table></div> : <NalaEmpty mood={q ? 'search' : 'hello'} title={q ? 'Tidak ada sekolah yang cocok dengan pencarian ini.' : 'Belum ada sekolah terdaftar.'} action={q ? <Button tone="secondary" onClick={() => setQuery('')}>Hapus pencarian</Button> : undefined}>{q ? 'Coba nama, NPSN, atau kota lain.' : 'Mulai dengan tombol Daftarkan sekolah di atas. Admin pertama akan menerima undangan.'}</NalaEmpty>)}
+        </div></td></tr>)}</tbody>
+    </table></div> : <div className={styles.empty}>
+      <NalaEmpty mood={q ? 'search' : 'hello'} title={q ? 'Tidak ada sekolah yang cocok' : 'Belum ada sekolah terdaftar'}>
+        <p>{q ? 'Tidak ada sekolah yang cocok dengan pencarian ini.' : 'Belum ada sekolah terdaftar.'}</p>
+      </NalaEmpty>
+    </div>)}
     {data && <nav className={styles.pagination} aria-label="Halaman sekolah">
       <span className={styles.paginationInfo}>{data.total} sekolah{q ? ' cocok' : ''}</span>
       <div className={styles.paginationButtons}>

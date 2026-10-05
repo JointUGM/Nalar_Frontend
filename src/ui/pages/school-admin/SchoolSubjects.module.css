@@ -1,27 +1,214 @@
-.content { max-inline-size: 1120px; }
-.content h1 { margin: 0; font-size: 22px; line-height: 30px; }
-.lead { margin: 8px 0 0; font-size: 16px; line-height: 24px; color: var(--color-text-secondary); }
-.note { margin: 16px 0; font-size: 13px; }
-.card { padding: 8px 24px; border: 1px solid var(--color-role-border); border-radius: 14px; background: var(--color-surface); }
-.table { display: block; inline-size: 100%; border-collapse: collapse; }
-.table thead, .table tbody { display: block; }
-.table tr { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 2fr) minmax(0, 1.2fr) 80px; align-items: center; gap: 16px; padding-block: 14px; }
-.table th { text-align: start; font-size: 13px; font-weight: 600; color: var(--color-text-muted); }
-.table td { min-inline-size: 0; padding: 0; overflow-wrap: anywhere; }
-.table tbody tr { border-block-start: 1px solid var(--color-surface-muted); }
-.name { font-size: 15px; font-weight: 600; }
-.cp { font-size: 14px; color: var(--color-text-secondary); }
-.unmapped { color: var(--color-warning-text); font-weight: 600; }
-.kb { font-size: 14px; }
-.edit { justify-self: end; min-inline-size: 44px; color: var(--color-primary); font-weight: 600; }
-.hidden { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
-@media (max-width: 767px) {
-  .card { padding-inline: 16px; }
-  .table thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
-  .table tr { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
-  .table td { grid-column: 1; }
-  .table td:last-child { grid-column: 2; grid-row: 1 / span 3; }
-  .kb::before { content: 'Basis pengetahuan: '; color: var(--color-text-secondary); font-size: 13px; }
+.content {
+  inline-size: 100%;
+  max-inline-size: 100%;
 }
-.kbList { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.kbList li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-block: 8px 16px;
+}
+
+.heading > div:first-child {
+  flex: 1 1 280px;
+  min-inline-size: 0;
+}
+
+.heading h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.lead {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--color-text-secondary);
+}
+
+.note {
+  margin: 16px 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.card {
+  padding: 0 20px;
+  border: 1px solid var(--color-role-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  display: block;
+  inline-size: 100%;
+  min-inline-size: 100%;
+  border-collapse: collapse;
+}
+
+.table thead, .table tbody {
+  display: block;
+}
+
+.table tr {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.2fr) minmax(180px, 1.6fr) minmax(260px, 2.6fr) 90px;
+  align-items: center;
+  gap: 16px;
+  padding-block: 14px;
+}
+
+.table th {
+  text-align: start;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.table td {
+  min-inline-size: 0;
+  padding: 0;
+  overflow-wrap: anywhere;
+}
+
+.table tbody tr {
+  border-block-start: 1px solid var(--color-surface-muted);
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.cp {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.unmapped {
+  color: var(--color-warning-text, #b45309);
+  font-weight: 600;
+}
+
+.kb {
+  font-size: 14px;
+}
+
+.edit,
+button.edit {
+  justify-self: end;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-inline-size: auto;
+  min-block-size: 32px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  color: var(--color-primary);
+  background: transparent;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.edit:hover:not(:disabled),
+button.edit:hover:not(:disabled) {
+  background: rgba(36, 71, 209, 0.08);
+  border-color: rgba(36, 71, 209, 0.2);
+  color: var(--color-primary-hover);
+}
+
+.hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.kbList {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kbList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--color-paper, #f8fafc);
+}
+
+.kbItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-inline-size: 0;
+  flex: 1;
+}
+
+.kbItem span {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  font-size: 13.5px;
+  color: var(--color-ink);
+}
+
+.emptyCard {
+  border: 1px solid var(--color-role-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  margin-block-start: 16px;
+  overflow: hidden;
+}
+
+@media (max-width: 860px) {
+  .heading h1 {
+    font-size: 24px;
+    line-height: 32px;
+  }
+  .card {
+    padding-inline: 14px;
+  }
+  .table {
+    min-inline-size: 0;
+  }
+  .table thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .table tr {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 12px;
+  }
+  .table td {
+    grid-column: 1;
+  }
+  .table td:last-child {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+  .kb::before {
+    content: 'Basis pengetahuan: ';
+    color: var(--color-text-secondary);
+    font-size: 13px;
+  }
+}

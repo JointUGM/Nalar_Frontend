@@ -9,9 +9,12 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/platform-admin/Platform.module.css'
+import { Select } from '@/ui/components/select/Select'
+import { DatePicker } from '@/ui/components/date-picker/DatePicker'
 import { Loading } from '@/ui/components/loading/Loading'
-import { AdminPageHeader } from '@/ui/components/adult-shell/AdminPageHeader'
 import { NalaEmpty } from '@/ui/components/nala/NalaState'
+
+import { Nala } from '@/ui/components/nala/Nala'
 
 const day = new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' })
 const refusals: Readonly<Record<string, string>> = {
@@ -31,7 +34,19 @@ export function PlatformCurriculumPage({ service }: { service: PlatformAdminUseC
   const versionId = chosen || data?.find((item) => item.is_current)?.id || data?.[0]?.id || ''
 
   return <div className={styles.content}>
-    <AdminPageHeader title="Capaian Pembelajaran nasional" description="Kelola acuan belajar yang digunakan sekolah di Nalar." guidance="Versi baru tidak mengubah pemetaan CP sekolah yang sudah ada." mood={error ? 'calm' : message ? 'proud' : 'read'} action={<Button className={styles.compactButton} onClick={() => { setMessage(''); setPublishing(true) }}><Icon name="upload" size={16} />Terbitkan versi baru</Button>} />
+    <div className={styles.welcome}>
+      <div className={styles.welcomeCopy}>
+        <h1>Capaian Pembelajaran nasional</h1>
+        <p>Versi baru tidak mengubah pemetaan CP sekolah yang sudah ada. Kelola standar fase dan capaian belajar siswa.</p>
+        <div className={styles.welcomeActions}>
+          <Button className={styles.compactButton} onClick={() => { setMessage(''); setPublishing(true) }}><Icon name="upload" size={16} />Terbitkan versi baru</Button>
+        </div>
+      </div>
+      <div className={styles.nalaWelcome}>
+        <p className={styles.speech}>Kurikulum terbaru siap diselaraskan dengan capaian pembelajaran! 📚</p>
+        <div className={styles.mascot}><Nala mood="read" size={130} animate /></div>
+      </div>
+    </div>
     {message && <Feedback tone="success" title={message} announce />}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <Loading label="Memuat Capaian Pembelajaran…" />}
@@ -79,12 +94,12 @@ function PublishDialog({ service, onClose }: { service: PlatformAdminUseCases; o
     <form className={styles.form} noValidate onSubmit={(event) => { event.preventDefault(); void submit() }}>
       <Field label="Nama versi" required maxLength={200} placeholder="Kurikulum Merdeka 2027" value={fields.name} disabled={command.pending} onChange={(event) => { touched(); setFields((value) => ({ ...value, name: event.target.value })) }} />
       <Field label="Nomor keputusan" required maxLength={200} placeholder="BSKAP 012/2027" value={fields.decree_code} disabled={command.pending} onChange={(event) => { touched(); setFields((value) => ({ ...value, decree_code: event.target.value })) }} />
-      <Field label="Berlaku sejak" type="date" required value={fields.effective_on} disabled={command.pending} onChange={(event) => { touched(); setFields((value) => ({ ...value, effective_on: event.target.value })) }} />
+      <DatePicker label="Berlaku sejak" required value={fields.effective_on} disabled={command.pending} onChange={(val) => { touched(); setFields((value) => ({ ...value, effective_on: val })) }} />
       <label><input type="checkbox" checked={fields.is_current} disabled={command.pending} onChange={(event) => { touched(); setFields((value) => ({ ...value, is_current: event.target.checked })) }} /> Jadikan versi yang berlaku</label>
       {subjects.map((subject, index) => <fieldset key={subject.id} className={styles.subjectDraft} disabled={command.pending}>
         <legend>Mata pelajaran {index + 1}</legend>
         <Field label="Nama" required maxLength={200} placeholder="IPA" value={subject.name} onChange={(event) => updateSubject(subject.id, { name: event.target.value })} />
-        <label>Fase <select value={subject.phase} onChange={(event) => updateSubject(subject.id, { phase: event.target.value })}>{curriculumPhases.map((phase) => <option key={phase} value={phase}>Fase {phase}</option>)}</select></label>
+        <Select label="Fase" value={subject.phase} onChange={(val) => updateSubject(subject.id, { phase: val })} options={curriculumPhases.map((phase) => ({ value: phase, label: `Fase ${phase}` }))} />
         <label>Capaian pembelajaran
           <textarea rows={6} value={subject.outcomes} onChange={(event) => updateSubject(subject.id, { outcomes: event.target.value })} />
           <small>Satu capaian per baris. Baris yang diawali # menjadi nama elemen untuk baris di bawahnya.</small>

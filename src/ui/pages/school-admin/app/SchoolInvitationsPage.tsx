@@ -10,6 +10,8 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/school-admin/SchoolImport.module.css'
 import { Loading } from '@/ui/components/loading/Loading'
+import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
+import { NalaNote } from '@/ui/components/nala/NalaState'
 
 const stateWord: readonly [string, string][] = [
   ['not_requested', 'Belum diundang'], ['pending', 'Dalam antrean'], ['sent', 'Terkirim, belum diaktivasi'], ['activated', 'Sudah diaktivasi'],
@@ -48,9 +50,20 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
   }
   const skipped = result ? Object.entries(result.skipped) : []
 
+  const note = waiting.new > 0
+    ? (['ask', `${waiting.new} akun baru belum diundang. Kirim undangan agar mereka dapat mulai login.`] as const)
+    : waiting.retry > 0
+      ? (['oops', `${waiting.retry} undangan perlu dikirim ulang karena kedaluwarsa atau gagal.`] as const)
+      : (['proud', `Luar biasa! Seluruh ${data.total} akun di sekolah ini sudah dikirimkan undangannya.`] as const)
+
   return <div className={styles.content}>
-    <h1>Undangan akun</h1>
-    <p className={styles.note}>Akun hasil impor menerima email berisi tautan untuk membuat kata sandi. {data.total} akun di sekolah ini. Akun tanpa email perlu dibantu langsung oleh sekolah.</p>
+    <div className={styles.heading}>
+      <div>
+        <h1>Undangan akun</h1>
+        <p className={styles.note}>Akun hasil impor menerima email berisi tautan untuk membuat kata sandi. {data.total} akun di sekolah ini. Akun tanpa email perlu dibantu langsung oleh sekolah.</p>
+      </div>
+      <NalaNote mood={note[0]} text={note[1]} />
+    </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {failure && <Feedback tone="warning" title={failure.message} announce>{failure.requestId && <small>Referensi: {failure.requestId}</small>}</Feedback>}
     {result && <Feedback tone={result.queued > 0 ? 'success' : 'warning'} title={`${result.queued} undangan masuk antrean pengiriman`} announce>
@@ -71,9 +84,9 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
     </div>
     {data.items.length > 0 && <section className={styles.card} aria-labelledby="invite-people">
       <div className={styles.cardHeading}><h2 id="invite-people">Akun</h2>{data.total > data.items.length && <span>{data.items.length} dari {data.total} ditampilkan</span>}</div>
-      <div className={styles.tableRegion} role="region" aria-label="Status undangan per akun" tabIndex={0}><table>
+      <div className={styles.tableRegion} role="region" aria-label="Status undangan per akun" tabIndex={0}><table className={styles.invitationsTable}>
         <thead><tr><th scope="col">Nama</th><th scope="col">Peran</th><th scope="col">Status</th></tr></thead>
-        <tbody>{data.items.map((item) => <tr key={item.user_id}><td>{item.full_name}</td><td>{roleWord[item.role] ?? item.role}</td><td>{stateWord.find(([state]) => state === item.state)?.[1] ?? item.state}</td></tr>)}</tbody>
+        <tbody>{data.items.map((item) => <tr key={item.user_id}><td><div className={styles.personCell}><span className={styles.avatar}><NalaAvatar seed={item.full_name} size={36} /></span><span className={styles.invitationName}>{item.full_name}</span></div></td><td>{roleWord[item.role] ?? item.role}</td><td><span className={[styles.statusBadge, styles['status_' + item.state]].join(' ')}>{stateWord.find(([state]) => state === item.state)?.[1] ?? item.state}</span></td></tr>)}</tbody>
       </table></div>
     </section>}
     <Dialog open={confirming !== null} title={confirming === 'retry' ? 'Kirim ulang undangan?' : 'Kirim undangan?'} description={`Email dikirim ke ${confirming ? waiting[confirming] : 0} akun dan tidak bisa ditarik kembali.`} onClose={() => { if (!pending) setConfirming(null) }} dismissible={!pending}>

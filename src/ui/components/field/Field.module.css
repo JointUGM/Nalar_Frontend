@@ -42,3 +42,74 @@
 .student .input { min-block-size: 56px; border: 3px solid var(--color-ink); border-radius: var(--radius-student-input); font-family: var(--font-reading); font-size: var(--font-size-student-body); }
 .student .input[aria-invalid="true"] { border-color: var(--color-danger-text); }
 .student .help, .student .error { font-size: var(--font-size-body); }
+
+.fileContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.hiddenFileInput {
+  position: absolute !important;
+  opacity: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  pointer-events: none !important;
+  margin: -1px !important;
+  clip: rect(0, 0, 0, 0) !important;
+}
+
+.fileTrigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 44px;
+  padding: 6px 12px 6px 6px;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-input, 12px);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.fileTrigger:hover {
+  border-color: var(--color-primary);
+}
+
+.fileTrigger:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(36, 71, 209, 0.14);
+}
+
+.fileButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.fileTrigger:hover .fileButton {
+  background: var(--color-primary-hover);
+}
+
+.fileName {
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-inline-size: 0;
+}
