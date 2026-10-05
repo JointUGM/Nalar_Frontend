@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
 import type { LinkedPerson } from '@/domain/model/SchoolAdmin'
-import { Button } from '@/ui/components/button/Button'
 import { Field } from '@/ui/components/field/Field'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import { NalaAvatar } from '@/ui/components/nala/NalaIcon'

@@ -1,6 +1,5 @@
 import type { KeyboardEvent, ReactNode } from 'react'
 import { useId, useLayoutEffect, useRef } from 'react'
-import { Button } from '@/ui/components/button/Button'
 import { Icon } from '@/ui/components/icon/Icon'
 import styles from './Dialog.module.css'
 

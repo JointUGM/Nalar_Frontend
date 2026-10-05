@@ -32,7 +32,7 @@ const companion = (current?: { name: string }, total = 0): readonly [NalaMood, s
 export function SchoolYearPage({ service, schoolId }: { service: SchoolAdminUseCases; schoolId: string }) {
   const years = useAcademicYears(service, schoolId)
   const current = years.list.find((year) => year.is_current)
-  const [fields, setFields] = useState({ name: '', starts_on: '', ends_on: '', copy: '' })
+  const [fields, setFields] = useState<{ name: string; starts_on: string; ends_on: string; copy: string | null }>({ name: '', starts_on: '', ends_on: '', copy: '' })
   const copy = fields.copy === 'none' ? null : fields.copy || current?.id || null
   const [confirming, setConfirming] = useState(false)
   const [done, setDone] = useState('')
