@@ -5,6 +5,9 @@ import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from './AdminRecords.module.css'
+import { AdminPageHeader } from '@/ui/components/adult-shell/AdminPageHeader'
+import { NalaEmpty } from '@/ui/components/nala/NalaState'
+import { Loading } from '@/ui/components/loading/Loading'
 
 // ponytail: actions, tables and actors are shown as the backend records them; the log carries ids, not names. Map them once someone asks.
 const actor = (id: string | null) => id === null ? 'Sistem' : `Pengguna ${id.slice(0, 8)}`
@@ -17,11 +20,10 @@ export function AuditLog({ read }: { read: (cursor: number | null, signal: Abort
   const { data, error, online, refresh } = useLiveResource(load, noPollMs)
   const rows = [...earlier, ...(data?.items ?? [])]
   return <section className={styles.card} aria-labelledby="audit-title">
-    <h1 id="audit-title">Log audit</h1>
-    <p className={styles.note}>Siapa mengubah data apa dan kapan. Isi perubahan dan tulisan siswa tidak ditampilkan.</p>
+    <AdminPageHeader title="Log audit" titleId="audit-title" description="Telusuri siapa mengubah data apa dan kapan." guidance="Isi perubahan dan tulisan siswa tidak ditampilkan di sini." mood={error ? 'calm' : 'search'} />
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat log…</p>}
-    {data && rows.length === 0 && <p className={styles.note}>Belum ada catatan.</p>}
+    {!data && !error && <Loading label="Memuat log…" />}
+    {data && rows.length === 0 && <NalaEmpty mood="read" title="Belum ada catatan.">Perubahan administrasi akan tercatat di sini agar mudah ditelusuri.</NalaEmpty>}
     {rows.length > 0 && <div className={styles.tableRegion} role="region" aria-label="Log audit" tabIndex={0}><table>
       <thead><tr><th scope="col">Waktu</th><th scope="col">Tindakan</th><th scope="col">Data</th><th scope="col">Pelaku</th></tr></thead>
       <tbody>{rows.map((entry) => <tr key={entry.id}>
