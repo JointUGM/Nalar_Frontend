@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PlatformAdminUseCases } from '@/application/platform-admin-use-cases'
 import type { ApiError } from '@/domain/model/ApiError'
 import type { PlatformSchool } from '@/domain/model/PlatformAdmin'
@@ -34,13 +34,12 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
   const [query, setQuery] = useState('')
   const [q, setQ] = useState('')
   const [cursor, setCursor] = useState<string | null>(null)
-  const [menu, setMenu] = useState<string | null>(null)
   const [modal, setModal] = useState<Modal | null>(null)
   const [message, setMessage] = useState('')
   useEffect(() => { const timer = setTimeout(() => { setQ(query.trim()); setCursor(null) }, 300); return () => clearTimeout(timer) }, [query])
   const read = useCallback((signal: AbortSignal) => service.schools(q, cursor, signal), [service, q, cursor])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
-  const close = (done?: string) => { setModal(null); setMenu(null); if (done) { setMessage(done); refresh() } }
+  const close = (done?: string) => { setModal(null); if (done) { setMessage(done); refresh() } }
 
   return <div className={styles.content}>
     <div className={styles.welcome}>
@@ -58,27 +57,27 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
     </div>
     {message && <Feedback tone="success" title={message} announce />}
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {data && <div className={styles.metrics}>
-      <div><span>Sekolah aktif</span><strong>{number.format(data.counts.active ?? 0)}</strong></div>
-      <div><span>Ditangguhkan</span><strong>{number.format(data.counts.suspended ?? 0)}</strong></div>
-      <div><span>Semua sekolah</span><strong>{number.format(data.counts.total ?? data.total)}</strong></div>
-    </div>}
-    <Field label="Cari nama, NPSN, atau kota" type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
+    {data && <dl className={styles.metrics} aria-label="Ringkasan seluruh sekolah">
+      <div><dt>Sekolah aktif</dt><dd>{number.format(data.counts.active ?? 0)}</dd></div>
+      <div><dt>Ditangguhkan</dt><dd>{number.format(data.counts.suspended ?? 0)}</dd></div>
+      <div><dt>Semua sekolah</dt><dd>{number.format(data.counts.total ?? data.total)}</dd></div>
+    </dl>}
+    <section className={styles.directory} aria-labelledby="school-directory-title">
+    <div className={styles.toolbar}><div><h2 id="school-directory-title">Daftar sekolah</h2><p>Temukan sekolah, lalu pilih tindakan yang diperlukan.</p></div><Field label="Cari nama, NPSN, atau kota" type="search" placeholder="Nama sekolah, NPSN, atau kota…" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
     {!data && !error && <Loading label="Memuat sekolah…" />}
     {data && (data.items.length ? <div className={styles.tableCard}><table className={styles.table}>
       <caption className={styles.visuallyHidden}>Sekolah pada halaman ini</caption>
-      <thead><tr><th scope="col">Sekolah</th><th scope="col">Admin sekolah</th><th scope="col">Pengguna</th><th scope="col">Status</th><th scope="col"><span className={styles.visuallyHidden}>Tindakan</span></th></tr></thead>
-      <tbody>{data.items.map((school) => <Fragment key={school.id}><tr>
-        <td><span className={styles.schoolName}>{school.name}</span><span className={styles.city}>{[school.city, school.npsn && `NPSN ${school.npsn}`].filter(Boolean).join(' · ')}</span></td>
-        <td className={styles.admin}>{school.admin_name ?? 'Belum ada'}</td>
+      <thead><tr><th scope="col">Sekolah</th><th scope="col">Admin sekolah</th><th scope="col">Pengguna</th><th scope="col">Status</th><th scope="col">Tindakan</th></tr></thead>
+      <tbody>{data.items.map((school) => <tr key={school.id}>
+        <td><div className={styles.schoolIdentity}><span className={styles.schoolName}>{school.name}</span><span className={styles.city}>{[school.city, school.npsn && `NPSN ${school.npsn}`].filter(Boolean).join(' · ')}</span></div></td>
+        <td className={styles.admin}><span className={styles.mobileLabel}>Admin sekolah</span>{school.admin_name ?? 'Belum ada'}</td>
         <td className={styles.userCount}>{number.format(school.user_count)}</td>
         <td><span className={[styles.badge, styles[school.status]].join(' ')}>{statusWord[school.status] ?? school.status}</span></td>
-        <td><button className={styles.rowMenu} aria-label={`Tindakan ${school.name}`} aria-expanded={menu === school.id} onClick={() => setMenu(menu === school.id ? null : school.id)}><Icon name="more" /></button></td>
-      </tr>{menu === school.id && <tr><td className={styles.rowActions} colSpan={5}>
-        <Button tone="secondary" className={styles.pillButton} onClick={() => { setMessage(''); setModal({ kind: 'edit', school }) }}><Icon name="pencil" size={14} />Ubah data sekolah</Button>
-        <Button tone="secondary" className={styles.pillButton} onClick={() => { setMessage(''); setModal({ kind: 'admin', school }) }}><Icon name="swap" size={14} />Ganti admin sekolah</Button>
+        <td className={styles.rowActions}><div className={styles.rowActionButtons} role="group" aria-label={`Tindakan ${school.name}`}>
+        <Button tone="secondary" className={styles.pillButton} aria-label="Ubah data sekolah" onClick={() => { setMessage(''); setModal({ kind: 'edit', school }) }}><Icon name="pencil" size={14} />Ubah data</Button>
+        <Button tone="secondary" className={styles.pillButton} aria-label="Ganti admin sekolah" onClick={() => { setMessage(''); setModal({ kind: 'admin', school }) }}><Icon name="swap" size={14} />Ganti admin</Button>
         <Button tone="secondary" className={styles.suspendButton} onClick={() => { setMessage(''); setModal({ kind: 'status', school }) }}><Icon name="pause" size={14} />{school.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'}</Button>
-      </td></tr>}</Fragment>)}</tbody>
+        </div></td></tr>)}</tbody>
     </table></div> : <div className={styles.empty}>
       <NalaEmpty mood={q ? 'search' : 'hello'} title={q ? 'Tidak ada sekolah yang cocok' : 'Belum ada sekolah terdaftar'}>
         <p>{q ? 'Tidak ada sekolah yang cocok dengan pencarian ini.' : 'Belum ada sekolah terdaftar.'}</p>
@@ -91,6 +90,7 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
         {data.next_cursor && <Button tone="secondary" onClick={() => setCursor(data.next_cursor)}>Halaman berikutnya</Button>}
       </div>
     </nav>}
+    </section>
     {modal?.kind === 'onboard' && <OnboardDialog service={service} onClose={close} />}
     {modal?.kind === 'admin' && <AdminDialog service={service} school={modal.school} onClose={close} />}
     {modal?.kind === 'edit' && <EditDialog service={service} school={modal.school} onClose={close} />}

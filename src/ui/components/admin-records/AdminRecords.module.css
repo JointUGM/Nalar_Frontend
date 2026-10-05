@@ -268,3 +268,6 @@
   }
 }
 
+.usageTableRegion table {
+  min-inline-size: 960px;
+}

@@ -12,6 +12,7 @@ import styles from '@/ui/pages/platform-admin/Platform.module.css'
 import { Select } from '@/ui/components/select/Select'
 import { DatePicker } from '@/ui/components/date-picker/DatePicker'
 import { Loading } from '@/ui/components/loading/Loading'
+import { NalaEmpty } from '@/ui/components/nala/NalaState'
 
 import { Nala } from '@/ui/components/nala/Nala'
 
@@ -50,10 +51,11 @@ export function PlatformCurriculumPage({ service }: { service: PlatformAdminUseC
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <Loading label="Memuat Capaian Pembelajaran…" />}
     {data && <div className={styles.curriculumGrid}>
-      <section className={styles.versions} aria-label="Versi Capaian Pembelajaran">{data.length ? data.map((version) => <article className={styles.version} key={version.id}>
-        <div><h2><button type="button" className={styles.versionLink} aria-pressed={version.id === versionId} onClick={() => setChosen(version.id)}>{version.name}</button></h2><p>{version.decree_code} · berlaku {day.format(new Date(`${version.effective_on}T00:00:00`))} · dipakai {version.school_count} sekolah</p></div>
-        <span className={[styles.badge, version.is_current ? styles.active : styles.archived].join(' ')}>{version.is_current ? 'Berlaku' : version.status === 'draft' ? 'Draf' : 'Arsip'}</span>
-      </article>) : <p className={styles.empty}>Belum ada versi Capaian Pembelajaran.</p>}</section>
+      <section className={styles.versions} aria-label="Versi Capaian Pembelajaran"><div className={styles.panelHeading}><h2>Daftar versi</h2><p>Pilih versi untuk membaca capaiannya.</p></div>{data.length ? data.map((version) => <button type="button" className={styles.versionLink} key={version.id} aria-pressed={version.id === versionId} onClick={() => setChosen(version.id)}>
+        <span className={styles.versionName}>{version.name}<span className={[styles.badge, version.is_current ? styles.active : styles.archived].join(' ')}>{version.is_current ? 'Berlaku' : version.status === 'draft' ? 'Draf' : 'Arsip'}</span></span>
+        <span className={styles.versionMeta}>{version.decree_code} · berlaku {day.format(new Date(`${version.effective_on}T00:00:00`))}</span>
+        <span className={styles.versionSchools}><Icon name="school" size={16} />Dipakai {version.school_count} sekolah<Icon name="chevronRight" size={16} /></span>
+      </button>) : <NalaEmpty mood="read" title="Belum ada versi Capaian Pembelajaran.">Terbitkan versi pertama dari keputusan resmi untuk mulai menyiapkan acuan sekolah.</NalaEmpty>}</section>
       {versionId && <VersionDetail key={versionId} service={service} versionId={versionId} />}
     </div>}
     {publishing && <PublishDialog service={service} onClose={(done) => { setPublishing(false); if (done) { setMessage(done); setChosen(''); refresh() } }} />}
@@ -66,10 +68,10 @@ function VersionDetail({ service, versionId }: { service: PlatformAdminUseCases;
   return <section className={styles.outcomes} aria-label="Isi Capaian Pembelajaran">
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <Loading label="Memuat isi versi…" />}
-    {data && <><h2>{data.name}</h2>{data.subjects.map((subject) => <details key={`${subject.name}-${subject.phase}`}>
-      <summary>{subject.name} · Fase {subject.phase} · {subject.learning_outcomes.length} capaian</summary>
-      <ul>{subject.learning_outcomes.map((outcome, index) => <li key={index}>{outcome.element && <strong>{outcome.element} — </strong>}{outcome.description}</li>)}</ul>
-    </details>)}</>}
+    {data && <><div className={styles.panelHeading}><h2>{data.name}</h2><p>{data.subjects.length} mata pelajaran · {data.decree_code}</p></div>{data.subjects.length ? data.subjects.map((subject) => <details key={`${subject.name}-${subject.phase}`}>
+      <summary><Icon name="book" size={20} /><span>{subject.name}<small>Fase {subject.phase} · {subject.learning_outcomes.length} capaian</small></span><Icon name="chevronDown" size={16} /></summary>
+      <ul>{subject.learning_outcomes.map((outcome, index) => <li key={index}>{outcome.element && <strong>{outcome.element}</strong>}{outcome.description}</li>)}</ul>
+    </details>) : <NalaEmpty mood="read" title="Belum ada mata pelajaran">Versi ini belum memuat rincian capaian pembelajaran.</NalaEmpty>}</>}
   </section>
 }
 

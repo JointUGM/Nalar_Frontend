@@ -6,6 +6,7 @@ import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/components/admin-records/AdminRecords.module.css'
 import { Nala } from '@/ui/components/nala/Nala'
 import { NalaEmpty } from '@/ui/components/nala/NalaState'
+import { Loading } from '@/ui/components/loading/Loading'
 
 const number = new Intl.NumberFormat('id-ID')
 const dollars = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })
@@ -44,7 +45,7 @@ export function PlatformAiUsagePage({ service }: { service: PlatformAdminUseCase
     </div>
     <div className={styles.controls} role="group" aria-label="Periode">{periods.map((value) => <button key={value} type="button" aria-pressed={days === value} onClick={() => setDays(value)}>{value} hari terakhir</button>)}</div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <p role="status">Memuat pemakaian…</p>}
+    {!data && !error && <Loading label="Memuat pemakaian…" />}
     {data && <dl className={styles.totals}>
       <div><dt>Panggilan</dt><dd>{number.format(total.calls)}</dd></div>
       <div><dt>Gagal</dt><dd>{number.format(total.failed)}</dd></div>
@@ -55,7 +56,7 @@ export function PlatformAiUsagePage({ service }: { service: PlatformAdminUseCase
         <p>Belum ada aktivitas pemakaian pada periode ini.</p>
       </NalaEmpty>
     </div>}
-    {groups.length > 0 && <div className={styles.tableRegion} role="region" aria-label="Pemakaian per tujuan" tabIndex={0}><table>
+    {groups.length > 0 && <div className={[styles.tableRegion, styles.usageTableRegion].join(' ')} role="region" aria-label="Pemakaian per tujuan" tabIndex={0}><table>
       <thead><tr><th scope="col">Tujuan</th><th scope="col">Model</th><th scope="col">Panggilan</th><th scope="col">Gagal</th><th scope="col">Token masuk</th><th scope="col">Token keluar</th><th scope="col">Biaya</th></tr></thead>
       <tbody>{groups.map((row) => <tr key={`${row.purpose} ${row.model}`}>
         <td><code>{row.purpose}</code></td><td><code>{row.model}</code></td><td>{number.format(row.calls)}</td><td>{number.format(row.failed_calls)}</td>
