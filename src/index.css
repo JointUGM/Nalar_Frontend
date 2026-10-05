@@ -100,11 +100,108 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .stack-label { color: var(--muted); font-size: .8rem; }
 h1 { margin: var(--space-3) 0 var(--space-4); font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.25; letter-spacing: -.035em; }
 p { color: var(--color-text-secondary); line-height: 1.6; }
-button, input { font: inherit; border-radius: var(--radius-button); }
+button, input, select, textarea { font: inherit; border-radius: var(--radius-button); }
 input { padding: var(--space-3) var(--space-4); border: 1px solid var(--color-control-border); color: var(--color-ink); background: var(--color-surface); }
-button { min-block-size: var(--control-min-size); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-primary); background: var(--color-primary); color: var(--color-surface); font-weight: 600; cursor: pointer; }
-button:hover:not(:disabled) { background: var(--color-primary-hover); }
-button:disabled { cursor: not-allowed; opacity: .65; }
+
+/* Custom non-native Select Dropdowns */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-input);
+  padding: 10px 40px 10px 14px;
+  min-block-size: 42px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234D5566' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+:root[data-theme='dark'] select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23B4BDD0' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+select:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+select:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+select:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background-color: var(--color-surface-muted);
+}
+
+/* Custom non-native Checkboxes */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  inline-size: 18px;
+  block-size: 18px;
+  min-inline-size: 18px;
+  min-block-size: 18px;
+  padding: 0;
+  border: 1.5px solid var(--color-control-border);
+  border-radius: 6px;
+  background-color: var(--color-surface);
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  margin: 0;
+  vertical-align: middle;
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="checkbox"]::before {
+  content: "";
+  inline-size: 10px;
+  block-size: 10px;
+  transform: scale(0);
+  transition: 120ms transform cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: #ffffff;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
+input[type="checkbox"]:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+input[type="checkbox"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+:where(button) { min-block-size: var(--control-min-size); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-primary); background: var(--color-primary); color: var(--color-surface); font-weight: 600; cursor: pointer; }
+:where(button):hover:not(:disabled) { background: var(--color-primary-hover); }
+:where(button):disabled { cursor: not-allowed; opacity: .65; }
 a { color: var(--color-primary); text-underline-offset: .2em; }
 :focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
 code { color: var(--color-ink); font-size: .9em; overflow-wrap: anywhere; }

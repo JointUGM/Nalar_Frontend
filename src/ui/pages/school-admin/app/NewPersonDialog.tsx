@@ -8,6 +8,8 @@ import { Field } from '@/ui/components/field/Field'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import { StudentPicker } from './StudentPicker'
+import { Select } from '@/ui/components/select/Select'
+import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
 
 const roles: readonly [NewPersonRole, string][] = [['student', 'Siswa'], ['teacher', 'Guru'], ['parent', 'Orang tua']]
 const relationships: readonly [Relationship, string][] = [['ibu', 'Ibu'], ['ayah', 'Ayah'], ['wali', 'Wali']]
@@ -45,29 +47,48 @@ export function NewPersonDialog({ service, schoolId, initialRole, onClose }: { s
     if (await command.run((signal) => service.createPerson(schoolId, person, key.current, signal))) onClose(`${fields.name.trim()} ditambahkan. Kirim undangan dari halaman Undangan.`)
   }
 
-  return <Dialog open presentation="drawer" onClose={() => onClose()} dismissible={!command.pending} title="Tambah orang" description="Satu akun baru. Untuk banyak akun sekaligus, pakai Impor data.">
+  return <Dialog open onClose={() => onClose()} dismissible={!command.pending} title="Tambah orang" description="Satu akun baru. Untuk banyak akun sekaligus, pakai Impor data.">
     <form className={shared.form} noValidate onSubmit={(event) => { event.preventDefault(); void save() }}>
-      <label className={shared.field}>Peran
-        <select value={fields.role} disabled={command.pending} onChange={(event) => set({ role: event.target.value as NewPersonRole })}>{roles.map(([value, text]) => <option key={value} value={value}>{text}</option>)}</select>
-      </label>
+      <Select
+        label="Peran"
+        value={fields.role}
+        disabled={command.pending}
+        onChange={(val) => set({ role: val as NewPersonRole })}
+        options={roles.map(([val, text]) => ({ value: val, label: text }))}
+      />
       <Field label="Nama lengkap" required value={fields.name} disabled={command.pending} maxLength={200} onChange={(event) => set({ name: event.target.value })} />
       <Field label={fields.role === 'student' ? 'Email (boleh kosong)' : 'Email'} type="email" required={fields.role !== 'student'} value={fields.email} disabled={command.pending} maxLength={320} onChange={(event) => set({ email: event.target.value })} />
       {fields.role === 'student' && <>
         <Field label="NISN" required inputMode="numeric" maxLength={10} value={fields.nisn} disabled={command.pending} onChange={(event) => set({ nisn: event.target.value.replace(/\D/g, '') })} />
-        <label className={shared.field}>Kelas
-          <select value={fields.classId} disabled={command.pending} onChange={(event) => set({ classId: event.target.value })}>
-            <option value="">Pilih kelas</option>
-            {classes.map((item) => <option key={item.class_id} value={item.class_id}>{item.name}</option>)}
-          </select>
-        </label>
+        <Select
+          label="Kelas"
+          value={fields.classId}
+          disabled={command.pending}
+          placeholder="Pilih kelas"
+          onChange={(val) => set({ classId: val })}
+          options={[
+            { value: '', label: 'Pilih kelas' },
+            ...classes.map((item) => ({ value: item.class_id, label: item.name }))
+          ]}
+        />
       </>}
       {fields.role === 'parent' && <>
-        <label className={shared.field}>Hubungan
-          <select value={fields.relationship} disabled={command.pending} onChange={(event) => set({ relationship: event.target.value as Relationship })}>{relationships.map(([value, text]) => <option key={value} value={value}>{text}</option>)}</select>
-        </label>
+        <Select
+          label="Hubungan"
+          value={fields.relationship}
+          disabled={command.pending}
+          onChange={(val) => set({ relationship: val as Relationship })}
+          options={relationships.map(([val, text]) => ({ value: val, label: text }))}
+        />
         <div>
           <strong>Anak</strong>
-          {children.length > 0 && <ul aria-label="Anak dipilih">{children.map((child) => <li key={child.user_id}>{child.full_name} <Button tone="ghost" aria-label={`Lepas ${child.full_name}`} disabled={command.pending} onClick={() => { touch(); setChildren(children.filter((item) => item.user_id !== child.user_id)) }}>Lepas</Button></li>)}</ul>}
+          {children.length > 0 && <ul className={shared.linkedList} aria-label="Anak dipilih">{children.map((child) => <li key={child.user_id} className={shared.linkedItem}>
+            <div className={shared.linkedInfo}>
+              <NalaAvatar seed={child.full_name} size={28} />
+              <span>{child.full_name}</span>
+            </div>
+            <Button tone="ghost" aria-label={`Lepas ${child.full_name}`} disabled={command.pending} onClick={() => { touch(); setChildren(children.filter((item) => item.user_id !== child.user_id)) }}>Lepas</Button>
+          </li>)}</ul>}
           <StudentPicker service={service} schoolId={schoolId} exclude={children.map((child) => child.user_id)} disabled={command.pending} onPick={(student) => { touch(); setChildren([...children, student]) }} />
         </div>
       </>}

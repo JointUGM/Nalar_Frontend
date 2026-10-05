@@ -5,6 +5,8 @@ import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from './AdminRecords.module.css'
+import { Nala } from '@/ui/components/nala/Nala'
+import { NalaEmpty } from '@/ui/components/nala/NalaState'
 
 // ponytail: actions, tables and actors are shown as the backend records them; the log carries ids, not names. Map them once someone asks.
 const actor = (id: string | null) => id === null ? 'Sistem' : `Pengguna ${id.slice(0, 8)}`
@@ -16,18 +18,30 @@ export function AuditLog({ read }: { read: (cursor: number | null, signal: Abort
   const load = useCallback((signal: AbortSignal) => read(cursor, signal), [read, cursor])
   const { data, error, online, refresh } = useLiveResource(load, noPollMs)
   const rows = [...earlier, ...(data?.items ?? [])]
-  return <section className={styles.card} aria-labelledby="audit-title">
-    <h1 id="audit-title">Log audit</h1>
-    <p className={styles.note}>Siapa mengubah data apa dan kapan. Isi perubahan dan tulisan siswa tidak ditampilkan.</p>
+  return <div className={styles.card}>
+    <div className={styles.welcome}>
+      <div className={styles.welcomeCopy}>
+        <h1 id="audit-title">Log audit</h1>
+        <p className={styles.note}>Siapa mengubah data apa dan kapan. Isi perubahan dan tulisan siswa tidak ditampilkan.</p>
+      </div>
+      <div className={styles.nalaWelcome}>
+        <p className={styles.speech}>Setiap jejak data dan keamanan platform tercatat aman di sini! 🔒</p>
+        <div className={styles.mascot}><Nala mood="search" size={130} animate /></div>
+      </div>
+    </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <p role="status">Memuat log…</p>}
-    {data && rows.length === 0 && <p className={styles.note}>Belum ada catatan.</p>}
+    {data && rows.length === 0 && <div className={styles.note}>
+      <NalaEmpty mood="calm" title="Belum ada catatan audit">
+        <p>Belum ada catatan aktivitas sistem terdeteksi.</p>
+      </NalaEmpty>
+    </div>}
     {rows.length > 0 && <div className={styles.tableRegion} role="region" aria-label="Log audit" tabIndex={0}><table>
       <thead><tr><th scope="col">Waktu</th><th scope="col">Tindakan</th><th scope="col">Data</th><th scope="col">Pelaku</th></tr></thead>
-      <tbody>{rows.map((entry) => <tr key={entry.id}>
+      <tbody>{rows.map((entry, index) => <tr key={`${entry.id}-${index}`}>
         <td>{formatDayTime(entry.created_at)}</td><td><code>{entry.action}</code></td><td>{entry.entity_table}</td><td>{actor(entry.actor_id)}</td>
       </tr>)}</tbody>
     </table></div>}
     {data?.next_cursor !== null && data?.next_cursor !== undefined && <Button tone="secondary" onClick={() => { setEarlier(rows); setCursor(data.next_cursor) }}>Muat lebih banyak</Button>}
-  </section>
+  </div>
 }

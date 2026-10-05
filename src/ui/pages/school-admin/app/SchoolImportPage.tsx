@@ -8,14 +8,23 @@ import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
+import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/school-admin/SchoolImport.module.css'
 import { ErrorsDownload, ImportHistory } from './ImportHistory'
+import { NalaNote } from '@/ui/components/nala/NalaState'
+import type { NalaMood } from '@/ui/components/nala/Nala'
 
 const template = `${rosterColumns.join(',')}\nstudent,Adinda Putri,,0098123401,8B,8,ibu.adinda@example.test,Rina Putri,ibu\nteacher,Sari Wulandari,sari@example.test,,,,,,\n`
 const refusals: Readonly<Record<string, string>> = { FILE_TOO_LARGE: 'Berkas lebih dari 5 MB.', FILE_NOT_CSV: 'Pilih berkas CSV (.csv).' }
 const importPollMs = (item: RosterImport | null) => item && rosterImportEnded(item) ? null : 3000
+
+const companion = (hasImport: boolean, fileSelected: boolean): readonly [NalaMood, string] => {
+  if (hasImport) return ['think', 'Memeriksa berkas yang diunggah dan memastikan data tersimpan dengan benar.']
+  if (fileSelected) return ['proud', 'Berkas siap diunggah. Klik tombol "Unggah dan impor" untuk memproses data.']
+  return ['read', 'Siapkan berkas CSV sesuai format kolom untuk mengimpor data siswa dan guru sekaligus.']
+}
 
 // Follows one import until the backend has checked and saved every row.
 function ImportResult({ service, importId, base }: { service: SchoolAdminUseCases; importId: string; base: string }) {
@@ -54,6 +63,7 @@ export function SchoolImportPage({ service, schoolId, base }: { service: SchoolA
   const [params, setParams] = useSearchParams()
   const importId = params.get('import')
   const chosen = year || data?.find((item) => item.is_current)?.id || ''
+  const note = companion(Boolean(importId), Boolean(file))
 
   async function upload() {
     if (busy.current || !file || !chosen) return
@@ -68,19 +78,29 @@ export function SchoolImportPage({ service, schoolId, base }: { service: SchoolA
   }
 
   return <div className={styles.content}>
-    <h1>Impor data siswa dan guru</h1>
-    <p className={styles.note}>Satu baris per orang. Siswa perlu NISN 10 angka dan tingkat kelas; guru perlu email. Orang tua dibuat dari kolom email orang tua siswa.</p>
+    <div className={styles.heading}>
+      <div>
+        <h1>Impor data siswa dan guru</h1>
+        <p className={styles.note}>Satu baris per orang. Siswa perlu NISN 10 angka dan tingkat kelas; guru perlu email. Orang tua dibuat dari kolom email orang tua siswa.</p>
+      </div>
+      <NalaNote mood={note[0]} text={note[1]} />
+    </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {failure && <Feedback tone="warning" title={refusals[failure.code] ?? failure.message} announce>{failure.requestId && <small>Referensi: {failure.requestId}</small>}</Feedback>}
     {data && data.length === 0 && <Feedback tone="warning" title="Belum ada tahun ajaran">Hubungi admin platform untuk membuat tahun ajaran sekolah ini.</Feedback>}
     {importId ? <ImportResult key={importId} service={service} importId={importId} base={base} /> : <div className={styles.grid}>
       <section className={styles.card} aria-label="Pilih berkas CSV">
-        <label className={styles.scenario}>Tahun ajaran
-          <select value={chosen} disabled={pending} onChange={(event) => setYear(event.target.value)}>
-            <option value="" disabled>Pilih tahun ajaran</option>
-            {(data ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}{item.is_current ? ' (berjalan)' : ''}</option>)}
-          </select>
-        </label>
+        <Select
+          label="Tahun ajaran"
+          value={chosen}
+          disabled={pending}
+          placeholder="Pilih tahun ajaran"
+          onChange={(val) => setYear(val)}
+          options={(data ?? []).map((item) => ({
+            value: item.id,
+            label: `${item.name}${item.is_current ? ' (berjalan)' : ''}`
+          }))}
+        />
         <div className={styles.dropzone}>
           <Icon name="upload" size={24} /><strong>Pilih berkas CSV</strong><span>Maksimal 5 MB</span>
           <Field label="Berkas CSV" type="file" accept=".csv,text/csv" disabled={pending} onChange={(event) => setFile(event.target.files?.[0] ?? null)} />

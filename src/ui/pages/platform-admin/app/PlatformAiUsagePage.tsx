@@ -4,6 +4,8 @@ import type { AiUsageRow } from '@/domain/model/PlatformAdmin'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/components/admin-records/AdminRecords.module.css'
+import { Nala } from '@/ui/components/nala/Nala'
+import { NalaEmpty } from '@/ui/components/nala/NalaState'
 
 const number = new Intl.NumberFormat('id-ID')
 const dollars = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })
@@ -29,8 +31,17 @@ export function PlatformAiUsagePage({ service }: { service: PlatformAdminUseCase
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   const groups = data ? byPurpose(data) : []
   const total = groups.reduce((sum, row) => ({ calls: sum.calls + row.calls, failed: sum.failed + row.failed_calls, cost: sum.cost + row.cost_usd }), { calls: 0, failed: 0, cost: 0 })
-  return <section className={styles.card} aria-labelledby="usage-title">
-    <h1 id="usage-title">Pemakaian AI</h1>
+  return <div className={styles.card}>
+    <div className={styles.welcome}>
+      <div className={styles.welcomeCopy}>
+        <h1 id="usage-title">Pemakaian AI</h1>
+        <p>Pantau statistik penggunaan AI, jumlah token, kegagalan panggilan, dan biaya infrastruktur di platform Nalar.</p>
+      </div>
+      <div className={styles.nalaWelcome}>
+        <p className={styles.speech}>Nala bantu awasi efisiensi dan performa model AI kita ya! 💡</p>
+        <div className={styles.mascot}><Nala mood="think" size={130} animate /></div>
+      </div>
+    </div>
     <div className={styles.controls} role="group" aria-label="Periode">{periods.map((value) => <button key={value} type="button" aria-pressed={days === value} onClick={() => setDays(value)}>{value} hari terakhir</button>)}</div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <p role="status">Memuat pemakaian…</p>}
@@ -39,7 +50,11 @@ export function PlatformAiUsagePage({ service }: { service: PlatformAdminUseCase
       <div><dt>Gagal</dt><dd>{number.format(total.failed)}</dd></div>
       <div><dt>Biaya</dt><dd>{dollars.format(total.cost)}</dd></div>
     </dl>}
-    {data && groups.length === 0 && <p className={styles.note}>Belum ada pemakaian pada periode ini.</p>}
+    {data && groups.length === 0 && <div className={styles.note}>
+      <NalaEmpty mood="wow" title="Belum ada pemakaian AI pada periode ini">
+        <p>Belum ada aktivitas pemakaian pada periode ini.</p>
+      </NalaEmpty>
+    </div>}
     {groups.length > 0 && <div className={styles.tableRegion} role="region" aria-label="Pemakaian per tujuan" tabIndex={0}><table>
       <thead><tr><th scope="col">Tujuan</th><th scope="col">Model</th><th scope="col">Panggilan</th><th scope="col">Gagal</th><th scope="col">Token masuk</th><th scope="col">Token keluar</th><th scope="col">Biaya</th></tr></thead>
       <tbody>{groups.map((row) => <tr key={`${row.purpose} ${row.model}`}>
@@ -47,5 +62,5 @@ export function PlatformAiUsagePage({ service }: { service: PlatformAdminUseCase
         <td>{number.format(row.input_tokens)}</td><td>{number.format(row.output_tokens)}</td><td>{dollars.format(row.cost_usd)}</td>
       </tr>)}</tbody>
     </table></div>}
-  </section>
+  </div>
 }

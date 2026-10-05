@@ -17,10 +17,11 @@ export interface SelectProps {
   name?: string
   id?: string
   className?: string
+  required?: boolean
 }
 
 export function Select({ label, value, options, onChange, compact = false, disabled = false,
-  placeholder = 'Pilih salah satu', hint, error, name, id: providedId, className }: SelectProps) {
+  placeholder = 'Pilih salah satu', hint, error, name, id: providedId, className, required = false }: SelectProps) {
   const generatedId = useId(), id = providedId ?? generatedId
   const trigger = useRef<HTMLButtonElement>(null), popup = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
@@ -30,16 +31,23 @@ export function Select({ label, value, options, onChange, compact = false, disab
   const selected = options.findIndex(option => option.value === value)
   const current = options[selected]
 
-  function close() { popup.current?.hidePopover(); setOpen(false) }
+  function close() {
+    try { popup.current?.hidePopover() } catch {}
+    setOpen(false)
+  }
   function show(index = Math.max(0, selected)) {
     if (!trigger.current || !popup.current || disabled || options.length === 0) return
     const rect = trigger.current.getBoundingClientRect(), below = window.innerHeight - rect.bottom
-    const placeBelow = below >= Math.min(240, options.length * 72 + 16) || below >= rect.top
-    setPosition({ left: rect.left, width: rect.width, maxHeight: Math.max(80, Math.min(320, (placeBelow ? below : rect.top) - 16)),
-      ...(placeBelow ? { top: rect.bottom + 8, bottom: 'auto' } : { top: 'auto', bottom: window.innerHeight - rect.top + 8 }) })
+    const placeBelow = below >= Math.min(240, options.length * 56 + 16) || below >= rect.top
+    setPosition({
+      left: rect.left,
+      width: rect.width,
+      maxHeight: Math.max(80, Math.min(320, (placeBelow ? below : rect.top) - 16)),
+      ...(placeBelow ? { top: rect.bottom + 6, bottom: 'auto' } : { top: 'auto', bottom: window.innerHeight - rect.top + 6 })
+    })
     setActive(index)
     typed.current = { text: '', time: 0 }
-    popup.current.showPopover()
+    try { popup.current?.showPopover() } catch {}
     setOpen(true)
   }
   function choose(index: number) {
@@ -79,31 +87,87 @@ export function Select({ label, value, options, onChange, compact = false, disab
   }, [active, open, id])
   useEffect(() => {
     if (!open) return
-    const dismiss = (event: Event) => { if (!(event.target instanceof Node) || !popup.current?.contains(event.target)) popup.current?.hidePopover() }
+    const dismiss = (event: Event) => { if (!(event.target instanceof Node) || !popup.current?.contains(event.target)) close() }
     window.addEventListener('resize', dismiss)
     document.addEventListener('scroll', dismiss, true)
     return () => { window.removeEventListener('resize', dismiss); document.removeEventListener('scroll', dismiss, true) }
   }, [open])
 
   return <div className={[styles.field, className].filter(Boolean).join(' ')} data-compact={compact}>
-    <span id={`${id}-label`} className={styles.label}>{label}</span>
-    <button id={id} ref={trigger} type="button" role="combobox" aria-labelledby={`${id}-label`} aria-controls={`${id}-list`}
-      aria-expanded={open} aria-haspopup="listbox" aria-activedescendant={open ? `${id}-option-${active}` : undefined}
-      aria-invalid={error ? true : undefined} aria-describedby={error || hint ? `${id}-help` : undefined}
-      disabled={disabled || options.length === 0} className={styles.trigger} onKeyDown={keyDown} onClick={() => { if (open) close(); else show() }}>
-      <span className={styles.value}><span>{current?.label ?? (options.length ? placeholder : 'Tidak ada pilihan')}</span>{!compact && current?.description && <small>{current.description}</small>}</span>
+    {!compact && (
+      <label id={`${id}-label`} htmlFor={id} className={styles.label}>
+        {label}
+        {required && <span aria-hidden="true"> *</span>}
+      </label>
+    )}
+    <button
+      id={`${id}-trigger`}
+      ref={trigger}
+      type="button"
+      aria-haspopup="listbox"
+      aria-expanded={open}
+      aria-controls={`${id}-list`}
+      aria-invalid={error ? true : undefined}
+      aria-describedby={error || hint ? `${id}-help` : undefined}
+      disabled={disabled || options.length === 0}
+      className={styles.trigger}
+      onKeyDown={keyDown}
+      onClick={() => { if (open) close(); else show() }}
+    >
+      <span className={styles.value}>
+        <span>{current?.label ?? (options.length ? placeholder : 'Tidak ada pilihan')}</span>
+        {!compact && current?.description && <small>{current.description}</small>}
+      </span>
       <Icon name="chevronDown" size={16} />
     </button>
-    <div ref={popup} id={`${id}-list`} role="listbox" aria-labelledby={`${id}-label`} popover="auto" className={styles.popup}
-      style={position} onBeforeToggle={event => setOpen(event.newState === 'open')}>
-      {options.map((option, index) => <div key={option.value} id={`${id}-option-${index}`} role="option" aria-selected={option.value === value}
-        aria-labelledby={`${id}-text-${index}`} aria-describedby={option.description ? `${id}-description-${index}` : undefined}
-        className={styles.option} data-active={active === index} onPointerMove={() => setActive(index)} onPointerDown={event => event.preventDefault()} onClick={() => choose(index)}>
-        <span><span id={`${id}-text-${index}`}>{option.label}</span>{option.description && <small id={`${id}-description-${index}`}>{option.description}</small>}</span>
-        {option.value === value && <Icon name="check" size={16} />}
-      </div>)}
+    <select
+      id={id}
+      name={name}
+      value={value}
+      disabled={disabled}
+      required={required}
+      className={styles.hiddenSelect}
+      onChange={(event) => onChange(event.target.value)}
+    >
+      {placeholder && !current && <option value="" disabled>{placeholder}</option>}
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+    <div
+      ref={popup}
+      id={`${id}-list`}
+      role="listbox"
+      popover="auto"
+      className={styles.popup}
+      data-open={open}
+      style={position}
+      onBeforeToggle={event => setOpen(event.newState === 'open')}
+    >
+      {options.map((option, index) => (
+        <div
+          key={option.value}
+          id={`${id}-option-${index}`}
+          role="option"
+          aria-selected={option.value === value}
+          aria-labelledby={`${id}-text-${index}`}
+          aria-describedby={option.description ? `${id}-description-${index}` : undefined}
+          className={styles.option}
+          data-active={active === index}
+          onPointerMove={() => setActive(index)}
+          onPointerDown={event => event.preventDefault()}
+          onClick={() => choose(index)}
+        >
+          <span>
+            <span id={`${id}-text-${index}`}>{option.label}</span>
+            {option.description && <small id={`${id}-description-${index}`}>{option.description}</small>}
+          </span>
+          {option.value === value && <Icon name="check" size={16} />}
+        </div>
+      ))}
     </div>
-    {name && <input type="hidden" name={name} value={value} disabled={disabled} />}
     {(error || hint) && <span id={`${id}-help`} className={styles.help} data-error={Boolean(error)}>{error ?? hint}</span>}
   </div>
 }

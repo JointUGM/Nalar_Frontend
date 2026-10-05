@@ -8,6 +8,7 @@ import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/school-admin/SchoolImport.module.css'
+import { NalaEmpty } from '@/ui/components/nala/NalaState'
 
 const statusWord = (status: string) => status === 'completed' ? 'Selesai' : status === 'failed' ? 'Gagal' : 'Diproses'
 
@@ -27,7 +28,7 @@ export function ImportHistory({ service, schoolId, years, base }: { service: Sch
     <div className={styles.cardHeading}><h2 id="import-history">Riwayat impor</h2></div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <p role="status">Memuat riwayat…</p>}
-    {data && rows.length === 0 && <p className={styles.note}>Belum ada impor.</p>}
+    {data && rows.length === 0 && <div style={{ marginBlock: '16px' }}><NalaEmpty mood="read" title="Belum ada riwayat impor">Unggah berkas CSV di atas untuk memulai impor data pertama kali.</NalaEmpty></div>}
     {rows.length > 0 && <div className={styles.tableRegion} role="region" aria-label="Riwayat impor" tabIndex={0}><table>
       <thead><tr><th scope="col">Waktu</th><th scope="col">Tahun ajaran</th><th scope="col">Status</th><th scope="col">Hasil</th><th scope="col"><span className="sr-only">Tindakan</span></th></tr></thead>
       <tbody>{rows.map((item) => <tr key={item.import_id}>

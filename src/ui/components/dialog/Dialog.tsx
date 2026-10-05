@@ -1,6 +1,7 @@
 import type { KeyboardEvent, ReactNode } from 'react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { Button } from '@/ui/components/button/Button'
+import { Icon } from '@/ui/components/icon/Icon'
 import styles from './Dialog.module.css'
 
 export interface DialogProps {
@@ -55,6 +56,44 @@ export function Dialog({ open, onClose, title, description, dismissible = true, 
     }
   }, [open])
 
+  const isBackdropClick = useRef(false)
+
+  const handleMouseDown = (event: React.MouseEvent<HTMLDialogElement>) => {
+    if (!dismissible) return
+    const dialog = dialogRef.current
+    if (!dialog) return
+    if (event.target === dialog) {
+      const rect = dialog.getBoundingClientRect()
+      isBackdropClick.current = (
+        event.clientX < rect.left ||
+        event.clientX > rect.right ||
+        event.clientY < rect.top ||
+        event.clientY > rect.bottom
+      )
+    } else {
+      isBackdropClick.current = false
+    }
+  }
+
+  const handleClick = (event: React.MouseEvent<HTMLDialogElement>) => {
+    if (!dismissible) return
+    const dialog = dialogRef.current
+    if (!dialog) return
+    if (isBackdropClick.current && event.target === dialog) {
+      const rect = dialog.getBoundingClientRect()
+      const isOutside = (
+        event.clientX < rect.left ||
+        event.clientX > rect.right ||
+        event.clientY < rect.top ||
+        event.clientY > rect.bottom
+      )
+      if (isOutside) {
+        onClose()
+      }
+    }
+    isBackdropClick.current = false
+  }
+
   return (
     <dialog
       ref={dialogRef}
@@ -63,12 +102,20 @@ export function Dialog({ open, onClose, title, description, dismissible = true, 
       aria-describedby={descriptionId}
       onKeyDown={wrapFocus}
       onCancel={(event) => { event.preventDefault(); if (dismissible) onClose() }}
+      onMouseDown={handleMouseDown}
+      onClick={handleClick}
     >
       <div className={styles.header}>
         <h2 id={titleId}>{title}</h2>
-        <Button tone="ghost" aria-label="Tutup dialog" disabled={!dismissible} onClick={onClose}>
-          <span aria-hidden="true">×</span>
-        </Button>
+        <button
+          type="button"
+          className={styles.closeButton}
+          aria-label="Tutup dialog"
+          disabled={!dismissible}
+          onClick={onClose}
+        >
+          <Icon name="x" size={16} />
+        </button>
       </div>
       <div className={styles.body}>
         <p id={descriptionId} className={styles.description}>{description}</p>

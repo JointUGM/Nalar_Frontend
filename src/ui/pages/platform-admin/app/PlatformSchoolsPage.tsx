@@ -11,6 +11,8 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/platform-admin/Platform.module.css'
 import { Loading } from '@/ui/components/loading/Loading'
+import { Nala } from '@/ui/components/nala/Nala'
+import { NalaEmpty } from '@/ui/components/nala/NalaState'
 
 const number = new Intl.NumberFormat('id-ID')
 const statusWord: Readonly<Record<string, string>> = { active: 'Aktif', suspended: 'Ditangguhkan' }
@@ -41,7 +43,19 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
   const close = (done?: string) => { setModal(null); setMenu(null); if (done) { setMessage(done); refresh() } }
 
   return <div className={styles.content}>
-    <div className={styles.pageHeading}><h1>Sekolah</h1><Button className={styles.compactButton} onClick={() => { setMessage(''); setModal({ kind: 'onboard' }) }}><Icon name="plus" size={16} />Daftarkan sekolah</Button></div>
+    <div className={styles.welcome}>
+      <div className={styles.welcomeCopy}>
+        <h1>Sekolah</h1>
+        <p>Kelola pendaftaran sekolah baru, pantau status keaktifan, dan atur akses administrator sekolah di ekosistem Nalar.</p>
+        <div className={styles.welcomeActions}>
+          <Button className={styles.compactButton} onClick={() => { setMessage(''); setModal({ kind: 'onboard' }) }}><Icon name="plus" size={16} />Daftarkan sekolah</Button>
+        </div>
+      </div>
+      <div className={styles.nalaWelcome}>
+        <p className={styles.speech}>Halo Admin! Semua sekolah terpantau aktif dan lancar 🚀</p>
+        <div className={styles.mascot}><Nala mood="proud" size={130} animate /></div>
+      </div>
+    </div>
     {message && <Feedback tone="success" title={message} announce />}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {data && <div className={styles.metrics}>
@@ -65,7 +79,11 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
         <Button tone="secondary" className={styles.pillButton} onClick={() => { setMessage(''); setModal({ kind: 'admin', school }) }}><Icon name="swap" size={14} />Ganti admin sekolah</Button>
         <Button tone="secondary" className={styles.suspendButton} onClick={() => { setMessage(''); setModal({ kind: 'status', school }) }}><Icon name="pause" size={14} />{school.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'}</Button>
       </td></tr>}</Fragment>)}</tbody>
-    </table></div> : <div className={styles.empty}><p>{q ? 'Tidak ada sekolah yang cocok dengan pencarian ini.' : 'Belum ada sekolah terdaftar.'}</p></div>)}
+    </table></div> : <div className={styles.empty}>
+      <NalaEmpty mood={q ? 'search' : 'hello'} title={q ? 'Tidak ada sekolah yang cocok' : 'Belum ada sekolah terdaftar'}>
+        <p>{q ? 'Tidak ada sekolah yang cocok dengan pencarian ini.' : 'Belum ada sekolah terdaftar.'}</p>
+      </NalaEmpty>
+    </div>)}
     {data && <nav className={styles.pagination} aria-label="Halaman sekolah">
       <span className={styles.paginationInfo}>{data.total} sekolah{q ? ' cocok' : ''}</span>
       <div className={styles.paginationButtons}>

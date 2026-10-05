@@ -6,6 +6,8 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { useCommand } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import { StudentPicker } from './StudentPicker'
+import { Select } from '@/ui/components/select/Select'
+import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
 
 const relationships: readonly [Relationship, string][] = [['ibu', 'Ibu'], ['ayah', 'Ayah'], ['wali', 'Wali']]
 const refusals: Readonly<Record<string, string>> = {
@@ -34,16 +36,27 @@ export function PersonLinks({ service, schoolId, person, editable, onDone }: { s
   if (others.length === 0 && !(editable && isParent)) return null
   return <div>
     <strong>{isParent ? 'Anak' : 'Orang tua'}</strong>
-    <ul>{others.map((other) => <li key={other.user_id}>{other.full_name}
+    <ul className={shared.linkedList}>{others.map((other) => <li key={other.user_id} className={shared.linkedItem}>
+      <div className={shared.linkedInfo}>
+        <NalaAvatar seed={other.full_name} size={28} />
+        <span>{other.full_name}</span>
+      </div>
       {editable && (removing === other.user_id
-        ? <> <Button tone="danger" pending={command.pending} pendingLabel="Melepas…" aria-label={`Ya, lepas ${other.full_name}`} onClick={() => void unlink(other.user_id, other.full_name)}>Ya, lepas</Button> <Button tone="secondary" disabled={command.pending} onClick={() => { command.reset(); setRemoving(null) }}>Batal</Button></>
-        : <> <Button tone="ghost" aria-label={`Lepas ${other.full_name}`} disabled={command.pending} onClick={() => { command.reset(); setRemoving(other.user_id) }}>Lepas</Button></>)}
-      {removing === other.user_id && <Feedback tone="warning" title={`Lepas ${other.full_name}?`}>{isParent ? `${person.full_name} tidak bisa lagi melihat hasil ${other.full_name}.` : `${other.full_name} tidak bisa lagi melihat hasil ${person.full_name}.`}</Feedback>}
+        ? <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <Button tone="danger" pending={command.pending} pendingLabel="Melepas…" aria-label={`Ya, lepas ${other.full_name}`} onClick={() => void unlink(other.user_id, other.full_name)}>Ya, lepas</Button>
+            <Button tone="secondary" disabled={command.pending} onClick={() => { command.reset(); setRemoving(null) }}>Batal</Button>
+          </div>
+        : <Button tone="ghost" aria-label={`Lepas ${other.full_name}`} disabled={command.pending} onClick={() => { command.reset(); setRemoving(other.user_id) }}>Lepas</Button>)}
+      {removing === other.user_id && <div style={{ width: '100%', marginBlockStart: '8px' }}><Feedback tone="warning" title={`Lepas ${other.full_name}?`}>{isParent ? `${person.full_name} tidak bisa lagi melihat hasil ${other.full_name}.` : `${other.full_name} tidak bisa lagi melihat hasil ${person.full_name}.`}</Feedback></div>}
     </li>)}</ul>
     {editable && isParent && <>
-      <label className={shared.field}>Hubungan untuk anak baru
-        <select value={relationship} disabled={command.pending} onChange={(event) => setRelationship(event.target.value as Relationship)}>{relationships.map(([value, text]) => <option key={value} value={value}>{text}</option>)}</select>
-      </label>
+      <Select
+        label="Hubungan untuk anak baru"
+        value={relationship}
+        disabled={command.pending}
+        onChange={(val) => setRelationship(val as Relationship)}
+        options={relationships.map(([val, text]) => ({ value: val, label: text }))}
+      />
       <StudentPicker service={service} schoolId={schoolId} exclude={others.map((other) => other.user_id)} disabled={command.pending} onPick={(student) => void link(student)} />
     </>}
     {said && <Feedback tone="warning" title={said} announce>{command.failure?.requestId && <small>Referensi: {command.failure.requestId}</small>}</Feedback>}

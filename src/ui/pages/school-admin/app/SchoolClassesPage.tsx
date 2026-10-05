@@ -13,7 +13,9 @@ import styles from '@/ui/pages/school-admin/SchoolClasses.module.css'
 import { PlaceStudentsDialog } from './PlaceStudentsDialog'
 import { useAcademicYears } from './useAcademicYears'
 import { YearSelect } from './YearSelect'
+import { Select } from '@/ui/components/select/Select'
 import { Loading } from '@/ui/components/loading/Loading'
+import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 
 const refusals: Readonly<Record<string, string>> = {
   CLASS_NAME_EXISTS: 'Nama kelas itu sudah dipakai di tahun ajaran ini.',
@@ -34,10 +36,17 @@ export function SchoolClassesPage({ service, schoolId }: { service: SchoolAdminU
   const [message, setMessage] = useState('')
   const teacherName = (id: string | null) => data?.teachers.find((item) => item.user_id === id)?.full_name ?? 'Belum ditentukan'
   const groups = grades.map((grade) => ({ grade, items: (data?.classes ?? []).filter((item) => item.grade_level === grade).sort((a, b) => a.name.localeCompare(b.name, 'id-ID')) })).filter((group) => group.items.length)
+  const note = data && data.classes.length > 0
+    ? (['hello', `${data.classes.length} kelas aktif di tahun ajaran ini.`] as const)
+    : null
 
   return <div className={styles.content}>
     <div className={styles.heading}>
-      <div><h1>Kelas</h1></div>
+      <div>
+        <h1>Kelas</h1>
+        <p className={styles.subtitle}>Kelola daftar rombel, wali kelas, dan penempatan siswa.</p>
+      </div>
+      {note && <NalaNote mood={note[0]} text={note[1]} />}
       {data && <Button className={styles.addButton} onClick={() => { setMessage(''); setEditing('new') }}><Icon name="plus" size={16} />Kelas baru</Button>}
     </div>
     <YearSelect years={years} />
@@ -45,7 +54,21 @@ export function SchoolClassesPage({ service, schoolId }: { service: SchoolAdminU
     <LiveFeedback error={years.error ?? error} online={online} refresh={() => { years.refresh(); refresh() }} />
     {((!years.loaded && !years.error) || (years.yearId && !data && !error)) && <Loading label="Memuat kelas…" />}
     {data && <p className={styles.note}>{data.classes.length} kelas. Pilih kelas untuk mengubah nama, tingkat, atau wali kelasnya.</p>}
-    {data && data.classes.length === 0 && <p className={styles.empty}>Belum ada kelas di tahun ajaran ini.</p>}
+    {data && data.classes.length === 0 && (
+      <div className={styles.emptyCard}>
+        <NalaEmpty
+          mood="ask"
+          title="Belum ada kelas"
+          action={
+            <Button onClick={() => { setMessage(''); setEditing('new') }}>
+              <Icon name="plus" size={16} />Buat kelas baru
+            </Button>
+          }
+        >
+          <p>Belum ada kelas di tahun ajaran ini. Tambah kelas baru untuk mulai menempatkan siswa.</p>
+        </NalaEmpty>
+      </div>
+    )}
     {groups.map((group) => <section key={group.grade} className={styles.group} aria-labelledby={`grade-${group.grade}`}>
       <h2 id={`grade-${group.grade}`}>Kelas {group.grade}</h2>
       <ul className={styles.grid}>{group.items.map((item) => <li key={item.class_id}>
@@ -71,15 +94,24 @@ function ClassDialog({ service, schoolId, yearId, item, teachers, onClose }: { s
   return <Dialog open onClose={() => onClose()} dismissible={!command.pending} title={item ? `Ubah kelas ${item.name}` : 'Kelas baru'} description={item ? 'Siswa dan riwayat misi kelas ini tidak berubah.' : 'Kelas dibuat di tahun ajaran yang dipilih.'}>
     <form className={shared.form} noValidate onSubmit={(event) => { event.preventDefault(); void save() }}>
       <Field label="Nama kelas" required value={name} maxLength={200} disabled={command.pending} placeholder="8A" onChange={(event) => { command.reset(); setName(event.target.value) }} />
-      <label className={shared.field}>Tingkat
-        <select value={grade} disabled={command.pending} onChange={(event) => { command.reset(); setGrade(Number(event.target.value)) }}>{grades.map((value) => <option key={value} value={value}>Kelas {value}</option>)}</select>
-      </label>
-      <label className={shared.field}>Wali kelas
-        <select value={homeroom} disabled={command.pending} onChange={(event) => { command.reset(); setHomeroom(event.target.value) }}>
-          <option value="">Belum ditentukan</option>
-          {teachers.map((teacher) => <option key={teacher.user_id} value={teacher.user_id}>{teacher.full_name}</option>)}
-        </select>
-      </label>
+      <Select
+        label="Tingkat"
+        value={String(grade)}
+        disabled={command.pending}
+        onChange={(val) => { command.reset(); setGrade(Number(val)) }}
+        options={grades.map((val) => ({ value: String(val), label: `Kelas ${val}` }))}
+      />
+      <Select
+        label="Wali kelas"
+        value={homeroom}
+        disabled={command.pending}
+        placeholder="Belum ditentukan"
+        onChange={(val) => { command.reset(); setHomeroom(val) }}
+        options={[
+          { value: '', label: 'Belum ditentukan' },
+          ...teachers.map((teacher) => ({ value: teacher.user_id, label: teacher.full_name }))
+        ]}
+      />
       {said && <Feedback tone="warning" title={said} announce>{command.failure?.requestId && <small>Referensi: {command.failure.requestId}</small>}</Feedback>}
       <div className={shared.actions}><Button tone="secondary" disabled={command.pending} onClick={() => onClose()}>Batal</Button><Button type="submit" pending={command.pending} pendingLabel="Menyimpan…">{item ? 'Simpan' : 'Buat kelas'}</Button></div>
     </form>

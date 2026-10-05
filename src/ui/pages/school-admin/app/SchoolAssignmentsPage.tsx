@@ -10,7 +10,9 @@ import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import styles from '@/ui/pages/school-admin/SchoolAssignments.module.css'
 import { useAcademicYears } from './useAcademicYears'
 import { YearSelect } from './YearSelect'
+import { Select } from '@/ui/components/select/Select'
 import { Loading } from '@/ui/components/loading/Loading'
+import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 
 interface Cell { item: SchoolClass; subject: SchoolSubject; teachers: { id: string; name: string }[] }
 
@@ -27,15 +29,29 @@ export function SchoolAssignmentsPage({ service, schoolId }: { service: SchoolAd
   const cell = (item: SchoolClass, subject: SchoolSubject): Cell => ({ item, subject, teachers: (data?.assignments ?? []).filter((row) => row.class_id === item.class_id && row.school_subject_id === subject.school_subject_id && row.teacher_id).map((row) => ({ id: row.teacher_id ?? '', name: row.teacher_name })) })
   const cells = data ? data.classes.flatMap((item) => data.subjects.map((subject) => cell(item, subject))) : []
   const filled = cells.filter((entry) => entry.teachers.length).length
+  const note = data && cells.length > 0
+    ? ([filled === cells.length ? 'proud' : 'think', `${filled} dari ${cells.length} penugasan guru telah terisi.`] as const)
+    : null
 
   return <div className={styles.content}>
-    <h1>Penugasan guru</h1>
-    <p className={styles.lead}>Guru melihat siswa dari kelas dan mata pelajaran yang ditugaskan.</p>
+    <div className={styles.heading}>
+      <div>
+        <h1>Penugasan guru</h1>
+        <p className={styles.lead}>Guru melihat siswa dari kelas dan mata pelajaran yang ditugaskan.</p>
+      </div>
+      {note && <NalaNote mood={note[0]} text={note[1]} />}
+    </div>
     <YearSelect years={years} />
     <LiveFeedback error={years.error ?? error} online={online} refresh={() => { years.refresh(); refresh() }} />
     {((!years.loaded && !years.error) || (years.yearId && !data && !error)) && <Loading label="Memuat penugasan…" />}
     {message && <Feedback tone="success" title={message} announce />}
-    {data && (cells.length === 0 ? <p className={styles.note}>Belum ada kelas atau mata pelajaran di tahun ajaran ini.</p> : <>
+    {data && (cells.length === 0 ? (
+      <div className={styles.emptyCard}>
+        <NalaEmpty mood="ask" title="Belum ada penugasan">
+          <p>Belum ada kelas atau mata pelajaran di tahun ajaran ini. Tambah kelas dan mata pelajaran terlebih dahulu.</p>
+        </NalaEmpty>
+      </div>
+    ) : <>
       <p className={styles.summary} role="status">{filled} dari {cells.length} penugasan terisi</p>
       <div className={styles.card} role="region" aria-label="Tabel penugasan guru, dapat digulir mendatar" tabIndex={0}><table className={styles.table}>
         <caption className={styles.hidden}>Guru per kelas dan mata pelajaran</caption>
@@ -63,12 +79,17 @@ function AssignmentDialog({ service, schoolId, cell, teachers, onClose }: { serv
   }
   return <Dialog open onClose={() => onClose()} dismissible={!command.pending} title={`${cell.subject.name} · kelas ${cell.item.name}`} description={`Guru saat ini: ${cell.teachers.map((teacher) => teacher.name).join(', ') || 'belum ditugaskan'}.`}>
     <div className={shared.form}>
-      <label className={shared.field}>Guru
-        <select value={teacherId} disabled={command.pending} onChange={(event) => { command.reset(); setTeacherId(event.target.value) }}>
-          <option value="">Belum ditugaskan</option>
-          {teachers.map((teacher) => <option key={teacher.user_id} value={teacher.user_id}>{teacher.full_name}</option>)}
-        </select>
-      </label>
+      <Select
+        label="Guru"
+        value={teacherId}
+        disabled={command.pending}
+        placeholder="Belum ditugaskan"
+        onChange={(val) => { command.reset(); setTeacherId(val) }}
+        options={[
+          { value: '', label: 'Belum ditugaskan' },
+          ...teachers.map((teacher) => ({ value: teacher.user_id, label: teacher.full_name }))
+        ]}
+      />
       <p>Pilihan ini menggantikan semua guru {cell.subject.name} di kelas {cell.item.name}. Guru yang diganti tidak lagi melihat siswa kelas ini untuk mata pelajaran tersebut.</p>
       {command.failure && <Feedback tone="warning" title={command.failure.message} announce>{command.failure.requestId && <small>Referensi: {command.failure.requestId}</small>}</Feedback>}
       <div className={shared.actions}><Button tone="secondary" disabled={command.pending} onClick={() => onClose()}>Batal</Button><Button disabled={teacherId === current && cell.teachers.length < 2} pending={command.pending} pendingLabel="Menyimpan…" onClick={() => void save()}>Simpan penugasan</Button></div>
