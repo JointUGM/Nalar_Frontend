@@ -40,7 +40,7 @@ export function PlatformAiUsagePage({ service }: { service: PlatformAdminUseCase
       </div>
       <div className={styles.nalaWelcome}>
         <p className={styles.speech}>Nala bantu awasi efisiensi dan performa model AI kita ya! 💡</p>
-        <div className={styles.mascot}><Nala mood="think" size={130} animate /></div>
+        <div className={styles.mascot}><Nala mood="think" size={80} animate /></div>
       </div>
     </div>
     <div className={styles.controls} role="group" aria-label="Periode">{periods.map((value) => <button key={value} type="button" aria-pressed={days === value} onClick={() => setDays(value)}>{value} hari terakhir</button>)}</div>

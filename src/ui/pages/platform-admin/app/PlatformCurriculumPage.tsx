@@ -53,7 +53,7 @@ export function PlatformCurriculumPage({ service }: { service: PlatformAdminUseC
       </div>
       <div className={styles.nalaWelcome}>
         <p className={styles.speech}>Kurikulum terbaru siap diselaraskan dengan capaian pembelajaran! 📚</p>
-        <div className={styles.mascot}><Nala mood="read" size={130} animate /></div>
+        <div className={styles.mascot}><Nala mood="read" size={80} animate /></div>
       </div>
     </div>
     {message && <Feedback tone="success" title={message} announce />}
