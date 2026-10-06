@@ -12,6 +12,7 @@ import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveRe
 import styles from '@/ui/pages/platform-admin/Platform.module.css'
 import { Loading } from '@/ui/components/loading/Loading'
 import { Nala } from '@/ui/components/nala/Nala'
+import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { NalaEmpty } from '@/ui/components/nala/NalaState'
 
 const number = new Intl.NumberFormat('id-ID')
@@ -57,39 +58,169 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
     </div>
     {message && <Feedback tone="success" title={message} announce />}
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {data && <dl className={styles.metrics} aria-label="Ringkasan seluruh sekolah">
-      <div><dt>Sekolah aktif</dt><dd>{number.format(data.counts.active ?? 0)}</dd></div>
-      <div><dt>Ditangguhkan</dt><dd>{number.format(data.counts.suspended ?? 0)}</dd></div>
-      <div><dt>Semua sekolah</dt><dd>{number.format(data.counts.total ?? data.total)}</dd></div>
-    </dl>}
+    {data && (
+      <section className={styles.summary} aria-labelledby="schools-summary-heading">
+        <div className={styles.sectionHead}>
+          <h2 id="schools-summary-heading">Ringkasan sekolah</h2>
+        </div>
+        <dl className={styles.kpis} aria-label="Ringkasan seluruh sekolah">
+          <div className={styles.kpiItem}>
+            <dt className={styles.kpiLabel}>
+              <NalaIcon name="done" size={28} />
+              <span>Sekolah aktif</span>
+            </dt>
+            <dd className={styles.kpiValue}>{number.format(data.counts.active ?? 0)}</dd>
+            <dd className={styles.kpiComparison}>
+              {data.counts.total
+                ? `${Math.round(((data.counts.active ?? 0) / (data.counts.total ?? 1)) * 100)}% dari total terdaftar`
+                : '100% dari total'}
+            </dd>
+            <dd className={styles.kpiCaption}>Beroperasi normal</dd>
+          </div>
+          <div className={styles.kpiItem}>
+            <dt className={styles.kpiLabel}>
+              <NalaIcon name="alert" size={28} />
+              <span>Ditangguhkan</span>
+            </dt>
+            <dd className={styles.kpiValue}>{number.format(data.counts.suspended ?? 0)}</dd>
+            <dd className={styles.kpiComparison}>
+              {(data.counts.suspended ?? 0) === 0 ? 'Tidak ada catatan' : `${data.counts.suspended} perlu tindakan`}
+            </dd>
+            <dd className={styles.kpiCaption}>
+              {(data.counts.suspended ?? 0) === 0 ? 'Semua akun dapat masuk' : 'Akses sekolah dibatasi'}
+            </dd>
+          </div>
+          <div className={styles.kpiItem}>
+            <dt className={styles.kpiLabel}>
+              <NalaIcon name="account" size={28} />
+              <span>Semua sekolah</span>
+            </dt>
+            <dd className={styles.kpiValue}>{number.format(data.counts.total ?? data.total)}</dd>
+            <dd className={styles.kpiComparison}>Terdaftar di ekosistem</dd>
+            <dd className={styles.kpiCaption}>Terhubung ke platform Nalar</dd>
+          </div>
+        </dl>
+      </section>
+    )}
     <section className={styles.directory} aria-labelledby="school-directory-title">
-    <div className={styles.toolbar}><div><h2 id="school-directory-title">Daftar sekolah</h2><p>Temukan sekolah, lalu pilih tindakan yang diperlukan.</p></div><Field label="Cari nama, NPSN, atau kota" type="search" placeholder="Nama sekolah, NPSN, atau kota…" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
-    {!data && !error && <Loading label="Memuat sekolah…" />}
-    {data && (data.items.length ? <div className={styles.tableCard}><table className={styles.table}>
-      <caption className={styles.visuallyHidden}>Sekolah pada halaman ini</caption>
-      <thead><tr><th scope="col">Sekolah</th><th scope="col">Admin sekolah</th><th scope="col">Pengguna</th><th scope="col">Status</th><th scope="col">Tindakan</th></tr></thead>
-      <tbody>{data.items.map((school) => <tr key={school.id}>
-        <td><div className={styles.schoolIdentity}><span className={styles.schoolName}>{school.name}</span><span className={styles.city}>{[school.city, school.npsn && `NPSN ${school.npsn}`].filter(Boolean).join(' · ')}</span></div></td>
-        <td className={styles.admin}><span className={styles.mobileLabel}>Admin sekolah</span>{school.admin_name ?? 'Belum ada'}</td>
-        <td className={styles.userCount}>{number.format(school.user_count)}</td>
-        <td><span className={[styles.badge, styles[school.status]].join(' ')}>{statusWord[school.status] ?? school.status}</span></td>
-        <td className={styles.rowActions}><div className={styles.rowActionButtons} role="group" aria-label={`Tindakan ${school.name}`}>
-        <Button tone="secondary" className={styles.pillButton} aria-label="Ubah data sekolah" onClick={() => { setMessage(''); setModal({ kind: 'edit', school }) }}><Icon name="pencil" size={14} />Ubah data</Button>
-        <Button tone="secondary" className={styles.pillButton} aria-label="Ganti admin sekolah" onClick={() => { setMessage(''); setModal({ kind: 'admin', school }) }}><Icon name="swap" size={14} />Ganti admin</Button>
-        <Button tone="secondary" className={styles.suspendButton} onClick={() => { setMessage(''); setModal({ kind: 'status', school }) }}><Icon name="pause" size={14} />{school.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'}</Button>
-        </div></td></tr>)}</tbody>
-    </table></div> : <div className={styles.empty}>
-      <NalaEmpty mood={q ? 'search' : 'hello'} title={q ? 'Tidak ada sekolah yang cocok' : 'Belum ada sekolah terdaftar'}>
-        <p>{q ? 'Tidak ada sekolah yang cocok dengan pencarian ini.' : 'Belum ada sekolah terdaftar.'}</p>
-      </NalaEmpty>
-    </div>)}
-    {data && <nav className={styles.pagination} aria-label="Halaman sekolah">
-      <span className={styles.paginationInfo}>{data.total} sekolah{q ? ' cocok' : ''}</span>
-      <div className={styles.paginationButtons}>
-        {cursor && <Button tone="secondary" onClick={() => setCursor(null)}>Kembali ke awal</Button>}
-        {data.next_cursor && <Button tone="secondary" onClick={() => setCursor(data.next_cursor)}>Halaman berikutnya</Button>}
+      <div className={styles.toolbar}>
+        <div className={styles.toolbarHeading}>
+          <div className={styles.toolbarTitleRow}>
+            <h2 id="school-directory-title">Daftar sekolah</h2>
+            {data && <span className={styles.schoolCountBadge}>{data.total} sekolah</span>}
+          </div>
+          <p>Temukan sekolah, lalu pilih tindakan yang diperlukan.</p>
+        </div>
+        <label className={styles.search}>
+          <Icon name="search" size={18} />
+          <span className={styles.visuallyHidden}>Cari nama, NPSN, atau kota</span>
+          <input
+            type="search"
+            aria-label="Cari nama, NPSN, atau kota"
+            placeholder="Cari nama sekolah, NPSN, atau kota…"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </label>
       </div>
-    </nav>}
+      {!data && !error && <Loading label="Memuat sekolah…" />}
+      {data && (data.items.length ? (
+        <div className={styles.tableCard}>
+          <table className={styles.table}>
+            <caption className={styles.visuallyHidden}>Sekolah pada halaman ini</caption>
+            <thead>
+              <tr>
+                <th scope="col" className={styles.colSchool}>Sekolah</th>
+                <th scope="col" className={styles.colAdmin}>Admin sekolah</th>
+                <th scope="col" className={styles.colUsers}>Pengguna</th>
+                <th scope="col" className={styles.colStatus}>Status</th>
+                <th scope="col" className={styles.colActions}>Tindakan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.items.map((school) => (
+                <tr key={school.id}>
+                  <td className={styles.colSchool}>
+                    <div className={styles.schoolIdentity}>
+                      <span className={styles.schoolName}>{school.name}</span>
+                      <span className={styles.city}>
+                        {[school.city, school.npsn && `NPSN ${school.npsn}`].filter(Boolean).join(' · ')}
+                      </span>
+                    </div>
+                  </td>
+                  <td className={styles.colAdmin}>
+                    <span className={styles.mobileLabel}>Admin sekolah</span>
+                    {school.admin_name ? (
+                      <div className={styles.adminProfile}>
+                        <span className={styles.adminAvatar} aria-hidden="true">
+                          {school.admin_name.trim().slice(0, 2).toLocaleUpperCase('id-ID')}
+                        </span>
+                        <span className={styles.adminName}>{school.admin_name}</span>
+                      </div>
+                    ) : (
+                      <span className={styles.emptyAdmin}>Belum ada admin</span>
+                    )}
+                  </td>
+                  <td className={styles.colUsers}>
+                    <span className={styles.mobileLabel}>Pengguna</span>
+                    <span className={styles.userCountBadge}>{number.format(school.user_count)}</span>
+                  </td>
+                  <td className={styles.colStatus}>
+                    <span className={styles.mobileLabel}>Status</span>
+                    <span className={[styles.badge, styles[school.status]].join(' ')}>
+                      {statusWord[school.status] ?? school.status}
+                    </span>
+                  </td>
+                  <td className={styles.colActions}>
+                    <div className={styles.rowActionButtons} role="group" aria-label={`Tindakan ${school.name}`}>
+                      <Button
+                        tone="secondary"
+                        className={styles.pillButton}
+                        aria-label="Ubah data sekolah"
+                        onClick={() => { setMessage(''); setModal({ kind: 'edit', school }) }}
+                      >
+                        <Icon name="pencil" size={14} />
+                        <span>Ubah data</span>
+                      </Button>
+                      <Button
+                        tone="secondary"
+                        className={styles.pillButton}
+                        aria-label="Ganti admin sekolah"
+                        onClick={() => { setMessage(''); setModal({ kind: 'admin', school }) }}
+                      >
+                        <Icon name="swap" size={14} />
+                        <span>Ganti admin</span>
+                      </Button>
+                      <Button
+                        tone="secondary"
+                        className={school.status === 'suspended' ? styles.activateButton : styles.suspendButton}
+                        aria-label={school.status === 'suspended' ? `Aktifkan kembali ${school.name}` : `Tangguhkan ${school.name}`}
+                        onClick={() => { setMessage(''); setModal({ kind: 'status', school }) }}
+                      >
+                        <Icon name={school.status === 'suspended' ? 'play' : 'pause'} size={14} />
+                        <span>{school.status === 'suspended' ? 'Aktifkan kembali' : 'Tangguhkan'}</span>
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className={styles.empty}>
+          <NalaEmpty mood={q ? 'search' : 'hello'} title={q ? 'Tidak ada sekolah yang cocok' : 'Belum ada sekolah terdaftar'}>
+            <p>{q ? 'Tidak ada sekolah yang cocok dengan pencarian ini.' : 'Belum ada sekolah terdaftar.'}</p>
+          </NalaEmpty>
+        </div>
+      ))}
+      {data && <nav className={styles.pagination} aria-label="Halaman sekolah">
+        <span className={styles.paginationInfo}>{data.total} sekolah{q ? ' cocok' : ''}</span>
+        <div className={styles.paginationButtons}>
+          {cursor && <Button tone="secondary" onClick={() => setCursor(null)}>Kembali ke awal</Button>}
+          {data.next_cursor && <Button tone="secondary" onClick={() => setCursor(data.next_cursor)}>Halaman berikutnya</Button>}
+        </div>
+      </nav>}
     </section>
     {modal?.kind === 'onboard' && <OnboardDialog service={service} onClose={close} />}
     {modal?.kind === 'admin' && <AdminDialog service={service} school={modal.school} onClose={close} />}
