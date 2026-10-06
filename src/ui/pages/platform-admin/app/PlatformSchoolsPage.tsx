@@ -53,7 +53,7 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
       </div>
       <div className={styles.nalaWelcome}>
         <p className={styles.speech}>Halo Admin! Semua sekolah terpantau aktif dan lancar 🚀</p>
-        <div className={styles.mascot}><Nala mood="proud" size={130} animate /></div>
+        <div className={styles.mascot}><Nala mood="proud" size={80} animate /></div>
       </div>
     </div>
     {message && <Feedback tone="success" title={message} announce />}
@@ -66,7 +66,7 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
         <dl className={styles.kpis} aria-label="Ringkasan seluruh sekolah">
           <div className={styles.kpiItem}>
             <dt className={styles.kpiLabel}>
-              <NalaIcon name="done" size={28} />
+              <NalaIcon name="done" size={20} />
               <span>Sekolah aktif</span>
             </dt>
             <dd className={styles.kpiValue}>{number.format(data.counts.active ?? 0)}</dd>
@@ -79,7 +79,7 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
           </div>
           <div className={styles.kpiItem}>
             <dt className={styles.kpiLabel}>
-              <NalaIcon name="alert" size={28} />
+              <NalaIcon name="alert" size={20} />
               <span>Ditangguhkan</span>
             </dt>
             <dd className={styles.kpiValue}>{number.format(data.counts.suspended ?? 0)}</dd>
@@ -92,7 +92,7 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
           </div>
           <div className={styles.kpiItem}>
             <dt className={styles.kpiLabel}>
-              <NalaIcon name="account" size={28} />
+              <NalaIcon name="account" size={20} />
               <span>Semua sekolah</span>
             </dt>
             <dd className={styles.kpiValue}>{number.format(data.counts.total ?? data.total)}</dd>

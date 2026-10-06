@@ -12,7 +12,7 @@ export function AdminPageHeader({ title, titleId, description, guidance, mood = 
     </div>
     <div className={styles.companion}>
       <p className={styles.bubble}>{guidance}</p>
-      <Nala mood={mood} size={144} animate />
+      <Nala mood={mood} size={80} animate />
     </div>
   </div>
 }
