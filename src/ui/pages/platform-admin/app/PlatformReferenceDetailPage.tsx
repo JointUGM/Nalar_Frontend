@@ -13,7 +13,7 @@ import { useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import { ReferenceHeader } from './ReferenceHeader'
 import { ReferenceReviewEditor } from './ReferenceReviewEditor'
 import { ReferenceStages } from './ReferenceStages'
-import { documentGuidance, documentMood, draftCopy, groupOf, processingError, referenceKinds, referenceStatuses, sourceLink } from './referenceText'
+import { documentGuidance, documentMood, draftCopy, emptyDraftCopy, groupOf, processingError, referenceKinds, referenceStatuses, sourceLink } from './referenceText'
 import styles from './PlatformReferences.module.css'
 
 // A document that is indexing or published has left review: its draft can no longer change anything.
@@ -88,11 +88,12 @@ function DraftBanner({ document, service, refresh }: { document: ReferenceDetail
   const command = useCommand()
   const key = useRef(crypto.randomUUID())
   if (document.kind !== 'curriculum' || !document.draft_status || !openForReview(document)) return null
-  const tone = document.draft_status === 'ready' ? 'success' : document.draft_status === 'pending' ? undefined : 'warning'
-  return <Feedback tone={tone} title={draftCopy[document.draft_status]} announce>
-    {document.draft_status === 'ready' && document.draft_report && <p>{document.draft_report.accepted_statements} pernyataan diambil dari {document.draft_report.pages_considered} halaman.</p>}
+  const empty = document.draft_status === 'ready' && document.draft_report?.accepted_statements === 0
+  const tone = document.draft_status === 'ready' && !empty ? 'success' : document.draft_status === 'pending' ? undefined : 'warning'
+  return <Feedback tone={tone} title={empty ? emptyDraftCopy : draftCopy[document.draft_status]} announce>
+    {document.draft_status === 'ready' && !empty && document.draft_report && <p>{document.draft_report.accepted_statements} pernyataan diambil dari {document.draft_report.pages_considered} halaman.</p>}
     {document.draft_error && <small>Kode: {document.draft_error}</small>}
-    {['failed', 'skipped'].includes(document.draft_status) && document.status === 'review' && <Button tone="secondary" pending={command.pending} onClick={() => { void command.run((signal) => service.requestReferenceDraft(document.id, key.current, signal)).then((ok) => { if (ok) { key.current = crypto.randomUUID(); refresh() } }) }}>Minta draf ulang</Button>}
+    {(['failed', 'skipped'].includes(document.draft_status) || empty) && document.status === 'review' && <Button tone="secondary" pending={command.pending} onClick={() => { void command.run((signal) => service.requestReferenceDraft(document.id, key.current, signal)).then((ok) => { if (ok) { key.current = crypto.randomUUID(); refresh() } }) }}>Minta draf ulang</Button>}
   </Feedback>
 }
 
