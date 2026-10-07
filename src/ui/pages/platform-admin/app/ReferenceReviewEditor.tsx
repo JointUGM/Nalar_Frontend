@@ -1,21 +1,24 @@
 import { useRef, useState } from 'react'
 import type { PlatformAdminUseCases } from '@/application/platform-admin-use-cases'
-import type { ReferenceCurriculum, ReferenceDetail, ReferenceReview, SourceElement, SourceStatement } from '@/domain/model/NationalReference'
+import { reviewFromDraft, type ReferenceCurriculum, type ReferenceDetail, type ReferenceReview, type SourceElement, type SourceStatement } from '@/domain/model/NationalReference'
 import { ApiError } from '@/domain/model/ApiError'
 import { Button } from '@/ui/components/button/Button'
 import { Field } from '@/ui/components/field/Field'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Select } from '@/ui/components/select/Select'
 import { useCommand } from '@/ui/pages/live/useLiveResource'
-import { referenceError } from './referenceText'
+import { referenceError, rejectionCopy } from './referenceText'
 import styles from './PlatformReferences.module.css'
 
 const emptyStatement = (): SourceStatement => ({ description: '', page_start: 1, page_end: 1 })
 const emptyElement = (): SourceElement => ({ ...emptyStatement(), element: '', statements: [emptyStatement()] })
-const emptyCurriculum = (): ReferenceCurriculum => ({ name: '', decree_code: '', effective_on: '', is_current: true, subjects: [{ name: '', phase: 'D', elements: [emptyElement()] }] })
+const emptyCurriculum = (): ReferenceCurriculum => ({ name: '', decree_code: '', effective_on: '', is_current: false, subjects: [{ name: '', phase: 'D', elements: [emptyElement()] }] })
+
+const initial = (document: ReferenceDetail): ReferenceReview =>
+  document.review ?? (document.draft ? reviewFromDraft(document.draft) : { curriculum: document.kind === 'curriculum' ? emptyCurriculum() : null, selected_pages: [] })
 
 export function ReferenceReviewEditor({ service, document, refresh, onQueued, processing }: { service: PlatformAdminUseCases; document: ReferenceDetail; refresh: () => void; onQueued: () => void; processing: boolean }) {
-  const [draft, setDraft] = useState<ReferenceReview>(() => document.review ?? { curriculum: document.kind === 'curriculum' ? emptyCurriculum() : null, selected_pages: [] })
+  const [draft, setDraft] = useState<ReferenceReview>(() => initial(document))
   const [revision, setRevision] = useState(document.revision)
   const [saved, setSaved] = useState(() => document.review ? JSON.stringify(document.review) : '')
   const [conflict, setConflict] = useState(false)
@@ -26,24 +29,31 @@ export function ReferenceReviewEditor({ service, document, refresh, onQueued, pr
   const dirty = JSON.stringify(draft) !== saved
   const locked = readOnly || command.pending
   function edit(next: ReferenceReview): void { setDraft(next); setMessage(''); command.reset(); intent.current = null }
-  async function save(): Promise<void> {
+  async function save(): Promise<number | null> {
+    let saved: number | null = null
     const success = await command.run(async (signal) => {
       try {
         const next = await service.saveReferenceReview(document.id, draft, revision, signal)
-        if (!signal?.aborted) { setRevision(next); setSaved(JSON.stringify(draft)); setConflict(false); intent.current = null; setMessage(`Tinjauan tersimpan sebagai revisi ${next}.`); refresh() }
+        if (!signal?.aborted) { saved = next; setRevision(next); setSaved(JSON.stringify(draft)); setConflict(false); intent.current = null; setMessage(`Tinjauan tersimpan sebagai revisi ${next}.`); refresh() }
       } catch (cause) { if (cause instanceof ApiError && cause.code === 'REFERENCE_REVISION_CONFLICT') { setConflict(true); refresh() } throw cause }
     })
     if (success) command.reset()
+    return saved
   }
-  async function queue(action: 'publish' | 'retry'): Promise<void> {
-    if (!intent.current || intent.current.action !== action || intent.current.revision !== revision) intent.current = { action, revision, key: crypto.randomUUID() }
+  async function queue(action: 'publish' | 'retry', at = revision): Promise<void> {
+    if (!intent.current || intent.current.action !== action || intent.current.revision !== at) intent.current = { action, revision: at, key: crypto.randomUUID() }
     const key = intent.current.key
     if (await command.run(async (signal) => {
-      try { return await (action === 'publish' ? service.publishReference(document.id, revision, key, signal) : service.retryReference(document.id, revision, key, signal)) }
+      try { return await (action === 'publish' ? service.publishReference(document.id, at, key, signal) : service.retryReference(document.id, at, key, signal)) }
       catch (cause) { if (cause instanceof ApiError && cause.code === 'REFERENCE_REVISION_CONFLICT') { setConflict(true); refresh() } throw cause }
     })) { intent.current = null; onQueued(); refresh() }
   }
+  async function saveAndPublish(): Promise<void> {
+    const next = dirty || !document.review ? await save() : revision
+    if (next !== null) await queue('publish', next)
+  }
   const curriculum = draft.curriculum
+  const rejected = document.draft ? document.draft_report?.rejected ?? [] : []
   return <section className={styles.panel} aria-label="Tinjauan sumber"><div className={styles.panelHead}><h2>Tinjauan {document.kind === 'curriculum' ? 'kurikulum / CP' : 'halaman panduan'}</h2>
     <p>Revisi draf: {revision}. {readOnly ? 'Sumber ini hanya dapat dibaca.' : 'Simpan tinjauan sebelum menerbitkan. Teks CP harus dikutip persis dari sumber.'}</p></div>
     {(conflict || document.revision > revision) && !readOnly && <Feedback tone="warning" title="Periksa revisi terbaru sebelum melanjutkan">
@@ -55,11 +65,17 @@ export function ReferenceReviewEditor({ service, document, refresh, onQueued, pr
     <form className={styles.form} onSubmit={(e) => { e.preventDefault(); void save() }}>
       <ReviewFields value={readOnly && document.review ? document.review : draft} kind={document.kind} pages={document.pages} disabled={locked} onChange={edit} />
       {curriculum && !readOnly && <p>Setiap mata pelajaran perlu elemen dan pernyataan tersendiri. Kutipan memakai nomor halaman PDF, bukan nomor tercetak di buku. Batas bawaan 2048 pernyataan.</p>}
+      {rejected.length > 0 && <details open><summary>{rejected.length} bagian tidak dimasukkan ke draf</summary><ul>{rejected.map((item, index) => <li key={index}><span>{item.text}</span> <small>{rejectionCopy[item.reason]} · hal. {item.page_start}–{item.page_end}</small></li>)}</ul></details>}
       {message && <Feedback tone="success" title={message} announce />}
       {command.failure && <Feedback tone="warning" title={referenceError(command.failure)} announce><small>Kode: {command.failure.code}{command.failure.requestId && ` · Referensi: ${command.failure.requestId}`}</small>{command.failure.status === 401 && <a href="/login">Masuk kembali</a>}</Feedback>}
       {!readOnly && <div className={styles.actions}>
-        <Button type="submit" pending={command.pending} disabled={conflict || revision !== document.revision}>Simpan tinjauan</Button>
-        <Button tone="secondary" disabled={command.pending || conflict || dirty || !saved || revision !== document.revision || document.status !== 'review'} onClick={() => { void queue('publish') }}>Terbitkan sumber</Button>
+        {document.kind === 'curriculum' ? <>
+          <Button pending={command.pending} disabled={conflict || revision !== document.revision || document.status !== 'review'} onClick={(event) => { if (event.currentTarget.form?.reportValidity() !== false) void saveAndPublish() }}>Simpan dan terbitkan</Button>
+          <Button type="submit" tone="secondary" disabled={command.pending || conflict || revision !== document.revision}>Simpan tinjauan</Button>
+        </> : <>
+          <Button type="submit" pending={command.pending} disabled={conflict || revision !== document.revision}>Simpan tinjauan</Button>
+          <Button tone="secondary" disabled={command.pending || conflict || dirty || !saved || revision !== document.revision || document.status !== 'review'} onClick={() => { void queue('publish') }}>Terbitkan sumber</Button>
+        </>}
         {document.status === 'failed' && <Button tone="secondary" disabled={command.pending || conflict || revision !== document.revision || (dirty && document.review !== null)} onClick={() => { void queue('retry') }}>Coba ulang pemrosesan</Button>}
       </div>}
     </form>

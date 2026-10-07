@@ -6,7 +6,7 @@ import { HttpApi } from '@/infrastructure/services/HttpApi'
 import { HttpPlatformAdminService } from '@/infrastructure/services/HttpPlatformAdminService'
 import { PlatformRoutes } from './PlatformRoutes'
 
-const [schoolId, versionId] = ['21', '22'].map((end) => `00000000-0000-4000-8000-0000000000${end}`)
+const schoolId = '00000000-0000-4000-8000-000000000021'
 const originalShowModal = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
 const originalClose = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close')
 beforeAll(() => Object.defineProperties(HTMLDialogElement.prototype, {
@@ -34,7 +34,6 @@ function open(path: string, answer: (key: string) => Response | undefined) {
 }
 const posts = (request: ReturnType<typeof open>) => request.mock.calls.filter(([, init]) => init?.method === 'POST')
 const school = { id: schoolId, name: 'SMPN 5 Yogyakarta', npsn: '20403010', city: 'Yogyakarta', status: 'active', admin_name: 'Hendra Santoso', user_count: 812 }
-const version = { id: versionId, name: 'Kurikulum Merdeka 2025', decree_code: 'BSKAP 046/2025', effective_on: '2025-07-14', published_at: '2025-07-01T00:00:00Z', school_count: 1, is_current: true, status: 'published' }
 
 describe('platform administration', () => {
   it('retries a school registration with the same key and reports the queued invitation', async () => {
@@ -59,27 +58,11 @@ describe('platform administration', () => {
     expect(JSON.parse(String(posts(request)[1][1]?.body))).toEqual({ name: 'SMPN 1 Sleman', npsn: '20401234', city: 'Sleman', admin_email: 'operator@sekolah.sch.id' })
   })
 
-  it('publishes curriculum outcomes in order with the element named by a # line', async () => {
-    const request = open('/platform/cp-versions', (key) => {
-      if (key === 'GET /platform/curriculum-versions') return Response.json([version])
-      if (key === `GET /platform/curriculum-versions/${versionId}`) return Response.json({ ...version, subjects: [] })
-      if (key === 'POST /platform/curriculum-versions') return Response.json({ curriculum_version_id: versionId }, { status: 201 })
-    })
-    fireEvent.click(await screen.findByRole('button', { name: 'Terbitkan versi baru' }))
-    const dialog = screen.getByRole('dialog')
-    fireEvent.change(within(dialog).getByLabelText(/^Nama versi/), { target: { value: 'Kurikulum 2027' } })
-    fireEvent.change(within(dialog).getByLabelText(/^Nomor keputusan/), { target: { value: 'BSKAP 012/2027' } })
-    fireEvent.change(within(dialog).getByLabelText(/^Berlaku sejak/), { target: { value: '2027-07-12' } })
-    fireEvent.change(within(dialog).getByLabelText(/^Nama \*?$/), { target: { value: 'IPA' } })
-    fireEvent.change(within(dialog).getByLabelText(/Capaian pembelajaran/), { target: { value: 'Ringkasan tanpa elemen\n\n# Pemahaman IPA\nMengidentifikasi zat\nMenjelaskan gaya' } })
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Terbitkan' }))
-    expect(await screen.findByText('Kurikulum 2027 diterbitkan.')).toBeInTheDocument()
-    await waitFor(() => expect(posts(request)).toHaveLength(1))
-    expect(JSON.parse(String(posts(request)[0][1]?.body)).subjects).toEqual([{ name: 'IPA', phase: 'D', learning_outcomes: [
-      { description: 'Ringkasan tanpa elemen', element: null, ordinal: 0 },
-      { description: 'Mengidentifikasi zat', element: 'Pemahaman IPA', ordinal: 1 },
-      { description: 'Menjelaskan gaya', element: 'Pemahaman IPA', ordinal: 2 },
-    ] }])
+  it('offers only the official PDF path for new CP versions', async () => {
+    open('/platform/cp-versions', (key) => key === 'GET /platform/curriculum-versions' ? Response.json([]) : undefined)
+    expect(await screen.findByRole('link', { name: /Unggah PDF CP resmi/ })).toHaveAttribute('href', '/platform/references?upload=curriculum')
+    expect(screen.queryByRole('button', { name: /Terbitkan versi baru/ })).not.toBeInTheDocument()
+    expect(screen.getByText('Unggah keputusan CP resmi untuk menyiapkan versi pertama.')).toBeInTheDocument()
   })
 
   it('edits a school\'s name, NPSN and city with one PATCH of the trimmed values', async () => {

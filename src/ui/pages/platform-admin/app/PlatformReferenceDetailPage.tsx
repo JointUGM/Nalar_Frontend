@@ -9,12 +9,15 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
 import { formatDay } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
-import { useLiveResource } from '@/ui/pages/live/useLiveResource'
+import { useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import { ReferenceHeader } from './ReferenceHeader'
 import { ReferenceReviewEditor } from './ReferenceReviewEditor'
 import { ReferenceStages } from './ReferenceStages'
-import { documentGuidance, documentMood, groupOf, processingError, referenceKinds, referenceStatuses, sourceLink } from './referenceText'
+import { documentGuidance, documentMood, draftCopy, groupOf, processingError, referenceKinds, referenceStatuses, sourceLink } from './referenceText'
 import styles from './PlatformReferences.module.css'
+
+// A document that is indexing or published has left review: its draft can no longer change anything.
+const openForReview = (document: ReferenceDetail) => ['review', 'failed'].includes(document.status)
 
 export function PlatformReferenceDetailPage({ service }: { service: PlatformAdminUseCases }) {
   const { documentId = '' } = useParams()
@@ -31,7 +34,7 @@ function ReferenceDocument({ service, documentId }: { service: PlatformAdminUseC
   }, [service, documentId])
   const cadence = useCallback((document: ReferenceDetail | null) => {
     if (failures.current) return Math.min(3000 * 2 ** Math.min(failures.current, 4), 30000)
-    return !document || queued.current || ['extracting', 'indexing'].includes(document.status) ? 3000 : null
+    return !document || queued.current || ['extracting', 'indexing'].includes(document.status) || (document.draft_status === 'pending' && openForReview(document)) ? 3000 : null
   }, [])
   const resource = useLiveResource(read, cadence)
   const document = resource.data
@@ -55,14 +58,42 @@ function ReferenceDocument({ service, documentId }: { service: PlatformAdminUseC
         {(queueNotice || ['extracting', 'indexing'].includes(document.status)) && <Feedback title="Pemrosesan berjalan di latar belakang" announce>Anda dapat kembali ke daftar. Status diperbarui otomatis; pemrosesan yang lama belum berarti gagal.</Feedback>}
         {document.status === 'uploading' && <Feedback tone="warning" title="Unggahan belum selesai">Jika formulir pengiriman masih terbuka, coba ulang dengan PDF dan isian yang sama. Setelah halaman dimuat ulang, kunci dan berkas tidak tersedia di layar ini; hubungi dukungan untuk memulihkan unggahan. Coba ulang pemrosesan belum tersedia.</Feedback>}
         {document.status === 'failed' && <Feedback tone="warning" title={processingError(document.error_code ?? 'REFERENCE_PROCESSING_FAILED')}><small>Kode: {document.error_code ?? 'REFERENCE_PROCESSING_FAILED'}</small></Feedback>}
+        <DraftBanner document={document} service={service} refresh={resource.refresh} />
         {document.status === 'published' && <Feedback tone="success" title="Sumber sudah diterbitkan">Sumber dan tinjauan tidak dapat diubah. {document.curriculum_version_id && <Link to={`/platform/cp-versions?v=${encodeURIComponent(document.curriculum_version_id)}`}>Lihat versi CP</Link>}</Feedback>}
       </section>
       {!['uploading', 'extracting'].includes(document.status) && <>
         <SourceViewer service={service} documentId={document.id} pages={document.pages} />
-        <ReferenceReviewEditor service={service} document={document} refresh={resource.refresh} processing={queueNotice} onQueued={() => { queued.current = true; setQueueNotice(true) }} />
+        <ReviewSection service={service} document={document} refresh={resource.refresh} processing={queueNotice} onQueued={() => { queued.current = true; setQueueNotice(true) }} />
       </>}
     </>}
   </div>
+}
+
+export function ReviewSection(props: { document: ReferenceDetail; service: PlatformAdminUseCases; refresh: () => void; onQueued: () => void; processing: boolean }) {
+  const { document } = props
+  // A form that is already open when a draft is requested again stays open: typed input is never replaced unasked.
+  const [manual, setManual] = useState(() => document.draft_status !== 'pending' && document.draft_status !== 'ready')
+  const [generation, setGeneration] = useState(0)
+  if (document.kind === 'curriculum' && !document.review && document.draft_status === 'pending' && openForReview(document) && !manual) {
+    return <Button tone="secondary" onClick={() => setManual(true)}>Isi manual tanpa menunggu</Button>
+  }
+  const offerDraft = manual && !document.review && document.draft_status === 'ready'
+  return <>
+    {offerDraft && <Button tone="secondary" onClick={() => { setManual(false); setGeneration((n) => n + 1) }}>Gunakan draf otomatis</Button>}
+    <ReferenceReviewEditor key={`${generation}:${manual ? 'manual' : 'auto'}`} {...props} document={manual ? { ...document, draft: null } : document} />
+  </>
+}
+
+function DraftBanner({ document, service, refresh }: { document: ReferenceDetail; service: PlatformAdminUseCases; refresh: () => void }) {
+  const command = useCommand()
+  const key = useRef(crypto.randomUUID())
+  if (document.kind !== 'curriculum' || !document.draft_status || !openForReview(document)) return null
+  const tone = document.draft_status === 'ready' ? 'success' : document.draft_status === 'pending' ? undefined : 'warning'
+  return <Feedback tone={tone} title={draftCopy[document.draft_status]} announce>
+    {document.draft_status === 'ready' && document.draft_report && <p>{document.draft_report.accepted_statements} pernyataan diambil dari {document.draft_report.pages_considered} halaman.</p>}
+    {document.draft_error && <small>Kode: {document.draft_error}</small>}
+    {['failed', 'skipped'].includes(document.draft_status) && document.status === 'review' && <Button tone="secondary" pending={command.pending} onClick={() => { void command.run((signal) => service.requestReferenceDraft(document.id, key.current, signal)).then((ok) => { if (ok) { key.current = crypto.randomUUID(); refresh() } }) }}>Minta draf ulang</Button>}
+  </Feedback>
 }
 
 function SourceViewer({ service, documentId, pages }: { service: PlatformAdminUseCases; documentId: string; pages: ReferenceDetail['pages'] }) {

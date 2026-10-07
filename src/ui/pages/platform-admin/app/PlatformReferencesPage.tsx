@@ -1,6 +1,6 @@
 import { useCallback, useId, useRef, useState } from 'react'
 import type { CSSProperties, DragEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import type { PlatformAdminUseCases } from '@/application/platform-admin-use-cases'
 import type { NationalReference, ReferenceKind } from '@/domain/model/NationalReference'
 import { ApiError } from '@/domain/model/ApiError'
@@ -26,7 +26,8 @@ const matches = (row: NationalReference, search: string) => `${row.title} ${row.
 export function PlatformReferencesPage({ service }: { service: PlatformAdminUseCases }) {
   const read = useCallback((signal: AbortSignal) => service.references(signal), [service])
   const resource = useLiveResource(read, noPollMs)
-  const [uploading, setUploading] = useState(false)
+  const [params] = useSearchParams()
+  const [uploading, setUploading] = useState(params.get('upload') === 'curriculum')
   const [search, setSearch] = useState('')
   const [kind, setKind] = useState('all')
   const [tab, setTab] = useState<Tab>('all')

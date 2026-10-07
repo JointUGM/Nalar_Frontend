@@ -1,6 +1,6 @@
 import type { AuditPage } from '@/domain/model/Audit'
-import type { NationalReference, ReferenceDetail, ReferenceReceipt, ReferenceReview, ReferenceUpload } from '@/domain/model/NationalReference'
-import type { AdminSetup, AiUsageRow, CurriculumDetail, CurriculumVersion, NewCurriculum, NewSchool, PlatformSchool, SchoolDetails, SchoolsPage } from '@/domain/model/PlatformAdmin'
+import type { DraftReceipt, NationalReference, ReferenceDetail, ReferenceReceipt, ReferenceReview, ReferenceUpload } from '@/domain/model/NationalReference'
+import type { AdminSetup, AiUsageRow, CurriculumDetail, CurriculumVersion, NewSchool, PlatformSchool, SchoolDetails, SchoolsPage } from '@/domain/model/PlatformAdmin'
 
 // Every create that sends email or publishes takes an idempotency key the caller keeps across retries.
 export interface PlatformAdminService {
@@ -11,6 +11,7 @@ export interface PlatformAdminService {
   saveReferenceReview(documentId: string, review: ReferenceReview, revision: number, signal?: AbortSignal): Promise<number>
   publishReference(documentId: string, revision: number, key: string, signal?: AbortSignal): Promise<ReferenceReceipt>
   retryReference(documentId: string, revision: number, key: string, signal?: AbortSignal): Promise<ReferenceReceipt>
+  requestReferenceDraft(documentId: string, key: string, signal?: AbortSignal): Promise<DraftReceipt>
   schools(q: string, cursor: string | null, signal?: AbortSignal): Promise<SchoolsPage>
   createSchool(school: NewSchool, idempotencyKey: string, signal?: AbortSignal): Promise<AdminSetup>
   updateSchool(schoolId: string, details: SchoolDetails, signal?: AbortSignal): Promise<PlatformSchool>
@@ -21,5 +22,4 @@ export interface PlatformAdminService {
   replaceAdmin(schoolId: string, email: string, idempotencyKey: string, signal?: AbortSignal): Promise<AdminSetup>
   curriculumVersions(signal?: AbortSignal): Promise<CurriculumVersion[]>
   curriculumVersion(versionId: string, signal?: AbortSignal): Promise<CurriculumDetail>
-  publishCurriculum(curriculum: NewCurriculum, idempotencyKey: string, signal?: AbortSignal): Promise<void>
 }
