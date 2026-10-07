@@ -1,6 +1,5 @@
 import { ApiError, resourceId } from '@/domain/model/ApiError'
-import { curriculumPhases } from '@/domain/model/PlatformAdmin'
-import type { NewCurriculum, NewSchool, SchoolDetails } from '@/domain/model/PlatformAdmin'
+import type { NewSchool, SchoolDetails } from '@/domain/model/PlatformAdmin'
 import type { PlatformAdminService } from '@/domain/services/PlatformAdminService'
 import type { ReferenceReview, ReferenceUpload } from '@/domain/model/NationalReference'
 
@@ -35,6 +34,7 @@ export class PlatformAdminUseCases {
   saveReferenceReview(id: string, review: ReferenceReview, revision: number, signal?: AbortSignal) { return this.service.saveReferenceReview(resourceId(id), review, revision, signal) }
   publishReference(id: string, revision: number, key: string, signal?: AbortSignal) { return this.service.publishReference(resourceId(id), revision, key, signal) }
   retryReference(id: string, revision: number, key: string, signal?: AbortSignal) { return this.service.retryReference(resourceId(id), revision, key, signal) }
+  requestReferenceDraft(id: string, key: string, signal?: AbortSignal) { return this.service.requestReferenceDraft(resourceId(id), key, signal) }
 
   schools(q: string, cursor: string | null, signal?: AbortSignal) { return this.service.schools(q.trim(), cursor && resourceId(cursor), signal) }
   createSchool(school: NewSchool, idempotencyKey: string, signal?: AbortSignal) {
@@ -48,12 +48,4 @@ export class PlatformAdminUseCases {
 
   curriculumVersions(signal?: AbortSignal) { return this.service.curriculumVersions(signal) }
   curriculumVersion(versionId: string, signal?: AbortSignal) { return this.service.curriculumVersion(resourceId(versionId), signal) }
-  publishCurriculum(curriculum: NewCurriculum, idempotencyKey: string, signal?: AbortSignal) {
-    const [name, decree_code] = [curriculum.name.trim(), curriculum.decree_code.trim()]
-    if (!name || !decree_code) throw new ApiError(422, 'NAME_REQUIRED')
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(curriculum.effective_on)) throw new ApiError(422, 'INVALID_DATE')
-    const subjects = curriculum.subjects.map((subject) => ({ ...subject, name: subject.name.trim() }))
-    if (!subjects.length || subjects.some((subject) => !subject.name || !(curriculumPhases as readonly string[]).includes(subject.phase) || !subject.learning_outcomes.length)) throw new ApiError(422, 'SUBJECT_INCOMPLETE')
-    return this.service.publishCurriculum({ ...curriculum, name, decree_code, subjects }, idempotencyKey, signal)
-  }
 }

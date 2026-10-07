@@ -13,17 +13,3 @@ export interface CurriculumVersion { id: string; name: string; decree_code: stri
 export interface LearningOutcome { description: string; element: string | null }
 export interface CurriculumSubject { name: string; phase: string; learning_outcomes: LearningOutcome[] }
 export interface CurriculumDetail extends CurriculumVersion { subjects: CurriculumSubject[] }
-export interface NewCurriculum { name: string; decree_code: string; effective_on: string; is_current: boolean; subjects: CurriculumSubject[] }
-export const curriculumPhases = ['A', 'B', 'C', 'D', 'E', 'F'] as const
-
-// One outcome per line, in the order written. A line starting with "#" names the element of the lines below it.
-export function parseOutcomes(source: string): LearningOutcome[] {
-  let element: string | null = null
-  const outcomes: LearningOutcome[] = []
-  for (const raw of source.split('\n')) {
-    const line = raw.trim()
-    if (line.startsWith('#')) element = line.replace(/^#+/, '').trim() || null
-    else if (line) outcomes.push({ description: line, element })
-  }
-  return outcomes
-}

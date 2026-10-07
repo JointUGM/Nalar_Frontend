@@ -837,6 +837,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/references/{document_id}/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request Draft */
+        post: operations["request_draft_api_v1_platform_references__document_id__draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/references/{document_id}/file": {
         parameters: {
             query?: never;
@@ -2705,6 +2722,38 @@ export interface components {
              */
             week_start: string;
         };
+        /** DraftCurriculumOut */
+        DraftCurriculumOut: {
+            /** Decree Code */
+            decree_code: string | null;
+            /** Effective On */
+            effective_on: string | null;
+            /** Is Current */
+            is_current: boolean;
+            /** Name */
+            name: string;
+            /** Subjects */
+            subjects: components["schemas"]["ReferenceSubjectIn"][];
+        };
+        /** DraftRejectionOut */
+        DraftRejectionOut: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "element" | "statement";
+            /** Page End */
+            page_end: number;
+            /** Page Start */
+            page_start: number;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "not_in_source" | "outside_element" | "no_statements" | "limit" | "unnamed";
+            /** Text */
+            text: string;
+        };
         /** EvidenceOut */
         EvidenceOut: {
             /** Quote */
@@ -3924,6 +3973,12 @@ export interface components {
             /** Run Status */
             run_status: string;
         };
+        /** ReferenceAiDraftOut */
+        ReferenceAiDraftOut: {
+            curriculum: components["schemas"]["DraftCurriculumOut"];
+            /** Selected Pages */
+            selected_pages: number[];
+        };
         /** ReferenceCurriculumIn */
         ReferenceCurriculumIn: {
             decree_code: components["schemas"]["Label"];
@@ -3950,6 +4005,12 @@ export interface components {
             created_at: string;
             /** Curriculum Version Id */
             curriculum_version_id: string | null;
+            draft: components["schemas"]["ReferenceAiDraftOut"] | null;
+            /** Draft Error */
+            draft_error: string | null;
+            draft_report: components["schemas"]["ReferenceDraftReportOut"] | null;
+            /** Draft Status */
+            draft_status: ("pending" | "ready" | "failed" | "skipped") | null;
             /** Error Code */
             error_code: string | null;
             /**
@@ -3984,6 +4045,30 @@ export interface components {
             status: "uploading" | "extracting" | "review" | "indexing" | "published" | "failed";
             /** Title */
             title: string;
+        };
+        /** ReferenceDraftQueuedOut */
+        ReferenceDraftQueuedOut: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /**
+             * Job Id
+             * Format: uuid
+             */
+            job_id: string;
+        };
+        /** ReferenceDraftReportOut */
+        ReferenceDraftReportOut: {
+            /** Accepted Statements */
+            accepted_statements: number;
+            /** Pages Considered */
+            pages_considered: number;
+            /** Rejected */
+            rejected: components["schemas"]["DraftRejectionOut"][];
+            /** Windows */
+            windows: number;
         };
         /** ReferencePageOut */
         ReferencePageOut: {
@@ -6838,6 +6923,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReferenceDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_draft_api_v1_platform_references__document_id__draft_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceDraftQueuedOut"];
                 };
             };
             /** @description Validation Error */

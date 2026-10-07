@@ -1,13 +1,13 @@
 import { ApiError } from '@/domain/model/ApiError'
 import type { AuditPage } from '@/domain/model/Audit'
-import type { AdminSetup, AiUsageRow, CurriculumDetail, CurriculumVersion, NewCurriculum, NewSchool, PlatformSchool, SchoolDetails, SchoolsPage } from '@/domain/model/PlatformAdmin'
+import type { AdminSetup, AiUsageRow, CurriculumDetail, CurriculumVersion, NewSchool, PlatformSchool, SchoolDetails, SchoolsPage } from '@/domain/model/PlatformAdmin'
 import { auditPage } from './audit'
 import type { PlatformAdminService } from '@/domain/services/PlatformAdminService'
 import { count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
-import type { NationalReference, ReferenceDetail, ReferenceReceipt, ReferenceReview, ReferenceUpload } from '@/domain/model/NationalReference'
-import { referenceDetail, referenceReceipt, referenceSummary } from './nationalReference'
+import type { DraftReceipt, NationalReference, ReferenceDetail, ReferenceReceipt, ReferenceReview, ReferenceUpload } from '@/domain/model/NationalReference'
+import { draftReceipt, referenceDetail, referenceReceipt, referenceSummary } from './nationalReference'
 
 type Schemas = components['schemas']
 const school = (schoolId: string) => `/platform/schools/${encodeURIComponent(schoolId)}`
@@ -53,6 +53,9 @@ export class HttpPlatformAdminService implements PlatformAdminService {
   async retryReference(id: string, revision: number, key: string, signal?: AbortSignal): Promise<ReferenceReceipt> {
     const body: Schemas['ReferenceRevisionIn'] = { base_revision: revision }
     return referenceReceipt((await this.api.request(`/platform/references/${encodeURIComponent(id)}/retry`, { method: 'POST', body, headers: { 'Idempotency-Key': key }, signal })).data)
+  }
+  async requestReferenceDraft(id: string, key: string, signal?: AbortSignal): Promise<DraftReceipt> {
+    return draftReceipt((await this.api.request(`/platform/references/${encodeURIComponent(id)}/draft`, { method: 'POST', headers: { 'Idempotency-Key': key }, signal })).data)
   }
 
   async schools(q: string, cursor: string | null, signal?: AbortSignal): Promise<SchoolsPage> {
@@ -113,8 +116,4 @@ export class HttpPlatformAdminService implements PlatformAdminService {
     }
   }
 
-  async publishCurriculum(curriculum: NewCurriculum, idempotencyKey: string, signal?: AbortSignal): Promise<void> {
-    const body: Schemas['CurriculumIn'] = { ...curriculum, subjects: curriculum.subjects.map((subject) => ({ ...subject, learning_outcomes: subject.learning_outcomes.map((outcome, ordinal) => ({ ...outcome, ordinal })) })) }
-    await this.api.request('/platform/curriculum-versions', { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey }, signal })
-  }
 }

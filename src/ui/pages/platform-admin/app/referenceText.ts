@@ -1,5 +1,5 @@
 import type { ApiError } from '@/domain/model/ApiError'
-import type { NationalReference, ReferenceKind, ReferenceStatus } from '@/domain/model/NationalReference'
+import type { DraftRejectionReason, NationalReference, ReferenceKind, ReferenceStatus } from '@/domain/model/NationalReference'
 import type { NalaMood } from '@/ui/components/nala/Nala'
 
 export const referenceStatuses: Record<ReferenceStatus, string> = { uploading: 'Unggahan belum selesai', extracting: 'Mengekstrak teks', review: 'Perlu tinjauan', indexing: 'Menyiapkan publikasi', published: 'Diterbitkan', failed: 'Pemrosesan gagal' }
@@ -70,6 +70,19 @@ const messages: Record<string, string> = {
   EMBEDDING_INVALID: 'Hasil pemrosesan tidak valid. Hubungi dukungan.',
   REFERENCE_PROCESSING_FAILED: 'Pemrosesan sumber gagal. Periksa tinjauan atau hubungi dukungan sebelum mencoba ulang.',
   CURRICULUM_EXISTS: 'Nomor keputusan sudah diterbitkan. Periksa versi yang ada; jangan mengganti kode hanya untuk melewati konflik.',
+}
+export const draftCopy: Record<'pending' | 'ready' | 'failed' | 'skipped', string> = {
+  pending: 'Nala sedang menyiapkan draf CP dari PDF ini…',
+  ready: 'Draf otomatis siap. Periksa nomor keputusan, tanggal berlaku, dan pilihan versi berlaku sebelum menerbitkan.',
+  failed: 'Draf otomatis gagal dibuat. Anda dapat meminta draf ulang atau mengisi tinjauan sendiri.',
+  skipped: 'PDF terlalu besar untuk draf otomatis. Unggah bagian mata pelajaran saja, atau isi tinjauan sendiri.',
+}
+export const rejectionCopy: Record<DraftRejectionReason, string> = {
+  not_in_source: 'Tidak ditemukan persis di PDF',
+  outside_element: 'Di luar teks elemennya',
+  no_statements: 'Elemen tanpa pernyataan',
+  limit: 'Melebihi batas pernyataan',
+  unnamed: 'Tanpa nama elemen atau mata pelajaran',
 }
 export const referenceError = (error: ApiError) => messages[error.code] ?? error.message
 export const processingError = (code: string) => messages[code] ?? 'Pemrosesan belum berhasil. Periksa sumber dan tinjauan atau hubungi dukungan.'
