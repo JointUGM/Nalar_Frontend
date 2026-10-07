@@ -3,14 +3,17 @@ import { Link, useParams } from 'react-router'
 import type { PlatformAdminUseCases } from '@/application/platform-admin-use-cases'
 import type { ReferenceDetail } from '@/domain/model/NationalReference'
 import { ApiError } from '@/domain/model/ApiError'
-import { AdminPageHeader } from '@/ui/components/adult-shell/AdminPageHeader'
 import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
+import { Icon } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
+import { formatDay } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
+import { ReferenceHeader } from './ReferenceHeader'
 import { ReferenceReviewEditor } from './ReferenceReviewEditor'
-import { processingError, referenceStatuses, sourceLink } from './referenceText'
+import { ReferenceStages } from './ReferenceStages'
+import { documentGuidance, documentMood, groupOf, processingError, referenceKinds, referenceStatuses, sourceLink } from './referenceText'
 import styles from './PlatformReferences.module.css'
 
 export function PlatformReferenceDetailPage({ service }: { service: PlatformAdminUseCases }) {
@@ -33,17 +36,27 @@ function ReferenceDocument({ service, documentId }: { service: PlatformAdminUseC
   const resource = useLiveResource(read, cadence)
   const document = resource.data
   return <div className={styles.content}>
-    <Link to="/platform/references">← Daftar referensi resmi</Link>
+    <Link className={styles.back} to="/platform/references"><Icon name="chevronLeft" size={16} />Daftar referensi resmi</Link>
     <LiveFeedback error={resource.error} online={resource.online} refresh={resource.refresh} />
     {!document && !resource.error && <Loading label="Memuat sumber dan tinjauan…" />}
     {document && <>
-      <AdminPageHeader title={document.title} description={`${document.issuer} · ${document.kind === 'curriculum' ? 'Kurikulum / CP' : 'Buku / panduan'}`} guidance={referenceStatuses[document.status]} mood={['extracting', 'indexing'].includes(document.status) ? 'think' : 'read'} />
-      <div className={styles.panel}><div className={styles.actions}><strong>{referenceStatuses[document.status]}</strong><span>Revisi {document.revision}</span><a href={sourceLink(document.source_url)} target="_blank" rel="noreferrer">Sumber resmi ↗</a><Button tone="secondary" onClick={resource.refresh}>Muat ulang status</Button></div>
+      <ReferenceHeader title={document.title} description={document.issuer} note={[documentMood[document.status], documentGuidance[document.status]]} />
+      <section className={styles.journey} aria-label="Status sumber">
+        <ReferenceStages status={document.status} large />
+        <div className={styles.journeyMeta}>
+          <strong className={styles.statusLine} data-group={groupOf(document.status)}>{referenceStatuses[document.status]}</strong>
+          <span className={styles.kind} data-kind={document.kind}>{referenceKinds[document.kind]}</span>
+          <span>Revisi {document.revision}</span>
+          <span>Diunggah {formatDay(document.created_at)}</span>
+          {document.published_at && <span>Terbit {formatDay(document.published_at)}</span>}
+          {sourceLink(document.source_url) && <a className={styles.source} href={sourceLink(document.source_url)} target="_blank" rel="noreferrer">Sumber resmi<Icon name="link" size={13} /></a>}
+          <Button tone="secondary" className={styles.metaAction} onClick={resource.refresh}><Icon name="refresh" size={16} />Muat ulang status</Button>
+        </div>
         {(queueNotice || ['extracting', 'indexing'].includes(document.status)) && <Feedback title="Pemrosesan berjalan di latar belakang" announce>Anda dapat kembali ke daftar. Status diperbarui otomatis; pemrosesan yang lama belum berarti gagal.</Feedback>}
         {document.status === 'uploading' && <Feedback tone="warning" title="Unggahan belum selesai">Jika formulir pengiriman masih terbuka, coba ulang dengan PDF dan isian yang sama. Setelah halaman dimuat ulang, kunci dan berkas tidak tersedia di layar ini; hubungi dukungan untuk memulihkan unggahan. Coba ulang pemrosesan belum tersedia.</Feedback>}
         {document.status === 'failed' && <Feedback tone="warning" title={processingError(document.error_code ?? 'REFERENCE_PROCESSING_FAILED')}><small>Kode: {document.error_code ?? 'REFERENCE_PROCESSING_FAILED'}</small></Feedback>}
         {document.status === 'published' && <Feedback tone="success" title="Sumber sudah diterbitkan">Sumber dan tinjauan tidak dapat diubah. {document.curriculum_version_id && <Link to={`/platform/cp-versions?v=${encodeURIComponent(document.curriculum_version_id)}`}>Lihat versi CP</Link>}</Feedback>}
-      </div>
+      </section>
       {!['uploading', 'extracting'].includes(document.status) && <>
         <SourceViewer service={service} documentId={document.id} pages={document.pages} />
         <ReferenceReviewEditor service={service} document={document} refresh={resource.refresh} processing={queueNotice} onQueued={() => { queued.current = true; setQueueNotice(true) }} />
@@ -66,8 +79,8 @@ function SourceViewer({ service, documentId, pages }: { service: PlatformAdminUs
   }, [service, documentId, attempt])
   const [pageNumber, setPageNumber] = useState(pages[0]?.page_number ?? 1)
   const page = pages.find((item) => item.page_number === pageNumber)
-  return <section className={styles.panel} aria-label="Sumber PDF dan teks"><h2>Sumber dan teks halaman</h2><div className={styles.sourceGrid}>
+  return <section className={styles.panel} aria-label="Sumber PDF dan teks"><div className={styles.panelHead}><h2>Sumber dan teks halaman</h2><p>Bandingkan PDF asli dengan teks yang dibaca sistem.</p></div><div className={styles.sourceGrid}>
     <div>{url && !error ? <><a href={url} target="_blank" rel="noreferrer">Buka PDF asli di tab baru</a><iframe className={styles.pdf} title="PDF sumber resmi" src={`${url}#page=${pageNumber}`} /></> : error ? <><Feedback tone="warning" title={error.message} />{![401, 403, 404].includes(error.status) && <Button tone="secondary" onClick={() => setAttempt((value) => value + 1)}>Muat ulang PDF</Button>}{error.status === 401 && <Link to="/login">Masuk kembali</Link>}</> : <Loading label="Memuat PDF asli…" />}</div>
-    <div className={styles.extracted}><label>Halaman PDF<select value={pageNumber} onChange={(e) => setPageNumber(Number(e.target.value))}>{pages.map((page) => <option key={page.page_number} value={page.page_number}>Halaman {page.page_number}</option>)}</select></label><h3>Halaman PDF {pageNumber}</h3><p className={styles.sourceText}>{page?.text || 'Halaman ini tidak memiliki teks yang dapat diekstrak.'}</p></div>
+    <div className={styles.extracted} role="region" aria-label={`Teks halaman PDF ${pageNumber}`} tabIndex={0}><label>Halaman PDF<select value={pageNumber} onChange={(e) => setPageNumber(Number(e.target.value))}>{pages.map((page) => <option key={page.page_number} value={page.page_number}>Halaman {page.page_number}</option>)}</select></label><h3>Halaman PDF {pageNumber}</h3><p className={styles.sourceText}>{page?.text || 'Halaman ini tidak memiliki teks yang dapat diekstrak.'}</p></div>
   </div></section>
 }

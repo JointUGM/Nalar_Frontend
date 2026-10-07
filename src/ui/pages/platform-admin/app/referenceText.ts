@@ -1,7 +1,46 @@
 import type { ApiError } from '@/domain/model/ApiError'
-import type { ReferenceStatus } from '@/domain/model/NationalReference'
+import type { NationalReference, ReferenceKind, ReferenceStatus } from '@/domain/model/NationalReference'
+import type { NalaMood } from '@/ui/components/nala/Nala'
 
 export const referenceStatuses: Record<ReferenceStatus, string> = { uploading: 'Unggahan belum selesai', extracting: 'Mengekstrak teks', review: 'Perlu tinjauan', indexing: 'Menyiapkan publikasi', published: 'Diterbitkan', failed: 'Pemrosesan gagal' }
+export const referenceKinds: Record<ReferenceKind, string> = { curriculum: 'Kurikulum / CP', guidance: 'Buku / panduan' }
+
+// The four steps a source walks through. `stageAt` is the step a status is on; 4 means every step is done, -1 means it stopped.
+export const referenceStages = ['Unggah', 'Ekstrak', 'Tinjau', 'Terbit'] as const
+export const stageAt: Record<ReferenceStatus, number> = { uploading: 0, extracting: 1, review: 2, indexing: 3, published: 4, failed: -1 }
+
+// Groups run in the order the admin should work through them: what needs a person first, what is only waiting last.
+export type ReferenceGroup = 'review' | 'failed' | 'processing' | 'published'
+export const referenceGroups: { key: ReferenceGroup; tab: string; title: string; hint: string }[] = [
+  { key: 'review', tab: 'Perlu tinjauan', title: 'Menunggu tinjauan Anda', hint: 'Periksa teks hasil ekstraksi, simpan, lalu terbitkan.' },
+  { key: 'failed', tab: 'Gagal', title: 'Gagal diproses', hint: 'Buka sumber untuk melihat penyebabnya.' },
+  { key: 'processing', tab: 'Diproses', title: 'Sedang diproses', hint: 'Berjalan di latar belakang. Muat ulang untuk melihat kemajuannya.' },
+  { key: 'published', tab: 'Terbit', title: 'Sudah terbit', hint: 'Dipakai sekolah dan tidak dapat diubah.' },
+]
+export const groupOf = (status: ReferenceStatus): ReferenceGroup => status === 'review' || status === 'failed' || status === 'published' ? status : 'processing'
+
+export const rowAction: Record<ReferenceStatus, string> = { uploading: 'Lihat status', extracting: 'Lihat status', review: 'Tinjau', indexing: 'Lihat status', published: 'Buka', failed: 'Lihat penyebab' }
+
+/** What Nala says about the loaded library: the most urgent thing first, and always something the page can act on. */
+export function libraryNote(rows: NationalReference[]): [NalaMood, string] {
+  const count = (group: ReferenceGroup) => rows.filter((row) => groupOf(row.status) === group).length
+  const review = count('review'), failed = count('failed'), processing = count('processing')
+  if (review) return ['read', `${review} sumber menunggu tinjauan Anda${failed ? `, ${failed} gagal diproses` : ''}.`]
+  if (failed) return ['oops', `${failed} sumber gagal diproses. Buka untuk melihat penyebabnya.`]
+  if (processing) return ['think', `${processing} sumber sedang diproses. Muat ulang untuk melihat kemajuannya.`]
+  return ['proud', `Semua ${rows.length} sumber sudah terbit.`]
+}
+
+/** One line for a single source's header: where it stands and what to do next. */
+export const documentGuidance: Record<ReferenceStatus, string> = {
+  uploading: 'Unggahan belum selesai. Catatan pemulihan ada di bawah.',
+  extracting: 'Teks PDF sedang dibaca. Halaman ini memperbarui dirinya sendiri.',
+  review: 'Teks sudah siap. Periksa, simpan, lalu terbitkan.',
+  indexing: 'Sedang disiapkan untuk terbit. Anda boleh meninggalkan halaman ini.',
+  published: 'Sumber sudah terbit dan tidak dapat diubah.',
+  failed: 'Pemrosesan berhenti. Penyebabnya ada di bawah.',
+}
+export const documentMood: Record<ReferenceStatus, NalaMood> = { uploading: 'oops', extracting: 'think', review: 'read', indexing: 'think', published: 'proud', failed: 'oops' }
 const messages: Record<string, string> = {
   FILE_TOO_LARGE: 'PDF melebihi batas bawaan 50 MiB. Pilih berkas lebih kecil.',
   FILE_NOT_PDF: 'Pilih berkas PDF yang valid.',
