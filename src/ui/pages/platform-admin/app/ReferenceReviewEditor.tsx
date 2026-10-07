@@ -44,8 +44,8 @@ export function ReferenceReviewEditor({ service, document, refresh, onQueued, pr
     })) { intent.current = null; onQueued(); refresh() }
   }
   const curriculum = draft.curriculum
-  return <section className={styles.panel} aria-label="Tinjauan sumber"><h2>Tinjauan {document.kind === 'curriculum' ? 'kurikulum / CP' : 'halaman panduan'}</h2>
-    <p>Revisi draf: {revision}. {readOnly ? 'Sumber ini hanya dapat dibaca.' : 'Simpan tinjauan sebelum menerbitkan. Teks CP harus dikutip persis dari sumber.'}</p>
+  return <section className={styles.panel} aria-label="Tinjauan sumber"><div className={styles.panelHead}><h2>Tinjauan {document.kind === 'curriculum' ? 'kurikulum / CP' : 'halaman panduan'}</h2>
+    <p>Revisi draf: {revision}. {readOnly ? 'Sumber ini hanya dapat dibaca.' : 'Simpan tinjauan sebelum menerbitkan. Teks CP harus dikutip persis dari sumber.'}</p></div>
     {(conflict || document.revision > revision) && !readOnly && <Feedback tone="warning" title="Periksa revisi terbaru sebelum melanjutkan">
       <p>Draf di layar dipertahankan. Revisi server: {document.revision}. Buka tinjauan server di bawah untuk membandingkan.</p>
       <Button tone="secondary" disabled={command.pending} onClick={refresh}>Muat tinjauan terbaru</Button>
