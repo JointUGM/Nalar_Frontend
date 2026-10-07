@@ -173,4 +173,14 @@ describe('official reference submission and review', () => {
     await screen.findByText('Sumber sudah diterbitkan')
     expect(screen.queryByText('Nala sedang menyiapkan draf CP dari PDF ini…')).not.toBeInTheDocument()
   })
+
+  it('warns instead of celebrating when the draft kept no statements, and offers a new draft', async () => {
+    const empty = { ...drafted, draft: { ...drafted.draft!, curriculum: { ...drafted.draft!.curriculum, subjects: [] } }, draft_report: { ...drafted.draft_report!, accepted_statements: 0 } }
+    const request = vi.fn<typeof fetch>(async (_input, init) => init?.method === 'POST' ? Response.json({ document_id: id, job_id: id }, { status: 202 }) : Response.json(empty))
+    render(<MemoryRouter initialEntries={[`/platform/references/${id}`]}><Routes><Route path="/platform/references/:documentId" element={<PlatformReferenceDetailPage service={serviceFor(request)} />} /></Routes></MemoryRouter>)
+    await screen.findByText(/tidak menemukan teks CP yang cocok persis dengan PDF/)
+    expect(screen.queryByText(/Draf otomatis siap/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Minta draf ulang' }))
+    await waitFor(() => expect(request.mock.calls.some(([input, init]) => String(input).endsWith('/draft') && init?.method === 'POST')).toBe(true))
+  })
 })

@@ -77,6 +77,7 @@ export const draftCopy: Record<'pending' | 'ready' | 'failed' | 'skipped', strin
   failed: 'Draf otomatis gagal dibuat. Anda dapat meminta draf ulang atau mengisi tinjauan sendiri.',
   skipped: 'PDF terlalu besar untuk draf otomatis. Unggah bagian mata pelajaran saja, atau isi tinjauan sendiri.',
 }
+export const emptyDraftCopy = 'Draf otomatis tidak menemukan teks CP yang cocok persis dengan PDF. Isi tinjauan sendiri atau minta draf ulang.'
 export const rejectionCopy: Record<DraftRejectionReason, string> = {
   not_in_source: 'Tidak ditemukan persis di PDF',
   outside_element: 'Di luar teks elemennya',
