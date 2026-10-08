@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { CHANGED_MIND, CLASS_TOTAL, MISCONCEPTIONS } from '@/ui/pages/landing/landingContent'
 import { useInViewOnce, usePrefersReducedMotion } from '@/ui/pages/landing/useLandingMotion'
-import shared from '@/ui/pages/landing/Landing.module.css'
-import styles from './ClassMap.module.css'
+import { cn } from '@/ui/cn'
+import shared from '@/ui/pages/landing/Landing.styles'
+import styles from './ClassMap.styles'
 
 const lead = MISCONCEPTIONS[0]
 
@@ -38,7 +39,7 @@ export function ClassMap() {
     <div className={shared.wrap}>
       <div className={shared.head} data-reveal>
         <h2 id="peta-title" className={`${shared.h2} ${styles.title}`}>Sistem menghitung. AI menafsirkan. Guru memutuskan.</h2>
-        <p className={`${shared.lead} ${styles.lead}`}>Jumlah siswa per miskonsepsi dihitung langsung dari jawaban terakhir tiap siswa. AI hanya menulis penjelasannya, tanpa pernah menulis angka.</p>
+        <p className={cn(shared.lead, styles.lead)}>Jumlah siswa per miskonsepsi dihitung langsung dari jawaban terakhir tiap siswa. AI hanya menulis penjelasannya, tanpa pernah menulis angka.</p>
       </div>
 
       <div ref={block} className={styles.grid} data-in={inView}>
@@ -62,7 +63,7 @@ export function ClassMap() {
             {narrative.map((part, index) => {
               if (typeof part === 'string') return <span key={index}>{part}</span>
               const done = ordinals[index] <= shown
-              return <span key={index} className={styles.slot} data-filled={done}>
+              return <span key={index} data-filled={done}>
                 {done ? <span className={styles.value}>{part.value}</span> : <code className={styles.placeholder}>{`{{${part.token}}}`}</code>}
               </span>
             })}
@@ -70,7 +71,7 @@ export function ClassMap() {
           <p className={styles.legend}><span className={styles.swatch} aria-hidden="true" />Angka diisi sistem dari data sesi</p>
         </figure>
       </div>
-      <p className={`${shared.caption} ${styles.caption}`}>Contoh data fiktif untuk satu kelas.</p>
+      <p className={cn(shared.caption, styles.caption)}>Contoh data fiktif untuk satu kelas.</p>
     </div>
   </section>
 }

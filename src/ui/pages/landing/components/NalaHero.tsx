@@ -6,8 +6,8 @@ import { Nala } from '@/ui/components/nala/Nala'
 import { NalaAlive } from './NalaAlive'
 import { CLASS_TOTAL, HERO_LINES, HERO_SCENES, MISCONCEPTIONS, TOTAL_PROMPTS } from '@/ui/pages/landing/landingContent'
 import { usePrefersReducedMotion } from '@/ui/pages/landing/useLandingMotion'
-import shared from '@/ui/pages/landing/Landing.module.css'
-import styles from './NalaHero.module.css'
+import shared from '@/ui/pages/landing/Landing.styles'
+import styles from './NalaHero.styles'
 
 const lead = MISCONCEPTIONS[0]
 const lastScene = HERO_SCENES.length - 1

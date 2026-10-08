@@ -1,0 +1,9 @@
+// Tailwind classes for AccessTable.tsx.
+const styles = {
+  table: 'w-full border-separate [border-spacing:0] text-[0.875rem] [&_thead_th]:px-2 [&_thead_th]:pt-0 [&_thead_th]:pb-3 [&_thead_th]:border-b [&_thead_th]:border-b-border [&_thead_th]:text-start [&_thead_th]:align-bottom [&_thead_th]:text-text-muted [&_thead_th]:text-[0.8125rem] [&_thead_th]:font-[650] [&_tbody_th]:px-2 [&_tbody_th]:py-3.5 [&_tbody_th]:w-[34%] [&_tbody_th]:text-start [&_tbody_th]:align-top [&_tbody_th]:font-semibold [&_tbody_tr:nth-child(even)>*]:[background:color-mix(in_srgb,var(--color-surface-muted)_55%,transparent)] [&_tbody_tr>:first-child]:[border-start-start-radius:12px] [&_tbody_tr>:first-child]:[border-end-start-radius:12px] [&_tbody_tr>:last-child]:[border-start-end-radius:12px] [&_tbody_tr>:last-child]:[border-end-end-radius:12px] sm:text-[0.9375rem] sm:[&_thead_th]:px-4 sm:[&_thead_th]:pt-0 sm:[&_thead_th]:pb-4 sm:[&_thead_th]:text-[0.875rem] sm:[&_tbody_th]:px-4 sm:[&_tbody_th]:py-4.5',
+  cell: 'px-2 py-3.5 align-top [&_span]:gap-1.5 [&_span]:inline-flex [&_span]:items-start [&_svg]:mt-0.5 data-[access=ya]:text-ink data-[access=ya]:font-semibold data-[access=tidak]:text-text-muted data-[access=setelah-rilis]:text-primary data-[access=setelah-rilis]:font-semibold sm:px-4 sm:py-4.5 sm:[&_span]:gap-2',
+  // The table switches on row by row, and each answer lands as its icon pops in.
+  reveal: '[&_tbody_tr]:[transition:opacity_520ms_var(--ease-out)_calc(var(--i)_*_80ms_+_160ms),transform_520ms_var(--ease-out)_calc(var(--i)_*_80ms_+_160ms)] [&_tbody_svg]:[transition:transform_420ms_cubic-bezier(0.23,1,0.32,1)_calc(var(--i)_*_80ms_+_320ms)] [&[data-in=false]_tbody_tr]:opacity-0 [&[data-in=false]_tbody_tr]:[transform:translateX(-10px)] [&[data-in=false]_tbody_svg]:[transform:scale(0.4)]',
+} satisfies Record<string, string>
+
+export default styles

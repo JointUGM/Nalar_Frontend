@@ -1,7 +1,7 @@
 import { Icon } from '@/ui/components/icon/Icon'
 import { FAQ } from '@/ui/pages/landing/landingContent'
-import shared from '@/ui/pages/landing/Landing.module.css'
-import styles from './Faq.module.css'
+import shared from '@/ui/pages/landing/Landing.styles'
+import styles from './Faq.styles'
 
 export function Faq() {
   return <section id="tanya-jawab" className={shared.section} aria-labelledby="faq-title">

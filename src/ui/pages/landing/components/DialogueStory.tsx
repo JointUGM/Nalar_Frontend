@@ -3,8 +3,8 @@ import { Nala } from '@/ui/components/nala/Nala'
 import { DIALOGUE, TOTAL_PROMPTS } from '@/ui/pages/landing/landingContent'
 import type { DialogueStep } from '@/ui/pages/landing/landingContent'
 import { useActiveIndex, usePrefersReducedMotion } from '@/ui/pages/landing/useLandingMotion'
-import shared from '@/ui/pages/landing/Landing.module.css'
-import styles from './DialogueStory.module.css'
+import shared from '@/ui/pages/landing/Landing.styles'
+import styles from './DialogueStory.styles'
 
 // Probes are checked in full before a student sees them, so the screen shows a short thinking beat and then the whole question.
 const THINKING_MS = 650
@@ -42,7 +42,7 @@ function StudentScreen({ step, thinking = false }: { step: DialogueStep; thinkin
 export function DialogueStory() {
   const list = useRef<HTMLOListElement>(null)
   const reduced = usePrefersReducedMotion()
-  const active = useActiveIndex(list, `.${styles.step}`)
+  const active = useActiveIndex(list, '[data-dialogue-step]')
   const [shown, setShown] = useState(active)
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export function DialogueStory() {
           <StudentScreen step={DIALOGUE[reduced ? active : shown]} thinking={thinking} />
         </div>
         <ol ref={list} className={styles.steps}>
-          {DIALOGUE.map((step, index) => <li key={step.id} className={styles.step} data-active={index === active}>
+          {DIALOGUE.map((step, index) => <li key={step.id} className={styles.step} data-dialogue-step data-active={index === active}>
             <div className={styles.inline}><StudentScreen step={step} /></div>
             <h3 className={styles.stepTitle}>{step.title}</h3>
             <p className={styles.stepNote}>{step.note}</p>

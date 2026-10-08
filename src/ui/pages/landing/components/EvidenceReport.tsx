@@ -2,8 +2,8 @@ import { useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { EVIDENCE } from '@/ui/pages/landing/landingContent'
 import { useInViewOnce } from '@/ui/pages/landing/useLandingMotion'
-import shared from '@/ui/pages/landing/Landing.module.css'
-import styles from './EvidenceReport.module.css'
+import shared from '@/ui/pages/landing/Landing.styles'
+import styles from './EvidenceReport.styles'
 
 export function EvidenceReport() {
   const sheet = useRef<HTMLElement>(null)
@@ -27,7 +27,7 @@ export function EvidenceReport() {
 
         <ol className={styles.rows}>
           {EVIDENCE.map((row, index) => <li key={row.dimension} className={styles.row} style={{ '--i': index } as CSSProperties}>
-            <div className={styles.score}>
+            <div>
               <p className={styles.dimension}>{row.dimension}</p>
               <p className={styles.question}>{row.question}</p>
               <p className={styles.level}><span>{row.level}</span> dari 4</p>

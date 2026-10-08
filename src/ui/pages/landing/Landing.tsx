@@ -15,7 +15,7 @@ import { ProjectorSection } from './components/ProjectorSection'
 import { LandingMenu } from './LandingMenu'
 import { SECTIONS } from './landingContent'
 import { useActiveSection, usePrefersReducedMotion } from './useLandingMotion'
-import styles from './Landing.module.css'
+import styles from './Landing.styles'
 
 const sectionIds = SECTIONS.map(([id]) => id)
 

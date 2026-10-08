@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import styles from './NalaAlive.module.css'
+import styles from './NalaAlive.styles'
 
 export type AliveMood = 'hello' | 'ask' | 'think' | 'wow' | 'proud' | 'calm'
 
