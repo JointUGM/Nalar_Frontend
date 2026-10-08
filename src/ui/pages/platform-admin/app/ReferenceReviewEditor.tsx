@@ -8,7 +8,7 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Select } from '@/ui/components/select/Select'
 import { useCommand } from '@/ui/pages/live/useLiveResource'
 import { referenceError, rejectionCopy } from './referenceText'
-import styles from './PlatformReferences.module.css'
+import styles from './PlatformReferences.styles'
 
 const emptyStatement = (): SourceStatement => ({ description: '', page_start: 1, page_end: 1 })
 const emptyElement = (): SourceElement => ({ ...emptyStatement(), element: '', statements: [emptyStatement()] })

@@ -1,7 +1,7 @@
 import type { ReferenceStatus } from '@/domain/model/NationalReference'
 import { Icon } from '@/ui/components/icon/Icon'
 import { referenceStages, stageAt } from './referenceText'
-import styles from './PlatformReferences.module.css'
+import styles from './PlatformReferences.styles'
 
 /** Where a source is on its way from upload to published. State is carried by text for assistive technology, not only by colour. */
 export function ReferenceStages({ status, large = false }: { status: ReferenceStatus; large?: boolean }) {

@@ -3,7 +3,7 @@ import type { PlatformAdminUseCases } from '@/application/platform-admin-use-cas
 import type { AiUsageRow } from '@/domain/model/PlatformAdmin'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/platform-admin/AdminRecords.module.css'
+import styles from '@/ui/pages/platform-admin/AdminRecords.styles'
 import { Nala } from '@/ui/components/nala/Nala'
 import { NalaEmpty } from '@/ui/components/nala/NalaState'
 import { Loading } from '@/ui/components/loading/Loading'

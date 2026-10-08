@@ -17,8 +17,8 @@ import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveRe
 import { ReferenceHeader } from './ReferenceHeader'
 import { ReferenceStages } from './ReferenceStages'
 import { groupOf, libraryNote, processingError, referenceError, referenceGroups, referenceKinds, referenceStatuses, rowAction, sourceLink, type ReferenceGroup } from './referenceText'
-import styles from './PlatformReferences.module.css'
-import platform from '@/ui/pages/platform-admin/Platform.module.css'
+import styles from './PlatformReferences.styles'
+import platform from '@/ui/pages/platform-admin/Platform.styles'
 
 type Tab = 'all' | ReferenceGroup
 const matches = (row: NationalReference, search: string) => `${row.title} ${row.issuer}`.toLocaleLowerCase('id-ID').includes(search.trim().toLocaleLowerCase('id-ID'))

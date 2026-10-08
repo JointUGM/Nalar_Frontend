@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Nala, type NalaMood } from '@/ui/components/nala/Nala'
-import styles from '@/ui/pages/platform-admin/Platform.module.css'
+import styles from '@/ui/pages/platform-admin/Platform.styles'
 
 /** The same white notebook header as Sekolah and Capaian Pembelajaran; Nala's line is derived from the page's data. */
 export function ReferenceHeader({ title, description, action, note }: { title: string; description: string; action?: ReactNode; note: readonly [NalaMood, string] | null }) {
