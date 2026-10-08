@@ -5,7 +5,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { useCommand } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/teacher/TeacherSessions.module.css'
+import styles from '@/ui/pages/teacher/TeacherSessions.styles'
 
 // A button that asks first, for an action that cannot be undone from the app (archive, delete).
 export function ConfirmAction({ label, title, description, confirm, pendingLabel, action, onDone, refusal, disabled }: {

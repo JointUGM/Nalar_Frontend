@@ -9,7 +9,7 @@ import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
 import { CsvDownload } from '@/ui/components/csv-download/CsvDownload'
-import styles from '@/ui/pages/teacher/TeacherClassMap.module.css'
+import styles from '@/ui/pages/teacher/TeacherClassMap.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 
 // Evaluations and the saved insight arrive after the sessions end, so the map refreshes on its own.

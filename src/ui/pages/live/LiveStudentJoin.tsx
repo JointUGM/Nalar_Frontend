@@ -6,7 +6,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { LiveFeedback } from './LiveFrame'
 import { useCommandSignal } from './useLiveResource'
-import styles from '@/ui/pages/student/StudentJoin.module.css'
+import styles from '@/ui/pages/student/StudentJoin.styles'
 
 // Join codes are six capitals and digits; pasted spaces, dashes and lower case are dropped.
 const codeLength = 6

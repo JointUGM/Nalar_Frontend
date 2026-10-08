@@ -10,7 +10,7 @@ import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/teacher/TeacherClasses.module.css'
+import styles from '@/ui/pages/teacher/TeacherClasses.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 
 const statusWord: Readonly<Record<string, string>> = { not_started: 'Belum mulai', in_progress: 'Sedang mengerjakan', paused_safety: 'Dijeda', completed: 'Selesai', timed_out: 'Waktu habis', ended_safety: 'Diakhiri' }
@@ -134,7 +134,7 @@ function Roster({ service, classId, publicationId, base }: { service: TeacherSer
             {student.open_flag_count > 0 && <span className={styles.flag}><Icon name="flag" size={12} />{number.format(student.open_flag_count)} perlu verifikasi</span>}
           </div></td>
           <td role="cell"><span className={styles.mobileLabel} aria-hidden="true">Hasil konsep</span><ConceptResults student={student} /></td>
-          <td role="cell" className={styles.reportCell}>{student.session_id && publicationId ? <Link className={styles.report} to={`${base}/publications/${publicationId}/sessions/${student.session_id}`} aria-label={`Laporan ${student.full_name}`}>Laporan<Icon name="chevronRight" size={14} /></Link> : <span className={styles.noReport}>Belum ada laporan</span>}</td>
+          <td role="cell">{student.session_id && publicationId ? <Link className={styles.report} to={`${base}/publications/${publicationId}/sessions/${student.session_id}`} aria-label={`Laporan ${student.full_name}`}>Laporan<Icon name="chevronRight" size={14} /></Link> : <span className={styles.noReport}>Belum ada laporan</span>}</td>
         </tr>)}</tbody>
       </table>}
     </>}

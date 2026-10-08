@@ -11,7 +11,7 @@ import { Nala } from '@/ui/components/nala/Nala'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/student/StudentIntro.module.css'
+import styles from '@/ui/pages/student/StudentIntro.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 
 const steps = [

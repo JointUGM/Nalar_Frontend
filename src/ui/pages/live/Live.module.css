@@ -1,4 +1,0 @@
-.feedback { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-block: 16px; }
-.feedback > :first-child { flex: 1 1 260px; }
-.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-block: 16px; }
-.actions a { display: inline-flex; align-items: center; min-block-size: 44px; font-weight: 600; }

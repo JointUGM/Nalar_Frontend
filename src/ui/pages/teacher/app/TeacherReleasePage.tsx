@@ -11,8 +11,8 @@ import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import liveStyles from '@/ui/pages/live/Live.module.css'
-import styles from '@/ui/pages/teacher/TeacherRelease.module.css'
+import liveStyles from '@/ui/pages/live/Live.styles'
+import styles from '@/ui/pages/teacher/TeacherRelease.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 
 // Summaries are written in the background after the last evaluation, so readiness can change while the page is open.

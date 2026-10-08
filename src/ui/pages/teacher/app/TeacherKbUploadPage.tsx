@@ -10,7 +10,7 @@ import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/teacher/TeacherKbUpload.module.css'
+import styles from '@/ui/pages/teacher/TeacherKbUpload.styles'
 import { kbRefusal } from './kbText'
 
 const next = ['Materi dibaca dan daftar babnya dibuat.', 'Anda memilih bab yang disusun menjadi draf konsep dan miskonsepsi.', 'Anda meninjau tiap butir; hanya yang disetujui dipakai untuk misi.']

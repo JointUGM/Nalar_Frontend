@@ -9,7 +9,7 @@ import { Nala } from '@/ui/components/nala/Nala'
 import { formatDay } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/student/StudentReflections.module.css'
+import styles from '@/ui/pages/student/StudentReflections.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 
 const excerpt = (text: string) => text.length > 180 ? `${text.slice(0, 177).trimEnd()}…` : text

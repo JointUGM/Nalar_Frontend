@@ -11,7 +11,7 @@ import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
 import { PublicationManage } from './PublicationManage'
-import styles from '@/ui/pages/teacher/TeacherSessions.module.css'
+import styles from '@/ui/pages/teacher/TeacherSessions.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 
 const sessionsPollMs = () => 15_000

@@ -3,7 +3,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { StatusBadge } from '@/ui/components/status-badge/StatusBadge'
-import styles from './StudentWorkspace.module.css'
+import styles from './StudentWorkspace.styles'
 
 export function StudentWorkspace() {
   const [answer, setAnswer] = useState('')

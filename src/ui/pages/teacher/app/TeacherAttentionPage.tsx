@@ -9,7 +9,7 @@ import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
-import styles from '@/ui/pages/teacher/TeacherAttentionQueue.module.css'
+import styles from '@/ui/pages/teacher/TeacherAttentionQueue.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 
 type Kind = AttentionItem['kind']

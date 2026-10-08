@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import type { NewConcept, NewMisconception } from '@/domain/model/KnowledgeBase'
 import { Button } from '@/ui/components/button/Button'
 import { Field } from '@/ui/components/field/Field'
-import styles from '@/ui/pages/teacher/TeacherKbReview.module.css'
+import styles from '@/ui/pages/teacher/TeacherKbReview.styles'
 
 type Props = { pending: boolean; onCancel: () => void } & (
   | { kind: 'concept'; onSubmit: (value: NewConcept, key: string) => void }

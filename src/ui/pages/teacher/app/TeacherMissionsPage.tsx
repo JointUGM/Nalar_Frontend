@@ -9,7 +9,7 @@ import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/teacher/TeacherMissions.module.css'
+import styles from '@/ui/pages/teacher/TeacherMissions.styles'
 import { versionWord } from './missionText'
 import { Loading } from '@/ui/components/loading/Loading'
 

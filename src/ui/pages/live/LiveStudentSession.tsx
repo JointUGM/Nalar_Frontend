@@ -12,8 +12,8 @@ import { sessionPollMs, useCommandSignal, useLiveResource, useServerTime } from 
 import { LiveStudentFinish } from './LiveStudentReflection'
 import { useSessionTelemetry } from './useSessionTelemetry'
 import type { SendTelemetry } from './useSessionTelemetry'
-import styles from '@/ui/pages/student/StudentSession.module.css'
-import stateStyles from '@/ui/pages/student/SessionStates.module.css'
+import styles from '@/ui/pages/student/StudentSession.styles'
+import stateStyles from '@/ui/pages/student/SessionStates.styles'
 
 // A session that ended early: what happened and what is kept, never anything about the answers.
 const endCopy: Readonly<Record<string, readonly [string, string, string]>> = {

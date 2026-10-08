@@ -11,7 +11,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/teacher/TeacherPublication.module.css'
+import styles from '@/ui/pages/teacher/TeacherPublication.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 
 const modes = [

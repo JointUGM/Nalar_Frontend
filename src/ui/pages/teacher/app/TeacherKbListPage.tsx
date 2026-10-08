@@ -10,7 +10,7 @@ import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/teacher/TeacherKbLibrary.module.css'
+import styles from '@/ui/pages/teacher/TeacherKbLibrary.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 
 const state = (topic: KbSummary) => topic.pending_count > 0 ? 'review' : topic.approved_concept_count > 0 ? 'approved' : 'empty'
