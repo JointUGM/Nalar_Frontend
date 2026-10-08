@@ -38,94 +38,16 @@
   color: var(--color-text-secondary);
 }
 
-.card {
-  padding: 0 20px;
+.add {
+  margin-block-start: 14px;
+}
+
+.emptyCard {
   border: 1px solid var(--color-role-border);
-  border-radius: 14px;
+  border-radius: var(--radius-card, 14px);
   background: var(--color-surface);
-  overflow-x: auto;
-  scrollbar-width: thin;
-}
-
-.table {
-  display: block;
-  inline-size: 100%;
-  min-inline-size: 100%;
-  border-collapse: collapse;
-}
-
-.table thead, .table tbody {
-  display: block;
-}
-
-.table tr {
-  display: grid;
-  grid-template-columns: minmax(140px, 1.2fr) minmax(180px, 1.6fr) minmax(260px, 2.6fr) 150px;
-  align-items: center;
-  gap: 16px;
-  padding-block: 14px;
-}
-
-.table th {
-  text-align: start;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-}
-
-.table td {
-  min-inline-size: 0;
-  padding: 0;
-  overflow-wrap: anywhere;
-}
-
-.table tbody tr {
-  border-block-start: 1px solid var(--color-surface-muted);
-}
-
-.name {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-ink);
-}
-
-.cp {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-}
-
-.unmapped {
-  color: var(--color-warning-text, #b45309);
-  font-weight: 600;
-}
-
-.kb {
-  font-size: 14px;
-}
-
-.edit,
-button.edit {
-  justify-self: end;
-  white-space: nowrap;
-  flex-shrink: 0;
-  min-inline-size: auto;
-  min-block-size: 32px;
-  padding: 4px 12px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  color: var(--color-primary);
-  background: transparent;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.edit:hover:not(:disabled),
-button.edit:hover:not(:disabled) {
-  background: rgba(36, 71, 209, 0.08);
-  border-color: rgba(36, 71, 209, 0.2);
-  color: var(--color-primary-hover);
+  margin-block-start: 16px;
+  overflow: hidden;
 }
 
 .hidden {
@@ -136,9 +58,141 @@ button.edit:hover:not(:disabled) {
   clip-path: inset(50%);
 }
 
+/* The list: one white panel, rows divided by a hairline. Rows are grid lines of a real table. */
+.card {
+  container-type: inline-size;
+  border: 1px solid var(--color-role-border);
+  border-radius: var(--radius-card, 14px);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.table {
+  display: block;
+  inline-size: 100%;
+  border-collapse: collapse;
+}
+
+.table thead,
+.table tbody {
+  display: block;
+}
+
+.table tr {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(220px, 1.5fr) minmax(250px, 1.8fr) 236px;
+  align-items: center;
+  gap: 8px 24px;
+  padding: 16px 20px;
+}
+
+.table thead tr {
+  padding-block: 11px;
+  background: color-mix(in srgb, var(--color-paper) 70%, var(--color-surface));
+  border-block-end: 1px solid var(--color-role-border);
+}
+
+.table th,
+.table td {
+  min-inline-size: 0;
+  padding: 0;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.table thead th {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.table tbody tr + tr {
+  border-block-start: 1px solid var(--color-surface-muted);
+}
+
+/* Rows rise once when the list first loads (capped at 8); a refresh keeps the same nodes and does not replay it. */
+.table tbody tr {
+  transition: background-color 150ms ease-out;
+  animation: rise 320ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .table tbody tr:hover {
+    background: var(--color-nav-hover, #f3f5fc);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table tbody tr {
+    animation: none;
+  }
+}
+
+.name {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+
+.cell {
+  display: grid;
+  gap: 3px;
+  align-content: center;
+  justify-items: start;
+}
+
+.cpTitle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.phase {
+  padding: 1px 8px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--color-info-bg);
+  color: var(--color-primary);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cpVersion {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--color-text-muted);
+  text-wrap: pretty;
+}
+
+.none {
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+}
+
 .kbList {
   display: grid;
-  gap: 8px;
+  gap: 10px;
+  inline-size: 100%;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -147,34 +201,99 @@ button.edit:hover:not(:disabled) {
 .kbList li {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: var(--color-paper, #f8fafc);
+  gap: 10px;
+  min-inline-size: 0;
 }
 
-.kbItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-inline-size: 0;
+.noOwner {
+  flex-shrink: 0;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--color-control-border);
+}
+
+.kbText {
+  display: grid;
   flex: 1;
+  min-inline-size: 0;
 }
 
-.kbItem span {
-  min-inline-size: 0;
-  overflow-wrap: anywhere;
+.kbText strong {
   font-size: 13.5px;
+  line-height: 19px;
+  font-weight: 600;
   color: var(--color-ink);
 }
 
-.emptyCard {
-  border: 1px solid var(--color-role-border);
-  border-radius: 14px;
-  background: var(--color-surface);
-  margin-block-start: 16px;
-  overflow: hidden;
+.kbText small {
+  font-size: 12.5px;
+  line-height: 17px;
+  color: var(--color-text-muted);
+}
+
+/* Actions: the one the row needs next stays visible, the destructive one sits apart behind a hairline. */
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.rule {
+  inline-size: 1px;
+  block-size: 18px;
+  margin-inline: 6px;
+  background: var(--color-role-border);
+}
+
+.edit,
+button.edit,
+.map,
+button.map {
+  flex-shrink: 0;
+  min-inline-size: auto;
+  min-block-size: 34px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.edit,
+button.edit {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: background-color 150ms ease-out, border-color 150ms ease-out, transform 120ms ease-out;
+}
+
+.edit:hover:not(:disabled),
+button.edit:hover:not(:disabled) {
+  background: rgba(36, 71, 209, 0.08);
+  border-color: rgba(36, 71, 209, 0.2);
+  color: var(--color-primary-hover);
+}
+
+.edit:active:not(:disabled),
+button.edit:active:not(:disabled),
+.map:active:not(:disabled),
+button.map:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.remove,
+button.remove {
+  color: var(--color-danger-text);
+}
+
+.remove:hover:not(:disabled),
+button.remove:hover:not(:disabled) {
+  background: var(--color-danger-bg);
+  border-color: transparent;
+  color: var(--color-danger-hover, var(--color-danger-text));
 }
 
 @media (max-width: 860px) {
@@ -182,12 +301,11 @@ button.edit:hover:not(:disabled) {
     font-size: 24px;
     line-height: 32px;
   }
-  .card {
-    padding-inline: 14px;
-  }
-  .table {
-    min-inline-size: 0;
-  }
+}
+
+/* The panel's own width decides, not the screen's: the sidebar eats 232px, so a laptop is as narrow as a tablet.
+   Narrow: each row becomes a block, name and actions on top, labelled values below (side by side, then stacked). */
+@container (max-width: 900px) {
   .table thead {
     position: absolute;
     inline-size: 1px;
@@ -195,28 +313,45 @@ button.edit:hover:not(:disabled) {
     overflow: hidden;
     clip-path: inset(50%);
   }
+
   .table tr {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 6px 12px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px 24px;
+    padding: 16px;
   }
-  .table td {
+
+  .name {
     grid-column: 1;
   }
-  .table td:last-child {
+
+  .actions {
     grid-column: 2;
-    grid-row: 1 / span 3;
+    grid-row: 1;
   }
-  .kb::before {
-    content: 'Basis pengetahuan: ';
-    color: var(--color-text-secondary);
-    font-size: 13px;
+
+  .cell {
+    align-self: start;
+  }
+
+  .cell::before {
+    content: attr(data-label);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
   }
 }
 
-.add {
-  margin-block-start: 14px;
+@container (max-width: 560px) {
+  .table tr {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .cell {
+    grid-column: 1 / -1;
+  }
 }
 
+/* CP outcomes panel shown inside the add and map dialogs. */
 .outcomes {
   display: grid;
   gap: 10px;
@@ -279,22 +414,4 @@ button.edit:hover:not(:disabled) {
   font-size: 13.5px;
   line-height: 20px;
   color: var(--color-text-secondary);
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 4px;
-}
-
-.remove,
-button.remove {
-  color: var(--color-danger-text, #b42318);
-}
-
-.remove:hover:not(:disabled),
-button.remove:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-danger-text, #b42318) 8%, transparent);
-  border-color: color-mix(in srgb, var(--color-danger-text, #b42318) 24%, transparent);
-  color: var(--color-danger-text, #b42318);
 }
