@@ -5,8 +5,8 @@ import { Field } from '@/ui/components/field/Field'
 import { AccountLayout } from './AccountLayout'
 import { AccountPreviewControl, AccountPreviewNote } from './AccountPreviewControl'
 import { useAccountPasswordViewModel } from './useAccountPasswordViewModel'
-import login from './Login.module.css'
-import styles from './AccountPreview.module.css'
+import login from './Login.styles'
+import styles from './AccountPreview.styles'
 
 export function AccountPassword() {
   const view = useAccountPasswordViewModel()

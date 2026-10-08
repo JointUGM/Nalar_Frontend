@@ -9,8 +9,8 @@ import { AccountLayout } from './AccountLayout'
 import { ActivateAccount } from './ActivateAccount'
 import type { AccountDependencies } from './AccountDependencies'
 import { NalaLoginStage } from './NalaLoginStage'
-import login from './Login.module.css'
-import styles from './ActivateAccount.module.css'
+import login from './Login.styles'
+import styles from './ActivateAccount.styles'
 
 // With the emailed proof this sets the new password; without it, it asks for a link.
 export function ResetPassword({ proof, dependencies }: { proof: ActivationProof | null; dependencies: AccountDependencies | null }) {

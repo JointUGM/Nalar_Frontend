@@ -1,5 +1,5 @@
 import type { PreviewOutcome } from './useAccountPreview'
-import styles from './AccountPreview.module.css'
+import styles from './AccountPreview.styles'
 
 export function AccountPreviewNote() {
   return <p className={styles.note}>Pratinjau layar · tidak ada akun, email atau kata sandi yang benar-benar dibuat, dikirim atau diubah.</p>

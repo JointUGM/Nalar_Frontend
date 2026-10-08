@@ -11,7 +11,7 @@ import type { AccountDependencies } from './AccountDependencies'
 import { useAccountViewModel } from './useAccountViewModel'
 import { RoleSelection } from './RoleSelection'
 import { NalaLoginMotion } from './NalaLoginMotion'
-import styles from './LoginPage.module.css'
+import styles from './LoginPage.styles'
 
 type FocusedField = 'email' | 'password' | null
 
