@@ -212,3 +212,71 @@ button.edit:hover:not(:disabled) {
     font-size: 13px;
   }
 }
+
+.add {
+  margin-block-start: 14px;
+}
+
+.outcomes {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--color-role-border);
+  border-radius: 12px;
+  background: var(--color-paper, #f8fafc);
+}
+
+.outcomesHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 14px;
+  color: var(--color-ink);
+}
+
+.outcomesCount {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.outcomesEmpty {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+}
+
+.outcomesScroll {
+  display: grid;
+  gap: 14px;
+  max-block-size: 240px;
+  overflow-y: auto;
+  padding-inline-end: 6px;
+  scrollbar-width: thin;
+}
+
+.outcomesScroll:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.outcomeGroup h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.outcomeGroup ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-inline-start: 20px;
+  font-size: 13.5px;
+  line-height: 20px;
+  color: var(--color-text-secondary);
+}

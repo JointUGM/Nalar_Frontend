@@ -212,4 +212,37 @@ describe('school administration', () => {
     expect(await screen.findByText('Agus Salim sekarang pemilik Gaya dan Gerak.')).toBeInTheDocument()
     expect(JSON.parse(String(sent(request, 'POST')[1][1]?.body))).toEqual({ teacher_id: teacher })
   })
+
+  it('adds a subject after reading the chosen CP subject, retrying with the same key', async () => {
+    const [version, ipa, ips, created] = ['41', '42', '43', '44'].map((end) => `00000000-0000-4000-8000-0000000000${end}`)
+    let attempts = 0
+    const request = open(`/school/${school}/subjects`, (key) => {
+      if (key === `GET /schools/${school}/subjects`) return Response.json([])
+      if (key === `GET /schools/${school}/curriculum-versions`) return Response.json([{ id: version, name: 'CP 2025', decree_code: 'BSKAP 046/2025', is_current: true, subjects: [{ id: ipa, name: 'Ilmu Pengetahuan Alam', phase: 'D' }, { id: ips, name: 'IPAS', phase: 'D' }] }])
+      if (key === `GET /schools/${school}/academic-years`) return Response.json(years)
+      if (key === `GET /schools/${school}/assignments?academic_year_id=${year}`) return Response.json([])
+      if (key === `GET /schools/${school}/curriculum-versions/${version}/subjects/${ipa}`) return Response.json({ id: ipa, name: 'Ilmu Pengetahuan Alam', phase: 'D', version_id: version, learning_outcomes: [
+        { id: '00000000-0000-4000-8000-000000000051', element: 'Pemahaman IPA', ordinal: 1, description: 'Peserta didik menjelaskan gaya dan gerak.' },
+        { id: '00000000-0000-4000-8000-000000000052', element: 'Keterampilan Proses', ordinal: 2, description: 'Peserta didik merancang percobaan sederhana.' },
+      ] })
+      if (key === `POST /schools/${school}/subjects`) return (attempts += 1) === 1 ? Response.json({ error: { code: 'SUBJECT_ALREADY_EXISTS' } }, { status: 409 }) : Response.json({ school_subject_id: created }, { status: 201 })
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Tambah mata pelajaran' }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('button', { name: 'Tambah mata pelajaran' })).toBeDisabled()
+    fireEvent.change(within(dialog).getByRole('combobox', { name: 'Mata pelajaran CP' }), { target: { value: ipa } })
+    expect(await within(dialog).findByText('Peserta didik menjelaskan gaya dan gerak.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Keterampilan Proses')).toBeInTheDocument()
+    expect(within(dialog).getByText('2 capaian')).toBeInTheDocument()
+    // The name follows the CP subject until the admin types one.
+    expect(within(dialog).getByLabelText(/^Nama mata pelajaran/)).toHaveValue('Ilmu Pengetahuan Alam')
+    fireEvent.change(within(dialog).getByLabelText(/^Nama mata pelajaran/), { target: { value: '  IPA   Terpadu ' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Tambah mata pelajaran' }))
+    expect(await within(dialog).findByText(/sudah punya mata pelajaran dengan nama itu/)).toBeInTheDocument()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Tambah mata pelajaran' }))
+    expect(await screen.findByText(/IPA Terpadu ditambahkan dan dipetakan ke CP 2025/)).toBeInTheDocument()
+    const posts = sent(request, 'POST')
+    expect(JSON.parse(String(posts[1][1]?.body))).toEqual({ name: 'IPA Terpadu', cp_version_id: version, cp_subject_id: ipa })
+    expect(new Headers(posts[1][1]?.headers).get('Idempotency-Key')).toBe(new Headers(posts[0][1]?.headers).get('Idempotency-Key'))
+  })
 })

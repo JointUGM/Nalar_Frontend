@@ -1,6 +1,6 @@
 import { ApiError, resourceId } from '@/domain/model/ApiError'
-import { invitationBatchSize, placementMax, invitationTargetStates, rosterMaxBytes } from '@/domain/model/SchoolAdmin'
-import type { ClassDraft, InvitationSummary, InvitationTarget, LinkedPerson, NewAcademicYear, NewPerson, PersonEdit, Relationship, PeopleRole } from '@/domain/model/SchoolAdmin'
+import { invitationBatchSize, placementMax, invitationTargetStates, rosterMaxBytes, subjectNameMax } from '@/domain/model/SchoolAdmin'
+import type { ClassDraft, InvitationSummary, InvitationTarget, LinkedPerson, NewAcademicYear, NewPerson, NewSchoolSubject, PersonEdit, Relationship, PeopleRole } from '@/domain/model/SchoolAdmin'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 
 export class SchoolAdminUseCases {
@@ -100,6 +100,13 @@ export class SchoolAdminUseCases {
   }
   subjects(schoolId: string, signal?: AbortSignal) { return this.service.subjects(resourceId(schoolId), signal) }
   curriculumVersions(schoolId: string, signal?: AbortSignal) { return this.service.curriculumVersions(resourceId(schoolId), signal) }
+  // The key stays the same while the admin retries one submission, so a lost answer never creates the subject twice.
+  createSubject(schoolId: string, subject: NewSchoolSubject, idempotencyKey: string, signal?: AbortSignal) {
+    const name = subject.name.trim().replace(/\s+/g, ' ')
+    if (!name || name.length > subjectNameMax) throw new ApiError(422, 'NAME_REQUIRED')
+    return this.service.createSubject(resourceId(schoolId), { name, cp_version_id: resourceId(subject.cp_version_id), cp_subject_id: resourceId(subject.cp_subject_id) }, resourceId(idempotencyKey), signal)
+  }
+  cpSubject(schoolId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal) { return this.service.cpSubject(resourceId(schoolId), resourceId(versionId), resourceId(cpSubjectId), signal) }
   // The CP subject is always sent, so the backend never has to guess it from the name.
   setCurriculum(schoolId: string, subjectId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal) {
     return this.service.setCurriculum(resourceId(schoolId), resourceId(subjectId), resourceId(versionId), resourceId(cpSubjectId), signal)

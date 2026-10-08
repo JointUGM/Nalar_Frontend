@@ -12,13 +12,15 @@ import { Loading } from '@/ui/components/loading/Loading'
 import { Select } from '@/ui/components/select/Select'
 import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
+import { CpOutcomes } from './CpOutcomes'
+import { NewSubjectDialog } from './NewSubjectDialog'
 
 const refusals: Readonly<Record<string, string>> = {
   CURRICULUM_SUBJECT_REQUIRED: 'Pilih mata pelajaran CP yang sesuai.',
   CURRICULUM_PHASE_MISMATCH: 'Fase mata pelajaran CP ini berbeda dari pemetaan sekarang. Pilih yang fasenya sama.',
   NOT_FOUND: 'Guru ini belum ditugaskan mengajar mata pelajaran ini. Atur di Penugasan guru.',
 }
-type Editing = { kind: 'cp'; subject: SchoolSubject } | { kind: 'owner'; subject: SchoolSubject; kb: SubjectKnowledgeBase }
+type Editing = { kind: 'new' } | { kind: 'cp'; subject: SchoolSubject } | { kind: 'owner'; subject: SchoolSubject; kb: SubjectKnowledgeBase }
 
 export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdminUseCases; schoolId: string }) {
   const read = useCallback(async (signal: AbortSignal) => {
@@ -47,6 +49,8 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
       <div>
         <h1>Mata pelajaran</h1>
         <p className={styles.lead}>Setiap mata pelajaran sekolah dipetakan ke Capaian Pembelajaran nasional. Hanya pemilik basis pengetahuan yang bisa menyetujui dan mengubahnya.</p>
+        {data && <Button className={styles.add} disabled={!data.versions.length} onClick={() => { setMessage(''); setEditing({ kind: 'new' }) }}>Tambah mata pelajaran</Button>}
+        {data && !data.versions.length && <p className={styles.note}>Belum ada versi CP yang terbit. Minta admin platform menerbitkannya dulu.</p>}
       </div>
       {note && <NalaNote mood={note[0]} text={note[1]} />}
     </div>
@@ -56,7 +60,7 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
     {data && (data.subjects.length === 0 ? (
       <div className={styles.emptyCard}>
         <NalaEmpty mood="hello" title="Belum ada mata pelajaran">
-          <p>Belum ada mata pelajaran di sekolah ini. Lakukan impor data untuk mendaftarkan mata pelajaran.</p>
+          Belum ada mata pelajaran di sekolah ini. Tambahkan yang pertama, lalu tugaskan gurunya di Penugasan guru.
         </NalaEmpty>
       </div>
     ) : <div className={styles.card}><table className={styles.table}>
@@ -75,6 +79,7 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
         <td><Button tone="ghost" className={styles.edit} aria-label={`Ubah pemetaan ${subject.name}`} disabled={!data.versions.length} onClick={() => { setMessage(''); setEditing({ kind: 'cp', subject }) }}>Ubah</Button></td>
       </tr> })}</tbody>
     </table></div>)}
+    {data && editing?.kind === 'new' && data.versions.length > 0 && <NewSubjectDialog service={service} schoolId={schoolId} versions={data.versions} onClose={close} />}
     {data && editing?.kind === 'cp' && <CurriculumDialog service={service} schoolId={schoolId} subject={editing.subject} versions={data.versions} onClose={close} />}
     {data && editing?.kind === 'owner' && <OwnerDialog service={service} subject={editing.subject} kb={editing.kb} teachers={[...new Map(data.assignments.filter((row) => row.school_subject_id === editing.subject.school_subject_id && row.teacher_id && row.teacher_id !== editing.kb.owner_teacher_id).map((row) => [row.teacher_id ?? '', row.teacher_name])).entries()]} onClose={close} />}
   </div>
@@ -116,6 +121,7 @@ function CurriculumDialog({ service, schoolId, subject, versions, onClose }: { s
           label: `${item.name} · Fase ${item.phase}`
         }))}
       />
+      {cpSubjectId && <CpOutcomes service={service} schoolId={schoolId} versionId={versionId} cpSubjectId={cpSubjectId} />}
       {subject.knowledge_bases.length > 0 && !unchanged && <Feedback tone="warning" title="Konsep perlu dicocokkan ulang">Pemilik basis pengetahuan {subject.name} perlu mencocokkan konsepnya dengan Capaian Pembelajaran yang baru.</Feedback>}
       {said && <Feedback tone="warning" title={said} announce>{command.failure?.requestId && <small>Referensi: {command.failure.requestId}</small>}</Feedback>}
       <div className={shared.actions}><Button tone="secondary" disabled={command.pending} onClick={() => onClose()}>Batal</Button><Button disabled={unchanged || !cpSubjectId} pending={command.pending} pendingLabel="Menyimpan…" onClick={() => void save()}>Simpan pemetaan</Button></div>
