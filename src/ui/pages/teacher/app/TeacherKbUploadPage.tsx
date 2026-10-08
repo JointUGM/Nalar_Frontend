@@ -9,6 +9,7 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
 import type { IconName } from '@/ui/components/icon/Icon'
+import { RoadSteps } from '@/ui/components/road/RoadSteps'
 import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
@@ -90,13 +91,7 @@ export function TeacherKbUploadPage({ kb, teacher, base, schoolId }: { kb: Knowl
         </div>
         <div className={styles.actions}><Button type="submit" pending={pending} pendingLabel="Mengunggah…"><Icon name="upload" size={16} />Unggah materi</Button></div>
       </section>
-      <aside className={styles.road} aria-labelledby="kb-next-heading">
-        <h2 id="kb-next-heading" className={styles.roadTitle}>Setelah diunggah</h2>
-        <ol className={styles.steps}>{next.map((step, index) => <li key={step.label} className={styles.step} style={{ animationDelay: `${120 + index * 70}ms` }}>
-          <span className={styles.chip} data-goal={index === next.length - 1} aria-hidden="true"><Icon name={step.icon} size={16} /></span>
-          <span className={styles.stepLabel}>{step.label}</span>
-        </li>)}</ol>
-      </aside>
+      <RoadSteps id="kb-next-heading" title="Setelah diunggah" steps={next} />
     </form>
   </div>
 }

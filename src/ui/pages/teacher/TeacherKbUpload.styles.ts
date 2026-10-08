@@ -23,14 +23,6 @@ const styles = {
   fileText: 'min-w-0 flex-[1_1_9rem] [&_strong]:block [&_strong]:text-[13px] [&_strong]:leading-5 [&_strong]:wrap-anywhere [&_small]:block [&_small]:text-[12px] [&_small]:leading-4 [&_small]:text-text-muted',
   replace: 'inline-flex min-h-11 cursor-pointer items-center rounded-pill px-3 text-[13px] font-semibold text-primary-hover select-none hover:bg-nav-hover',
   remove: 'grid size-11 flex-none place-items-center rounded-full border-transparent bg-transparent p-0 text-text-secondary transition-[background-color,color,transform] duration-160 hover:not-disabled:bg-danger-bg hover:not-disabled:text-danger-text active:not-disabled:scale-95 motion-reduce:transition-none',
-
-  // "Setelah diunggah": the road ahead, on the canvas rather than in a second card.
-  road: 'grid gap-4 lg:pt-2',
-  roadTitle: 'm-0 text-[15px] leading-6 font-bold text-ink',
-  steps: 'm-0 grid list-none p-0',
-  step: 'relative grid grid-cols-[32px_minmax(0,1fr)] items-start gap-x-3 pb-6 animate-file-in last:pb-0 motion-reduce:animate-none after:absolute after:top-9 after:bottom-1 after:left-[15px] after:w-0.5 after:rounded-full after:bg-accent/55 after:content-[""] last:after:hidden',
-  chip: 'grid size-8 place-items-center rounded-full bg-info-bg text-primary data-[goal=true]:bg-success-bg data-[goal=true]:text-success-text',
-  stepLabel: 'min-w-0 pt-1 text-[14px] leading-6 text-pretty text-ink wrap-anywhere',
 } satisfies Record<string, string>
 
 export default styles

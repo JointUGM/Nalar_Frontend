@@ -591,7 +591,7 @@ describe('signed-in teacher pages', () => {
       [`GET /jobs/${job}`]: () => Response.json(jobOut({ kind: 'mission_generate', generation_result: { version_id: draft, version_number: 1, ungrounded_concept_ids: [] } })),
     })
     open(`${base}/missions/new`, request)
-    await screen.findByRole('option', { name: /Tekanan Zat/ })
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Basis pengetahuan/ })).toHaveTextContent('Tekanan Zat'))
     fireEvent.change(screen.getByLabelText(/Judul misi/), { target: { value: ' Tekanan Zat ' } })
     fireEvent.change(screen.getByLabelText(/Tujuan pembelajaran/), { target: { value: 'Siswa menjelaskan tekanan hidrostatis.' } })
     const create = screen.getByRole('button', { name: 'Buat misi' })
@@ -602,6 +602,13 @@ describe('signed-in teacher pages', () => {
     const posts = request.mock.calls.filter(([, init]) => init?.method === 'POST')
     expect(posts.map(([url]) => String(url))).toEqual(['/api/v1/missions', `/api/v1/missions/${draft}/generate`])
     expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ knowledge_base_id: kbId, title: 'Tekanan Zat', learning_objective: 'Siswa menjelaskan tekanan hidrostatis.' })
+  })
+
+  it('starts the learning objective from a sentence opening that disappears once used', async () => {
+    open(`${base}/missions/new`, backend({}))
+    fireEvent.click(await screen.findByRole('button', { name: 'Siswa dapat menjelaskan' }))
+    expect(screen.getByLabelText(/Tujuan pembelajaran/)).toHaveValue('Siswa dapat menjelaskan ')
+    expect(screen.queryByRole('group', { name: 'Awal kalimat tujuan' })).not.toBeInTheDocument()
   })
 
   it('saves an edit as a new version that carries the rest of the draft over', async () => {
