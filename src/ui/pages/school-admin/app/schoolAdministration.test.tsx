@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
@@ -41,6 +42,12 @@ function open(path: string, answer: (key: string, init?: RequestInit) => Respons
 }
 const sent = (request: ReturnType<typeof open>, method: string) => request.mock.calls.filter(([, init]) => init?.method === method)
 
+/** Opens a Select and picks an option, as a person would. */
+async function choose(combobox: HTMLElement | Promise<HTMLElement>, option: string | RegExp) {
+  await userEvent.click(await combobox)
+  await userEvent.click(await screen.findByRole('option', { name: option }))
+}
+
 describe('school administration', () => {
   it('edits only what changed, moves the class, and explains a refused deactivation', async () => {
     const request = open(`/school/${school}/people`, (key) => {
@@ -53,7 +60,7 @@ describe('school administration', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Kelola Adinda Putri' }))
     const drawer = screen.getByRole('dialog')
     expect(within(drawer).getByText('Siti Aminah')).toBeInTheDocument()
-    fireEvent.change(await within(drawer).findByRole('combobox', { name: /Pindah kelas/ }), { target: { value: classB } })
+    await choose(within(drawer).findByRole('combobox', { name: /Pindah kelas/ }), /8B/)
     fireEvent.click(within(drawer).getByRole('button', { name: 'Simpan' }))
     expect(await screen.findByText('Data Adinda Putri tersimpan.')).toBeInTheDocument()
     expect(JSON.parse(String(sent(request, 'PATCH')[0][1]?.body))).toEqual({ class_id: classB })
@@ -76,7 +83,7 @@ describe('school administration', () => {
     const form = within(screen.getByRole('dialog'))
     fireEvent.change(form.getByLabelText(/Nama lengkap/), { target: { value: ' Budi Santoso ' } })
     fireEvent.change(form.getByLabelText(/NISN/), { target: { value: '00981a23402' } })
-    fireEvent.change(await form.findByRole('combobox', { name: /Kelas/ }), { target: { value: classA } })
+    await choose(form.findByRole('combobox', { name: /Kelas/ }), /8A/)
     fireEvent.click(form.getByRole('button', { name: 'Tambah' }))
     await waitFor(() => expect(sent(request, 'POST')).toHaveLength(1))
     await screen.findAllByText('Layanan sedang sibuk. Coba lagi sebentar.')
@@ -123,7 +130,7 @@ describe('school administration', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Orang tua' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Kelola Siti Aminah' }))
     const parent = within(screen.getByRole('dialog'))
-    fireEvent.change(parent.getByLabelText(/Hubungan untuk anak baru/), { target: { value: 'wali' } })
+    await choose(parent.getByRole('combobox', { name: /Hubungan untuk anak baru/ }), 'Wali')
     fireEvent.change(parent.getByLabelText(/Cari siswa/), { target: { value: 'Bima' } })
     fireEvent.click(await parent.findByRole('button', { name: 'Bima Putra · 8A' }))
     expect(await screen.findByText('Bima Putra ditautkan ke Siti Aminah.')).toBeInTheDocument()
@@ -197,8 +204,8 @@ describe('school administration', () => {
     expect(screen.getByText('Fase D')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Ubah pemetaan IPA' }))
     let dialog = screen.getByRole('dialog')
-    fireEvent.change(within(dialog).getByRole('combobox', { name: 'Versi CP' }), { target: { value: newVersion } })
-    fireEvent.change(within(dialog).getByRole('combobox', { name: 'Mata pelajaran CP' }), { target: { value: newIpa } })
+    await choose(within(dialog).getByRole('combobox', { name: 'Versi CP' }), /CP 2025/)
+    await choose(within(dialog).getByRole('combobox', { name: 'Mata pelajaran CP' }), 'IPA · Fase D')
     expect(within(dialog).getByText('Konsep perlu dicocokkan ulang')).toBeInTheDocument()
     fireEvent.click(within(dialog).getByRole('button', { name: 'Simpan pemetaan' }))
     expect(await screen.findByText('IPA dipetakan ke CP 2025.')).toBeInTheDocument()
@@ -206,7 +213,9 @@ describe('school administration', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Alihkan pemilik Gaya dan Gerak' }))
     dialog = screen.getByRole('dialog')
-    expect(within(dialog).getAllByRole('option').map((option) => option.textContent)).toEqual(['Agus Salim'])
+    await userEvent.click(within(dialog).getByRole('combobox', { name: /Pemilik baru/ }))
+    expect((await screen.findAllByRole('option')).map((option) => option.textContent)).toEqual(['Agus Salim'])
+    await userEvent.keyboard('{Escape}')
     fireEvent.click(within(dialog).getByRole('button', { name: 'Alihkan pemilik' }))
     expect(await within(dialog).findByText(/belum ditugaskan mengajar mata pelajaran ini/)).toBeInTheDocument()
     fireEvent.click(within(dialog).getByRole('button', { name: 'Alihkan pemilik' }))
@@ -231,7 +240,7 @@ describe('school administration', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Tambah mata pelajaran' }))
     const dialog = screen.getByRole('dialog')
     expect(within(dialog).getByRole('button', { name: 'Tambah mata pelajaran' })).toBeDisabled()
-    fireEvent.change(within(dialog).getByRole('combobox', { name: 'Mata pelajaran CP' }), { target: { value: ipa } })
+    await choose(within(dialog).getByRole('combobox', { name: 'Mata pelajaran CP' }), 'Ilmu Pengetahuan Alam · Fase D')
     expect(await within(dialog).findByText('Peserta didik menjelaskan gaya dan gerak.')).toBeInTheDocument()
     expect(within(dialog).getByText('Keterampilan Proses')).toBeInTheDocument()
     expect(within(dialog).getByText('2 capaian')).toBeInTheDocument()
