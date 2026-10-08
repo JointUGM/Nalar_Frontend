@@ -1,6 +1,7 @@
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
+@import "./ui/page-keyframes.css";
 
 @font-face {
   font-family: "Plus Jakarta Sans";
@@ -20,6 +21,13 @@
 /* Design tokens. Colors, radii, shadows and fonts become Tailwind utilities (bg-primary, rounded-card, shadow-card, font-reading).
    `static` emits every token, because CSS modules read them as variables too. */
 @theme static {
+  /* px-based scale and breakpoints, so utilities match the px values the CSS modules used. */
+  --spacing: 4px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
   --color-*: initial;
   --color-white: #FFFFFF;
   --font-ui: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;

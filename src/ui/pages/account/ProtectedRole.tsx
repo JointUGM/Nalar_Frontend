@@ -6,7 +6,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Loading } from '@/ui/components/loading/Loading'
 import type { AccountDependencies } from './AccountDependencies'
 import { useIdentityAccessViewModel } from './useIdentityAccessViewModel'
-import styles from '@/ui/RouteBoundary.module.css'
+import styles from '@/ui/RouteBoundary.styles'
 
 export function ProtectedRole({ dependencies, renderRole }: { dependencies: AccountDependencies | null; renderRole?: (identity: Identity, path: string) => ReactNode }) {
   const location = useLocation()

@@ -2,7 +2,7 @@ import { Component } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
 import { useLocation } from 'react-router'
 import { Button } from '@/ui/components/button/Button'
-import styles from './RouteBoundary.module.css'
+import styles from './RouteBoundary.styles'
 
 type Report = (code: string, pathname: string) => void
 interface Props { resetKey: string; report?: Report; children: ReactNode }

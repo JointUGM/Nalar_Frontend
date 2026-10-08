@@ -5,7 +5,7 @@ import { Nala, type NalaMood } from './Nala'
 export function NalaNote({ mood, text }: { mood: NalaMood; text: string }) {
   // Keys replay the one-shot entrance when the state changes (loading → loaded), never on a poll with the same result.
   // On a phone the note takes its own first row in the header and its siblings follow; md–xl hides the bubble.
-  return <div className="ml-auto flex min-w-0 items-center gap-1 max-md:order-1 max-md:ml-0 max-md:flex-[1_0_100%] max-md:flex-row-reverse max-md:justify-start max-md:[&~*]:order-2">
+  return <div className="ml-auto flex min-w-0 items-center gap-1 max-md:order-1 max-md:ml-0 max-md:flex-[1_0_100%] max-md:flex-row-reverse max-md:[justify-content:start] max-md:[&~*]:order-2">
     <p key={text} className="relative m-0 max-w-[30ch] origin-right animate-note-in rounded-[14px] bg-surface px-3.5 py-2.5 text-[13px] leading-5 font-[550] text-pretty text-ink shadow-[0_6px_18px_rgb(21_33_59/7%)] after:absolute after:top-[calc(50%-5px)] after:-right-1 after:size-2.5 after:rotate-45 after:rounded-[2px] after:bg-inherit after:content-[''] motion-reduce:animate-none md:max-xl:hidden max-md:max-w-none max-md:origin-left max-md:after:right-auto max-md:after:-left-1">{text}</p>
     <span className="relative grid h-21 w-23 shrink-0 place-items-center before:absolute before:size-17 before:rounded-full before:bg-accent/30 before:content-[''] [&>svg]:relative"><Nala key={mood} mood={mood} size={88} animate /></span>
   </div>
