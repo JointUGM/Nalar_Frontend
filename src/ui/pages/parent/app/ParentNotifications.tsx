@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import type { ParentNotices } from '@/domain/model/Parent'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { formatDayTime } from '@/ui/formatInstant'
-import styles from './ParentNotifications.module.css'
+import styles from './ParentNotifications.styles'
 import { parentPaths } from './parentPaths'
 
 // A notice carries only its type and time, never the child or the text, so each type has one fixed sentence.

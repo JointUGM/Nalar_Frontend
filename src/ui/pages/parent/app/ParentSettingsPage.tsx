@@ -9,7 +9,7 @@ import { NalaNote } from '@/ui/components/nala/NalaState'
 import { useParentContext } from '@/ui/components/parent-shell/useParentContext'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/parent/ParentSettings.module.css'
+import styles from '@/ui/pages/parent/ParentSettings.styles'
 
 export function ParentSettingsPage({ service, user, email = null }: { service: ParentService; user: string; email?: string | null }) {
   const { linkedChildren } = useParentContext()

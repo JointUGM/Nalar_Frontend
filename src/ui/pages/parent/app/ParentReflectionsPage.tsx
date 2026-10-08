@@ -8,7 +8,7 @@ import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { useParentContext } from '@/ui/components/parent-shell/useParentContext'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/parent/ParentReflections.module.css'
+import styles from '@/ui/pages/parent/ParentReflections.styles'
 import { parentPaths } from './parentPaths'
 import { Loading } from '@/ui/components/loading/Loading'
 
