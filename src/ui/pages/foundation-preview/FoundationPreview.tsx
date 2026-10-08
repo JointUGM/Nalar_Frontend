@@ -5,7 +5,7 @@ import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { StatusBadge } from '@/ui/components/status-badge/StatusBadge'
-import styles from './FoundationPreview.module.css'
+import styles from './FoundationPreview.styles'
 
 export function FoundationPreview() {
   const [name, setName] = useState('')
