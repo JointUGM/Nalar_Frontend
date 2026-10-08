@@ -9,7 +9,6 @@ import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
-import type { IconName } from '@/ui/components/icon/Icon'
 import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaNote } from '@/ui/components/nala/NalaState'
 import { RoadSteps } from '@/ui/components/road/RoadSteps'
@@ -19,10 +18,10 @@ import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/use
 import styles from '@/ui/pages/teacher/TeacherMissionNew.styles'
 import { missionRefusal } from './missionText'
 
-const next: readonly { icon: IconName; label: string }[] = [
-  { icon: 'sparkle', label: 'AI menyusun draf soal, rubrik, dan bank pertanyaan.' },
-  { icon: 'pencil', label: 'Anda memeriksa dan mengubah drafnya.' },
-  { icon: 'send', label: 'Misi yang sudah ditinjau siap diterbitkan ke kelas.' },
+const next: readonly { mood: NalaMood; label: string }[] = [
+  { mood: 'think', label: 'AI menyusun draf soal, rubrik, dan bank pertanyaan.' },
+  { mood: 'search', label: 'Anda memeriksa dan mengubah drafnya.' },
+  { mood: 'proud', label: 'Misi yang sudah ditinjau siap diterbitkan ke kelas.' },
 ]
 // Openings for a learning objective, so a blank box is never the first thing the teacher meets.
 const starters = ['menjelaskan', 'membedakan', 'memprediksi', 'menerapkan']

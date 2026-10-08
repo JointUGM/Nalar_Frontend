@@ -8,7 +8,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
-import type { IconName } from '@/ui/components/icon/Icon'
+import type { NalaMood } from '@/ui/components/nala/Nala'
 import { RoadSteps } from '@/ui/components/road/RoadSteps'
 import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
@@ -17,10 +17,10 @@ import styles from '@/ui/pages/teacher/TeacherKbUpload.styles'
 import { KbFileDrop } from './KbFileDrop'
 import { kbRefusal } from './kbText'
 
-const next: readonly { icon: IconName; label: string }[] = [
-  { icon: 'book', label: 'Materi dibaca dan daftar babnya dibuat.' },
-  { icon: 'layers', label: 'Anda memilih bab yang disusun menjadi draf konsep dan miskonsepsi.' },
-  { icon: 'check', label: 'Anda meninjau tiap butir; hanya yang disetujui dipakai untuk misi.' },
+const next: readonly { mood: NalaMood; label: string }[] = [
+  { mood: 'read', label: 'Materi dibaca dan daftar babnya dibuat.' },
+  { mood: 'think', label: 'Anda memilih bab yang disusun menjadi draf konsep dan miskonsepsi.' },
+  { mood: 'search', label: 'Anda meninjau tiap butir; hanya yang disetujui dipakai untuk misi.' },
 ]
 // "Bab_3-IPA.pdf" → "Bab 3 IPA": a starting point the teacher can edit.
 const topicFrom = (name: string) => name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120)
