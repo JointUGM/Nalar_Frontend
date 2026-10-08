@@ -65,7 +65,7 @@ function open(path: string) {
 describe('school admin roster import', () => {
   it('uploads a CSV for the current academic year and shows the rows to fix once the import ends', async () => {
     const request = open(`/school/${school}/import`)
-    await screen.findByRole('option', { name: '2026/2027 (berjalan)' })
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Tahun ajaran/ })).toHaveTextContent('2026/2027 (berjalan)'))
     fireEvent.change(screen.getByLabelText('Berkas CSV'), { target: { files: [new File(['role,full_name'], 'kelas8.csv', { type: 'text/csv' })] } })
     fireEvent.click(screen.getByRole('button', { name: 'Unggah dan impor' }))
     expect(await screen.findByText('NISN wajib diisi dan terdiri dari 10 angka.', {}, { timeout: 5000 })).toBeInTheDocument()

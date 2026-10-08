@@ -5,7 +5,7 @@ import { getRoleChoices, resolveRoleDestination } from '@/domain/model/RoleConte
 import { Button } from '@/ui/components/button/Button'
 import type { AccountDependencies } from './AccountDependencies'
 import { useIdentityAccessViewModel } from './useIdentityAccessViewModel'
-import styles from './RoleSelection.module.css'
+import styles from './RoleSelection.styles'
 
 export function RoleSelection({ dependencies }: { dependencies: AccountDependencies }) {
   const access = useIdentityAccessViewModel(dependencies)

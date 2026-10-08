@@ -1,5 +1,5 @@
 import { Nala } from '@/ui/components/nala/Nala'
-import styles from '@/ui/pages/parent/ParentConversation.module.css'
+import styles from '@/ui/pages/parent/ParentConversation.styles'
 
 // Specific questions start better home conversations than praise alone; the first one names a concept the teacher released as still developing.
 export function ConversationCard({ growing }: { growing?: string }) {

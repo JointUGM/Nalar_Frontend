@@ -2,8 +2,8 @@ import { useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { STAGES } from '@/ui/pages/landing/landingContent'
 import { useInViewOnce } from '@/ui/pages/landing/useLandingMotion'
-import shared from '@/ui/pages/landing/Landing.module.css'
-import styles from './Checkpoints.module.css'
+import shared from '@/ui/pages/landing/Landing.styles'
+import styles from './Checkpoints.styles'
 
 export function Checkpoints() {
   const flow = useRef<HTMLOListElement>(null)

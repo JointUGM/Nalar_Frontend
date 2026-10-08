@@ -1,4 +1,3 @@
-import styles from './Nala.module.css'
 
 export type NalaMood = 'hello' | 'ask' | 'think' | 'wow' | 'proud' | 'calm' | 'read' | 'search' | 'oops'
 
@@ -23,6 +22,15 @@ const poses: Record<NalaMood, Pose> = {
 }
 const body = 'M100 58 C84 50 66 40 52 36 C40 33 34 42 34 54 C30 74 28 100 28 126 C28 174 60 204 100 204 C140 204 172 174 172 126 C172 100 170 74 166 54 C166 42 160 33 148 36 C134 40 116 50 100 58 Z'
 const wingPath = { left: 'M34 136 C22 146 20 172 30 186 C38 196 52 192 52 176 C52 160 48 142 42 138 C40 136 37 135 34 136 Z', right: 'M166 136 C178 146 180 172 170 186 C162 196 148 192 148 176 C148 160 152 142 158 138 C160 136 163 135 166 136 Z', chin: 'M168 140 C170 156 156 164 134 154 C122 150 120 140 128 138 C142 136 152 134 160 132 C164 131 168 134 168 140 Z' }
+
+// One-shot motion for `animate`: Nala settles in, then plays the pose's supplied motion once. Nothing loops.
+const motion: Record<string, string> = {
+  enter: 'origin-[50%_100%] animate-nala-enter',
+  bob: '[transform-box:view-box] animate-nala-bob',
+  jump: '[transform-box:view-box] animate-nala-jump',
+  wave: '[transform-box:view-box] origin-[38px_138px] animate-nala-wave',
+  blink: '[transform-box:view-box] origin-[100px_98px] animate-nala-blink',
+}
 
 function Eye({ cx, pose }: { cx: number; pose: Pose }) {
   const big = pose.eyes === 'big'
@@ -49,7 +57,7 @@ export function Nala({ mood = 'hello', size = 120, head = false, label, animate 
   const pose = poses[mood]
   const stroke = { fill: 'none', stroke: colors.ink, strokeWidth: 6, strokeLinecap: 'round' as const }
   const beak = <path d="M91 115 Q100 110 109 115 Q105 128 100 132 Q95 128 91 115Z" fill={colors.beak} />
-  const play = (name: string) => animate ? styles[name] : undefined
+  const play = (name: string) => animate && motion[name] ? `${motion[name]} motion-reduce:animate-none` : undefined
   return <svg className={play('enter')} width={size} height={(head ? size * 126 / 156 : size * 262 / 260).toFixed(1)} viewBox={head ? '22 24 156 126' : '-30 -12 260 262'} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true} style={{ display: 'block', overflow: head ? 'hidden' : 'visible', flexShrink: 0 }}>
     {!head && <ellipse data-nala-part="shadow" cx="100" cy="212" rx="56" ry="6" fill={colors.ink} opacity="0.08" />}
     <g data-nala-part="body" className={head ? undefined : play(pose.motion)}>

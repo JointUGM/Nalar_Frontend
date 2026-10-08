@@ -4,7 +4,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { useCommand } from '@/ui/pages/live/useLiveResource'
-import shared from '@/ui/pages/school-admin/dialogForm.module.css'
+import shared from '@/ui/pages/school-admin/dialogForm.styles'
 
 const refusals: Readonly<Record<string, string>> = {
   SUBJECT_IN_USE: 'Mata pelajaran ini masih punya penugasan guru atau basis pengetahuan. Lepaskan semua penugasannya di Penugasan guru dulu; basis pengetahuannya juga harus sudah tidak ada.',

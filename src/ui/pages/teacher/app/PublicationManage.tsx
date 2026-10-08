@@ -6,7 +6,7 @@ import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { useCommand } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/teacher/TeacherSessions.module.css'
+import styles from '@/ui/pages/teacher/TeacherSessions.styles'
 
 // The fields are labelled WIB, so a value is sent as WIB and an instant is shown as WIB whatever the computer's time zone is.
 const wib = (local: string) => `${local}:00+07:00`

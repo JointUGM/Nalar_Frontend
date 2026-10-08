@@ -8,8 +8,8 @@ import { Loading } from '@/ui/components/loading/Loading'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import report from '@/ui/pages/teacher/TeacherReport.module.css'
-import styles from '@/ui/pages/teacher/TeacherStudentHistory.module.css'
+import report from '@/ui/pages/teacher/TeacherReport.styles'
+import styles from '@/ui/pages/teacher/TeacherStudentHistory.styles'
 import { rubricWord } from './missionText'
 
 const statusWord: Readonly<Record<string, string>> = { in_progress: 'Sedang berjalan', paused_safety: 'Dijeda', completed: 'Selesai', timed_out: 'Waktu habis', ended_safety: 'Diakhiri guru' }

@@ -8,8 +8,8 @@ import { AccountLayout } from './AccountLayout'
 import { NalaLoginStage } from './NalaLoginStage'
 import type { AccountDependencies } from './AccountDependencies'
 import { useActivateAccountViewModel } from './useActivateAccountViewModel'
-import login from './Login.module.css'
-import styles from './ActivateAccount.module.css'
+import login from './Login.styles'
+import styles from './ActivateAccount.styles'
 
 // `reset` serves the emailed password-reset link with the same form; only the wording and the call differ.
 export function ActivateAccount({ proof, dependencies, mode = 'activate' }: { proof: ActivationProof | null; dependencies: AccountDependencies | null; mode?: 'activate' | 'reset' }) {

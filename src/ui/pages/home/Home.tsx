@@ -2,7 +2,7 @@ import type { AddLogUseCase } from '@/application/add-log-use-case'
 import { Header } from '@/ui/components/header/Header'
 import { LogList } from '@/ui/pages/home/components/LogList'
 import { useHomeViewModel } from './useHomeViewModel'
-import styles from './Home.module.css'
+import styles from './Home.styles'
 
 export interface HomeProps {
   addLog: Pick<AddLogUseCase, 'execute'>

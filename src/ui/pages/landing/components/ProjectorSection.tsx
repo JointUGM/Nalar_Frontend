@@ -5,8 +5,8 @@ import { FINISHED, JOIN_CODE, JOINED, SEATS, TOTAL_PROMPTS } from '@/ui/pages/la
 import type { Seat } from '@/ui/pages/landing/landingContent'
 import { useInViewOnce, usePrefersReducedMotion } from '@/ui/pages/landing/useLandingMotion'
 import { LIVE_TICKS, useProjectorSequence } from '@/ui/pages/landing/useProjectorSequence'
-import shared from '@/ui/pages/landing/Landing.module.css'
-import styles from './ProjectorSection.module.css'
+import shared from '@/ui/pages/landing/Landing.styles'
+import styles from './ProjectorSection.styles'
 
 type SeatState = 'empty' | 'waiting' | 'active' | 'done'
 

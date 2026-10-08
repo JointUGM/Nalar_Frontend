@@ -1,5 +1,5 @@
 import { Nala, type NalaMood } from '@/ui/components/nala/Nala'
-import styles from './NalaLoginMotion.module.css'
+import styles from './NalaLoginMotion.styles'
 
 export function NalaLoginMotion({ mood, message }: { mood: NalaMood; message: string }) {
   return <div className={styles.scene} data-mood={mood}>

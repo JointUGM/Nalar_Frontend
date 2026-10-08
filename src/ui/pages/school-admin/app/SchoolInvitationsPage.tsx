@@ -8,7 +8,7 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/school-admin/SchoolImport.module.css'
+import styles from '@/ui/pages/school-admin/SchoolImport.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
 import { NalaNote } from '@/ui/components/nala/NalaState'
@@ -86,7 +86,7 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
       <div className={styles.cardHeading}><h2 id="invite-people">Akun</h2>{data.total > data.items.length && <span>{data.items.length} dari {data.total} ditampilkan</span>}</div>
       <div className={styles.tableRegion} role="region" aria-label="Status undangan per akun" tabIndex={0}><table className={styles.invitationsTable}>
         <thead><tr><th scope="col">Nama</th><th scope="col">Peran</th><th scope="col">Status</th></tr></thead>
-        <tbody>{data.items.map((item) => <tr key={item.user_id}><td><div className={styles.personCell}><span className={styles.avatar}><NalaAvatar seed={item.full_name} size={36} /></span><span className={styles.invitationName}>{item.full_name}</span></div></td><td>{roleWord[item.role] ?? item.role}</td><td><span className={[styles.statusBadge, styles['status_' + item.state]].join(' ')}>{stateWord.find(([state]) => state === item.state)?.[1] ?? item.state}</span></td></tr>)}</tbody>
+        <tbody>{data.items.map((item) => <tr key={item.user_id}><td><div className={styles.personCell}><span className={styles.avatar}><NalaAvatar seed={item.full_name} size={36} /></span><span className={styles.invitationName}>{item.full_name}</span></div></td><td>{roleWord[item.role] ?? item.role}</td><td><span className={[styles.statusBadge, styles[`status_${item.state}` as keyof typeof styles]].join(' ')}>{stateWord.find(([state]) => state === item.state)?.[1] ?? item.state}</span></td></tr>)}</tbody>
       </table></div>
     </section>}
     <Dialog open={confirming !== null} title={confirming === 'retry' ? 'Kirim ulang undangan?' : 'Kirim undangan?'} description={`Email dikirim ke ${confirming ? waiting[confirming] : 0} akun dan tidak bisa ditarik kembali.`} onClose={() => { if (!pending) setConfirming(null) }} dismissible={!pending}>

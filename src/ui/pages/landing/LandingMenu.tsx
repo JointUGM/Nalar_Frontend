@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Icon } from '@/ui/components/icon/Icon'
-import styles from './Landing.module.css'
+import styles from './Landing.styles'
 
 /** The page links as a drawer, for widths where the header has no room for them. */
 export function LandingMenu({ links }: { links: readonly (readonly [string, string])[] }) {

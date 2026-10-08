@@ -7,7 +7,7 @@ import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import shared from '@/ui/pages/school-admin/dialogForm.module.css'
+import shared from '@/ui/pages/school-admin/dialogForm.styles'
 import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
 
 const refusals: Readonly<Record<string, string>> = {

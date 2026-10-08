@@ -2,8 +2,8 @@ import type { CSSProperties } from 'react'
 import { Icon } from '@/ui/components/icon/Icon'
 import { VISIBILITY } from '@/ui/pages/landing/landingContent'
 import type { Access } from '@/ui/pages/landing/landingContent'
-import shared from '@/ui/pages/landing/Landing.module.css'
-import styles from './AccessTable.module.css'
+import shared from '@/ui/pages/landing/Landing.styles'
+import styles from './AccessTable.styles'
 
 const labels: Record<Access, string> = { ya: 'Ya', tidak: 'Tidak', 'setelah-rilis': 'Setelah dirilis guru' }
 const icons = { ya: 'check', tidak: 'minus', 'setelah-rilis': 'clock' } as const

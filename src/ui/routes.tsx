@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { Loading } from '@/ui/components/loading/Loading'
 import { accessContext } from './accessContext'
 import { applyTheme } from './theme'
-import styles from './RouteBoundary.module.css'
+import styles from './RouteBoundary.styles'
 
 const Landing = lazy(() => import('@/ui/pages/landing/Landing').then((module) => ({ default: module.Landing })))
 

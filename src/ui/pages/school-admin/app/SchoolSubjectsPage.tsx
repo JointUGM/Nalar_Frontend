@@ -7,8 +7,8 @@ import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import shared from '@/ui/pages/school-admin/dialogForm.module.css'
-import styles from '@/ui/pages/school-admin/SchoolSubjects.module.css'
+import shared from '@/ui/pages/school-admin/dialogForm.styles'
+import styles from '@/ui/pages/school-admin/SchoolSubjects.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 import { StatusBadge } from '@/ui/components/status-badge/StatusBadge'
 import { Select } from '@/ui/components/select/Select'
@@ -74,7 +74,7 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
       </div>
     ) : <div className={styles.card}><table className={styles.table}>
       <caption className={styles.hidden}>Mata pelajaran, pemetaan CP, dan basis pengetahuan</caption>
-      <thead><tr><th scope="col">Mata pelajaran</th><th scope="col">Capaian Pembelajaran</th><th scope="col">Basis pengetahuan</th><th scope="col"><span className={styles.hidden}>Tindakan</span></th></tr></thead>
+      <thead><tr><th scope="col">Mata pelajaran</th><th scope="col">Capaian Pembelajaran</th><th scope="col">Basis pengetahuan</th><th scope="col">Aksi</th></tr></thead>
       <tbody>{data.subjects.map((subject, index) => {
         const cp = mapping(subject)
         const open = (next: Editing) => { setMessage(''); setEditing(next) }
@@ -93,7 +93,7 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
               <span className={styles.kbText}><strong>{kb.topic_title}</strong><small>{kb.owner_name ?? 'Tanpa pemilik'}</small></span>
               <Button tone="ghost" className={styles.edit} aria-label={`Alihkan pemilik ${kb.topic_title}`} onClick={() => open({ kind: 'owner', subject, kb })}>Alihkan</Button>
             </li>)}</ul>
-            : <span className={styles.none}>Belum ada</span>}
+            : <span className={styles.none}>Belum ada<small>Dibuat oleh guru pengampu</small></span>}
           </td>
           <td className={styles.actions}>
             {cp.state === 'mapped'

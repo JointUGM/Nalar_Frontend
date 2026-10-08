@@ -7,7 +7,7 @@ import { CsvDownload } from '@/ui/components/csv-download/CsvDownload'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/school-admin/SchoolImport.module.css'
+import styles from '@/ui/pages/school-admin/SchoolImport.styles'
 import { NalaEmpty } from '@/ui/components/nala/NalaState'
 
 const statusWord = (status: string) => status === 'completed' ? 'Selesai' : status === 'failed' ? 'Gagal' : 'Diproses'

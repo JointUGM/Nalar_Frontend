@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NalaMascot, type MascotPose } from '@/ui/components/mascot/NalaMascot'
-import styles from './NalaLoginStage.module.css'
+import styles from './NalaLoginStage.styles'
 
 const NALA_EXPRESSIONS: { pose: MascotPose; speech: string }[] = [
   {

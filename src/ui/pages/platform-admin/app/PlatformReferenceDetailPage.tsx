@@ -14,7 +14,7 @@ import { ReferenceHeader } from './ReferenceHeader'
 import { ReferenceReviewEditor } from './ReferenceReviewEditor'
 import { ReferenceStages } from './ReferenceStages'
 import { documentGuidance, documentMood, draftCopy, emptyDraftCopy, groupOf, processingError, referenceKinds, referenceStatuses, sourceLink } from './referenceText'
-import styles from './PlatformReferences.module.css'
+import styles from './PlatformReferences.styles'
 
 // A document that is indexing or published has left review: its draft can no longer change anything.
 const openForReview = (document: ReferenceDetail) => ['review', 'failed'].includes(document.status)

@@ -10,7 +10,7 @@ import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/teacher/TeacherMissionNew.module.css'
+import styles from '@/ui/pages/teacher/TeacherMissionNew.styles'
 import { missionRefusal } from './missionText'
 
 export function TeacherMissionNewPage({ service, kb, base, schoolId }: { service: TeacherService; kb: KnowledgeBaseService; base: string; schoolId: string }) {

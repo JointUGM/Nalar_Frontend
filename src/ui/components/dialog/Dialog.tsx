@@ -1,7 +1,7 @@
-import type { KeyboardEvent, ReactNode } from 'react'
-import { useId, useLayoutEffect, useRef } from 'react'
+import { Dialog as Base } from '@base-ui/react/dialog'
+import type { ReactNode } from 'react'
+import { cn } from '@/ui/cn'
 import { Icon } from '@/ui/components/icon/Icon'
-import styles from './Dialog.module.css'
 
 export interface DialogProps {
   open: boolean
@@ -15,111 +15,38 @@ export interface DialogProps {
   presentation?: 'dialog' | 'drawer'
 }
 
-function wrapFocus(event: KeyboardEvent<HTMLDialogElement>) {
-  if (event.key !== 'Tab') return
-  const dialog = event.currentTarget
-  const controls = [...dialog.querySelectorAll<HTMLElement>('button, a[href], input, select, textarea, [tabindex], [contenteditable="true"]')].filter((control) => {
-    if (control.tabIndex < 0 || control.matches(':disabled, input[type="hidden"]')) return false
-    for (let element: HTMLElement | null = control; element && element !== dialog; element = element.parentElement) {
-      const style = getComputedStyle(element)
-      if (element.hidden || element.inert || style.display === 'none' || style.visibility === 'hidden') return false
-    }
-    return true
-  })
-  const first = controls[0]
-  const last = controls.at(-1)
-  const target = event.shiftKey ? (document.activeElement === first ? last : undefined) : (document.activeElement === last ? first : undefined)
-  if (target) { event.preventDefault(); target.focus() }
+const popupBase = 'fixed z-1000 flex flex-col overflow-hidden border border-role-border bg-surface text-ink shadow-[0_24px_64px_-12px_rgb(15_23_42/28%),0_0_0_1px_rgb(15_23_42/6%)] outline-none transition-[opacity,scale,translate] duration-200 ease-[cubic-bezier(.16,1,.3,1)] data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none'
+
+const presentations = {
+  dialog: 'top-1/2 left-1/2 max-h-[min(680px,calc(100dvh-48px))] w-[min(520px,calc(100vw-32px))] -translate-1/2 rounded-[20px] data-ending-style:scale-96 data-starting-style:scale-96 max-[481px]:max-h-[calc(100dvh-32px)] max-[481px]:w-[calc(100%-24px)] max-[481px]:rounded-2xl',
+  drawer: 'inset-y-0 left-0 h-dvh max-h-dvh w-[min(320px,90vw)] rounded-none data-ending-style:-translate-x-full data-starting-style:-translate-x-full',
 }
 
+/**
+ * A modal dialog on Base UI: focus is trapped and returned, the page behind is inert and does not scroll,
+ * and Escape or a backdrop click close it unless the workflow forbids dismissal.
+ */
 export function Dialog({ open, onClose, title, description, dismissible = true, variant = 'adult', children, className, presentation = 'dialog' }: DialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
-  const titleId = useId()
-  const descriptionId = useId()
-
-  useLayoutEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog || !open) return
-    const previousFocus = document.activeElement
-    const previousOverflow = document.body.style.overflow
-    dialog.showModal()
-    document.body.style.overflow = 'hidden'
-
-    return () => {
-      if (dialog.open) dialog.close()
-      document.body.style.overflow = previousOverflow
-      // Restore after React's commit so selection restoration cannot refocus a closed dialog.
-      queueMicrotask(() => {
-        if (!dialog.open && previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus()
-      })
-    }
-  }, [open])
-
-  const isBackdropClick = useRef(false)
-
-  const handleMouseDown = (event: React.MouseEvent<HTMLDialogElement>) => {
-    if (!dismissible) return
-    const dialog = dialogRef.current
-    if (!dialog) return
-    if (event.target === dialog) {
-      const rect = dialog.getBoundingClientRect()
-      isBackdropClick.current = (
-        event.clientX < rect.left ||
-        event.clientX > rect.right ||
-        event.clientY < rect.top ||
-        event.clientY > rect.bottom
-      )
-    } else {
-      isBackdropClick.current = false
-    }
-  }
-
-  const handleClick = (event: React.MouseEvent<HTMLDialogElement>) => {
-    if (!dismissible) return
-    const dialog = dialogRef.current
-    if (!dialog) return
-    if (isBackdropClick.current && event.target === dialog) {
-      const rect = dialog.getBoundingClientRect()
-      const isOutside = (
-        event.clientX < rect.left ||
-        event.clientX > rect.right ||
-        event.clientY < rect.top ||
-        event.clientY > rect.bottom
-      )
-      if (isOutside) {
-        onClose()
-      }
-    }
-    isBackdropClick.current = false
-  }
-
-  return (
-    <dialog
-      ref={dialogRef}
-      className={[styles.dialog, styles[variant], presentation === 'drawer' ? styles.drawer : undefined, className].filter(Boolean).join(' ')}
-      aria-labelledby={titleId}
-      aria-describedby={descriptionId}
-      onKeyDown={wrapFocus}
-      onCancel={(event) => { event.preventDefault(); if (dismissible) onClose() }}
-      onMouseDown={handleMouseDown}
-      onClick={handleClick}
-    >
-      <div className={styles.header}>
-        <h2 id={titleId}>{title}</h2>
-        <button
-          type="button"
-          className={styles.closeButton}
-          aria-label="Tutup dialog"
-          disabled={!dismissible}
-          onClick={onClose}
-        >
-          <Icon name="x" size={16} />
-        </button>
-      </div>
-      <div className={styles.body}>
-        <p id={descriptionId} className={styles.description}>{description}</p>
-        {children}
-      </div>
-    </dialog>
-  )
+  const student = variant === 'student'
+  return <Base.Root open={open} onOpenChange={(next) => { if (!next && dismissible) onClose() }} disablePointerDismissal={!dismissible}>
+    <Base.Portal>
+      <Base.Backdrop className="fixed inset-0 z-1000 bg-[rgb(15_23_42/48%)] backdrop-blur-[6px] transition-opacity duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+      <Base.Popup className={cn(popupBase, presentations[presentation], student && 'rounded-student-card border-3 border-ink', className)}>
+        <div className="flex shrink-0 items-center justify-between gap-4 border-b border-surface-muted px-6 py-[18px] max-[481px]:px-[18px] max-[481px]:py-3.5">
+          <Base.Title className="m-0 text-[19px] leading-[1.35] font-[750] tracking-[-.02em] text-ink">{title}</Base.Title>
+          <Base.Close
+            aria-label="Tutup dialog"
+            disabled={!dismissible}
+            className="m-0 flex size-[34px] min-h-0 min-w-0 shrink-0 cursor-pointer items-center justify-center rounded-full border border-role-border bg-surface p-0 text-text-secondary transition-all duration-150 hover:not-disabled:scale-105 hover:not-disabled:border-control-border hover:not-disabled:bg-surface-muted hover:not-disabled:text-ink active:not-disabled:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Icon name="x" size={16} />
+          </Base.Close>
+        </div>
+        <div className="min-h-0 flex-auto overflow-x-hidden overflow-y-auto px-6 pt-[18px] pb-6 [scrollbar-color:rgb(148_163_184/40%)_transparent] [scrollbar-width:thin] max-[481px]:px-[18px] max-[481px]:pt-3.5 max-[481px]:pb-5">
+          <Base.Description className={cn('mt-0 mb-4 leading-normal text-text-secondary', student ? 'font-reading text-student' : 'text-[13.5px]')}>{description}</Base.Description>
+          {children}
+        </div>
+      </Base.Popup>
+    </Base.Portal>
+  </Base.Root>
 }

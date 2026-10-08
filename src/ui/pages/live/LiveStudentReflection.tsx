@@ -7,7 +7,7 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { LiveFeedback } from './LiveFrame'
 import { useLiveResource } from './useLiveResource'
-import styles from '@/ui/pages/student/SessionFinish.module.css'
+import styles from '@/ui/pages/student/SessionFinish.styles'
 
 const reflectionPollMs = (data: LiveReflection | null) => data ? null : 3000
 

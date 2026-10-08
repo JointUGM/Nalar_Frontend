@@ -11,8 +11,8 @@ import { Nala } from '@/ui/components/nala/Nala'
 import { formatDay, formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/teacher/TeacherHome.module.css'
-import sections from '@/ui/pages/teacher/HomeSections.module.css'
+import styles from '@/ui/pages/teacher/TeacherHome.styles'
+import sections from '@/ui/pages/teacher/HomeSections.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 
 interface AttentionResource { data: AttentionPage | null; error: ApiError | null; online: boolean; refresh: () => void }
@@ -89,7 +89,7 @@ export function TeacherHomePage({ service, base, schoolId, user, attention }: { 
   const welcomeMessage = needsSupport ? 'Dahulukan pendampingan siswa, ya.' : currentAttention?.counts.total === 0 ? 'Siap menyiapkan misi berikutnya?' : 'Mari lihat cerita belajar kelas Anda.'
   return <div className={styles.content}>
     <section className={styles.welcome} aria-labelledby="home-welcome">
-      <div className={styles.welcomeCopy}><h1 id="home-welcome">Selamat datang, {user.trim().split(/\s+/)[0]}</h1><p>Setiap kelas punya cerita belajar.<br />Temukan perkembangannya, siapkan langkah berikutnya.</p><div className={styles.welcomeActions}><ButtonLink className={styles.start} to={`${base}/missions/new`}><Icon name="plus" size={18} />Buat misi</ButtonLink><ButtonLink tone="secondary" className={styles.sessions} to={`${base}/sessions`}><Icon name="monitor" size={18} />Lihat sesi</ButtonLink></div></div>
+      <div className={styles.welcomeCopy}><h1 id="home-welcome">Selamat datang, {user.trim().split(/\s+/)[0]}</h1><p>Setiap kelas punya cerita belajar.<br />Temukan perkembangannya, siapkan langkah berikutnya.</p><div className={styles.welcomeActions}><ButtonLink to={`${base}/missions/new`}><Icon name="plus" size={18} />Buat misi</ButtonLink><ButtonLink tone="secondary" className={styles.sessions} to={`${base}/sessions`}><Icon name="monitor" size={18} />Lihat sesi</ButtonLink></div></div>
       <div className={styles.nalaWelcome}><p className={styles.speech}>{welcomeMessage}</p><div className={styles.mascot}><Nala mood={needsSupport ? 'calm' : 'hello'} size={204} /></div></div>
     </section>
     <section className={styles.summary} aria-labelledby="home-week" aria-busy={!data && !error}>

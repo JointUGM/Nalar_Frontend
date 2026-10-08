@@ -7,8 +7,8 @@ import { AccountLayout } from './AccountLayout'
 import { AccountPreviewControl, AccountPreviewNote } from './AccountPreviewControl'
 import { useAccountActivateViewModel } from './useAccountActivateViewModel'
 import type { ActivateMode } from './useAccountActivateViewModel'
-import login from './Login.module.css'
-import styles from './AccountPreview.module.css'
+import login from './Login.styles'
+import styles from './AccountPreview.styles'
 
 const modes: readonly (readonly [ActivateMode, string])[] = [['link', 'Tautan email'], ['slip', 'Kode dari slip']]
 
@@ -35,7 +35,7 @@ export function AccountActivate() {
             <li data-ok={view.rules.digit}><Icon name={view.rules.digit ? 'check' : 'minus'} size={14} />Ada angka<span className={login.srOnly}>{view.rules.digit ? ', terpenuhi' : ', belum'}</span></li>
           </ul>
           <Field label="Ulangi kata sandi" name="repeat-password" type="password" autoComplete="new-password" required value={view.repeat} error={view.fields.repeat} onChange={(event) => view.setRepeat(event.target.value)} />
-          <Button type="submit" className={login.submit} pending={pending} pendingLabel="Sedang memproses…">Aktifkan dan masuk</Button>
+          <Button type="submit" pending={pending} pendingLabel="Sedang memproses…">Aktifkan dan masuk</Button>
         </fieldset>
       </form>
       <AccountPreviewControl outcome={view.preview.outcome} setOutcome={view.preview.setOutcome} disabled={pending} />

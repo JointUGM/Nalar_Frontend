@@ -8,7 +8,7 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Select } from '@/ui/components/select/Select'
 import { useCommand } from '@/ui/pages/live/useLiveResource'
-import shared from '@/ui/pages/school-admin/dialogForm.module.css'
+import shared from '@/ui/pages/school-admin/dialogForm.styles'
 import { CpOutcomes } from './CpOutcomes'
 
 const refusals: Readonly<Record<string, string>> = {

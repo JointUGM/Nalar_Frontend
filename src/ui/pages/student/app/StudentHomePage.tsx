@@ -10,7 +10,7 @@ import { Nala } from '@/ui/components/nala/Nala'
 import { formatDayTime, formatToday } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/student/StudentHome.module.css'
+import styles from '@/ui/pages/student/StudentHome.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 
 // A teacher can open a run at any moment, so the list refreshes on its own.
@@ -62,7 +62,7 @@ export function StudentHomePage({ service, base, user }: { service: StudentServi
 
       {empty ? <Feedback title="Belum ada misi untukmu">Misi muncul di sini setelah gurumu menerbitkannya. Tidak ada yang perlu kamu lakukan sekarang.</Feedback> : <>
         <div className={styles.main}>
-          <section className={styles.card} aria-labelledby="student-open">
+          <section aria-labelledby="student-open">
             <div className={styles.sectionHead}><h2 id="student-open">Terbuka sekarang <span>{data.open.length}</span></h2><p>Pilih misi untuk menjelajahi alasanmu.</p></div>
             {data.open.length === 0 && <p className={styles.emptyOpen}>Belum ada misi yang terbuka. Jadwal berikutnya bisa kamu lihat di bawah.</p>}
             <div className={styles.cards}>{data.open.map((mission) => {

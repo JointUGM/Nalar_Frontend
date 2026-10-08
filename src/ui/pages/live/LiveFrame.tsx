@@ -3,7 +3,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Loading } from '@/ui/components/loading/Loading'
 import type { ApiError } from '@/domain/model/ApiError'
-import styles from './Live.module.css'
+import styles from './Live.styles'
 
 export function LiveFeedback({ error, online, refresh, loading = false }: { error: ApiError | null; online: boolean; refresh: () => void; loading?: boolean }) {
   if (error?.status === 401) return <Feedback tone="warning" title={error.message} announce><Link to="/login">Masuk kembali</Link></Feedback>

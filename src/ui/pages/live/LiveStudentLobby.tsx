@@ -8,7 +8,7 @@ import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { Nala } from '@/ui/components/nala/Nala'
 import { LiveFeedback } from './LiveFrame'
 import { lobbyPollMs, useCommandSignal, useLiveResource } from './useLiveResource'
-import styles from '@/ui/pages/student/StudentLobby.module.css'
+import styles from '@/ui/pages/student/StudentLobby.styles'
 
 export function LiveStudentLobby({ service, runId, base, user }: { service: LiveService; runId: string; base: string; user: string }) {
   const location = useLocation()

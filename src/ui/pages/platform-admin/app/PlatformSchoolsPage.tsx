@@ -9,7 +9,7 @@ import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/platform-admin/Platform.module.css'
+import styles from '@/ui/pages/platform-admin/Platform.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 import { Nala } from '@/ui/components/nala/Nala'
 import { NalaIcon } from '@/ui/components/nala/NalaIcon'
@@ -167,7 +167,7 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
                   </td>
                   <td className={styles.colStatus}>
                     <span className={styles.mobileLabel}>Status</span>
-                    <span className={[styles.badge, styles[school.status]].join(' ')}>
+                    <span className={[styles.badge, styles[school.status as keyof typeof styles]].join(' ')}>
                       {statusWord[school.status] ?? school.status}
                     </span>
                   </td>

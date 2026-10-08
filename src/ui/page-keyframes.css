@@ -1,0 +1,75 @@
+/* Keyframes used by the page class maps (*.styles.ts). Names are prefixed with the page they belong to. */
+@keyframes nalaloginmotion-breathe { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-4px) rotate(1deg); } }
+@keyframes nalaloginmotion-greet { 0%, 100% { transform: none; } 9% { transform: translateY(2px) rotate(-3deg) scale(1.02, .98); } 16% { transform: translateY(-9px) rotate(3deg) scale(.98, 1.02); } 23% { transform: translateY(1px) scale(1.03, .97); } 30%, 48% { transform: translateY(-3px) rotate(-2deg); } 60% { transform: translateY(-6px) rotate(3deg); } 78% { transform: translateY(-2px) rotate(-1deg); } }
+@keyframes nalaloginmotion-wave { 0%, 8%, 42%, 100% { transform: none; } 14%, 28% { transform: rotate(-23deg); } 21%, 35% { transform: rotate(12deg); } 65% { transform: rotate(-8deg); } }
+@keyframes nalaloginmotion-gesture { 0%, 9%, 40%, 100% { transform: none; } 18%, 29% { transform: rotate(-14deg); } 58% { transform: rotate(-8deg); } }
+@keyframes nalaloginmotion-nod { 0%, 100% { transform: none; } 12% { transform: translateY(-2px) rotate(-2deg); } 22% { transform: translateY(1px); } 45%, 54% { transform: rotate(3deg); } 70% { transform: rotate(-3deg); } }
+@keyframes nalaloginmotion-blink { 0%, 44%, 49%, 78%, 83%, 100% { transform: scaleY(1); } 46.5%, 80.5% { transform: scaleY(.08); } }
+@keyframes nalaloginmotion-glance { 0%, 15%, 85%, 100% { transform: none; } 35%, 55% { transform: translate(2px, -2px); } }
+@keyframes nalaloginmotion-happy-eyes { 0%, 38%, 62%, 77%, 84%, 100% { transform: scaleY(1); opacity: 1; } 44%, 55% { transform: scaleY(.08); opacity: 0; } 80% { transform: scaleY(.08); opacity: 1; } }
+@keyframes nalaloginmotion-smile { 0%, 38%, 62%, 100% { opacity: 0; } 44%, 55% { opacity: 1; } }
+@keyframes nalaloginmotion-eyebrows { 0%, 100% { transform: none; } 12%, 26% { transform: translateY(-3px); } 47%, 54% { transform: translateY(2px); } 68% { transform: rotate(-3deg) translateY(-2px); } }
+@keyframes nalaloginmotion-blush { 0%, 100% { transform: scale(1); } 44%, 55% { transform: scale(1.08); } }
+@keyframes nalaloginmotion-talk { 0%, 4%, 12%, 20%, 28%, 36%, 43%, 100% { transform: scaleY(.4); } 7%, 16%, 24%, 32%, 39% { transform: scaleY(1.2); } 48%, 56% { transform: scaleY(.7); } }
+@keyframes nalaloginmotion-jaw { 0%, 4%, 12%, 20%, 28%, 36%, 43%, 100% { transform: translateY(-3px); } 7%, 16%, 24%, 32%, 39% { transform: translateY(2px); } 48%, 56% { transform: none; } }
+@keyframes nalaloginmotion-word-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes nalaloginmotion-shadow { 0%, 100% { transform: scaleX(1); opacity: .08; } 50% { transform: scaleX(.92); opacity: .06; } }
+@keyframes nalaloginmotion-drift { 0%, 100% { transform: translateY(3px) rotate(-3deg); } 50% { transform: translateY(-5px) rotate(3deg); } }
+@keyframes nalaloginmotion-twinkle { 0%, 100% { transform: scale(.95) rotate(-8deg); opacity: .55; } 50% { transform: scale(1.08) rotate(8deg); opacity: 1; } }
+@keyframes nalaloginstage-circuitFlow { from { stroke-dashoffset: 200; } to { stroke-dashoffset: 0; } }
+@keyframes nalaloginstage-nodeGlow { 0% { r: 3.5; opacity: 0.8; } 100% { r: 5; opacity: 1; filter: drop-shadow(0 0 6px #5ee0ff); } }
+@keyframes nalaloginstage-floatLightning { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes nalaloginstage-floatFolder { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-9px) rotate(-2deg); } }
+@keyframes nalaloginstage-floatShieldLeft { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-8px) scale(1.03); } }
+@keyframes nalaloginstage-floatShieldRight { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-10px) scale(1.03); } }
+@keyframes nalaloginstage-swayPlant { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(2deg) translateY(-2px); } }
+@keyframes nalaloginstage-floatHeroShield { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-8px) scale(1.04); } }
+@keyframes nalaloginstage-bubblePop { 0% { opacity: 0; transform: scale(0.9) translateY(6px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes nalaloginstage-shieldPulse { 0%, 100% { filter: drop-shadow(0 14px 28px rgba(36, 71, 209, 0.45)); } 50% { filter: drop-shadow(0 18px 36px rgba(0, 180, 216, 0.65)); } }
+@keyframes nalaloginstage-starShine { 0% { transform: scale(0.95); opacity: 0.9; } 100% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 10px #FFFFFF); } }
+@keyframes nalaloginstage-owlBlink { 0%, 94%, 98%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+@keyframes landing-bookendFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes classmap-fill { from { opacity: 0; transform: translateY(6px); } }
+@keyframes dialoguestory-enter { from { opacity: 0; transform: translateY(8px); filter: blur(3px); } }
+@keyframes dialoguestory-dot { 50% { opacity: 0.2; } }
+@keyframes faq-reveal { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes nalaalive-hopHello { 0% { transform: translateY(0) scale(1.04, 0.94); } 45% { transform: translateY(-7px) scale(0.98, 1.03); } 100% { transform: none; } }
+@keyframes nalaalive-hopAsk { 0% { transform: translateY(0) scale(1.04, 0.94); } 45% { transform: translateY(-7px) scale(0.98, 1.03); } 100% { transform: none; } }
+@keyframes nalaalive-hopThink { 0% { transform: translateY(0) scale(1.04, 0.94); } 45% { transform: translateY(-7px) scale(0.98, 1.03); } 100% { transform: none; } }
+@keyframes nalaalive-hopWow { 0% { transform: translateY(0) scale(1.04, 0.94); } 45% { transform: translateY(-7px) scale(0.98, 1.03); } 100% { transform: none; } }
+@keyframes nalaalive-hopProud { 0% { transform: translateY(0) scale(1.04, 0.94); } 45% { transform: translateY(-7px) scale(0.98, 1.03); } 100% { transform: none; } }
+@keyframes nalaalive-hopCalm { 0% { transform: translateY(0) scale(1.04, 0.94); } 45% { transform: translateY(-7px) scale(0.98, 1.03); } 100% { transform: none; } }
+@keyframes nalaalive-breathe { 0%, 100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-4px) scale(0.99, 1.02); } }
+@keyframes nalaalive-jump { 0%, 100% { transform: translateY(0) scale(1, 1); } 12% { transform: translateY(0) scale(1.05, 0.93); } 32% { transform: translateY(-14px) scale(0.97, 1.04); } 52% { transform: translateY(0) scale(1.04, 0.95); } 64% { transform: translateY(0) scale(1, 1); } }
+@keyframes nalaalive-shadowBreathe { 0%, 100% { transform: scale(1); opacity: 0.08; } 50% { transform: scale(0.9); opacity: 0.06; } }
+@keyframes nalaalive-shadowJump { 0%, 12%, 52%, 100% { transform: scale(1); opacity: 0.08; } 32% { transform: scale(0.72); opacity: 0.04; } }
+@keyframes nalaalive-open { from { transform: scaleY(0.12); } }
+@keyframes nalaalive-blink { 0%, 88%, 100% { transform: scaleY(1); } 90% { transform: scaleY(0.1); } 92% { transform: scaleY(1); } 95% { transform: scaleY(1); } 96.5% { transform: scaleY(0.1); } 98% { transform: scaleY(1); } }
+@keyframes nalaalive-brows { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes nalaalive-fade { from { opacity: 0; } }
+@keyframes nalaalive-wave { 0%, 100% { transform: rotate(-10deg); } 30% { transform: rotate(16deg); } 55% { transform: rotate(-4deg); } 78% { transform: rotate(12deg); } }
+@keyframes nalahero-lift { from { transform: translateY(14px); } }
+@keyframes nalahero-rise { from { opacity: 0; transform: translateY(16px); } }
+@keyframes nalahero-grow { from { opacity: 0; transform: scale(0.6); } }
+@keyframes nalahero-sweep { from { background-size: 0% 0.34em; } }
+@keyframes nalahero-draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes nalahero-pop { from { opacity: 0; transform: scale(0.4); } }
+@keyframes nalahero-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes nalahero-drop { from { opacity: 0; transform: translateY(-36px) scale(0.92); } }
+@keyframes nalahero-dot { 50% { opacity: 0.25; transform: translateY(-2px); } }
+@keyframes projectorsection-rise { from { transform: translateY(14px); } }
+@keyframes projectorsection-drop { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes projectorsection-seatIn { from { transform: scale(0.86); background: #2447D1; } }
+@keyframes parentconversation-bubble-in { from { opacity: 0; transform: translateY(6px) scale(.97); } }
+@keyframes parenthome-rise { from { opacity: 0; transform: translateY(10px); } }
+@keyframes parentreflection-page-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes parentsettings-rise { from { opacity: 0; transform: translateY(10px); } }
+@keyframes platformreferences-rise { from { opacity: 0; transform: translateY(8px); } }
+@keyframes schoolsubjects-rise { from { opacity: 0; transform: translateY(6px); } }
+@keyframes studentjoin-pop { 0% { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.18); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes studentjoin-wave { 0% { transform: translateY(0); } 40% { transform: translateY(-14px); } 100% { transform: translateY(0); } }
+@keyframes studentjoin-caret { 50% { opacity: 0; } }
+@keyframes teacherkbupload-kbSpin { to { transform: rotate(360deg); } }
+@keyframes teachermonitor-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes teacherprojector-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes teacherprojector-pop { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }

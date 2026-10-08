@@ -4,7 +4,7 @@ import type { PlatformAdminUseCases } from '@/application/platform-admin-use-cas
 import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/platform-admin/Platform.module.css'
+import styles from '@/ui/pages/platform-admin/Platform.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 import { NalaEmpty } from '@/ui/components/nala/NalaState'
 

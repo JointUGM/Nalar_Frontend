@@ -1,6 +1,8 @@
-import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
+import { Popover } from '@base-ui/react/popover'
+import { useId, useState } from 'react'
+import { cn } from '@/ui/cn'
+import { controlLabelClass, popupSurfaceClass, popupTriggerClass } from '@/ui/components/field/controlStyles'
 import { Icon } from '@/ui/components/icon/Icon'
-import styles from './DatePicker.module.css'
 
 export interface DatePickerProps {
   label: string
@@ -43,6 +45,11 @@ function toIsoString(year: number, month: number, day: number): string {
   return `${year}-${mm}-${dd}`
 }
 
+const day = 'm-auto inline-flex size-[34px] min-h-0 min-w-0 items-center justify-center p-0 text-[13px] leading-none whitespace-nowrap tabular-nums select-none'
+const iconButton = 'm-0 inline-flex size-8 min-h-0 min-w-0 cursor-pointer items-center justify-center rounded-lg border border-role-border bg-surface p-0 text-ink transition-colors duration-150 hover:bg-surface-muted hover:border-control-border focus-visible:border-primary focus-visible:shadow-[0_0_0_2px_rgb(36_71_209/20%)] focus-visible:outline-none'
+const footerButton = 'm-0 min-h-0 min-w-0 cursor-pointer rounded-lg border border-transparent px-3 py-1.5 text-[13px] font-semibold transition-colors duration-100 focus-visible:shadow-[0_0_0_2px_rgb(36_71_209/25%)] focus-visible:outline-none'
+
+/** A date field with an Indonesian month calendar in a Base UI popover. The visually hidden native date input keeps typing and form value working. */
 export function DatePicker({
   label,
   value,
@@ -57,99 +64,34 @@ export function DatePicker({
 }: DatePickerProps) {
   const generatedId = useId()
   const id = providedId ?? generatedId
-  const triggerRef = useRef<HTMLButtonElement>(null)
-  const popupRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
-  const [position, setPosition] = useState<CSSProperties>({})
 
   const parsedDate = parseIso(value)
   const today = new Date()
 
-  // Display year & month inside calendar view
-  const [viewYear, setViewYear] = useState(() => parsedDate ? parsedDate.getFullYear() : today.getFullYear())
-  const [viewMonth, setViewMonth] = useState(() => parsedDate ? parsedDate.getMonth() : today.getMonth())
+  // The month on show; opening the calendar jumps to the chosen date (or today).
+  const [viewYear, setViewYear] = useState(() => (parsedDate ?? today).getFullYear())
+  const [viewMonth, setViewMonth] = useState(() => (parsedDate ?? today).getMonth())
 
-  // Keep view in sync when value changes externally
-  useEffect(() => {
-    if (parsedDate) {
-      setViewYear(parsedDate.getFullYear())
-      setViewMonth(parsedDate.getMonth())
+  function openChange(next: boolean) {
+    if (next) {
+      const shown = parsedDate ?? today
+      setViewYear(shown.getFullYear())
+      setViewMonth(shown.getMonth())
     }
-  }, [value])
+    setOpen(next)
+  }
 
-  function close() {
-    try { popupRef.current?.hidePopover() } catch {}
+  function shiftMonth(delta: number) {
+    const next = new Date(viewYear, viewMonth + delta, 1)
+    setViewYear(next.getFullYear())
+    setViewMonth(next.getMonth())
+  }
+
+  // Base UI returns focus to the trigger when the popover closes.
+  function choose(iso: string) {
+    onChange(iso)
     setOpen(false)
-  }
-
-  function show() {
-    if (!triggerRef.current || !popupRef.current || disabled) return
-    const rect = triggerRef.current.getBoundingClientRect()
-    const below = window.innerHeight - rect.bottom
-    const placeBelow = below >= 340 || below >= rect.top
-
-    setPosition({
-      left: Math.max(12, Math.min(rect.left, window.innerWidth - 330)),
-      ...(placeBelow
-        ? { top: rect.bottom + 6, bottom: 'auto' }
-        : { top: 'auto', bottom: window.innerHeight - rect.top + 6 })
-    })
-
-    try { popupRef.current?.showPopover() } catch {}
-    setOpen(true)
-  }
-
-  useEffect(() => {
-    if (!open) return
-    const dismiss = (event: Event) => {
-      if (!(event.target instanceof Node) || !popupRef.current?.contains(event.target)) {
-        close()
-      }
-    }
-    window.addEventListener('resize', dismiss)
-    document.addEventListener('scroll', dismiss, true)
-    return () => {
-      window.removeEventListener('resize', dismiss)
-      document.removeEventListener('scroll', dismiss, true)
-    }
-  }, [open])
-
-  function prevMonth() {
-    if (viewMonth === 0) {
-      setViewMonth(11)
-      setViewYear(y => y - 1)
-    } else {
-      setViewMonth(m => m - 1)
-    }
-  }
-
-  function nextMonth() {
-    if (viewMonth === 11) {
-      setViewMonth(0)
-      setViewYear(y => y + 1)
-    } else {
-      setViewMonth(m => m + 1)
-    }
-  }
-
-  function selectDate(day: number) {
-    const iso = toIsoString(viewYear, viewMonth, day)
-    onChange(iso)
-    close()
-    triggerRef.current?.focus({ preventScroll: true })
-  }
-
-  function pickToday() {
-    const iso = toIsoString(today.getFullYear(), today.getMonth(), today.getDate())
-    onChange(iso)
-    close()
-    triggerRef.current?.focus({ preventScroll: true })
-  }
-
-  function clearDate() {
-    onChange('')
-    close()
-    triggerRef.current?.focus({ preventScroll: true })
   }
 
   // Days calculations
@@ -160,124 +102,115 @@ export function DatePicker({
   const formattedDisplay = value ? formatIndonesianDate(value) : ''
 
   return (
-    <div className={[styles.field, className].filter(Boolean).join(' ')}>
-      <label id={`${id}-label`} htmlFor={id} className={styles.label}>
+    <div className={cn('grid min-w-0 gap-1.5', className)}>
+      <label id={`${id}-label`} htmlFor={id} className={controlLabelClass}>
         {label}
         {required && <span aria-hidden="true"> *</span>}
       </label>
 
-      <button
-        id={`${id}-trigger`}
-        ref={triggerRef}
-        type="button"
-        aria-controls={`${id}-calendar`}
-        aria-expanded={open}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error || hint ? `${id}-help` : undefined}
-        disabled={disabled}
-        className={styles.trigger}
-        onClick={() => { if (open) close(); else show() }}
-      >
-        <span className={styles.value} data-placeholder={!formattedDisplay}>
-          {formattedDisplay || placeholder}
-        </span>
-        <Icon name="calendar" size={16} />
-      </button>
+      <Popover.Root open={open} onOpenChange={openChange}>
+        <Popover.Trigger
+          id={`${id}-trigger`}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error || hint ? `${id}-help` : undefined}
+          disabled={disabled}
+          className={cn(popupTriggerClass, 'min-h-[42px] px-3.5 py-2.5 text-sm')}
+        >
+          <span className={cn('truncate leading-5', formattedDisplay ? 'font-medium text-ink' : 'text-text-muted')}>
+            {formattedDisplay || placeholder}
+          </span>
+          <Icon name="calendar" size={16} />
+        </Popover.Trigger>
+        <Popover.Portal>
+          <Popover.Positioner sideOffset={6} align="start" collisionPadding={12} className="z-[10000]">
+            <Popover.Popup aria-label={`Kalender ${label}`} className={cn(popupSurfaceClass, 'w-[316px] max-w-[calc(100vw-24px)] rounded-2xl p-4 shadow-[0_18px_40px_rgb(15_23_42/16%),0_2px_8px_rgb(15_23_42/6%)] outline-none select-none')}>
+              <div className="mb-3.5 flex items-center justify-between gap-2">
+                <button type="button" className={iconButton} onClick={() => shiftMonth(-1)} aria-label="Bulan sebelumnya">
+                  <Icon name="chevronLeft" size={16} />
+                </button>
+                <span className="text-[15px] font-bold tracking-[-.01em] text-ink" aria-live="polite">
+                  {monthsId[viewMonth]} {viewYear}
+                </span>
+                <button type="button" className={iconButton} onClick={() => shiftMonth(1)} aria-label="Bulan berikutnya">
+                  <Icon name="chevronRight" size={16} />
+                </button>
+              </div>
 
-      {/* Accessible native input for tests & form submission */}
+              <div className="mb-1.5 grid grid-cols-7 gap-1 text-center" aria-hidden="true">
+                {daysId.map((dayName) => (
+                  <span key={dayName} className="flex h-6 items-center justify-center text-[11px] font-bold tracking-[.04em] text-text-secondary uppercase">
+                    {dayName}
+                  </span>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-7 items-center justify-items-center gap-1">
+                {/* Days from previous month */}
+                {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                  <span key={`prev-${i}`} className={cn(day, 'text-[12.5px] text-text-muted opacity-35')} aria-hidden="true">
+                    {daysInPrevMonth - firstDayOfWeek + i + 1}
+                  </span>
+                ))}
+
+                {/* Days of current month */}
+                {Array.from({ length: daysInCurrentMonth }).map((_, i) => {
+                  const dayNum = i + 1
+                  const isSelected = parsedDate &&
+                    parsedDate.getFullYear() === viewYear &&
+                    parsedDate.getMonth() === viewMonth &&
+                    parsedDate.getDate() === dayNum
+                  const isToday =
+                    today.getFullYear() === viewYear &&
+                    today.getMonth() === viewMonth &&
+                    today.getDate() === dayNum
+
+                  return (
+                    <button
+                      key={`day-${dayNum}`}
+                      type="button"
+                      aria-label={`${dayNum} ${monthsId[viewMonth]} ${viewYear}`}
+                      aria-pressed={isSelected || undefined}
+                      aria-current={isToday ? 'date' : undefined}
+                      className={cn(
+                        day,
+                        'cursor-pointer rounded-full border-[1.5px] border-transparent bg-transparent font-medium text-ink transition-[background-color,border-color,color,transform] duration-100 hover:bg-nav-hover hover:text-primary focus-visible:border-primary focus-visible:shadow-[0_0_0_2px_rgb(36_71_209/25%)] focus-visible:outline-none active:scale-94',
+                        isToday && !isSelected && 'border-primary font-bold text-primary',
+                        isSelected && 'border-primary bg-primary font-bold text-white shadow-[0_2px_8px_rgb(36_71_209/35%)] hover:bg-primary-hover hover:text-white',
+                      )}
+                      onClick={() => choose(toIsoString(viewYear, viewMonth, dayNum))}
+                    >
+                      {dayNum}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="mt-3.5 flex items-center justify-between border-t border-role-border pt-3">
+                <button type="button" className={cn(footerButton, 'bg-transparent text-text-secondary hover:bg-surface-muted hover:text-ink')} onClick={() => choose('')}>
+                  Hapus
+                </button>
+                <button type="button" className={cn(footerButton, 'bg-nav-hover px-3.5 text-primary hover:bg-primary hover:text-white')} onClick={() => choose(toIsoString(today.getFullYear(), today.getMonth(), today.getDate()))}>
+                  Hari ini
+                </button>
+              </div>
+            </Popover.Popup>
+          </Popover.Positioner>
+        </Popover.Portal>
+      </Popover.Root>
+
+      {/* The label's own control: typing a date and form submission work without the calendar. */}
       <input
         type="date"
         id={id}
         value={value}
         disabled={disabled}
         required={required}
-        className={styles.hiddenInput}
+        className="pointer-events-none sr-only opacity-0"
         onChange={(e) => onChange(e.target.value)}
       />
 
-      {/* Custom styled Popover calendar */}
-      <div
-        ref={popupRef}
-        id={`${id}-calendar`}
-        popover="auto"
-        className={styles.popup}
-        data-open={open}
-        style={position}
-        onBeforeToggle={event => setOpen(event.newState === 'open')}
-      >
-        <div className={styles.calendarHeader}>
-          <button type="button" className={styles.navButton} onClick={prevMonth} aria-label="Bulan sebelumnya">
-            <Icon name="chevronLeft" size={16} />
-          </button>
-          <span className={styles.monthYear}>
-            {monthsId[viewMonth]} {viewYear}
-          </span>
-          <button type="button" className={styles.navButton} onClick={nextMonth} aria-label="Bulan berikutnya">
-            <Icon name="chevronRight" size={16} />
-          </button>
-        </div>
-
-        <div className={styles.daysHeader}>
-          {daysId.map((dayName) => (
-            <span key={dayName} className={styles.dayName}>
-              {dayName}
-            </span>
-          ))}
-        </div>
-
-        <div className={styles.daysGrid}>
-          {/* Days from previous month */}
-          {Array.from({ length: firstDayOfWeek }).map((_, i) => {
-            const dayNum = daysInPrevMonth - firstDayOfWeek + i + 1
-            return (
-              <span key={`prev-${i}`} className={styles.prevNextDay}>
-                {dayNum}
-              </span>
-            )
-          })}
-
-          {/* Days of current month */}
-          {Array.from({ length: daysInCurrentMonth }).map((_, i) => {
-            const dayNum = i + 1
-            const isSelected = parsedDate &&
-              parsedDate.getFullYear() === viewYear &&
-              parsedDate.getMonth() === viewMonth &&
-              parsedDate.getDate() === dayNum
-
-            const isToday =
-              today.getFullYear() === viewYear &&
-              today.getMonth() === viewMonth &&
-              today.getDate() === dayNum
-
-            return (
-              <button
-                key={`day-${dayNum}`}
-                type="button"
-                className={[
-                  styles.dayButton,
-                  isSelected ? styles.selectedDay : '',
-                  isToday && !isSelected ? styles.todayDay : '',
-                ].filter(Boolean).join(' ')}
-                onClick={() => selectDate(dayNum)}
-              >
-                {dayNum}
-              </button>
-            )
-          })}
-        </div>
-
-        <div className={styles.calendarFooter}>
-          <button type="button" className={styles.footerAction} onClick={clearDate}>
-            Hapus
-          </button>
-          <button type="button" className={styles.footerActionPrimary} onClick={pickToday}>
-            Hari ini
-          </button>
-        </div>
-      </div>
-
       {(error || hint) && (
-        <span id={`${id}-help`} className={styles.help} data-error={Boolean(error)}>
+        <span id={`${id}-help`} className={cn('text-xs leading-[18px]', error ? 'font-medium text-danger-text' : 'text-text-secondary')}>
           {error ?? hint}
         </span>
       )}

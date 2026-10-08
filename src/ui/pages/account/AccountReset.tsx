@@ -7,8 +7,8 @@ import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { AccountLayout } from './AccountLayout'
 import { AccountPreviewControl, AccountPreviewNote } from './AccountPreviewControl'
 import { useAccountResetViewModel } from './useAccountResetViewModel'
-import login from './Login.module.css'
-import styles from './AccountPreview.module.css'
+import login from './Login.styles'
+import styles from './AccountPreview.styles'
 
 export function AccountReset() {
   const view = useAccountResetViewModel()
@@ -30,7 +30,7 @@ export function AccountReset() {
         <fieldset className={login.fields} disabled={pending}>
           <legend className={login.srOnly}>Email akun</legend>
           <Field label="Email" name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} required value={view.email} error={view.error} onChange={(event) => view.setEmail(event.target.value)} />
-          <Button type="submit" className={login.submit} pending={pending} pendingLabel="Sedang mengirim…">Kirim tautan</Button>
+          <Button type="submit" pending={pending} pendingLabel="Sedang mengirim…">Kirim tautan</Button>
         </fieldset>
       </form>
       <AccountPreviewControl outcome={view.preview.outcome} setOutcome={view.preview.setOutcome} disabled={pending} />
