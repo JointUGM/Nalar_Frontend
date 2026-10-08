@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router'
+import { cn } from '@/ui/cn'
 import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { activeNavTarget } from '@/ui/components/navigation/activeNav'
+import { shell } from '@/ui/components/navigation/shellClasses'
+import { ThemeToggle } from '@/ui/components/navigation/ThemeToggle'
 import { ShellSearch } from '@/ui/components/shell-search/ShellSearch'
 import type { SearchTarget } from '@/ui/components/shell-search/ShellSearch'
 import type { IconName } from '@/ui/components/icon/Icon'
 import { readTheme, saveTheme } from '@/ui/theme'
-import styles from './AdultShell.module.css'
 
 export interface NavItem {
   label: string
@@ -148,20 +150,20 @@ export function AdultShell({
 
   const navigation = (
     <>
-      <p className={styles.group}>Ruang kerja</p>
-      <nav className={styles.navigation} aria-label={schoolContext ? 'Navigasi Admin Sekolah' : 'Navigasi Admin Platform'}>
+      <p className={shell.group}>Ruang kerja</p>
+      <nav className={shell.nav} aria-label={schoolContext ? 'Navigasi Admin Sekolah' : 'Navigasi Admin Platform'}>
         {links.map((item) => (
           <Link
             key={item.to}
             to={item.to}
             state={{ focusPlatformContent: true }}
             aria-current={item.to === active ? 'page' : undefined}
-            className={item.to === active ? styles.active : undefined}
+            className={shell.navItem}
             onClick={close}
           >
             <Icon name={item.icon} />
-            <span className={styles.label}>{item.label}</span>
-            {item.badge && <span className={styles.badge}>{item.badge}</span>}
+            <span className={shell.label}>{item.label}</span>
+            {item.badge && <span className={cn(shell.badge, 'text-misconception-text')}>{item.badge}</span>}
           </Link>
         ))}
       </nav>
@@ -171,35 +173,35 @@ export function AdultShell({
   )
 
   const signOut = (
-    <nav className={styles.navigation} aria-label="Akun">
+    <nav className={shell.nav} aria-label="Akun">
       <Link
         to="/login"
         state={{ signOut: true }}
         aria-label="Keluar"
-        className={[styles.exit, styles.drawerExit].join(' ')}
+        className={shell.navItem}
         onClick={close}
       >
         <Icon name="logout" />
-        <span className={styles.label}>Keluar</span>
+        <span className={shell.label}>Keluar</span>
       </Link>
     </nav>
   )
 
   return (
-    <div className={styles.shell} data-collapsed={collapsed}>
-      <a className={styles.skipLink} href="#platform-content">
+    <div className={cn(shell.root, !collapsed && shell.expanded, 'bg-canvas')}>
+      <a className={shell.skipLink} href="#platform-content">
         Lewati ke konten
       </a>
 
-      <aside className={styles.sidebar}>
-        <div className={styles.brandRow}>
-          <Link to={home ?? (nav ? nav[0].to : '/platform/schools')} className={styles.brand}>
+      <aside className={shell.sidebar} data-collapsed={collapsed}>
+        <div className={shell.brandRow}>
+          <Link to={home ?? (nav ? nav[0].to : '/platform/schools')} className={shell.brand}>
             <BrandMark />
-            <span className={styles.label}>nalar</span>
+            <span className={shell.brandLabel}>nalar</span>
           </Link>
           <button
             type="button"
-            className={styles.collapse}
+            className={shell.collapse}
             aria-expanded={!collapsed}
             aria-label={collapsed ? 'Perluas navigasi' : 'Ciutkan navigasi'}
             onClick={() => setCollapsed((value) => !value)}
@@ -210,40 +212,39 @@ export function AdultShell({
 
         {navigation}
 
-        <div className={styles.spacer} />
+        <div className="flex-1" />
 
-        {/* User Profile Card matching TeacherShell */}
-        <div className={styles.user}>
-          <span className={styles.avatar} aria-hidden="true">
+        <div className={shell.user}>
+          <span className={cn(shell.avatar, 'bg-info-bg text-primary-hover')} aria-hidden="true">
             {initials}
           </span>
-          <span className={[styles.who, styles.label].join(' ')}>
+          <span className={shell.who}>
             <strong>{adminName}</strong>
             <small>{schoolContext ? schoolContext.name : 'Platform Admin'}</small>
           </span>
-          <Link to="/login" state={{ signOut: true }} className={styles.exit} aria-label="Keluar">
+          <Link to="/login" state={{ signOut: true }} className={shell.exit} aria-label="Keluar">
             <Icon name="logout" size={16} />
-            <span className={styles.srExit}>Keluar</span>
           </Link>
         </div>
       </aside>
 
-      <div className={styles.workspace}>
-        <header className={styles.topbar}>
+      <div className={cn(shell.workspace, 'bg-paper')}>
+        <header className={cn(shell.topbar, 'min-h-[50px] px-5 py-1')}>
           <button
             type="button"
-            className={styles.menuButton}
+            className={cn(shell.iconButton, shell.menuButton)}
             aria-label="Buka navigasi"
             aria-expanded={drawerOpen}
             onClick={() => setDrawerOpen(true)}
           >
             <Icon name="menu" />
           </button>
-          <span className={styles.title}>{topbarTitle}</span>
+          <span className={shell.title}>{topbarTitle}</span>
           {onSearch ? (
-            <label className={styles.search}>
+            <label className={shell.search}>
               <Icon name="search" size={14} />
               <input
+                className="m-0 w-full min-w-0 rounded-none border-0 bg-transparent p-0 text-[13px] font-medium text-ink outline-none"
                 aria-label="Cari sekolah"
                 placeholder="Cari…"
                 value={search}
@@ -251,29 +252,12 @@ export function AdultShell({
               />
             </label>
           ) : (
-            <ShellSearch className={styles.search} label="Cari halaman" placeholder="Cari halaman atau aksi…" targets={pages} />
+            <ShellSearch className={shell.search} label="Cari halaman" placeholder="Cari halaman atau aksi…" targets={pages} />
           )}
-          <span className={styles.theme} role="group" aria-label="Tema">
-            <button
-              type="button"
-              aria-pressed={!dark}
-              aria-label="Tema terang"
-              onClick={() => setTheme(false)}
-            >
-              <Icon name="sun" size={14} />
-            </button>
-            <button
-              type="button"
-              aria-pressed={dark}
-              aria-label="Tema gelap"
-              onClick={() => setTheme(true)}
-            >
-              <Icon name="moon" size={14} />
-            </button>
-          </span>
+          <ThemeToggle dark={dark} onChange={setTheme} />
         </header>
 
-        <main ref={contentRef} className={styles.main} id="platform-content" tabIndex={-1}>
+        <main ref={contentRef} className={cn(shell.main, 'flex w-full flex-1 flex-col px-6 pt-[18px] pb-10 max-md:px-4 max-md:pt-4 md:max-lg:pt-5 md:max-lg:pb-12')} id="platform-content" tabIndex={-1}>
           {children}
         </main>
       </div>
@@ -285,7 +269,7 @@ export function AdultShell({
         description={`${adminName} · ${schoolContext ? schoolContext.name : 'Platform Admin'}`}
         presentation="drawer"
       >
-        <div className={styles.drawerNav}>
+        <div className={shell.drawerNav}>
           {navigation}
           {signOut}
         </div>
