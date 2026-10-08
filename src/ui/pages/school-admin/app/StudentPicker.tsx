@@ -4,7 +4,7 @@ import type { LinkedPerson } from '@/domain/model/SchoolAdmin'
 import { Field } from '@/ui/components/field/Field'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
-import shared from '@/ui/pages/school-admin/dialogForm.module.css'
+import shared from '@/ui/pages/school-admin/dialogForm.styles'
 
 // Finds one student by name or NISN; the admin picks from the first page of matches.
 export function StudentPicker({ service, schoolId, exclude, disabled, onPick }: { service: SchoolAdminUseCases; schoolId: string; exclude: readonly string[]; disabled?: boolean; onPick: (student: LinkedPerson) => void }) {

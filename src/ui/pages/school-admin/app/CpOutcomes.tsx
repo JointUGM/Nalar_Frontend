@@ -4,7 +4,7 @@ import type { CpOutcome } from '@/domain/model/SchoolAdmin'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Loading } from '@/ui/components/loading/Loading'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import styles from '@/ui/pages/school-admin/SchoolSubjects.module.css'
+import styles from '@/ui/pages/school-admin/SchoolSubjects.styles'
 
 // Outcomes keep the decree's order; an element (strand) heads the outcomes that share it.
 function byElement(outcomes: CpOutcome[]) {

@@ -1,0 +1,15 @@
+// Tailwind classes for SchoolClassesPage.tsx.
+const styles = {
+  content: 'w-full max-w-full',
+  heading: 'pt-2 pb-4 gap-5 flex flex-wrap items-center justify-between [&>div:first-child]:min-w-0 [&>div:first-child]:flex-[1_1_260px] [&_h1]:m-0 [&_h1]:text-[28px] [&_h1]:leading-[36px] [&_h1]:font-bold [&_h1]:tracking-[-0.03em] [@media(max-width:768px)]:[&_h1]:text-[24px] [@media(max-width:768px)]:[&_h1]:leading-[32px]',
+  subtitle: 'mx-0 mt-1.5 mb-0 text-[14px] leading-[22px] text-text-secondary',
+  addButton: 'px-4.5 min-h-11 rounded-[var(--radius-pill,999px)] text-[14px] font-semibold',
+  note: 'mx-0 my-4 text-[13px] leading-[20px] text-text-secondary',
+  group: 'mt-7 [&_h2]:mx-0 [&_h2]:mt-0 [&_h2]:mb-3 [&_h2]:text-[15px] [&_h2]:font-bold [&_h2]:text-ink',
+  grid: 'm-0 p-0 gap-4 grid list-none grid-cols-[repeat(auto-fill,minmax(min(240px,100%),1fr))] [&>li]:gap-2 [&>li]:grid [@media(max-width:768px)]:gap-3 [@media(max-width:768px)]:grid-cols-[repeat(auto-fill,minmax(min(100%,200px),1fr))]',
+  card: 'p-5 gap-1.5 w-full border border-role-border bg-surface grid text-start [font-style:inherit] cursor-pointer rounded-[16px] [font-variant:inherit] [font-weight:inherit] [font-stretch:inherit] [font-size:inherit] [line-height:inherit] [font-family:inherit] text-ink [transition:transform_0.18s_ease,box-shadow_0.18s_ease,border-color_0.18s_ease,background-color_0.18s_ease] [button&]:p-5 [button&]:gap-1.5 [button&]:w-full [button&]:border [button&]:border-role-border [button&]:bg-surface [button&]:grid [button&]:text-start [button&]:[font-style:inherit] [button&]:cursor-pointer [button&]:rounded-[16px] [button&]:[font-variant:inherit] [button&]:[font-weight:inherit] [button&]:[font-stretch:inherit] [button&]:[font-size:inherit] [button&]:[line-height:inherit] [button&]:[font-family:inherit] [button&]:text-ink [button&]:[transition:transform_0.18s_ease,box-shadow_0.18s_ease,border-color_0.18s_ease,background-color_0.18s_ease] hover:border-primary hover:bg-surface hover:[box-shadow:0_8px_24px_rgba(36,71,209,0.12)] hover:[transform:translateY(-2px)] [button&:hover:not(:disabled)]:border-primary [button&:hover:not(:disabled)]:bg-surface [button&:hover:not(:disabled)]:[box-shadow:0_8px_24px_rgba(36,71,209,0.12)] [button&:hover:not(:disabled)]:[transform:translateY(-2px)] [&:hover_strong]:text-primary [button&:hover:not(:disabled)_strong]:text-primary [&_strong]:text-[20px] [&_strong]:leading-[28px] [&_strong]:font-bold [&_strong]:text-ink [&_strong]:[transition:color_0.15s_ease] [&_span]:text-[13.5px] [&_span]:text-text-secondary [&_small]:mt-2 [&_small]:pt-2 [&_small]:border-t [&_small]:border-t-surface-muted [&_small]:wrap-anywhere [&_small]:text-[12.5px] [&_small]:text-text-muted [@media(max-width:768px)]:p-4 [@media(max-width:768px)]:[button&]:p-4',
+  emptyCard: 'mt-4 border border-role-border bg-surface overflow-hidden rounded-[14px]',
+  empty: 'mx-0 mt-3 mb-0 p-5 bg-surface rounded-[18px] text-text-secondary',
+} satisfies Record<string, string>
+
+export default styles
