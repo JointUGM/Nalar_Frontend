@@ -25,6 +25,8 @@ export interface SchoolAdminService {
   subjects(schoolId: string, signal?: AbortSignal): Promise<SchoolSubject[]>
   curriculumVersions(schoolId: string, signal?: AbortSignal): Promise<CurriculumChoice[]>
   createSubject(schoolId: string, subject: NewSchoolSubject, idempotencyKey: string, signal?: AbortSignal): Promise<{ school_subject_id: string }>
+  // Refused with SUBJECT_IN_USE while the subject still has a teaching assignment or a knowledge base.
+  deleteSubject(schoolId: string, subjectId: string, signal?: AbortSignal): Promise<void>
   cpSubject(schoolId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal): Promise<CpSubjectDetail>
   setCurriculum(schoolId: string, subjectId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal): Promise<void>
   transferKnowledgeBase(knowledgeBaseId: string, teacherId: string, signal?: AbortSignal): Promise<void>

@@ -106,6 +106,7 @@ export class SchoolAdminUseCases {
     if (!name || name.length > subjectNameMax) throw new ApiError(422, 'NAME_REQUIRED')
     return this.service.createSubject(resourceId(schoolId), { name, cp_version_id: resourceId(subject.cp_version_id), cp_subject_id: resourceId(subject.cp_subject_id) }, resourceId(idempotencyKey), signal)
   }
+  deleteSubject(schoolId: string, subjectId: string, signal?: AbortSignal) { return this.service.deleteSubject(resourceId(schoolId), resourceId(subjectId), signal) }
   cpSubject(schoolId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal) { return this.service.cpSubject(resourceId(schoolId), resourceId(versionId), resourceId(cpSubjectId), signal) }
   // The CP subject is always sent, so the backend never has to guess it from the name.
   setCurriculum(schoolId: string, subjectId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal) {
