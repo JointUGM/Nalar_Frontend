@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
 import type { KbDetail, KbItemKind, KbItemPatch, KbReviewQueue, KbSection } from '@/domain/model/KnowledgeBase'
@@ -25,6 +25,8 @@ type Draft = { id: string; kind: 'concept'; name: string; description: string } 
 const building = (section: KbSection) => section.build_status === 'queued' || section.build_status === 'building'
 // A chapter being built changes on its own, so the page keeps reading until none is.
 const pollMs = (data: Loaded | null) => data?.sections.some(building) ? 3000 : null
+// The backend's kb_build_stale_after_s: a retry before it only returns the running job, so giving up sooner would offer a retry that changes nothing.
+const stuckAfterMs = 3_600_000
 const patchOf = (draft: Draft): KbItemPatch => draft.kind === 'concept'
   ? { kind: 'concept', name: draft.name, description: draft.description }
   : { kind: 'misconception', statement: draft.statement, correct_understanding: draft.correct, detection_cues: draft.cues.split('\n'), counter_examples: draft.counters.split('\n') }
@@ -49,13 +51,25 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const [adding, setAdding] = useState<'concept' | 'misconception' | null>(null)
   const [pending, setPending] = useState(false)
   const [failure, setFailure] = useState<ApiError | null>(null)
-  const back = <Link className={styles.back} to={`${base}/knowledge-base`}><Icon name="chevronLeft" size={14} />Basis pengetahuan</Link>
+  // A build that never ends (its worker died) stays "building"; after stuckAfterMs the page stops waiting and offers a retry. A retry starts the wait over.
+  const generating = data?.sections.some(building) ?? false
+  const [stuck, setStuck] = useState(false)
+  const [tries, setTries] = useState(0)
+  useEffect(() => {
+    if (!generating) return
+    const timer = setTimeout(() => setStuck(true), stuckAfterMs)
+    return () => { clearTimeout(timer); setStuck(false) }
+  }, [generating, tries])
+  const back =<Link className={styles.back} to={`${base}/knowledge-base`}><Icon name="chevronLeft" size={14} />Basis pengetahuan</Link>
 
   if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat basis pengetahuan…" />}</div>
   const { detail, sections, queue } = data
   const canEdit = detail.can_edit
   const waiting = queue.pending_concepts + queue.pending_misconceptions
-  const selected = detail.concepts.find((item) => item.id === selectedId) ?? detail.concepts[0]
+  // Counts are only real once no chapter is being built; until then they would be partial.
+  const loading = generating && !stuck
+  const retryable = (section: KbSection) => section.build_status === 'failed' || (stuck && building(section))
+  const selected =detail.concepts.find((item) => item.id === selectedId) ?? detail.concepts[0]
   const nameOf = (id: string) => detail.concepts.find((item) => item.id === id)?.name ?? ''
   const pendingIn = (conceptId: string) => detail.misconceptions.filter((item) => item.concept_id === conceptId && item.review_status === 'pending').length
   const related = detail.misconceptions.filter(item => item.concept_id === selected?.id)
@@ -81,6 +95,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
     }
   }
   const followJob = (queued: { job_id: string }) => setJobId(queued.job_id)
+  const build = (sectionId: string) => { setTries((count) => count + 1); void run((signal) => kb.build(detail.id, sectionId, signal), followJob) }
   // The tab opens on the click itself, so a popup blocker allows it; the signed link arrives a moment later.
   function openPdf(materialId: string) {
     const tab = window.open('about:blank', '_blank')
@@ -103,22 +118,33 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
     <Button tone="secondary" disabled={pending} onClick={() => setDraft(null)}>Batal</Button>
   </div>
   const said = failure && kbRefusal(failure)
+  // Nothing to review yet: one panel stands in for both the concept and the misconception areas.
+  const generatingPanel = loading && !selected && <section id="kb-review" className={styles.card} aria-labelledby="kb-generating">
+    <h2 id="kb-generating">Konsep dan miskonsepsi</h2>
+    <Loading label="Menyusun konsep dan miskonsepsi…" />
+    <p className={styles.note}>Sedang disusun dari bab yang dipilih, biasanya beberapa menit. Halaman ini memperbarui sendiri.</p>
+  </section>
 
   return <div className={styles.content}>
     {back}
     <div className={styles.header}><div>
-      <div className={styles.title}><h1>{detail.topic_title}</h1>{detail.concepts.length > 0 && <span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span>}</div>
-      <p>{waiting > 0 ? `${queue.pending_concepts} konsep dan ${queue.pending_misconceptions} miskonsepsi menunggu tinjauan` : `${detail.concepts.length} konsep · ${detail.misconceptions.length} miskonsepsi`}</p>
+      <div className={styles.title}><h1>{detail.topic_title}</h1>{detail.concepts.length > 0 && !loading && <span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span>}</div>
+      <p>{loading ? 'Konsep dan miskonsepsi sedang disusun.' : waiting > 0 ?`${queue.pending_concepts} konsep dan ${queue.pending_misconceptions} miskonsepsi menunggu tinjauan` : `${detail.concepts.length} konsep · ${detail.misconceptions.length} miskonsepsi`}</p>
     </div><div className={styles.jumpLinks}><a href="#kb-review">Tinjau konsep<Icon name="chevronDown" size={14} /></a><a href="#kb-sources">Materi dan bab<Icon name="chevronDown" size={14} /></a>{canEdit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan topik</>} title="Arsipkan topik ini?" description={`${detail.topic_title}. Topik hilang dari daftar dan tidak bisa dipakai untuk misi baru. Misi dan sesi yang sudah memakainya tetap tersimpan. Arsip tidak bisa dibuka kembali dari aplikasi.`} confirm="Arsipkan topik" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archive(detail.id, signal)} onDone={() => navigate(`${base}/knowledge-base`)} refusal={kbRefusal} />}</div></div>
     {!canEdit && <p className={styles.note}>Basis pengetahuan ini milik rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {jobId && <JobNotice key={jobId} kb={kb} jobId={jobId} onDone={refresh} />}
     {said && <Feedback tone="warning" title={said} announce />}
     {failure && !said && <Feedback tone="warning" title={failure.message} announce>{failure.requestId && <small>Referensi: {failure.requestId}</small>}</Feedback>}
-    <div id="kb-review" className={styles.grid} data-empty={!selected}>
+    {sections.filter(retryable).map((section) => <Feedback key={section.id} tone={section.build_status === 'failed' ? 'danger' : 'warning'} title={section.build_status === 'failed' ? `Bab “${section.title}” gagal disusun` : `Bab “${section.title}” belum selesai disusun`} announce>
+      {section.build_status === 'failed' ? 'Konsep dan miskonsepsi dari bab ini belum ada. Coba susun lagi.' : 'Sudah lebih dari satu jam, mungkin prosesnya terhenti. Coba susun lagi.'}
+      {canEdit && <div className={styles.actions}><Button tone="secondary" disabled={pending} aria-label={`Susun ulang ${section.title}`} onClick={() => build(section.id)}>Susun ulang</Button></div>}
+    </Feedback>)}
+    {generatingPanel}
+    {!generatingPanel && <div id="kb-review" className={styles.grid} data-empty={!selected}>
       <div className={styles.column}>
         <section className={[styles.card, styles.navigator].join(' ')} aria-labelledby="kb-concepts">
-          <div className={styles.sectionHead}><h2 id="kb-concepts">Konsep</h2><span>{detail.concepts.length} konsep</span></div>
+          <div className={styles.sectionHead}><h2 id="kb-concepts">Konsep</h2><span>{loading ? 'Sedang disusun' : `${detail.concepts.length} konsep`}</span></div>
           {canEdit && adding !== 'concept' && <Button tone="secondary" disabled={pending} onClick={() => { setDraft(null); setAdding('concept') }}><Icon name="plus" size={14} />Tambah konsep</Button>}
           {adding === 'concept' && <KbNewItem kind="concept" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addConcept(detail.id, value, key, signal), (created) => { setAdding(null); setSelectedId(created.id) }) }} />}
           {!selected ? <p>Belum ada konsep. Susun satu bab untuk membuat drafnya.</p> : <>
@@ -158,7 +184,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
           </>}
         </section>
         <div className={styles.misconceptions}>
-          <div className={styles.sectionHead}><h2>Miskonsepsi terkait</h2><span>{related.length} miskonsepsi</span></div>
+          <div className={styles.sectionHead}><h2>Miskonsepsi terkait</h2><span>{loading ? 'Sedang disusun' : `${related.length} miskonsepsi`}</span></div>
           {canEdit && adding !== 'misconception' && <Button tone="secondary" disabled={pending} onClick={() => { setDraft(null); setAdding('misconception') }}><Icon name="plus" size={14} />Tambah miskonsepsi</Button>}
           {adding === 'misconception' && <KbNewItem kind="misconception" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addMisconception(detail.id, selected.id, value, key, signal), () => setAdding(null)) }} />}
           {related.map((item) => <section key={item.id} className={styles.misconception} aria-label={`Miskonsepsi: ${item.statement}`}>
@@ -178,10 +204,10 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
               {actions('misconception', item, selected.review_status !== 'approved', () => setDraft({ id: item.id, kind: 'misconception', statement: item.statement, correct: item.correct_understanding, cues: item.detection_cues.join('\n'), counters: item.counter_examples.join('\n') }))}
             </>}
           </section>)}
-          {related.length === 0 && <p className={styles.note}>Tidak ada miskonsepsi untuk konsep ini.</p>}
+          {related.length === 0 && !loading && <p className={styles.note}>Tidak ada miskonsepsi untuk konsep ini.</p>}
         </div>
       </div>}
-    </div>
+    </div>}
     <div id="kb-sources" className={styles.sources}>
         <section className={styles.card} aria-labelledby="kb-materials">
           <h2 id="kb-materials">Materi</h2>
@@ -205,7 +231,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
           <h2 id="kb-sections">Bab</h2>
           {sections.length === 0 ? <p>Daftar bab muncul setelah materi selesai dibaca.</p> : <ul className={styles.items}>{sections.map((section) => <li key={section.id} style={{ paddingInlineStart: `${Math.min(Math.max(section.level - 1, 0), 3) * 16}px` }}>
             <span><strong>{section.title}</strong><small>hlm. {section.page_start}–{section.page_end} · {buildWord[section.build_status] ?? 'Belum disusun'}{section.suggested && section.build_status !== 'built' && ' · disarankan'}</small></span>
-            {canEdit && !building(section) && section.build_status !== 'built' && <Button tone="secondary" disabled={pending} aria-label={`${section.build_status === 'failed' ? 'Coba lagi' : 'Susun'} ${section.title}`} onClick={() => { void run((signal) => kb.build(detail.id, section.id, signal), followJob) }}>{section.build_status === 'failed' ? 'Coba lagi' : 'Susun'}</Button>}
+            {canEdit && section.build_status !== 'built' && (!building(section) || stuck) && <Button tone="secondary" disabled={pending} aria-label={`${retryable(section) ? 'Coba lagi' : 'Susun'} ${section.title}`} onClick={() => build(section.id)}>{retryable(section) ? 'Coba lagi' : 'Susun'}</Button>}
           </li>)}</ul>}
         </section>
     </div>

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { Identity } from '@/domain/model/Identity'
@@ -498,6 +498,51 @@ describe('signed-in teacher pages', () => {
     expect(await screen.findByText('Bab gagal disusun')).toBeInTheDocument()
     expect(screen.getByText(/tidak punya teks/)).toBeInTheDocument()
     expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1)
+  })
+
+  describe('while a chapter is built', () => {
+    const at = (build_status: string, empty = false) => ({
+      [`GET /knowledge-bases/${kbId}/sections`]: () => Response.json({ items: [{ ...sections.items[0], build_status }] }),
+      ...(empty && { [`GET /knowledge-bases/${kbId}`]: () => Response.json({ ...kbDetail(), concepts: [], misconceptions: [] }) }),
+    })
+
+    it('replaces the empty concept and misconception areas with one loading panel', async () => {
+      open(kbPath, backend(at('queued', true)))
+      expect(await screen.findByText('Menyusun konsep dan miskonsepsi…')).toBeInTheDocument()
+      expect(screen.queryByText(/Belum ada konsep/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/\d+ (konsep|miskonsepsi)$/)).not.toBeInTheDocument()
+    })
+
+    it('keeps the concepts it has but shows no count until the chapter is built', async () => {
+      open(kbPath, backend(at('building')))
+      expect(await screen.findByRole('heading', { name: 'Tekanan hidrostatis' })).toBeInTheDocument()
+      expect(screen.getAllByText('Sedang disusun')).toHaveLength(2)
+      expect(screen.queryByText('1 konsep')).not.toBeInTheDocument()
+      expect(screen.queryByText('1 miskonsepsi')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Coba lagi|Susun/ })).not.toBeInTheDocument()
+    })
+
+    it('says a chapter failed and builds it again from the notice', async () => {
+      const request = backend({ ...at('failed'), [`POST /knowledge-bases/${kbId}/sections/${section}/build`]: () => Response.json({ job_id: job, section_id: section, status: 'queued' }, { status: 202 }) })
+      open(kbPath, request)
+      expect(await screen.findByText('Bab “Bab 1 Tekanan” gagal disusun')).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Susun ulang Bab 1 Tekanan' }))
+      await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1))
+    })
+
+    it('stops waiting after an hour and offers a retry', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      try {
+        open(kbPath, backend(at('building')))
+        await screen.findByRole('heading', { name: 'Tekanan hidrostatis' })
+        expect(screen.queryByText(/belum selesai disusun/)).not.toBeInTheDocument()
+        await act(async () => {}) // let the page arm its timer before the clock jumps
+        act(() => { vi.advanceTimersByTime(3_600_000) })
+        expect(await screen.findByText('Bab “Bab 1 Tekanan” belum selesai disusun')).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Coba lagi Bab 1 Tekanan' })).toBeInTheDocument()
+        expect(screen.queryByText('Sedang disusun', { selector: 'span' })).not.toBeInTheDocument()
+      } finally { vi.useRealTimers() }
+    })
   })
 
   it('shows a colleague’s knowledge base without any way to change it', async () => {
