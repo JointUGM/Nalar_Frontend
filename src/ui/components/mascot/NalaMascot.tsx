@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import styles from './NalaMascot.module.css'
+import { cn } from '@/ui/cn'
 
 export type MascotPose = 'waving' | 'thinking' | 'asking' | 'proud' | 'calm' | 'teacher'
 
@@ -75,7 +75,7 @@ export function NalaMascot({
   const renderRightWing = () => {
     if (pose === 'waving') {
       return (
-        <g className={styles.wavingWing}>
+        <g className="origin-[164px_136px] animate-mascot-wave group-hover/mascot:[animation-duration:1.4s] motion-reduce:animate-none">
           {/* Raised waving wing */}
           <path
             d="M164 136 C184 122 204 96 200 70 C196 52 178 56 168 76 C158 96 152 118 156 136 Z"
@@ -85,7 +85,7 @@ export function NalaMascot({
             strokeLinejoin="round"
           />
           {/* Motion rays / breeze next to waving wing in brand amber */}
-          <g className={styles.waveRays} stroke="#F2B23A" strokeWidth="3" strokeLinecap="round">
+          <g className="animate-mascot-rays motion-reduce:animate-none" stroke="#F2B23A" strokeWidth="3" strokeLinecap="round">
             <path d="M210 60 Q216 68 212 78" fill="none" />
             <path d="M218 52 Q226 62 222 74" fill="none" />
             <path d="M202 46 Q208 52 206 58" fill="none" />
@@ -215,7 +215,7 @@ export function NalaMascot({
 
     if (pose === 'thinking') {
       return (
-        <g className={styles.blinkEyes}>
+        <g className="origin-[100px_98px] animate-mascot-blink motion-reduce:animate-none">
           {/* Eye whites */}
           <circle cx="76" cy="98" r="22" fill="#FFFFFF" />
           <circle cx="124" cy="98" r="22" fill="#FFFFFF" />
@@ -237,7 +237,7 @@ export function NalaMascot({
 
     // Default eyes with blinking
     return (
-      <g className={styles.blinkEyes}>
+      <g className="origin-[100px_98px] animate-mascot-blink motion-reduce:animate-none">
         <circle cx="76" cy="98" r="22" fill="#FFFFFF" />
         <circle cx="124" cy="98" r="22" fill="#FFFFFF" />
         <circle cx="78" cy="96.5" r="14" fill="#F2B23A" />
@@ -276,9 +276,9 @@ export function NalaMascot({
       return (
         <g>
           {/* Animated thought bubbles in theme colors */}
-          <circle cx="170" cy="40" r="4" fill="#F2B23A" className={styles.thinkingDot1} />
-          <circle cx="184" cy="28" r="7" fill="#F2B23A" className={styles.thinkingDot2} />
-          <circle cx="204" cy="12" r="11" fill="#2447D1" className={styles.thinkingDot3} />
+          <circle cx="170" cy="40" r="4" fill="#F2B23A" className="animate-mascot-dot motion-reduce:animate-none" />
+          <circle cx="184" cy="28" r="7" fill="#F2B23A" className="animate-mascot-dot [animation-delay:.3s] motion-reduce:animate-none" />
+          <circle cx="204" cy="12" r="11" fill="#2447D1" className="animate-mascot-dot [animation-delay:.6s] motion-reduce:animate-none" />
         </g>
       )
     }
@@ -299,9 +299,9 @@ export function NalaMascot({
       return (
         <g>
           {/* Sparkle stars */}
-          <path d="M40 50 L43 57 L50 60 L43 63 L40 70 L37 63 L30 60 L37 57 Z" fill="#F2B23A" className={styles.sparkleStar1} />
-          <path d="M175 40 L178 47 L185 50 L178 53 L175 60 L172 53 L165 50 L172 47 Z" fill="#2447D1" className={styles.sparkleStar2} />
-          <path d="M195 105 L197 110 L202 112 L197 114 L195 119 L193 114 L188 112 L193 110 Z" fill="#F2B23A" className={styles.sparkleStar3} />
+          <path d="M40 50 L43 57 L50 60 L43 63 L40 70 L37 63 L30 60 L37 57 Z" fill="#F2B23A" className="origin-[40px_60px] animate-mascot-star motion-reduce:animate-none" />
+          <path d="M175 40 L178 47 L185 50 L178 53 L175 60 L172 53 L165 50 L172 47 Z" fill="#2447D1" className="origin-[170px_50px] animate-mascot-star [animation-delay:.4s] [animation-duration:2.4s] motion-reduce:animate-none" />
+          <path d="M195 105 L197 110 L202 112 L197 114 L195 119 L193 114 L188 112 L193 110 Z" fill="#F2B23A" className="origin-[190px_110px] animate-mascot-star [animation-delay:.8s] [animation-duration:2.2s] motion-reduce:animate-none" />
         </g>
       )
     }
@@ -322,14 +322,12 @@ export function NalaMascot({
     return null
   }
 
-  const containerClasses = [
-    styles.mascotContainer,
-    floating ? styles.floating : '',
-    interactive ? styles.interactive : '',
+  const containerClasses = cn(
+    'relative inline-flex flex-col items-center justify-center select-none',
+    floating && 'animate-mascot-float motion-reduce:animate-none',
+    interactive && 'group/mascot cursor-pointer',
     className,
-  ]
-    .filter(Boolean)
-    .join(' ')
+  )
 
   return (
     <div
@@ -343,14 +341,14 @@ export function NalaMascot({
     >
       {/* Dynamic Speech Bubble: clean and concise */}
       {activeBubble && (
-        <div key={activeBubble} className={styles.bubble} role="status" aria-live="polite">
+        <div key={activeBubble} className="absolute bottom-[calc(100%-2px)] left-1/2 z-10 w-max max-w-[250px] -translate-x-1/2 animate-mascot-bubble rounded-[14px] border border-border bg-white px-4 py-[9px] text-center font-ui text-sm leading-[1.38] font-semibold whitespace-normal text-ink shadow-[0_8px_24px_rgb(21_33_59/9%)] before:absolute before:top-[calc(100%+1px)] before:left-1/2 before:-z-1 before:-translate-x-1/2 before:border-x-[7px] before:border-t-[7px] before:border-b-0 before:border-solid before:border-x-transparent before:border-t-border before:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-x-[6px] after:border-t-[6px] after:border-b-0 after:border-solid after:border-x-transparent after:border-t-white after:content-[''] motion-reduce:animate-none" role="status" aria-live="polite">
           {activeBubble}
         </div>
       )}
 
       {/* Main SVG Graphic */}
       <svg
-        className={styles.mascotSvg}
+        className="block overflow-visible transition-transform duration-250 ease-[cubic-bezier(.34,1.56,.64,1)] group-hover/mascot:-translate-y-1 group-hover/mascot:scale-[1.02] group-active/mascot:translate-y-0.5 group-active/mascot:scale-[.98]"
         width={size}
         height={(size * 262) / 260}
         viewBox="-30 -12 260 262"
@@ -389,7 +387,7 @@ export function NalaMascot({
           <circle cx="124" cy="98" r="32" fill="#FCEFD2" />
 
           {/* Blush cheeks */}
-          <g className={styles.cheeks} fill="#F4A98A">
+          <g className="transition-opacity duration-200 group-hover/mascot:scale-108 group-hover/mascot:opacity-100" fill="#F4A98A">
             <ellipse cx="58" cy="122" rx="9" ry="5.5" />
             <ellipse cx="142" cy="122" rx="9" ry="5.5" />
           </g>
