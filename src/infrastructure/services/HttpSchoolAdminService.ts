@@ -166,18 +166,22 @@ export class HttpSchoolAdminService implements SchoolAdminService {
     })
   }
 
-  // Not in the pinned OpenAPI yet; the shapes follow docs/backend-subject-create-contract.md.
   async createSubject(schoolId: string, subject: NewSchoolSubject, idempotencyKey: string, signal?: AbortSignal): Promise<{ school_subject_id: string }> {
-    const value = record((await this.api.request(`${school(schoolId)}/subjects`, { method: 'POST', body: subject, headers: { 'Idempotency-Key': idempotencyKey }, signal })).data)
-    return { school_subject_id: text(value.school_subject_id) }
+    const body: Schemas['SubjectCreateIn'] = subject
+    const value = record((await this.api.request(`${school(schoolId)}/subjects`, { method: 'POST', body, headers: { 'Idempotency-Key': idempotencyKey }, signal })).data)
+    return { school_subject_id: text(value.school_subject_id) } satisfies Schemas['SubjectCreatedOut']
+  }
+
+  async deleteSubject(schoolId: string, subjectId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${school(schoolId)}/subjects/${encodeURIComponent(subjectId)}`, { method: 'DELETE', signal })
   }
 
   async cpSubject(schoolId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal): Promise<CpSubjectDetail> {
     const value = record((await this.api.request(`${school(schoolId)}/curriculum-versions/${encodeURIComponent(versionId)}/subjects/${encodeURIComponent(cpSubjectId)}`, { signal })).data)
     return {
       id: text(value.id), name: text(value.name), phase: text(value.phase), version_id: text(value.version_id),
-      learning_outcomes: list(value.learning_outcomes).map((entry) => { const item = record(entry); return { id: text(item.id), element: nullable(item.element, text), ordinal: count(item.ordinal), description: text(item.description) } }),
-    }
+      learning_outcomes: list(value.learning_outcomes).map((entry) => { const item = record(entry); return { id: text(item.id), element: nullable(item.element, text), ordinal: count(item.ordinal), description: text(item.description) } satisfies Schemas['LearningOutcomeOut'] }),
+    } satisfies Schemas['SchoolCpSubjectOut']
   }
 
   async setCurriculum(schoolId: string, subjectId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal): Promise<void> {

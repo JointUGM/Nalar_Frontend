@@ -60,7 +60,7 @@
 
 .table tr {
   display: grid;
-  grid-template-columns: minmax(140px, 1.2fr) minmax(180px, 1.6fr) minmax(260px, 2.6fr) 90px;
+  grid-template-columns: minmax(140px, 1.2fr) minmax(180px, 1.6fr) minmax(260px, 2.6fr) 150px;
   align-items: center;
   gap: 16px;
   padding-block: 14px;
@@ -279,4 +279,22 @@ button.edit:hover:not(:disabled) {
   font-size: 13.5px;
   line-height: 20px;
   color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.remove,
+button.remove {
+  color: var(--color-danger-text, #b42318);
+}
+
+.remove:hover:not(:disabled),
+button.remove:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger-text, #b42318) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-danger-text, #b42318) 24%, transparent);
+  color: var(--color-danger-text, #b42318);
 }

@@ -1388,6 +1388,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/schools/{school_id}/curriculum-versions/{version_id}/subjects/{cp_subject_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** School Cp Subject */
+        get: operations["school_cp_subject_api_v1_schools__school_id__curriculum_versions__version_id__subjects__cp_subject_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/schools/{school_id}/knowledge-bases": {
         parameters: {
             query?: never;
@@ -1555,8 +1572,26 @@ export interface paths {
         /** Subjects */
         get: operations["subjects_api_v1_schools__school_id__subjects_get"];
         put?: never;
-        post?: never;
+        /** Create Subject */
+        post: operations["create_subject_api_v1_schools__school_id__subjects_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schools/{school_id}/subjects/{subject_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Subject */
+        delete: operations["delete_subject_api_v1_schools__school_id__subjects__subject_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4667,6 +4702,25 @@ export interface components {
             /** Teacher Name */
             teacher_name: string;
         };
+        /** SchoolCpSubjectOut */
+        SchoolCpSubjectOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Learning Outcomes */
+            learning_outcomes: components["schemas"]["LearningOutcomeOut"][];
+            /** Name */
+            name: string;
+            /** Phase */
+            phase: string;
+            /**
+             * Version Id
+             * Format: uuid
+             */
+            version_id: string;
+        };
         /** SchoolCreatedOut */
         SchoolCreatedOut: {
             /** Pending Activation */
@@ -4989,6 +5043,26 @@ export interface components {
             items: components["schemas"]["StudentReflectionOut"][];
             /** Next Cursor */
             next_cursor: string | null;
+        };
+        /** SubjectCreateIn */
+        SubjectCreateIn: {
+            /** Cp Subject Id */
+            cp_subject_id?: string | null;
+            /**
+             * Cp Version Id
+             * Format: uuid
+             */
+            cp_version_id: string;
+            /** Name */
+            name: string;
+        };
+        /** SubjectCreatedOut */
+        SubjectCreatedOut: {
+            /**
+             * School Subject Id
+             * Format: uuid
+             */
+            school_subject_id: string;
         };
         /** SubjectKnowledgeBaseOut */
         SubjectKnowledgeBaseOut: {
@@ -8241,6 +8315,39 @@ export interface operations {
             };
         };
     };
+    school_cp_subject_api_v1_schools__school_id__curriculum_versions__version_id__subjects__cp_subject_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+                version_id: string;
+                cp_subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolCpSubjectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_kbs_api_v1_schools__school_id__knowledge_bases_get: {
         parameters: {
             query?: {
@@ -8705,6 +8812,73 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SubjectOut"][];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_subject_api_v1_schools__school_id__subjects_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                school_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubjectCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectCreatedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_subject_api_v1_schools__school_id__subjects__subject_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                school_id: string;
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

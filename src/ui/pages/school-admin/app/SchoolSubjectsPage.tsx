@@ -13,6 +13,7 @@ import { Select } from '@/ui/components/select/Select'
 import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { CpOutcomes } from './CpOutcomes'
+import { DeleteSubjectDialog } from './DeleteSubjectDialog'
 import { NewSubjectDialog } from './NewSubjectDialog'
 
 const refusals: Readonly<Record<string, string>> = {
@@ -20,7 +21,7 @@ const refusals: Readonly<Record<string, string>> = {
   CURRICULUM_PHASE_MISMATCH: 'Fase mata pelajaran CP ini berbeda dari pemetaan sekarang. Pilih yang fasenya sama.',
   NOT_FOUND: 'Guru ini belum ditugaskan mengajar mata pelajaran ini. Atur di Penugasan guru.',
 }
-type Editing = { kind: 'new' } | { kind: 'cp'; subject: SchoolSubject } | { kind: 'owner'; subject: SchoolSubject; kb: SubjectKnowledgeBase }
+type Editing = { kind: 'new' } | { kind: 'delete'; subject: SchoolSubject } | { kind: 'cp'; subject: SchoolSubject } | { kind: 'owner'; subject: SchoolSubject; kb: SubjectKnowledgeBase }
 
 export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdminUseCases; schoolId: string }) {
   const read = useCallback(async (signal: AbortSignal) => {
@@ -76,10 +77,14 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
           </div>
           <Button tone="ghost" className={styles.edit} aria-label={`Alihkan pemilik ${kb.topic_title}`} onClick={() => { setMessage(''); setEditing({ kind: 'owner', subject, kb }) }}>Alihkan</Button>
         </li>)}</ul> : 'Belum ada'}</td>
-        <td><Button tone="ghost" className={styles.edit} aria-label={`Ubah pemetaan ${subject.name}`} disabled={!data.versions.length} onClick={() => { setMessage(''); setEditing({ kind: 'cp', subject }) }}>Ubah</Button></td>
+        <td className={styles.actions}>
+          <Button tone="ghost" className={styles.edit} aria-label={`Ubah pemetaan ${subject.name}`} disabled={!data.versions.length} onClick={() => { setMessage(''); setEditing({ kind: 'cp', subject }) }}>Ubah</Button>
+          <Button tone="ghost" className={[styles.edit, styles.remove].join(' ')} aria-label={`Hapus ${subject.name}`} onClick={() => { setMessage(''); setEditing({ kind: 'delete', subject }) }}>Hapus</Button>
+        </td>
       </tr> })}</tbody>
     </table></div>)}
     {data && editing?.kind === 'new' && data.versions.length > 0 && <NewSubjectDialog service={service} schoolId={schoolId} versions={data.versions} onClose={close} />}
+    {data && editing?.kind === 'delete' && <DeleteSubjectDialog service={service} schoolId={schoolId} subject={editing.subject} onClose={close} />}
     {data && editing?.kind === 'cp' && <CurriculumDialog service={service} schoolId={schoolId} subject={editing.subject} versions={data.versions} onClose={close} />}
     {data && editing?.kind === 'owner' && <OwnerDialog service={service} subject={editing.subject} kb={editing.kb} teachers={[...new Map(data.assignments.filter((row) => row.school_subject_id === editing.subject.school_subject_id && row.teacher_id && row.teacher_id !== editing.kb.owner_teacher_id).map((row) => [row.teacher_id ?? '', row.teacher_name])).entries()]} onClose={close} />}
   </div>

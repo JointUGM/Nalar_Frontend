@@ -245,4 +245,36 @@ describe('school administration', () => {
     expect(JSON.parse(String(posts[1][1]?.body))).toEqual({ name: 'IPA Terpadu', cp_version_id: version, cp_subject_id: ipa })
     expect(new Headers(posts[1][1]?.headers).get('Idempotency-Key')).toBe(new Headers(posts[0][1]?.headers).get('Idempotency-Key'))
   })
+
+  it('deletes a subject, explaining a refusal while it is in use and not offering it while a knowledge base exists', async () => {
+    const [free, used, version, cp, kb, owner] = ['61', '62', '63', '64', '65', '66'].map((end) => `00000000-0000-4000-8000-0000000000${end}`)
+    let deleted = false
+    let attempts = 0
+    const request = open(`/school/${school}/subjects`, (key) => {
+      if (key === `GET /schools/${school}/subjects`) return Response.json([
+        ...(deleted ? [] : [{ school_subject_id: free, name: 'Seni Musik', cp_version_id: version, cp_subject_id: cp, knowledge_bases: [] }]),
+        { school_subject_id: used, name: 'IPA', cp_version_id: version, cp_subject_id: cp, knowledge_bases: [{ knowledge_base_id: kb, topic_title: 'Gaya', owner_teacher_id: owner, owner_name: 'Sari' }] },
+      ])
+      if (key === `GET /schools/${school}/curriculum-versions`) return Response.json([{ id: version, name: 'CP 2025', decree_code: 'BSKAP 046/2025', is_current: true, subjects: [{ id: cp, name: 'IPA', phase: 'D' }] }])
+      if (key === `GET /schools/${school}/academic-years`) return Response.json(years)
+      if (key === `GET /schools/${school}/assignments?academic_year_id=${year}`) return Response.json([])
+      if (key === `DELETE /schools/${school}/subjects/${free}`) {
+        if ((attempts += 1) === 1) return Response.json({ error: { code: 'SUBJECT_IN_USE' } }, { status: 409 })
+        deleted = true
+        return new Response(null, { status: 204 })
+      }
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Hapus IPA' }))
+    expect(within(screen.getByRole('dialog')).getByText(/masih punya 1 basis pengetahuan/)).toBeInTheDocument()
+    expect(within(screen.getByRole('dialog')).getByRole('button', { name: 'Hapus mata pelajaran' })).toBeDisabled()
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Batal' }))
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Hapus Seni Musik' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Hapus mata pelajaran' }))
+    expect(await screen.findByText(/masih punya penugasan guru atau basis pengetahuan/)).toBeInTheDocument()
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Hapus mata pelajaran' }))
+    expect(await screen.findByText('Seni Musik dihapus.')).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Hapus Seni Musik' })).not.toBeInTheDocument())
+    expect(sent(request, 'DELETE')).toHaveLength(2)
+  })
 })
