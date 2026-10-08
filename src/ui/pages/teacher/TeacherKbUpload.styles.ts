@@ -1,27 +1,36 @@
-// Tailwind classes for TeacherKbUploadPage.tsx.
-// `teacherkbupload-*` names carry no styles: they are hooks for the nested selectors in other entries.
+// Tailwind classes for TeacherKbUploadPage.tsx and KbFileDrop.tsx.
 const styles = {
-  content: 'max-w-340 [&_h1]:m-0 [&_h1]:text-[22px] [&_h1]:leading-[30px] [&_h1]:tracking-[-.015em]',
-  back: 'gap-1 min-h-11 inline-flex items-center no-underline text-[13px] font-semibold text-text-secondary hover:text-primary',
-  lead: 'mx-0 mt-0.5 mb-0 text-[13px] text-text-muted',
-  note: 'mx-0 mt-2 mb-0 max-w-[72ch] text-[13px] leading-[20px] text-text-secondary',
-  grid: 'mt-5 gap-4 grid items-start grid-cols-[repeat(auto-fit,minmax(min(100%,360px),1fr))]',
-  card: 'p-5 gap-4 min-w-0 border border-role-border bg-surface flex flex-col rounded-[14px] [@media(max-width:480px)]:p-4',
-  drop: 'p-7 gap-1.5 border-dashed border-[1.5px] border-border bg-canvas flex flex-col items-center text-center rounded-[12px] [&>strong]:text-[14px] [&>span:not(.teacherkbupload-dropIcon)]:text-[12px] [&>span:not(.teacherkbupload-dropIcon)]:text-text-muted [&>div]:mt-2 [&>div]:w-full [&>div]:text-start [&_input[type=file]]:p-2 [&_input[type=file]]:w-full [&_input[type=file]]:min-w-0 [&_input[type=file]]:text-[14px] [&>button]:mt-1 [@media(max-width:480px)]:px-3 [@media(max-width:480px)]:py-5',
-  dropIcon: 'teacherkbupload-dropIcon w-9 h-9 bg-info-bg grid items-center justify-items-center rounded-[50%] text-primary',
-  file: 'px-3 py-2.5 gap-3 border border-role-border flex flex-wrap items-center rounded-[10px]',
-  badge: 'w-8 h-8 flex-none bg-misconception-bg grid items-center justify-items-center rounded-[8px] text-misconception-text text-[10px] font-bold',
-  fileText: 'min-w-0 flex-[1_1_160px] wrap-anywhere [&_strong]:block [&_strong]:text-[13px] [&_small]:block [&_small]:text-[12px] [&_small]:text-text-muted',
-  ok: 'flex text-success-text',
-  buildHead: 'gap-2 flex flex-wrap items-center justify-between [&_h2]:m-0 [&_h2]:text-[14px] [&_h2]:leading-[22px] [&_h2:focus-visible]:outline-offset-[4px] [&_span]:text-[12px] [&_span]:text-text-muted',
-  steps: 'm-0 p-0 flex flex-col list-none [&_li]:px-0 [&_li]:py-2.5 [&_li]:gap-3 [&_li]:border-t [&_li]:border-t-surface-muted [&_li]:flex [&_li]:items-center [&_li]:text-[13px] [&_li]:text-text-muted [&_li[data-state=running]]:text-ink [&_li[data-state=done]]:text-ink [&_li[data-state=failed]]:text-ink',
-  mark: 'w-5 h-5 flex-none bg-border grid items-center justify-items-center rounded-[50%] text-surface text-[12px] font-bold [li[data-state=done]_&]:bg-success-text [li[data-state=failed]_&]:bg-danger-text [li[data-state=running]_&:where(:not(li[data-state=done]_&)):where(:not(li[data-state=failed]_&))]:bg-primary',
-  stepLabel: 'min-w-0 flex-1 wrap-anywhere',
-  stepState: 'text-[11px] text-text-muted [li[data-state=failed]_&]:text-danger-text [li[data-state=failed]_&]:font-semibold',
-  spinner: 'w-2.5 h-2.5 border-2 border-t-surface border-r-[rgba(255,255,255,.4)] border-b-[rgba(255,255,255,.4)] border-l-[rgba(255,255,255,.4)] block rounded-[50%] [animation:teacherkbupload-kbSpin_.8s_linear_infinite] motion-reduce:[animation:none]',
-  scenario: 'gap-2 grid text-[13px] font-semibold [&_select]:p-2.5 [&_select]:w-full [&_select]:min-w-0 [&_select]:min-h-11 [&_select]:border [&_select]:border-control-border [&_select]:bg-surface [&_select]:[font-style:inherit] [&_select]:rounded-[12px] [&_select]:[font-variant:inherit] [&_select]:font-normal [&_select]:[font-stretch:inherit] [&_select]:[font-size:inherit] [&_select]:[line-height:inherit] [&_select]:[font-family:inherit] [&_select]:text-ink',
-  actions: 'gap-3 flex flex-wrap',
-  hidden: 'm-0 w-px h-px overflow-hidden absolute [clip-path:inset(50%)]',
+  content: 'mx-auto grid max-w-280 gap-6',
+  head: 'grid gap-1 [&_h1]:m-0 [&_h1]:text-[28px] [&_h1]:leading-[36px] [&_h1]:tracking-[-.03em] [@media(max-width:600px)]:[&_h1]:text-[26px]',
+  back: 'gap-1 min-h-11 w-fit inline-flex items-center no-underline text-[13px] font-semibold text-text-secondary hover:text-primary',
+  lead: 'm-0 max-w-[65ch] text-[14px] leading-6 text-text-secondary',
+  grid: 'grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-8',
+  card: 'grid min-w-0 gap-6 rounded-[24px] bg-surface p-6 max-sm:rounded-[20px] max-sm:p-4',
+  fields: 'grid gap-4 sm:grid-cols-[minmax(0,.85fr)_minmax(0,1.15fr)] [&_label]:text-sm [&_label]:leading-5',
+  actions: 'flex flex-wrap items-center gap-3 [&>button]:min-h-12 [&>button]:rounded-pill [&>button]:px-6',
+
+  // The drop zone: Nala sits in it and reacts to what the teacher does with the file.
+  dropField: 'grid min-w-0 gap-2',
+  dropLabel: 'w-fit cursor-pointer text-sm leading-5 font-semibold text-ink',
+  drop: 'relative flex min-w-0 flex-col items-center gap-1 rounded-[20px] border-2 border-dashed border-accent bg-accent/10 px-6 pt-6 pb-7 text-center transition-[transform,background-color,border-color,box-shadow] duration-200 ease-[cubic-bezier(.23,1,.32,1)] motion-reduce:transition-none has-focus-visible:border-primary has-focus-visible:shadow-[0_0_0_3px_rgb(36_71_209/18%)] data-[state=chosen]:border-solid data-[dragging=true]:scale-[1.01] data-[dragging=true]:border-solid data-[dragging=true]:border-primary data-[dragging=true]:bg-accent/20 data-[trouble=true]:border-solid data-[trouble=true]:border-danger-text data-[trouble=true]:bg-danger-bg max-sm:px-4 max-sm:pt-5',
+  halo: 'relative grid h-30 w-36 shrink-0 place-items-center before:absolute before:bottom-1 before:size-25 before:rounded-full before:bg-accent/30 before:transition-transform before:duration-200 before:ease-[cubic-bezier(.23,1,.32,1)] before:content-[""] motion-reduce:before:transition-none [[data-dragging=true]_&]:before:scale-125 [&>svg]:relative',
+  dropTitle: 'm-0 mt-2 text-[16px] leading-6 font-bold text-pretty text-ink',
+  dropHint: 'm-0 max-w-[48ch] text-[13px] leading-5 text-pretty text-text-secondary',
+  pick: 'mt-3 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-pill bg-primary px-5 text-[14px] font-bold text-surface transition-[background-color,transform] duration-160 select-none active:translate-y-px hover:bg-primary-hover motion-reduce:transition-none',
+  file: 'mt-3 flex w-full max-w-[460px] min-w-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-[14px] border border-role-border bg-surface py-2 pr-2 pl-3 text-start animate-file-in motion-reduce:animate-none',
+  fileActions: 'ml-auto flex items-center',
+  badge: 'grid size-9 flex-none place-items-center rounded-[10px] bg-misconception-bg text-[10px] font-bold text-misconception-text',
+  fileText: 'min-w-0 flex-[1_1_9rem] [&_strong]:block [&_strong]:text-[13px] [&_strong]:leading-5 [&_strong]:wrap-anywhere [&_small]:block [&_small]:text-[12px] [&_small]:leading-4 [&_small]:text-text-muted',
+  replace: 'inline-flex min-h-11 cursor-pointer items-center rounded-pill px-3 text-[13px] font-semibold text-primary-hover select-none hover:bg-nav-hover',
+  remove: 'grid size-11 flex-none place-items-center rounded-full border-transparent bg-transparent p-0 text-text-secondary transition-[background-color,color,transform] duration-160 hover:not-disabled:bg-danger-bg hover:not-disabled:text-danger-text active:not-disabled:scale-95 motion-reduce:transition-none',
+
+  // "Setelah diunggah": the road ahead, on the canvas rather than in a second card.
+  road: 'grid gap-4 lg:pt-2',
+  roadTitle: 'm-0 text-[15px] leading-6 font-bold text-ink',
+  steps: 'm-0 grid list-none p-0',
+  step: 'relative grid grid-cols-[32px_minmax(0,1fr)] items-start gap-x-3 pb-6 animate-file-in last:pb-0 motion-reduce:animate-none after:absolute after:top-9 after:bottom-1 after:left-[15px] after:w-0.5 after:rounded-full after:bg-accent/55 after:content-[""] last:after:hidden',
+  chip: 'grid size-8 place-items-center rounded-full bg-info-bg text-primary data-[goal=true]:bg-success-bg data-[goal=true]:text-success-text',
+  stepLabel: 'min-w-0 pt-1 text-[14px] leading-6 text-pretty text-ink wrap-anywhere',
 } satisfies Record<string, string>
 
 export default styles

@@ -407,13 +407,27 @@ describe('signed-in teacher pages', () => {
   it('uploads a PDF as multipart and follows the reading job on the topic page', async () => {
     const request = backend({ [`POST /schools/${school}/knowledge-bases`]: () => Response.json({ knowledge_base_id: kbId, material_id: school, job_id: job, status: 'queued' }, { status: 202 }) })
     open(`${base}/knowledge-base/upload`, request)
-    await screen.findByRole('option', { name: 'IPA' })
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Mata pelajaran/ })).toHaveTextContent('IPA'))
     fireEvent.change(screen.getByLabelText(/Nama topik/), { target: { value: ' Tekanan Zat ' } })
     fireEvent.change(screen.getByLabelText(/Berkas PDF/), { target: { files: [new File(['%PDF-1.7'], 'ipa.pdf', { type: 'application/pdf' })] } })
     fireEvent.click(screen.getByRole('button', { name: 'Unggah materi' }))
     expect(await screen.findByText('Materi selesai dibaca')).toBeInTheDocument()
     const form = request.mock.calls.find(([, init]) => init?.method === 'POST')![1]?.body as FormData
     expect([form.get('school_subject_id'), form.get('topic_title'), (form.get('file') as File).name]).toEqual([school, 'Tekanan Zat', 'ipa.pdf'])
+  })
+
+  it('names the topic from the chosen PDF, refuses other files, and lets the teacher remove the file', async () => {
+    open(`${base}/knowledge-base/upload`, backend({}))
+    const chooser = await screen.findByLabelText(/Berkas PDF/)
+    fireEvent.change(chooser, { target: { files: [new File(['x'], 'catatan.docx', { type: 'application/msword' })] } })
+    expect(screen.getByRole('alert')).toHaveTextContent('Hanya berkas PDF yang bisa dibaca.')
+    fireEvent.change(chooser, { target: { files: [new File(['%PDF-1.7'], 'Tekanan_Zat-bab3.pdf', { type: 'application/pdf' })] } })
+    expect(screen.getByText('Tekanan_Zat-bab3.pdf')).toBeInTheDocument()
+    expect(screen.getByLabelText(/Nama topik/)).toHaveValue('Tekanan Zat bab3')
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus berkas Tekanan_Zat-bab3.pdf' }))
+    expect(screen.queryByText('Tekanan_Zat-bab3.pdf')).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/Nama topik/)).toHaveValue('')
+    expect(screen.getByText('Pilih berkas')).toBeInTheDocument()
   })
 
   it('approves the concept before its misconception, sending the decision once', async () => {
