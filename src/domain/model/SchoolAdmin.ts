@@ -36,6 +36,12 @@ export interface SubjectKnowledgeBase { knowledge_base_id: string; topic_title: 
 export interface SchoolSubject { school_subject_id: string; name: string; cp_version_id: string | null; cp_subject_id: string | null; knowledge_bases: SubjectKnowledgeBase[] }
 // A published CP version a school subject can be mapped to, with the subjects (and phases) it offers.
 export interface CurriculumChoice { id: string; name: string; decree_code: string; is_current: boolean; subjects: { id: string; name: string; phase: string }[] }
+// A new school subject is always created already mapped to one CP subject.
+export interface NewSchoolSubject { name: string; cp_version_id: string; cp_subject_id: string }
+export const subjectNameMax = 120
+// What a CP subject asks of students: learning outcomes grouped by element (strand), as the decree words them.
+export interface CpOutcome { id: string; element: string | null; ordinal: number; description: string }
+export interface CpSubjectDetail { id: string; name: string; phase: string; version_id: string; learning_outcomes: CpOutcome[] }
 // One row per assigned teacher; a class and subject without a row has nobody assigned.
 export interface Assignment { class_id: string; school_subject_id: string; teacher_id: string | null; teacher_name: string }
 export interface NewAcademicYear { name: string; starts_on: string; ends_on: string; copy_classes_from: string | null }

@@ -1,5 +1,5 @@
 import type { AuditPage } from '@/domain/model/Audit'
-import type { AcademicYear, Assignment, ClassDraft, CurriculumChoice, InvitationAdmission, InvitationPage, NewAcademicYear, NewPerson, PeoplePage, Relationship, RosterImportPage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
+import type { AcademicYear, Assignment, ClassDraft, CpSubjectDetail, CurriculumChoice, InvitationAdmission, InvitationPage, NewAcademicYear, NewPerson, NewSchoolSubject, PeoplePage, Relationship, RosterImportPage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
 
 export interface SchoolAdminService {
   invitations(schoolId: string, cursor: string | null, signal?: AbortSignal): Promise<InvitationPage>
@@ -24,6 +24,8 @@ export interface SchoolAdminService {
   editClass(schoolId: string, classId: string, draft: ClassDraft, signal?: AbortSignal): Promise<void>
   subjects(schoolId: string, signal?: AbortSignal): Promise<SchoolSubject[]>
   curriculumVersions(schoolId: string, signal?: AbortSignal): Promise<CurriculumChoice[]>
+  createSubject(schoolId: string, subject: NewSchoolSubject, idempotencyKey: string, signal?: AbortSignal): Promise<{ school_subject_id: string }>
+  cpSubject(schoolId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal): Promise<CpSubjectDetail>
   setCurriculum(schoolId: string, subjectId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal): Promise<void>
   transferKnowledgeBase(knowledgeBaseId: string, teacherId: string, signal?: AbortSignal): Promise<void>
   assignments(schoolId: string, academicYearId: string, signal?: AbortSignal): Promise<Assignment[]>

@@ -1,5 +1,5 @@
 import { ApiError } from '@/domain/model/ApiError'
-import type { AcademicYear, Assignment, ClassDraft, CurriculumChoice, InvitationAdmission, InvitationPage, LinkedPerson, NewAcademicYear, NewPerson, PeoplePage, Relationship, RosterImportPage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
+import type { AcademicYear, Assignment, ClassDraft, CpSubjectDetail, CurriculumChoice, InvitationAdmission, InvitationPage, LinkedPerson, NewAcademicYear, NewPerson, NewSchoolSubject, PeoplePage, Relationship, RosterImportPage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
 import type { AuditPage } from '@/domain/model/Audit'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 import { auditPage } from './audit'
@@ -164,6 +164,20 @@ export class HttpSchoolAdminService implements SchoolAdminService {
       const item = record(entry)
       return { id: text(item.id), name: text(item.name), decree_code: text(item.decree_code), is_current: flag(item.is_current), subjects: list(item.subjects).map((value) => { const subject = record(value); return { id: text(subject.id), name: text(subject.name), phase: text(subject.phase) } }) }
     })
+  }
+
+  // Not in the pinned OpenAPI yet; the shapes follow docs/backend-subject-create-contract.md.
+  async createSubject(schoolId: string, subject: NewSchoolSubject, idempotencyKey: string, signal?: AbortSignal): Promise<{ school_subject_id: string }> {
+    const value = record((await this.api.request(`${school(schoolId)}/subjects`, { method: 'POST', body: subject, headers: { 'Idempotency-Key': idempotencyKey }, signal })).data)
+    return { school_subject_id: text(value.school_subject_id) }
+  }
+
+  async cpSubject(schoolId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal): Promise<CpSubjectDetail> {
+    const value = record((await this.api.request(`${school(schoolId)}/curriculum-versions/${encodeURIComponent(versionId)}/subjects/${encodeURIComponent(cpSubjectId)}`, { signal })).data)
+    return {
+      id: text(value.id), name: text(value.name), phase: text(value.phase), version_id: text(value.version_id),
+      learning_outcomes: list(value.learning_outcomes).map((entry) => { const item = record(entry); return { id: text(item.id), element: nullable(item.element, text), ordinal: count(item.ordinal), description: text(item.description) } }),
+    }
   }
 
   async setCurriculum(schoolId: string, subjectId: string, versionId: string, cpSubjectId: string, signal?: AbortSignal): Promise<void> {
