@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import type { CSSProperties } from 'react'
 import type { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
 import type { CurriculumChoice, SchoolSubject, SubjectKnowledgeBase } from '@/domain/model/SchoolAdmin'
 import { Button } from '@/ui/components/button/Button'
@@ -9,6 +10,7 @@ import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveRe
 import shared from '@/ui/pages/school-admin/dialogForm.module.css'
 import styles from '@/ui/pages/school-admin/SchoolSubjects.module.css'
 import { Loading } from '@/ui/components/loading/Loading'
+import { StatusBadge } from '@/ui/components/status-badge/StatusBadge'
 import { Select } from '@/ui/components/select/Select'
 import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
@@ -34,15 +36,21 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   const [editing, setEditing] = useState<Editing | null>(null)
   const [message, setMessage] = useState('')
+  // `title` is the CP subject the school subject follows and `version` the decree it comes from; a version no longer offered reads as old.
   const mapping = (subject: SchoolSubject) => {
     const version = data?.versions.find((item) => item.id === subject.cp_version_id)
     const cp = version?.subjects.find((item) => item.id === subject.cp_subject_id)
-    return version ? `${cp ? `${cp.name} · Fase ${cp.phase} · ` : ''}${version.name}` : subject.cp_version_id ? 'Versi CP lama' : null
+    if (!version) return { state: subject.cp_version_id ? 'old' : 'none', title: '', phase: '', version: '' } as const
+    return { state: 'mapped', title: cp?.name ?? version.name, phase: cp?.phase ?? '', version: cp ? version.name : '' } as const
   }
   const close = (done?: string) => { setEditing(null); if (done) { setMessage(done); refresh() } }
 
+  // What needs the admin comes first: unmapped subjects, then the plain count.
+  const unmapped = data ? data.subjects.filter((item) => mapping(item).state !== 'mapped').length : 0
   const note = data && data.subjects.length > 0
-    ? (['read', `${data.subjects.length} mata pelajaran terdaftar. Atur pemetaan CP dan basis pengetahuan.`] as const)
+    ? (unmapped > 0
+      ? (['think', `${unmapped} dari ${data.subjects.length} mata pelajaran belum dipetakan ke Capaian Pembelajaran.`] as const)
+      : (['read', `Semua ${data.subjects.length} mata pelajaran sudah dipetakan ke Capaian Pembelajaran.`] as const))
     : null
 
   return <div className={styles.content}>
@@ -67,21 +75,35 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
     ) : <div className={styles.card}><table className={styles.table}>
       <caption className={styles.hidden}>Mata pelajaran, pemetaan CP, dan basis pengetahuan</caption>
       <thead><tr><th scope="col">Mata pelajaran</th><th scope="col">Capaian Pembelajaran</th><th scope="col">Basis pengetahuan</th><th scope="col"><span className={styles.hidden}>Tindakan</span></th></tr></thead>
-      <tbody>{data.subjects.map((subject) => { const mapped = mapping(subject); return <tr key={subject.school_subject_id}>
-        <td className={styles.name}>{subject.name}</td>
-        <td className={[styles.cp, mapped ? '' : styles.unmapped].join(' ')}>{mapped ?? 'Belum dipetakan'}</td>
-        <td className={styles.kb}>{subject.knowledge_bases.length ? <ul className={styles.kbList}>{subject.knowledge_bases.map((kb) => <li key={kb.knowledge_base_id}>
-          <div className={styles.kbItem}>
-            {kb.owner_name && <NalaAvatar seed={kb.owner_name} size={22} />}
-            <span>{kb.topic_title} · {kb.owner_name ?? 'tanpa pemilik'}</span>
-          </div>
-          <Button tone="ghost" className={styles.edit} aria-label={`Alihkan pemilik ${kb.topic_title}`} onClick={() => { setMessage(''); setEditing({ kind: 'owner', subject, kb }) }}>Alihkan</Button>
-        </li>)}</ul> : 'Belum ada'}</td>
-        <td className={styles.actions}>
-          <Button tone="ghost" className={styles.edit} aria-label={`Ubah pemetaan ${subject.name}`} disabled={!data.versions.length} onClick={() => { setMessage(''); setEditing({ kind: 'cp', subject }) }}>Ubah</Button>
-          <Button tone="ghost" className={[styles.edit, styles.remove].join(' ')} aria-label={`Hapus ${subject.name}`} onClick={() => { setMessage(''); setEditing({ kind: 'delete', subject }) }}>Hapus</Button>
-        </td>
-      </tr> })}</tbody>
+      <tbody>{data.subjects.map((subject, index) => {
+        const cp = mapping(subject)
+        const open = (next: Editing) => { setMessage(''); setEditing(next) }
+        return <tr key={subject.school_subject_id} style={{ '--i': Math.min(index, 8) } as CSSProperties}>
+          <th scope="row" className={styles.name}>{subject.name}</th>
+          <td className={styles.cell} data-label="Capaian Pembelajaran">{cp.state === 'mapped'
+            ? <>
+              <span className={styles.cpTitle}>{cp.title}{cp.phase && <span className={styles.phase}>Fase {cp.phase}</span>}</span>
+              {cp.version && <span className={styles.cpVersion} title={cp.version}>{cp.version}</span>}
+            </>
+            : <StatusBadge tone="warning">{cp.state === 'old' ? 'Versi CP lama' : 'Belum dipetakan'}</StatusBadge>}
+          </td>
+          <td className={styles.cell} data-label="Basis pengetahuan">{subject.knowledge_bases.length
+            ? <ul className={styles.kbList}>{subject.knowledge_bases.map((kb) => <li key={kb.knowledge_base_id}>
+              {kb.owner_name ? <NalaAvatar seed={kb.owner_name} size={28} /> : <span className={styles.noOwner} aria-hidden="true" />}
+              <span className={styles.kbText}><strong>{kb.topic_title}</strong><small>{kb.owner_name ?? 'Tanpa pemilik'}</small></span>
+              <Button tone="ghost" className={styles.edit} aria-label={`Alihkan pemilik ${kb.topic_title}`} onClick={() => open({ kind: 'owner', subject, kb })}>Alihkan</Button>
+            </li>)}</ul>
+            : <span className={styles.none}>Belum ada</span>}
+          </td>
+          <td className={styles.actions}>
+            {cp.state === 'mapped'
+              ? <Button tone="ghost" className={styles.edit} aria-label={`Ubah pemetaan ${subject.name}`} disabled={!data.versions.length} onClick={() => open({ kind: 'cp', subject })}>Ubah pemetaan</Button>
+              : <Button tone="secondary" className={styles.map} aria-label={`Petakan ${subject.name}`} disabled={!data.versions.length} onClick={() => open({ kind: 'cp', subject })}>Petakan</Button>}
+            <span className={styles.rule} aria-hidden="true" />
+            <Button tone="ghost" className={[styles.edit, styles.remove].join(' ')} aria-label={`Hapus ${subject.name}`} onClick={() => open({ kind: 'delete', subject })}>Hapus</Button>
+          </td>
+        </tr>
+      })}</tbody>
     </table></div>)}
     {data && editing?.kind === 'new' && data.versions.length > 0 && <NewSubjectDialog service={service} schoolId={schoolId} versions={data.versions} onClose={close} />}
     {data && editing?.kind === 'delete' && <DeleteSubjectDialog service={service} schoolId={schoolId} subject={editing.subject} onClose={close} />}
