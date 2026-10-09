@@ -1,14 +1,12 @@
 import { useCallback, useState } from 'react'
+import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { Link } from 'react-router'
 import { publishable, type MissionSummary } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
-import type { NalaMood } from '@/ui/components/nala/Nala'
-import { NalaIcon } from '@/ui/components/nala/NalaIcon'
-import type { NalaIconName } from '@/ui/components/nala/NalaIcon'
-import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
+import { NalaEmpty } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
@@ -18,22 +16,13 @@ import { versionWord } from './missionText'
 type MissionFilter = 'all' | 'ready' | 'draft'
 const matches = (mission: MissionSummary, filter: MissionFilter) => filter === 'all' || (filter === 'ready' ? publishable(mission) : !mission.latest_version || mission.latest_version.status === 'draft')
 // The strip is the filter; a second press shows every mission again.
-const filters: readonly { value: MissionFilter; label: string; icon: NalaIconName; hint: string }[] = [
-  { value: 'all', label: 'Semua misi', icon: 'file', hint: 'di sekolah ini' },
-  { value: 'ready', label: 'Siap diterbitkan', icon: 'send', hint: 'versi ditinjau atau terkunci' },
-  { value: 'draft', label: 'Dalam persiapan', icon: 'idea', hint: 'draf menunggu tinjauan' },
+const filters: readonly { value: MissionFilter; label: string; hint: string }[] = [
+  { value: 'all', label: 'Semua misi', hint: 'di sekolah ini' },
+  { value: 'ready', label: 'Siap diterbitkan', hint: 'versi ditinjau atau terkunci' },
+  { value: 'draft', label: 'Dalam persiapan', hint: 'draf menunggu tinjauan' },
 ]
 const titleOrder = new Intl.Collator('id-ID', { numeric: true, sensitivity: 'base' })
 const number = new Intl.NumberFormat('id-ID')
-
-// Null while the library itself shows Nala (empty, no match, unavailable): one Nala per view.
-function companion(data: readonly MissionSummary[] | null, failed: boolean): [NalaMood, string] | null {
-  if (!data) return failed ? null : ['think', 'Sebentar, pustaka misi sedang dimuat.']
-  const drafts = data.filter(mission => mission.can_edit && mission.latest_version?.status === 'draft').length, ready = data.filter(publishable).length
-  if (drafts > 0) return ['read', `${number.format(drafts)} draf misi menunggu tinjauan Anda.`]
-  if (ready > 0) return ['proud', `${number.format(ready)} misi siap diterbitkan ke kelas.`]
-  return ['hello', 'Susun misi baru dari basis pengetahuan Anda.']
-}
 
 function MissionCard({ mission, base }: { mission: MissionSummary; base: string }) {
   const version = mission.latest_version, ready = publishable(mission), path = `${base}/missions/${mission.id}`
@@ -66,15 +55,10 @@ export function TeacherMissionsPage({ service, base, schoolId }: { service: Teac
   if (sort !== 'original') visible.sort((a, b) => titleOrder.compare(a.title, b.title) * (sort === 'title-desc' ? -1 : 1))
   const filtered = Boolean(query.trim()) || filter !== 'all' || ownership !== 'all'
   function reset() { setQuery(''); setFilter('all'); setOwnership('all') }
-  const note = visible.length > 0 || !data ? companion(data, Boolean(error)) : null
   const drafts = data?.filter((mission) => matches(mission, 'draft')).length ?? 0
 
   return <div className={styles.page}>
-    <div className={styles.header}>
-      <div><h1>Misi</h1><p>{data && data.length > 0 ? `${number.format(data.length)} misi${drafts > 0 ? `, ${number.format(drafts)} masih dalam persiapan` : ''}. Hanya versi yang sudah ditinjau yang bisa diterbitkan.` : 'Siapkan bahan belajar, tinjau draf, lalu terbitkan ke kelas.'}</p></div>
-      {note && <NalaNote mood={note[0]} text={note[1]} />}
-      <ButtonLink className={styles.button} to={`${base}/missions/new`}><Icon name="plus" size={16} />Misi baru</ButtonLink>
-    </div>
+    <TeacherPageHead title="Misi" subtitle={data && data.length > 0 ? `${number.format(data.length)} misi${drafts > 0 ? `, ${number.format(drafts)} masih dalam persiapan` : ''}. Hanya versi yang sudah ditinjau yang bisa diterbitkan.` : 'Siapkan bahan belajar, tinjau draf, lalu terbitkan ke kelas.'} />
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <><div className={styles.panel}><div className={styles.panelState}><Loading label="Memuat misi…" /></div></div><div className={styles.skeleton} aria-hidden="true">{[0, 1, 2].map(key => <div key={key} />)}</div></>}
     {!data && error && <section className={styles.panel}><NalaEmpty mood="oops" title="Pustaka misi belum dapat ditampilkan">Gunakan pilihan pemulihan di atas untuk memuatnya lagi.</NalaEmpty></section>}
@@ -85,11 +69,11 @@ export function TeacherMissionsPage({ service, base, schoolId }: { service: Teac
       <div className={styles.strip}><div className={styles.stats} role="group" aria-label="Status misi">{filters.map((entry) => {
         const count = data.filter((mission) => matches(mission, entry.value)).length
         return <button key={entry.value} type="button" className={styles.stat} aria-pressed={filter === entry.value} disabled={count === 0 && filter !== entry.value} onClick={() => setFilter(filter === entry.value ? 'all' : entry.value)}>
-          <NalaIcon name={entry.icon} size={28} />
+
           <span className={styles.statLine}><strong>{number.format(count)}</strong>{entry.label}</span>
           <span className={styles.statHint}>{entry.hint}</span>
         </button>
-      })}</div></div>
+      })}</div><ButtonLink className={styles.button} to={`${base}/missions/new`}><Icon name="plus" size={16} />Misi baru</ButtonLink></div>
       <section aria-labelledby="mission-library-title" className="grid gap-4">
         <h2 id="mission-library-title" className="sr-only">Pustaka misi</h2>
         <div className={styles.toolbar}>
