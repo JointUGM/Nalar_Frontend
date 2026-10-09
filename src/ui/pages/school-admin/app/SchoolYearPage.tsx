@@ -3,6 +3,7 @@ import type { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
 import { Button } from '@/ui/components/button/Button'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
+import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommand } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.styles'
@@ -54,7 +55,7 @@ export function SchoolYearPage({ service, schoolId }: { service: SchoolAdminUseC
   return <div className={styles.content}>
     <div className={styles.heading}>
       <div>
-        <h1>Tahun ajaran</h1>
+        <h1 className="m-0 text-[32px] leading-[40px] font-bold tracking-[-0.04em] text-ink">Tahun ajaran</h1>
         <p className={styles.lead}>Tahun ajaran baru langsung menjadi tahun berjalan. Riwayat misi dan hasil tahun sebelumnya tetap tersimpan.</p>
       </div>
       {note && <NalaNote mood={note[0]} text={note[1]} />}
@@ -62,35 +63,97 @@ export function SchoolYearPage({ service, schoolId }: { service: SchoolAdminUseC
     <LiveFeedback error={years.error} online refresh={years.refresh} />
     {!years.loaded && !years.error && <Loading label="Memuat tahun ajaran…" />}
     {done && <Feedback tone="success" title={done} announce>Langkah berikutnya: impor data siswa untuk tahun ini.</Feedback>}
-    {years.list.length > 0 ? <ol className={styles.steps}>{years.list.map((year) => <li key={year.id} className={[styles.step, year.is_current ? styles.current : styles.done].join(' ')} aria-current={year.is_current ? 'step' : undefined}>
-      <div><h2>{year.name}</h2><p>{date(year.starts_on)} – {date(year.ends_on)}</p><span className={styles.state}>{year.is_current ? 'Berjalan' : 'Selesai'}</span></div>
-    </li>)}</ol> : years.loaded && !years.error && <div className={styles.emptyState}><NalaEmpty mood="ask" title="Belum ada tahun ajaran">Mulai tahun ajaran baru di bawah ini agar data kelas, guru, dan siswa dapat dikelola.</NalaEmpty></div>}
-    {years.loaded && <section className={styles.step} aria-labelledby="new-year">
-      <form className={shared.form} noValidate onSubmit={(event) => { event.preventDefault(); if (!confirming) { key.current = crypto.randomUUID(); setConfirming(true) } else void create() }}>
-        <h2 id="new-year">Mulai tahun ajaran baru</h2>
-        <Field label="Nama" required placeholder="2027/2028" maxLength={200} value={fields.name} disabled={command.pending} onChange={(event) => update({ name: event.target.value })} />
-        <DatePicker label="Tanggal mulai" required value={fields.starts_on} disabled={command.pending} onChange={(val) => update({ starts_on: val })} />
-        <DatePicker label="Tanggal selesai" required value={fields.ends_on} disabled={command.pending} onChange={(val) => update({ ends_on: val })} />
-        {years.list.length > 0 && <div style={{ display: 'grid', gap: '4px' }}>
-          <Select
-            label="Salin kelas dari"
-            value={copy ?? 'none'}
-            disabled={command.pending}
-            onChange={(val) => update({ copy: val === 'none' ? null : val })}
-            options={[
-              { value: 'none', label: 'Jangan salin kelas' },
-              ...years.list.map((year) => ({ value: year.id, label: year.name }))
-            ]}
-          />
-          <small style={{ color: 'var(--color-text-secondary)', fontSize: '12px' }}>Hanya nama dan tingkat kelas yang disalin. Siswa, wali kelas, dan penugasan guru diatur lagi.</small>
-        </div>}
-        {confirming && <Feedback tone="warning" title={`Mulai ${fields.name.trim() || 'tahun ajaran baru'} sekarang?`} announce>{current ? `${current.name} berhenti menjadi tahun berjalan. ` : ''}{copy ? `Kelas dari ${years.list.find((year) => year.id === copy)?.name ?? ''} disalin tanpa siswa.` : 'Tidak ada kelas yang disalin.'}</Feedback>}
-        {said && <Feedback tone="warning" title={said} announce>{command.failure?.requestId && <small>Referensi: {command.failure.requestId}</small>}</Feedback>}
-        <div className={shared.actions}>
-          {confirming && <Button tone="secondary" disabled={command.pending} onClick={() => { command.reset(); setConfirming(false) }}>Ubah isian</Button>}
-          <Button type="submit" pending={command.pending} pendingLabel="Membuat…">{confirming ? 'Mulai tahun ajaran' : 'Tinjau'}</Button>
-        </div>
-      </form>
-    </section>}
+
+    <div className={styles.layout}>
+      <div className={styles.yearsColumn}>
+        {years.list.length > 0 ? (
+          <div className={styles.yearsSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>
+                <Icon name="calendar" size={18} />
+                <span>Daftar tahun ajaran</span>
+              </h2>
+              <span className={styles.countBadge}>{years.list.length} tahun ajaran</span>
+            </div>
+            <ol className={styles.steps}>
+              {years.list.map((year) => (
+                <li
+                  key={year.id}
+                  className={[styles.step, year.is_current ? styles.current : styles.done].join(' ')}
+                  aria-current={year.is_current ? 'step' : undefined}
+                >
+                  <div className={styles.stepIcon}>
+                    <Icon name={year.is_current ? 'calendar' : 'clock'} size={20} />
+                  </div>
+                  <div className={styles.stepBody}>
+                    <div className={styles.stepTop}>
+                      <h2>{year.name}</h2>
+                      <span className={styles.state}>{year.is_current ? 'Berjalan' : 'Selesai'}</span>
+                    </div>
+                    <p className={styles.dates}>
+                      <Icon name="calendar" size={14} />
+                      <span>{date(year.starts_on)} – {date(year.ends_on)}</span>
+                    </p>
+                    {year.is_current && (
+                      <p className={styles.currentHint}>
+                        Tahun ajaran aktif saat ini. Semua kelas, siswa, dan penugasan guru terhubung ke periode ini.
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ) : years.loaded && !years.error && (
+          <div className={styles.emptyState}>
+            <NalaEmpty mood="ask" title="Belum ada tahun ajaran">
+              Mulai tahun ajaran baru di formulir sebelah untuk mengelola data kelas, guru, dan siswa.
+            </NalaEmpty>
+          </div>
+        )}
+      </div>
+
+      {years.loaded && (
+        <section className={styles.formSection} aria-labelledby="new-year">
+          <div className={styles.formCard}>
+            <div className={styles.formHeading}>
+              <div className={styles.formIconWrapper}>
+                <Icon name="plus" size={18} />
+              </div>
+              <div>
+                <h2 id="new-year" className={styles.formTitle}>Mulai tahun ajaran baru</h2>
+                <p className={styles.formSubtitle}>Tahun ajaran baru otomatis menjadi tahun berjalan setelah dimulai.</p>
+              </div>
+            </div>
+            <form className={shared.form} noValidate onSubmit={(event) => { event.preventDefault(); if (!confirming) { key.current = crypto.randomUUID(); setConfirming(true) } else void create() }}>
+              <Field label="Nama" required placeholder="2027/2028" maxLength={200} value={fields.name} disabled={command.pending} onChange={(event) => update({ name: event.target.value })} />
+              <div className={styles.dateGrid}>
+                <DatePicker label="Tanggal mulai" required value={fields.starts_on} disabled={command.pending} onChange={(val) => update({ starts_on: val })} />
+                <DatePicker label="Tanggal selesai" required value={fields.ends_on} disabled={command.pending} onChange={(val) => update({ ends_on: val })} />
+              </div>
+              {years.list.length > 0 && <div className="grid gap-1">
+                <Select
+                  label="Salin kelas dari"
+                  value={copy ?? 'none'}
+                  disabled={command.pending}
+                  onChange={(val) => update({ copy: val === 'none' ? null : val })}
+                  options={[
+                    { value: 'none', label: 'Jangan salin kelas' },
+                    ...years.list.map((year) => ({ value: year.id, label: year.name }))
+                  ]}
+                />
+                <small className={styles.copyNote}>Hanya nama dan tingkat kelas yang disalin. Siswa, wali kelas, dan penugasan guru diatur lagi.</small>
+              </div>}
+              {confirming && <Feedback tone="warning" title={`Mulai ${fields.name.trim() || 'tahun ajaran baru'} sekarang?`} announce>{current ? `${current.name} berhenti menjadi tahun berjalan. ` : ''}{copy ? `Kelas dari ${years.list.find((year) => year.id === copy)?.name ?? ''} disalin tanpa siswa.` : 'Tidak ada kelas yang disalin.'}</Feedback>}
+              {said && <Feedback tone="warning" title={said} announce>{command.failure?.requestId && <small>Referensi: {command.failure.requestId}</small>}</Feedback>}
+              <div className={shared.actions}>
+                {confirming && <Button tone="secondary" disabled={command.pending} onClick={() => { command.reset(); setConfirming(false) }}>Ubah isian</Button>}
+                <Button type="submit" pending={command.pending} pendingLabel="Membuat…">{confirming ? 'Mulai tahun ajaran' : 'Tinjau'}</Button>
+              </div>
+            </form>
+          </div>
+        </section>
+      )}
+    </div>
   </div>
 }

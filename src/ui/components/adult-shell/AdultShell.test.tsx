@@ -34,11 +34,22 @@ const shell = (schoolContext?: typeof school) => render(<MemoryRouter initialEnt
 </MemoryRouter>)
 
 describe.each([['Admin Sekolah', school], ['Admin Platform', undefined]])('%s shell', (_name, context) => {
-  it('can sign out from the sidebar', () => {
+  it('can sign out from the sidebar with confirmation', () => {
     shell(context)
     const link = within(screen.getByRole('complementary')).getByRole('link', { name: 'Keluar' })
     fireEvent.click(link)
+    expect(screen.getByRole('dialog', { name: /Konfirmasi keluar/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('link', { name: 'Ya, keluar' }))
     expect(screen.getByText('Masuk · keluar diminta: true')).toBeInTheDocument()
+  })
+
+  it('can cancel signing out from the confirmation dialog', () => {
+    shell(context)
+    const link = within(screen.getByRole('complementary')).getByRole('link', { name: 'Keluar' })
+    fireEvent.click(link)
+    expect(screen.getByRole('dialog', { name: /Konfirmasi keluar/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Batal' }))
+    expect(screen.queryByText('Masuk · keluar diminta: true')).not.toBeInTheDocument()
   })
 
   it('can sign out from the menu drawer where the sidebar is not shown', () => {
@@ -46,6 +57,8 @@ describe.each([['Admin Sekolah', school], ['Admin Platform', undefined]])('%s sh
     fireEvent.click(screen.getByRole('button', { name: 'Buka navigasi' }))
     const drawer = screen.getByRole('dialog')
     fireEvent.click(within(drawer).getByRole('link', { name: 'Keluar' }))
+    expect(screen.getByRole('dialog', { name: /Konfirmasi keluar/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('link', { name: 'Ya, keluar' }))
     expect(screen.getByText('Masuk · keluar diminta: true')).toBeInTheDocument()
   })
 })

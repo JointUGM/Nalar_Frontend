@@ -119,4 +119,21 @@ describe('school admin invitations', () => {
     expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ user_ids: [first, third], resend: false })
     await waitFor(() => expect(screen.queryByText('Pratinjau · data contoh')).not.toBeInTheDocument())
   })
+
+  it('renders filter tabs with active pill styling and filters the accounts table', async () => {
+    open(`/school/${school}`)
+    const tabAll = await screen.findByRole('tab', { name: 'Semua (3)' })
+    const tabNotRequested = screen.getByRole('tab', { name: 'Belum Diundang (2)' })
+    const tabActivated = screen.getByRole('tab', { name: 'Sudah Diaktivasi (1)' })
+
+    expect(tabAll).toHaveAttribute('aria-selected', 'true')
+    expect(tabNotRequested).toHaveAttribute('aria-selected', 'false')
+    expect(tabActivated).toHaveAttribute('aria-selected', 'false')
+
+    // Filter to only activated
+    fireEvent.click(tabActivated)
+    expect(tabActivated).toHaveAttribute('aria-selected', 'true')
+    expect(tabAll).toHaveAttribute('aria-selected', 'false')
+  })
 })
+

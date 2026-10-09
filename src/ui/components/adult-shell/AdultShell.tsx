@@ -24,7 +24,6 @@ const platformLinks: readonly NavItem[] = [
   { label: 'Sekolah', icon: 'school', to: '/platform/schools' },
   { label: 'Capaian Pembelajaran', icon: 'book', to: '/platform/cp-versions' },
   { label: 'Referensi resmi', icon: 'book', to: '/platform/references' },
-  { label: 'Pemakaian AI', icon: 'graph', to: '/platform/ai-usage' },
   { label: 'Log audit', icon: 'lock', to: '/platform/audit-log' },
 ]
 
@@ -51,6 +50,7 @@ export function AdultShell({
 }: AdultShellProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [confirmSignOut, setConfirmSignOut] = useState(false)
   const [dark, setDark] = useState(() => readTheme() === 'dark')
   const setTheme = (value: boolean) => {
     saveTheme(value ? 'dark' : 'light')
@@ -85,7 +85,6 @@ export function AdultShell({
     'Sekolah': 'Kelola status dan data sekolah terdaftar',
     'Capaian Pembelajaran': 'Kelola kurikulum, fase, dan materi CP',
     'Referensi resmi': 'Unggah dan tinjau PDF kurikulum, buku, dan panduan resmi',
-    'Pemakaian AI': 'Pantau kuota dan statistik token AI',
     'Log audit': 'Riwayat aktivitas dan catatan keamanan',
     'Undangan akun': 'Kelola dan pantau aktivasi akun pengguna',
     'Orang': 'Data pengguna guru, siswa, dan orang tua',
@@ -99,7 +98,6 @@ export function AdultShell({
   const pageKeywords: Record<string, string[]> = {
     'Sekolah': ['sekolah', 'data sekolah', 'npsn', 'admin', 'status', 'kota', 'tambah sekolah'],
     'Capaian Pembelajaran': ['kurikulum', 'capaian pembelajaran', 'cp', 'fase', 'elemen', 'materi', 'versi'],
-    'Pemakaian AI': ['ai', 'pemakaian ai', 'token', 'model', 'kuota', 'grafik', 'statistik'],
     'Log audit': ['log', 'audit', 'aktivitas', 'keamanan', 'riwayat', 'jejak'],
     'Undangan akun': ['undangan', 'aktivasi', 'akun', 'kirim', 'email', 'status', 'undangan akun'],
     'Orang': ['orang', 'guru', 'siswa', 'murid', 'staf', 'orang tua', 'pengguna', 'user'],
@@ -141,7 +139,8 @@ export function AdultShell({
     {
       label: 'Keluar',
       hint: 'Keluar dari sesi akun saat ini',
-      to: '/login',
+      to: '#logout',
+      onSelect: () => setConfirmSignOut(true),
       icon: 'logout' as const,
       category: 'Akun',
       keywords: ['keluar', 'logout', 'signout', 'exit'],
@@ -175,11 +174,14 @@ export function AdultShell({
   const signOut = (
     <nav className={shell.nav} aria-label="Akun">
       <Link
-        to="/login"
-        state={{ signOut: true }}
+        to="#logout"
         aria-label="Keluar"
         className={shell.navItem}
-        onClick={close}
+        onClick={(event) => {
+          event.preventDefault()
+          close()
+          setConfirmSignOut(true)
+        }}
       >
         <Icon name="logout" />
         <span className={shell.label}>Keluar</span>
@@ -222,7 +224,15 @@ export function AdultShell({
             <strong>{adminName}</strong>
             <small>{schoolContext ? schoolContext.name : 'Platform Admin'}</small>
           </span>
-          <Link to="/login" state={{ signOut: true }} className={shell.exit} aria-label="Keluar">
+          <Link
+            to="#logout"
+            className={shell.exit}
+            aria-label="Keluar"
+            onClick={(event) => {
+              event.preventDefault()
+              setConfirmSignOut(true)
+            }}
+          >
             <Icon name="logout" size={16} />
           </Link>
         </div>
@@ -272,6 +282,43 @@ export function AdultShell({
         <div className={shell.drawerNav}>
           {navigation}
           {signOut}
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={confirmSignOut}
+        onClose={() => setConfirmSignOut(false)}
+        title="Konfirmasi keluar"
+        description="Apakah Anda yakin ingin keluar dari akun ini? Sesi kerja Anda saat ini akan diakhiri."
+        icon="logout"
+        tone="danger"
+        className="w-[min(460px,calc(100vw-32px))]"
+      >
+        <div className="flex flex-col gap-4.5 pt-1">
+          <div className="flex items-start gap-3 rounded-2xl border border-[color-mix(in_srgb,var(--color-danger-text)_18%,transparent)] bg-[color-mix(in_srgb,var(--color-danger-bg)_45%,var(--color-surface))] p-3.5 text-[12.5px] leading-[19px] text-text-secondary">
+            <span className="mt-1.5 size-2 rounded-full bg-danger-text shrink-0" />
+            <span>Pastikan seluruh pekerjaan atau perubahan telah tersimpan. Anda dapat masuk kembali ke akun kapan saja.</span>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-2">
+            <button
+              type="button"
+              className="px-5 py-2 min-h-10 inline-flex items-center justify-center font-semibold text-[13.5px] rounded-pill border border-control-border bg-surface text-ink hover:bg-surface-muted hover:border-text-muted transition-all duration-150 active:scale-[0.98] cursor-pointer shadow-2xs"
+              onClick={() => setConfirmSignOut(false)}
+            >
+              Batal
+            </button>
+            <Link
+              to="/login"
+              state={{ signOut: true }}
+              aria-label="Ya, keluar"
+              className="px-5 py-2 min-h-10 inline-flex items-center justify-center gap-2 font-bold text-[13.5px] rounded-pill bg-danger-hover text-white [box-shadow:0_2px_8px_rgb(220_38_38_/_28%)] hover:bg-red-700 hover:[box-shadow:0_4px_14px_rgb(220_38_38_/_38%)] hover:[transform:translateY(-1px)] transition-all duration-150 active:scale-[0.98] no-underline"
+              onClick={() => setConfirmSignOut(false)}
+            >
+              <Icon name="logout" size={15} />
+              <span>Ya, keluar</span>
+            </Link>
+          </div>
         </div>
       </Dialog>
     </div>

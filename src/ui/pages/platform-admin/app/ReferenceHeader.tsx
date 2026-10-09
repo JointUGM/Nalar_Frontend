@@ -12,7 +12,7 @@ export function ReferenceHeader({ title, description, action, note }: { title: s
     </div>
     {note && <div className={styles.nalaWelcome}>
       <p key={note[1]} className={styles.speech}>{note[1]}</p>
-      <div className={styles.mascot}><Nala key={note[0]} mood={note[0]} size={80} animate /></div>
+      <div className={styles.mascot}><Nala key={note[0]} mood={note[0]} size={120} animate /></div>
     </div>}
   </div>
 }

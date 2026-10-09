@@ -3,7 +3,6 @@ import { Navigate, Route, Routes, useLocation } from 'react-router'
 import type { PlatformAdminUseCases } from '@/application/platform-admin-use-cases'
 import { AdultShell } from '@/ui/components/adult-shell/AdultShell'
 import { AuditLog } from '@/ui/components/admin-records/AuditLog'
-import { PlatformAiUsagePage } from './PlatformAiUsagePage'
 import { PlatformCurriculumPage } from './PlatformCurriculumPage'
 import { PlatformSchoolsPage } from './PlatformSchoolsPage'
 import { PlatformReferencesPage } from './PlatformReferencesPage'
@@ -18,7 +17,6 @@ export function PlatformRoutes({ service }: { service: PlatformAdminUseCases }) 
     '/platform/schools': 'Sekolah · Admin Platform',
     '/platform/cp-versions': 'Capaian Pembelajaran · Admin Platform',
     '/platform/references': 'Referensi resmi · Admin Platform',
-    '/platform/ai-usage': 'Pemakaian AI · Admin Platform',
     '/platform/audit-log': 'Log Audit · Admin Platform',
   }
   const pageTitle = titles[pathname] ?? 'Admin Platform'
@@ -29,7 +27,6 @@ export function PlatformRoutes({ service }: { service: PlatformAdminUseCases }) 
       <Route path="cp-versions" element={<PlatformCurriculumPage service={service} />} />
       <Route path="references" element={<PlatformReferencesPage service={service} />} />
       <Route path="references/:documentId" element={<PlatformReferenceDetailPage service={service} />} />
-      <Route path="ai-usage" element={<PlatformAiUsagePage service={service} />} />
       <Route path="audit-log" element={<AuditLog read={readAudit} />} />
       <Route path="*" element={<h1>Halaman tidak tersedia</h1>} />
     </Routes>
