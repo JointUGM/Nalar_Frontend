@@ -15,12 +15,12 @@ const styles = {
 
   strip: '@container min-w-0',
   // gap-px over a border-coloured fill draws the hairlines; 2 or 4 columns so a row never ends in a hole.
-  stats: 'grid grid-cols-2 gap-px overflow-hidden rounded-card border border-role-border bg-role-border @min-[800px]:grid-cols-4',
+  stats: 'grid grid-cols-2 gap-3 [&>*]:rounded-xl @min-[800px]:grid-cols-4',
   stat: `group m-0 grid min-h-11 cursor-pointer grid-cols-[28px_minmax(0,1fr)] items-center gap-x-3 gap-y-0.5 rounded-none border-0 bg-surface px-5 py-4 text-start text-ink wrap-normal ${press} ${focus} focus-visible:-outline-offset-2 hover:not-disabled:not-aria-pressed:bg-paper disabled:cursor-default aria-pressed:bg-info-bg aria-pressed:shadow-[inset_0_-2px_0_var(--color-primary)] max-md:px-4 @max-[520px]:grid-cols-1 @max-[520px]:px-3.5`,
   statLine: 'flex min-w-0 items-baseline gap-1.5 text-[13px] leading-5 font-semibold [&_strong]:text-[20px] [&_strong]:leading-7 [&_strong]:font-bold [&_strong]:tracking-[-.01em] [&_strong]:tabular-nums group-disabled:[&_strong]:text-text-muted',
   statHint: 'col-start-2 truncate text-[12px] leading-4 text-text-muted @max-[520px]:col-start-1',
 
-  card: '@container min-w-0 overflow-clip rounded-card border border-role-border bg-surface',
+  card: '@container min-w-0 overflow-clip rounded-2xl bg-surface',
   state: 'px-4 py-5',
   toolbar: 'flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-role-border px-4 py-2.5 [&>div]:flex-[0_1_170px] max-md:[&>div]:flex-[1_1_150px]',
   count: 'm-0 flex-[1_1_200px] text-[12px] leading-5 tabular-nums text-text-muted',

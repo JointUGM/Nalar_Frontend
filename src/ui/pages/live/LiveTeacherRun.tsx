@@ -7,6 +7,7 @@ import { BrandMark } from '@/ui/components/brand/BrandMark'
 import { Button } from '@/ui/components/button/Button'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Icon } from '@/ui/components/icon/Icon'
+import { Nala } from '@/ui/components/nala/Nala'
 import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { IconName } from '@/ui/components/icon/Icon'
 import { ConfirmAction } from '@/ui/pages/teacher/app/ConfirmAction'
@@ -87,7 +88,7 @@ export function LiveTeacherProjector({ service, publicationId, base }: { service
   const monitor = <Link className={projectorStyles.monitorLink} to={`${base}/publications/${publicationId}/monitor`} state={run.state}><Icon name="grid" size={16} />Buka pemantauan</Link>
   return <div className={projectorStyles.screen} data-phase={phase === 'open' ? 'live' : phase === 'scheduled' ? 'idle' : phase}>
     <header className={projectorStyles.header}>
-      <BrandMark size={26} />
+      <BrandMark size={28} light />
       <span className={projectorStyles.title}>{run.title}</span>
       {badge && <span className={projectorStyles.badge} data-phase={phase === 'open' ? 'live' : phase}><span className={projectorStyles.dot} aria-hidden="true" />{badge}</span>}
       <Link className={projectorStyles.exit} to={base}><Icon name="x" size={14} />Keluar layar proyektor</Link>
@@ -110,6 +111,7 @@ export function LiveTeacherProjector({ service, publicationId, base }: { service
           </div>
         </section>
         <section className={projectorStyles.joined} aria-labelledby="joined-title">
+          <Nala mood="hello" size={160} />
           <h2 id="joined-title">DI RUANG TUNGGU</h2>
           <p className={projectorStyles.count}><span>{data.waiting_count}</span> siswa</p>
           {phase === 'lobby' && <p className={projectorStyles.lobbyNote}>Lobi: siswa menunggu. Belum ada soal yang dibuka dan tidak ada yang dinilai.</p>}

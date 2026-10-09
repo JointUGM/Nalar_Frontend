@@ -8,7 +8,7 @@ const styles = {
   header: '[&_h1]:m-0 [&_h1]:text-[22px] [&_h1]:leading-[30px] [&_h1]:font-bold [&_h1]:tracking-[-.015em]',
   lead: 'mx-0 mt-0.5 mb-0 text-[13px] leading-5 text-text-muted wrap-anywhere',
   grid: 'grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]',
-  card: 'flex min-w-0 flex-col gap-5 rounded-card border border-role-border bg-surface p-5 max-sm:p-4 [&_h2]:m-0 [&_h2]:text-[15px] [&_h2]:leading-6 [&_h2]:font-semibold',
+  card: 'flex min-w-0 flex-col gap-5 rounded-2xl bg-surface p-5 max-sm:p-4 [&_h2]:m-0 [&_h2]:text-[15px] [&_h2]:leading-6 [&_h2]:font-semibold',
   summary: 'lg:sticky lg:top-18 [&>button]:min-h-10 [&>button]:w-full [&>button]:gap-1.5 [&>button]:text-[13px] [&>button]:font-semibold max-md:[&>button]:min-h-11',
   label: 'm-0 p-0 text-[13px] font-semibold',
   empty: 'mx-0 mt-2 mb-0 text-[13px] leading-5 text-text-secondary',

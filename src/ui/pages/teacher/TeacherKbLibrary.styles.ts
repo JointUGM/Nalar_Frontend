@@ -9,7 +9,7 @@ const styles = {
 
   strip: '@container min-w-0',
   // gap-px over a border-coloured fill draws the hairlines; 2 or 4 columns so a row never ends in a hole.
-  stats: 'grid grid-cols-2 gap-px overflow-hidden rounded-card border border-role-border bg-role-border @min-[800px]:grid-cols-4',
+  stats: 'grid grid-cols-2 gap-3 [&>*]:rounded-xl @min-[800px]:grid-cols-4',
   stat: `group m-0 grid min-h-11 cursor-pointer grid-cols-[28px_minmax(0,1fr)] items-center gap-x-3 gap-y-0.5 rounded-none border-0 bg-surface px-5 py-4 text-start text-ink wrap-normal ${press} ${focus} focus-visible:-outline-offset-2 hover:not-disabled:not-aria-pressed:bg-paper disabled:cursor-default aria-pressed:bg-info-bg aria-pressed:shadow-[inset_0_-2px_0_var(--color-primary)] max-md:px-4 @max-[520px]:grid-cols-1 @max-[520px]:px-3.5`,
   statLine: 'flex min-w-0 items-baseline gap-1.5 text-[13px] leading-5 font-semibold [&_strong]:text-[20px] [&_strong]:leading-7 [&_strong]:font-bold [&_strong]:tracking-[-.01em] [&_strong]:tabular-nums group-disabled:[&_strong]:text-text-muted',
   statHint: 'col-start-2 truncate text-[12px] leading-4 text-text-muted @max-[520px]:col-start-1',
@@ -19,10 +19,10 @@ const styles = {
   search: 'flex min-h-10 min-w-0 flex-[0_1_280px] items-center gap-2 rounded-button border border-control-border bg-surface px-2.5 text-text-muted transition-[border-color,box-shadow] duration-150 focus-within:border-primary focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_16%,transparent)] max-md:min-h-11 max-md:basis-full [&_input]:min-h-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:border-0 [&_input]:bg-transparent [&_input]:p-0 [&_input]:text-[13px] [&_input]:text-ink [&_input]:caret-primary [&_input]:outline-none [&_input::placeholder]:text-text-muted [&_input::placeholder]:opacity-100',
   reset: `m-0 min-h-10 cursor-pointer rounded-button border-0 bg-transparent px-3 text-[13px] font-semibold text-primary hover:bg-nav-hover ${focus} max-md:min-h-11`,
 
-  panel: 'min-w-0 overflow-clip rounded-card border border-role-border bg-surface',
+  panel: 'min-w-0 overflow-clip rounded-2xl bg-surface',
   state: 'px-4 py-5',
   grid: 'm-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-4 p-0',
-  card: `group relative flex min-w-0 flex-col gap-3 rounded-card border border-role-border bg-surface p-4 ${press} has-[h3_a:hover]:border-primary has-[h3_a:hover]:shadow-[0_6px_18px_-12px_rgb(21_33_59/35%)] has-[h3_a:focus-visible]:border-primary has-[h3_a:focus-visible]:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_28%,transparent)]`,
+  card: `group relative flex min-w-0 flex-col gap-3 rounded-2xl bg-surface p-4 ${press} has-[h3_a:hover]:-translate-y-0.5 has-[h3_a:hover]:shadow-[0_6px_18px_-12px_rgb(21_33_59/35%)] has-[h3_a:focus-visible]:border-primary has-[h3_a:focus-visible]:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_28%,transparent)]`,
   cardTop: 'flex items-center justify-between gap-2',
   status: 'inline-flex rounded-[6px] bg-verification-bg px-2 py-[3px] text-[11px] leading-4 font-bold whitespace-nowrap text-text-secondary data-[status=approved]:bg-success-bg data-[status=approved]:text-success-strong data-[status=review]:bg-warning-bg data-[status=review]:text-warning-text',
   owner: 'min-w-0 truncate text-[11px] leading-4 text-text-muted',
