@@ -53,7 +53,7 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
       </div>
       <div className={styles.nalaWelcome}>
         <p className={styles.speech}>Halo Admin! Semua sekolah terpantau aktif dan lancar 🚀</p>
-        <div className={styles.mascot}><Nala mood="proud" size={80} animate /></div>
+        <div className={styles.mascot}><Nala mood="proud" size={120} animate /></div>
       </div>
     </div>
     {message && <Feedback tone="success" title={message} announce />}
@@ -121,6 +121,16 @@ export function PlatformSchoolsPage({ service }: { service: PlatformAdminUseCase
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
+          {query && (
+            <button
+              type="button"
+              className="p-1 text-text-muted hover:text-ink cursor-pointer border-0 bg-transparent inline-flex items-center rounded-full hover:bg-surface-muted transition-colors"
+              aria-label="Bersihkan pencarian"
+              onClick={() => setQuery('')}
+            >
+              <Icon name="x" size={14} />
+            </button>
+          )}
         </label>
       </div>
       {!data && !error && <Loading label="Memuat sekolah…" />}

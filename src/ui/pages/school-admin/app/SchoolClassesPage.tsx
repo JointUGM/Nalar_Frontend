@@ -43,7 +43,7 @@ export function SchoolClassesPage({ service, schoolId }: { service: SchoolAdminU
   return <div className={styles.content}>
     <div className={styles.heading}>
       <div>
-        <h1>Kelas</h1>
+        <h1 className="m-0 text-[32px] leading-[40px] font-bold tracking-[-0.04em] text-ink">Kelas</h1>
         <p className={styles.subtitle}>Kelola daftar rombel, wali kelas, dan penempatan siswa.</p>
       </div>
       {note && <NalaNote mood={note[0]} text={note[1]} />}
@@ -73,7 +73,7 @@ export function SchoolClassesPage({ service, schoolId }: { service: SchoolAdminU
       <h2 id={`grade-${group.grade}`}>Kelas {group.grade}</h2>
       <ul className={styles.grid}>{group.items.map((item) => <li key={item.class_id}>
         <button type="button" className={styles.card} aria-label={`Ubah kelas ${item.name}`} onClick={() => { setMessage(''); setEditing(item) }}><strong>{item.name}</strong><span>{item.student_count} siswa</span><small>Wali: {teacherName(item.homeroom_teacher_id)}</small></button>
-        <Button tone="ghost" aria-label={`Tempatkan siswa di ${item.name}`} onClick={() => { setMessage(''); setPlacing(item) }}>Tempatkan siswa</Button>
+        <Button tone="secondary" className={styles.placeButton} aria-label={`Tempatkan siswa di ${item.name}`} onClick={() => { setMessage(''); setPlacing(item) }}><Icon name="users" size={14} />Tempatkan siswa</Button>
       </li>)}</ul>
     </section>)}
     {placing && <PlaceStudentsDialog service={service} schoolId={schoolId} klass={placing} onClose={(done) => { setPlacing(null); if (done) { setMessage(done); refresh() } }} />}

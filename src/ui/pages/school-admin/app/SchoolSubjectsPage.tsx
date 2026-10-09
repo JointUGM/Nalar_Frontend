@@ -5,6 +5,7 @@ import type { CurriculumChoice, SchoolSubject, SubjectKnowledgeBase } from '@/do
 import { Button } from '@/ui/components/button/Button'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
+import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.styles'
@@ -56,9 +57,9 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
   return <div className={styles.content}>
     <div className={styles.heading}>
       <div>
-        <h1>Mata pelajaran</h1>
+        <h1 className="m-0 text-[32px] leading-[40px] font-bold tracking-[-0.04em] text-ink">Mata pelajaran</h1>
         <p className={styles.lead}>Setiap mata pelajaran sekolah dipetakan ke Capaian Pembelajaran nasional. Hanya pemilik basis pengetahuan yang bisa menyetujui dan mengubahnya.</p>
-        {data && <Button className={styles.add} disabled={!data.versions.length} onClick={() => { setMessage(''); setEditing({ kind: 'new' }) }}>Tambah mata pelajaran</Button>}
+        {data && <Button className={styles.add} disabled={!data.versions.length} onClick={() => { setMessage(''); setEditing({ kind: 'new' }) }}><Icon name="plus" size={16} />Tambah mata pelajaran</Button>}
         {data && !data.versions.length && <p className={styles.note}>Belum ada versi CP yang terbit. Minta admin platform menerbitkannya dulu.</p>}
       </div>
       {note && <NalaNote mood={note[0]} text={note[1]} />}
@@ -88,10 +89,12 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
             : <StatusBadge tone="warning">{cp.state === 'old' ? 'Versi CP lama' : 'Belum dipetakan'}</StatusBadge>}
           </td>
           <td className={styles.cell} data-label="Basis pengetahuan">{subject.knowledge_bases.length
-            ? <ul className={styles.kbList}>{subject.knowledge_bases.map((kb) => <li key={kb.knowledge_base_id}>
-              {kb.owner_name ? <NalaAvatar seed={kb.owner_name} size={28} /> : <span className={styles.noOwner} aria-hidden="true" />}
-              <span className={styles.kbText}><strong>{kb.topic_title}</strong><small>{kb.owner_name ?? 'Tanpa pemilik'}</small></span>
-              <Button tone="ghost" className={styles.edit} aria-label={`Alihkan pemilik ${kb.topic_title}`} onClick={() => open({ kind: 'owner', subject, kb })}>Alihkan</Button>
+            ? <ul className={styles.kbList}>{subject.knowledge_bases.map((kb) => <li key={kb.knowledge_base_id} className={styles.kbItem}>
+              <div className={styles.kbMeta}>
+                {kb.owner_name ? <NalaAvatar seed={kb.owner_name} size={28} /> : <span className={styles.noOwner} aria-hidden="true" />}
+                <span className={styles.kbText}><strong title={kb.topic_title}>{kb.topic_title}</strong><small>{kb.owner_name ?? 'Tanpa pemilik'}</small></span>
+              </div>
+              <Button tone="ghost" className={styles.transfer} aria-label={`Alihkan pemilik ${kb.topic_title}`} onClick={() => open({ kind: 'owner', subject, kb })}>Alihkan</Button>
             </li>)}</ul>
             : <span className={styles.none}>Belum ada<small>Dibuat oleh guru pengampu</small></span>}
           </td>
@@ -99,8 +102,7 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
             {cp.state === 'mapped'
               ? <Button tone="ghost" className={styles.edit} aria-label={`Ubah pemetaan ${subject.name}`} disabled={!data.versions.length} onClick={() => open({ kind: 'cp', subject })}>Ubah pemetaan</Button>
               : <Button tone="secondary" className={styles.map} aria-label={`Petakan ${subject.name}`} disabled={!data.versions.length} onClick={() => open({ kind: 'cp', subject })}>Petakan</Button>}
-            <span className={styles.rule} aria-hidden="true" />
-            <Button tone="ghost" className={[styles.edit, styles.remove].join(' ')} aria-label={`Hapus ${subject.name}`} onClick={() => open({ kind: 'delete', subject })}>Hapus</Button>
+            <Button tone="ghost" className={styles.remove} aria-label={`Hapus ${subject.name}`} onClick={() => open({ kind: 'delete', subject })}>Hapus</Button>
           </td>
         </tr>
       })}</tbody>
