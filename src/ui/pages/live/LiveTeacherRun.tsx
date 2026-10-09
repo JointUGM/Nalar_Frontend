@@ -154,7 +154,7 @@ export function LiveTeacherMonitor({ service, publicationId, base }: { service: 
       </div>
       <div className={monitorStyles.connection} data-connection={offline ? 'offline' : 'ok'}><span role="status">{offline ? 'Terputus · menampilkan data terakhir. Tindakan yang mengubah sesi dinonaktifkan.' : 'Terhubung · data diperbarui otomatis'}</span></div>
       <div className={monitorStyles.tallies} role="group" aria-label="Filter status siswa">{groups.map(([group, label]) => <button key={group} type="button" aria-pressed={filter === group} onClick={() => setFilter(filter === group ? null : group)}>
-        <span>{label}</span><strong>{data.students.filter((student) => inGroup(student, group)).length}</strong>
+        <span><i data-group={group} aria-hidden="true" />{label}</span><strong>{data.students.filter((student) => inGroup(student, group)).length}</strong>
       </button>)}</div>
       <section className={monitorStyles.roster} aria-labelledby="roster-title" data-stale={offline}>
         <div className={monitorStyles.rosterHead}><h2 id="roster-title">Siswa <small>{visible.length} dari {data.students.length}</small></h2></div>
