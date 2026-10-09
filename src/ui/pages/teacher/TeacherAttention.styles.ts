@@ -1,37 +1,42 @@
-// Tailwind classes for ?.
-// `teacherattention-*` names carry no styles: they are hooks for the nested selectors in other entries.
+// Tailwind classes for TeacherAttentionPage.tsx, Board v2 triage: a divided count strip that filters, then one card with
+// the toolbar and a list/detail split from 1024px. Below that, rows link straight to where the item is handled.
+const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
+const press = 'transition-[background-color,box-shadow,scale] duration-150 ease-[cubic-bezier(.23,1,.32,1)] motion-reduce:transition-none'
 const styles = {
-  content: 'max-w-340',
-  header: 'gap-4 flex flex-wrap items-end justify-between [&_h1]:m-0 [&_h1]:text-[22px] [&_h1]:leading-[30px] [&_h1]:tracking-[-.015em] [&_p]:mx-0 [&_p]:mt-0.5 [&_p]:mb-0 [&_p]:text-[13px] [&_p]:text-text-muted',
-  primary: 'px-4 gap-1.5 min-h-[var(--control-min-size)] bg-primary inline-flex items-center justify-center whitespace-nowrap no-underline rounded-[8px] text-surface text-[13px] font-semibold hover:bg-primary-hover',
-  note: 'mx-0 mt-3 mb-0 max-w-[72ch] text-[13px] leading-[20px] text-text-secondary',
-  stats: 'mx-0 mt-4 mb-0 p-0 border-solid border border-role-border bg-surface overflow-hidden grid list-none grid-cols-[repeat(auto-fit,minmax(min(100%,170px),1fr))] rounded-[14px] [&_li]:px-5 [&_li]:py-4 [&_li]:gap-0.5 [&_li]:[border-left-style:solid] [&_li]:border-l [&_li]:border-l-role-border [&_li]:grid [&_li:first-child]:[border-left-style:none] [&_li:first-child]:border-l-0 [&_li:first-child]:border-l-current [&_strong]:text-[14px] [&_small]:text-[12px] [&_small]:text-text-muted [@media(max-width:560px)]:[&_li]:[border-top-style:solid] [@media(max-width:560px)]:[&_li]:[border-left-style:none] [@media(max-width:560px)]:[&_li]:border-t [@media(max-width:560px)]:[&_li]:border-l-0 [@media(max-width:560px)]:[&_li]:border-t-role-border [@media(max-width:560px)]:[&_li]:border-l-current [@media(max-width:560px)]:[&_li:first-child]:[border-top-style:none] [@media(max-width:560px)]:[&_li:first-child]:border-t-0 [@media(max-width:560px)]:[&_li:first-child]:border-t-current',
-  announce: 'mx-0 mt-2 mb-0 text-[13px] leading-[20px] text-text-secondary empty:m-0',
-  card: 'mt-4 border border-role-border bg-surface overflow-hidden rounded-[14px]',
-  tabs: 'px-4 gap-5 [border-bottom-style:solid] border-b border-b-role-border flex overflow-x-auto [&_button]:p-0 [&_button]:min-h-11 [&_button]:flex-none [&_button]:border-none [&_button]:border-0 [&_button]:border-current [&_button]:whitespace-nowrap [&_button]:rounded-none [&_button]:[background:none] [&_button]:text-text-muted [&_button]:text-[13px] [&_button]:font-medium [&_button:hover:not(:disabled)]:[background:none] [&_button:hover:not(:disabled)]:text-ink [&_button[aria-pressed=true]]:text-ink [&_button[aria-pressed=true]]:font-semibold [&_button[aria-pressed=true]]:[box-shadow:inset_0_-2px_0_var(--color-ink)]',
-  tools: 'px-4 py-2.5 gap-y-2 gap-x-3 border-b border-b-role-border flex flex-wrap items-center [&_p]:m-0 [&_p]:flex-[1_1_200px] [&_p]:text-[12px] [&_p]:text-text-muted',
-  search: 'px-2.5 gap-1.5 min-w-0 flex-[0_1_220px] border-solid border border-control-border flex items-center rounded-[8px] text-text-muted [&_input]:p-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:min-h-11 [&_input]:border-none [&_input]:border-0 [&_input]:border-current [&_input]:[font-style:inherit] [&_input]:[background:none] [&_input]:[font-variant:inherit] [&_input]:[font-weight:inherit] [&_input]:[font-stretch:inherit] [&_input]:text-[13px] [&_input]:[line-height:inherit] [&_input]:[font-family:inherit] [&_input]:text-ink [&_input:focus-visible]:outline-none focus-within:[outline:3px_solid_var(--color-primary)] focus-within:outline-offset-[3px]',
-  split: 'grid grid-cols-[minmax(300px,1fr)_minmax(0,1.15fr)] [@media(max-width:900px)]:grid-cols-[minmax(0,1fr)]',
-  list: 'min-w-0 [border-right-style:solid] border-r border-r-role-border [&_ul]:m-0 [&_ul]:p-0 [&_ul]:list-none [@media(max-width:900px)]:[border-right-style:none] [@media(max-width:900px)]:[border-bottom-style:solid] [@media(max-width:900px)]:border-r-0 [@media(max-width:900px)]:border-b [@media(max-width:900px)]:border-r-current [@media(max-width:900px)]:border-b-role-border',
-  row: 'px-4 py-3.5 gap-2.5 w-full min-h-11 [border-top-style:none] [border-right-style:none] [border-bottom-style:solid] [border-left-style:none] border-t-0 border-r-0 border-b border-l-0 border-t-current border-r-current border-b-role-border border-l-current bg-surface grid text-start rounded-none text-ink font-normal hover:not-disabled:bg-canvas aria-pressed:bg-nav-hover aria-pressed:[box-shadow:inset_2px_0_0_var(--color-primary)] aria-pressed:hover:not-disabled:bg-nav-hover aria-pressed:hover:not-disabled:[box-shadow:inset_2px_0_0_var(--color-primary)]',
-  rowHead: 'gap-y-1 gap-x-1.5 flex flex-wrap items-center text-[12px] text-text-secondary',
-  context: 'min-w-0 flex-1',
-  when: 'text-[11px] text-text-muted',
-  sev: 'm-0 gap-[3px] inline-flex items-center text-[10px] font-bold tracking-[.05em] text-ink data-[kind=safety]:text-danger-text data-[kind=approve]:text-warning-text',
-  who: 'gap-2.5 flex items-center [&_strong]:m-0 [&_strong]:block [&_strong]:text-[14px] [&_strong]:font-semibold [&_h3]:m-0 [&_h3]:block [&_h3]:text-[14px] [&_h3]:font-semibold [&_small]:block [&_small]:text-[12px] [&_small]:text-text-secondary [.teacherattention-detail_&]:mt-2.5 [.teacherattention-detail_&_h3]:text-[15px]',
-  avatar: 'w-8 h-8 flex-none bg-verification-bg grid items-center justify-items-center rounded-[50%] text-ink text-[12px] font-bold data-[kind=safety]:bg-danger-bg data-[kind=safety]:text-danger-text data-[kind=approve]:bg-warning-bg data-[kind=approve]:text-warning-text',
-  summary: 'text-[12px] leading-[18px] text-text-secondary',
-  meta: 'gap-y-1 gap-x-3 flex flex-wrap items-center text-[12px] text-text-secondary [&_b]:px-2.5 [&_b]:py-1 [&_b]:border [&_b]:border-success-bg [&_b]:bg-success-bg [&_b]:whitespace-nowrap [&_b]:rounded-[8px] [&_b]:text-success-strong [&_b]:font-semibold',
-  info: 'gap-1 flex-1 inline-flex items-center text-text-muted',
-  more: 'px-2.5 py-1 border border-role-border bg-surface whitespace-nowrap rounded-[8px] text-ink font-semibold',
-  detail: 'teacherattention-detail px-5 py-4 min-w-0 focus-visible:outline-offset-[-3px] [&_h4]:mx-0 [&_h4]:mt-3.5 [&_h4]:mb-0 [&_h4]:text-[11px] [&_h4]:font-semibold [&_h4]:tracking-[.06em] [&_h4]:text-text-muted [&_p]:mx-0 [&_p]:mt-1.5 [&_p]:mb-0 [&_p]:text-[13px] [&_p]:leading-[20px]',
-  metrics: 'mx-0 mt-4 mb-0 border-solid border border-role-border grid grid-cols-3 rounded-[12px] [&>div]:p-3 [&>div]:min-w-0 [&>div+div]:[border-left-style:solid] [&>div+div]:border-l [&>div+div]:border-l-role-border [&_dt]:text-[10px] [&_dt]:font-semibold [&_dt]:tracking-[.06em] [&_dt]:text-text-muted [&_dd]:mx-0 [&_dd]:mt-1.5 [&_dd]:mb-0 [&_strong]:block [&_strong]:wrap-anywhere [&_strong]:text-[15px] [&_strong[data-kind=safety]]:text-danger-text [&_small]:mt-0.5 [&_small]:block [&_small]:text-[12px] [&_small]:text-text-secondary [@media(max-width:560px)]:grid-cols-[minmax(0,1fr)] [@media(max-width:560px)]:[&>div+div]:[border-top-style:solid] [@media(max-width:560px)]:[&>div+div]:[border-left-style:none] [@media(max-width:560px)]:[&>div+div]:border-t [@media(max-width:560px)]:[&>div+div]:border-l-0 [@media(max-width:560px)]:[&>div+div]:border-t-role-border [@media(max-width:560px)]:[&>div+div]:border-l-current',
-  progress: 'gap-2 flex items-center text-[11px] text-text-muted [&>span]:h-1 [&>span]:flex-1 [&>span]:bg-role-border [&>span]:overflow-hidden [&>span]:rounded-[2px] [&_i]:h-full [&_i]:bg-primary [&_i]:block',
-  box: 'mt-3.5 px-3.5 py-3 bg-misconception-bg rounded-[10px] [&_p:first-child]:m-0 [&_p:first-child]:gap-1.5 [&_p:first-child]:flex [&_p:first-child]:items-center [&_p:first-child]:text-[12px] [&_p:first-child]:font-semibold [&_p:first-child]:text-misconception-text',
-  evidence: 'mx-0 mt-1.5 mb-0 p-0 gap-1.5 grid list-none [&_li]:gap-2 [&_li]:flex [&_li]:text-[13px] [&_li]:leading-[19px] [&_svg]:mt-1 [&_svg]:text-text-muted',
-  actions: 'mt-4.5 gap-2 flex flex-wrap items-center [&_p]:m-0 [&_p]:flex-[1_1_100%] [&_p]:text-[13px] [&_p]:text-text-secondary [&_button]:text-[13px] [&_button]:rounded-[8px]',
-  empty: 'm-0 px-4 py-5 text-[13px] leading-[20px] text-text-muted',
-  hidden: 'm-0 p-0 w-px h-px overflow-hidden absolute [clip-path:inset(50%)]',
+  page: 'mx-auto grid max-w-340 gap-4',
+  header: 'flex flex-wrap items-end justify-between gap-x-6 gap-y-3 [&>div:first-child]:min-w-0 [&>div:first-child]:flex-[1_1_280px] [&_h1]:m-0 [&_h1]:text-[22px] [&_h1]:leading-[30px] [&_h1]:font-bold [&_h1]:tracking-[-.015em] [&_p]:mt-0.5 [&_p]:mb-0 [&_p]:max-w-[64ch] [&_p]:text-[13px] [&_p]:leading-5 [&_p]:text-text-muted',
+
+  strip: '@container grid min-w-0',
+  // gap-px over a border-coloured fill draws the hairlines; 2 or 4 columns so a row never ends in a hole.
+  stats: 'grid grid-cols-2 gap-px overflow-hidden rounded-card border border-role-border bg-role-border @min-[800px]:grid-cols-4',
+  stat: `group m-0 grid min-h-11 cursor-pointer grid-cols-[28px_minmax(0,1fr)] items-center gap-x-3 gap-y-0.5 rounded-none border-0 bg-surface px-5 py-4 text-start text-ink ${press} ${focus} focus-visible:-outline-offset-2 hover:not-disabled:not-aria-pressed:bg-paper disabled:cursor-default aria-pressed:bg-info-bg aria-pressed:shadow-[inset_0_-2px_0_var(--color-primary)] wrap-normal max-md:px-4 [&>svg]:row-span-2 @max-[520px]:grid-cols-1 @max-[520px]:px-3.5`,
+  statLine: 'flex min-w-0 items-baseline gap-1.5 text-[13px] leading-5 font-semibold [&_strong]:text-[20px] [&_strong]:leading-7 [&_strong]:font-bold [&_strong]:tracking-[-.01em] [&_strong]:tabular-nums group-data-[urgent=true]:[&_strong]:text-danger-text group-disabled:[&_strong]:text-text-muted',
+  statHint: 'col-start-2 truncate @max-[520px]:col-start-1 text-[12px] leading-4 text-text-muted',
+
+  card: 'min-w-0 overflow-clip rounded-card border border-role-border bg-surface',
+  toolbar: 'flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-role-border px-4 py-2.5 [&>div]:flex-[0_1_190px] max-md:[&>div]:flex-[1_1_150px]',
+  count: 'm-0 flex-[1_1_180px] text-[12px] leading-5 tabular-nums text-text-muted',
+  search: 'flex min-h-10 min-w-0 flex-[0_1_260px] items-center gap-2 rounded-button border border-control-border bg-surface px-2.5 text-text-muted transition-[border-color,box-shadow] duration-150 focus-within:border-primary focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_16%,transparent)] max-md:min-h-11 max-md:basis-full [&_input]:min-h-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:border-0 [&_input]:bg-transparent [&_input]:p-0 [&_input]:text-[13px] [&_input]:text-ink [&_input]:caret-primary [&_input]:outline-none [&_input::placeholder]:text-text-muted [&_input::placeholder]:opacity-100',
+  reset: `m-0 min-h-10 cursor-pointer rounded-button border-0 bg-transparent px-3 text-[13px] font-semibold text-primary hover:bg-nav-hover ${focus} max-md:min-h-11`,
+
+  split: 'grid min-w-0 lg:grid-cols-[minmax(320px,.9fr)_minmax(0,1.1fr)]',
+  list: 'm-0 min-w-0 list-none p-0 lg:border-r lg:border-role-border [&>li+li]:border-t [&>li+li]:border-role-border',
+  row: `group m-0 grid w-full min-w-0 cursor-pointer gap-2 rounded-none border-0 bg-surface px-4 py-3.5 text-start text-ink no-underline ${press} ${focus} focus-visible:-outline-offset-2 hover:not-aria-pressed:bg-canvas aria-pressed:bg-nav-hover`,
+  rowTop: 'flex min-w-0 items-center justify-between gap-3',
+  sev: 'inline-flex min-w-0 items-center gap-1 truncate text-[10px] leading-4 font-bold tracking-[.06em] whitespace-nowrap text-ink uppercase data-[kind=kb_review]:text-warning-text data-[kind=release_ready]:text-success-text data-[kind=safety]:text-danger-text',
+  when: 'shrink-0 text-[11px] leading-4 tabular-nums text-text-muted',
+  rowMain: 'grid grid-cols-[34px_minmax(0,1fr)] items-center gap-2.5',
+  lead: 'grid size-[34px] place-items-center',
+  who: 'block truncate text-[14px] leading-5 font-semibold group-aria-pressed:text-primary-hover',
+  summary: 'block truncate text-[12px] leading-[18px] text-text-secondary',
+  rowGo: 'ms-[44px] inline-flex w-fit min-h-11 items-center gap-1.5 rounded-button bg-info-bg px-3 text-[12px] font-semibold text-primary-hover group-data-[kind=safety]:bg-danger-text group-data-[kind=safety]:text-surface',
+
+  detail: 'min-w-0 px-5 py-5 max-lg:hidden lg:sticky lg:top-14 lg:self-start [&_h3]:mx-0 [&_h3]:mt-5 [&_h3]:mb-0 [&_h3]:text-[11px] [&_h3]:leading-4 [&_h3]:font-semibold [&_h3]:tracking-[.06em] [&_h3]:text-text-muted [&_h3]:uppercase [&>p]:mx-0 [&>p]:mt-1.5 [&>p]:mb-0 [&>p]:max-w-[60ch] [&>p]:text-[13px] [&>p]:leading-5',
+  detailWho: 'mt-3 flex items-center gap-3 [&_h2]:m-0 [&_h2]:text-[17px] [&_h2]:leading-6 [&_h2]:font-semibold [&_h2]:tracking-[-.01em] [&_h2]:wrap-anywhere [&_p]:m-0 [&_p]:text-[13px] [&_p]:leading-5 [&_p]:text-text-secondary',
+  facts: 'mx-0 mt-4 mb-0 grid overflow-hidden rounded-[12px] border border-role-border [&>div]:min-w-0 [&>div]:px-3 [&>div]:py-2.5 [&>div+div]:border-l [&>div+div]:border-role-border [&_dt]:text-[10px] [&_dt]:leading-4 [&_dt]:font-semibold [&_dt]:tracking-[.06em] [&_dt]:text-text-muted [&_dt]:uppercase [&_dd]:ms-0 [&_dd]:mt-1 [&_dd]:text-[14px] [&_dd]:leading-5 [&_dd]:font-semibold [&_dd]:wrap-anywhere',
+  next: 'mt-4 rounded-[10px] bg-[color-mix(in_srgb,var(--color-warning-bg)_80%,var(--color-surface))] px-3.5 py-3 data-[kind=safety]:bg-[color-mix(in_srgb,var(--color-danger-bg)_90%,var(--color-surface))] [&_strong]:flex [&_strong]:items-center [&_strong]:gap-1.5 [&_strong]:text-[12px] [&_strong]:leading-4 [&_strong]:font-semibold [&_strong]:text-warning-text data-[kind=safety]:[&_strong]:text-danger-text [&_p]:mt-1.5 [&_p]:mb-0 [&_p]:text-[13px] [&_p]:leading-5 [&_p]:text-ink',
+  go: 'mt-5 min-h-10 gap-1.5 px-4 py-2 text-[13px] font-semibold active:not-disabled:translate-y-0 active:not-disabled:scale-[.97] motion-reduce:active:not-disabled:scale-100 data-[kind=safety]:bg-danger-text data-[kind=safety]:hover:not-disabled:bg-danger-hover',
+  panelState: 'px-4 py-6',
 } satisfies Record<string, string>
 
 export default styles
