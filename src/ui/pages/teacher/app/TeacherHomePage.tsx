@@ -1,234 +1,163 @@
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { Link } from 'react-router'
 import type { ApiError } from '@/domain/model/ApiError'
-import type { AttentionPage, DashboardWeek, TeacherDashboard, TeacherPublication } from '@/domain/model/Teacher'
+import type { AttentionItem, AttentionPage, TeacherDashboard, TeacherPublication } from '@/domain/model/Teacher'
+import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
 import type { TeacherService } from '@/domain/services/TeacherService'
-import { cn } from '@/ui/cn'
-import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
 import { Nala } from '@/ui/components/nala/Nala'
-import { NalaIcon } from '@/ui/components/nala/NalaIcon'
-import type { NalaIconName } from '@/ui/components/nala/NalaIcon'
-import { formatDay, formatDayTime } from '@/ui/formatInstant'
+import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import { attentionKind, attentionRank, describeAttention, isKnownAttention, waitedFor } from '@/ui/pages/teacher/app/attentionText'
-import styles, { kindTone, statusTone } from '@/ui/pages/teacher/TeacherHome.styles'
+import styles from '@/ui/pages/teacher/TeacherHome.styles'
 
+// Layout follows the home screen of "NALAR Guru.dc.html": sessions and changed minds on top, then attention, class
+// patterns and a rail with release and the knowledge base. Every number comes from the API; nothing is invented.
 interface AttentionResource { data: AttentionPage | null; error: ApiError | null; online: boolean; refresh: () => void }
 const number = new Intl.NumberFormat('id-ID')
-const shortDay = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', timeZone: 'Asia/Jakarta' })
 const clock = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })
+const today = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' })
 const jakartaHour = new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Asia/Jakarta' })
-const series = [['mastered', 'Paham'], ['developing', 'Berkembang'], ['misconception', 'Miskonsepsi']] as const
-const stroke = { mastered: 'stroke-primary fill-primary', developing: 'stroke-accent fill-accent', misconception: 'stroke-misconception-text fill-misconception-text' }
 
 // School days run on WIB, whatever the computer's clock says.
 function greeting(now = new Date()) {
   const hour = Number(jakartaHour.format(now))
   return hour >= 4 && hour < 11 ? 'Selamat pagi' : hour >= 11 && hour < 15 ? 'Selamat siang' : hour >= 15 && hour < 18 ? 'Selamat sore' : 'Selamat malam'
 }
+const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
 
-type Tone = 'good' | 'bad' | 'flat'
-interface Chip { tone: Tone; text: string; dir?: 'up' | 'down' | 'flat' }
-// `better` says which way is good news; the chip's colour judges, the arrow and words carry the direction.
-function change(now: number, before: number, better: 'up' | 'down', unit = ''): Chip {
-  if (now === before) return { tone: 'flat', dir: 'flat', text: 'Sama dengan minggu lalu' }
-  const up = now > before
-  return { tone: up === (better === 'up') ? 'good' : 'bad', dir: up ? 'up' : 'down', text: `${up ? '+' : '−'}${number.format(Math.abs(now - before))}${unit} vs minggu lalu` }
-}
+const isActive = (publication: TeacherPublication) => ['lobby', 'open'].includes(publication.run.status)
+const rank = (publication: TeacherPublication) => isActive(publication) ? 0 : publication.run.status === 'scheduled' ? 1 : 2
+const when = (publication: TeacherPublication) => publication.run.opens_at ?? publication.run.closes_at
+const sessionPath = (publication: TeacherPublication, base: string) => `${base}/publications/${publication.id}/${publication.run.mode === 'live' && isActive(publication) ? 'monitor' : 'class-map'}`
 
-function Kpis({ week, last }: { week: DashboardWeek; last: DashboardWeek }) {
-  const rate = week.changed_mind_rate === null ? null : Math.round(week.changed_mind_rate * 100)
-  const before = last.changed_mind_rate === null ? null : Math.round(last.changed_mind_rate * 100)
-  const cells: { icon: NalaIconName; label: string; value: string; empty?: boolean; chip: Chip; caption: string }[] = [
-    { icon: 'changed', label: 'Berubah pikiran', value: rate === null ? 'Belum ada' : `${rate}%`, empty: rate === null, chip: rate === null || before === null ? { tone: 'flat', text: 'Belum ada pembanding' } : change(rate, before, 'up', ' poin'), caption: 'miskonsepsi dikoreksi saat dialog' },
-    { icon: 'done', label: 'Sesi selesai', value: number.format(week.sessions_completed), chip: change(week.sessions_completed, last.sessions_completed, 'up'), caption: `dari ${number.format(week.students)} siswa` },
-    { icon: 'idea', label: 'Miskonsepsi aktif', value: number.format(week.active_misconceptions), chip: change(week.active_misconceptions, last.active_misconceptions, 'down'), caption: `di ${number.format(week.concepts_with_misconceptions)} konsep` },
-    { icon: week.open_flags > 0 ? 'verify' : 'done', label: 'Perlu verifikasi', value: number.format(week.open_flags), chip: week.open_flags > 0 ? { tone: 'bad', text: 'Belum ditinjau' } : { tone: 'good', text: 'Semua ditinjau' }, caption: 'sesi dengan catatan' },
-  ]
-  return <dl className={styles.kpis}>{cells.map((cell) => <div key={cell.label} className={styles.kpi}>
-    <dt className={styles.kpiLabel}><NalaIcon name={cell.icon} size={26} />{cell.label}</dt>
-    <dd className={styles.kpiValue} data-empty={Boolean(cell.empty)}>{cell.value}</dd>
-    <dd className={styles.kpiChip}><span className={styles.chip} data-tone={cell.chip.tone} data-dir={cell.chip.dir}>{cell.chip.dir && <Icon name={cell.chip.dir === 'flat' ? 'minus' : 'arrowUp'} size={11} />}{cell.chip.text}</span></dd>
-    <dd className={styles.kpiCaption}>{cell.caption}</dd>
-  </div>)}</dl>
-}
-
-function Todo({ resource, base }: { resource: AttentionResource; base: string }) {
+function Schedule({ resource, base }: { resource: { data: TeacherPublication[] | null; error: ApiError | null; online: boolean; refresh: () => void }; base: string }) {
   const { data, error, online, refresh } = resource
-  const open = data ? data.items.filter(isKnownAttention) : []
-  const items = [...open].sort((a, b) => attentionRank(a) - attentionRank(b)).slice(0, 4)
-  const oldest = open.reduce<string | null>((first, item) => !first || Date.parse(item.created_at) < Date.parse(first) ? item.created_at : first, null)
-  return <section className={styles.todo} aria-labelledby="home-todo" aria-busy={!data && !error}>
-    <div className={styles.head}>
-      <div>
-        <div className="flex items-baseline"><h2 id="home-todo">Perlu tindakan</h2>{data && data.counts.total > 0 && <span className={styles.count}>{number.format(data.counts.total)}<span className="sr-only"> menunggu</span></span>}</div>
-        <p className={styles.lede}>Keselamatan siswa selalu di urutan pertama.{oldest && ` Paling lama menunggu ${waitedFor(oldest)}.`}</p>
-      </div>
-      <Link className={styles.more} to={`${base}/attention`}>Lihat semua<Icon name="chevronRight" size={14} /></Link>
-    </div>
+  // Running sessions first, then what is coming, then the most recent results.
+  const time = (publication: TeacherPublication) => Date.parse(when(publication) ?? '') || 0
+  const rows = [...(data ?? [])].sort((a, b) => rank(a) - rank(b) || (rank(a) === 1 ? time(a) - time(b) : time(b) - time(a))).slice(0, 5)
+  return <section className={styles.card} aria-labelledby="home-sessions" aria-busy={!data && !error}>
+    <div className={styles.head}><h2 id="home-sessions">Sesi kelas</h2>{data && <span>{number.format(data.length)} sesi</span>}<Link to={`${base}/sessions`}>Semua sesi</Link></div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <Loading label="Memuat tugas Anda…" />}
-    {data && (data.counts.total === 0 ? <div className={styles.clear}><span><Icon name="check" size={18} /></span><div><h3>Tidak ada yang menunggu Anda.</h3><p>Siapkan misi berikutnya atau lihat hasil kelas.</p></div></div>
-      : items.length === 0 ? <p className={styles.empty}>Buka <Link to={`${base}/attention`}>Perlu perhatian</Link> untuk melihat tugas yang tersedia.</p>
-      : <ul className={styles.cards}>{items.map((item) => {
-        const entry = describeAttention(item, base)
-        const kind = attentionKind[item.kind]
-        return <li key={`${item.kind}-${item.item_id}`} className={styles.action} data-kind={item.kind}>
-          <div className={styles.actionTop}><span className={cn(styles.kind, kindTone[item.kind])}><Icon name={kind.icon} size={12} />{kind.label}</span><span className={styles.when}><Icon name="clock" size={12} />{formatDayTime(item.created_at)}</span></div>
-          <h3>{entry.title}</h3>
-          <p>{entry.summary}</p>
-          <div className={styles.next}><strong><NalaIcon name={kind.nala} size={22} />Langkah berikutnya</strong><p>{kind.next}</p></div>
-          <Link to={entry.to} className={styles.go}>{kind.action}<span className="sr-only">: {entry.title}</span><Icon name="chevronRight" size={14} /></Link>
-        </li>
-      })}</ul>)}
+    {!data && !error && <Loading label="Memuat sesi…" />}
+    {data && data.length === 0 && <p className={styles.empty}>Belum ada sesi kelas. <Link to={`${base}/missions`}>Terbitkan misi yang sudah ditinjau</Link> untuk memulai.</p>}
+    {rows.length > 0 && <ol className={styles.schedule}>{rows.map((publication) => {
+      const { run, counts } = publication
+      const at = when(publication)
+      const tone = isActive(publication) ? 'live' : run.status === 'scheduled' ? 'planned' : 'done'
+      return <li key={publication.id}>
+        <span className={styles.slot}>{at ? clock.format(new Date(at)) : run.mode === 'live' ? 'Live' : '—'}</span>
+        <div className={styles.block} data-tone={tone}>
+          <Link to={sessionPath(publication, base)} state={{ publication }} className={styles.blockTitle}><strong>{publication.class_name}</strong><span>{publication.mission_title}</span></Link>
+          <div className={styles.blockFoot}>
+            <span>{tone === 'live' ? (run.status === 'lobby' ? 'Lobi terbuka' : `Berlangsung · ${number.format(counts.started)} siswa`) : tone === 'planned' ? (run.opens_at && run.closes_at ? `Jendela ${clock.format(new Date(run.opens_at))}–${clock.format(new Date(run.closes_at))}` : 'Belum dimulai') : `${number.format(counts.completed)} dari ${number.format(counts.started)} sesi selesai`}</span>
+            {tone === 'live' ? <Link className={styles.blockAction} to={`${base}/publications/${publication.id}/${run.status === 'lobby' ? 'projector' : 'monitor'}`} state={{ publication }}><Icon name="play" size={12} />{run.status === 'lobby' ? 'Buka lobi' : 'Pantau'}</Link>
+              : tone === 'planned' ? <b>Terjadwal</b> : <b data-done><Icon name="check" size={14} />Selesai</b>}
+          </div>
+        </div>
+      </li>
+    })}</ol>}
   </section>
 }
 
-// Shares of concept results per week on a fixed 0-100% scale, so a flat line means a flat class, not a zoomed axis.
-function TrendChart({ weeks, label }: { weeks: { week_start: string; share: Record<typeof series[number][0], number> }[]; label: string }) {
-  const left = 34, right = 312, top = 10, bottom = 128
-  const x = (index: number) => weeks.length === 1 ? (left + right) / 2 : left + index * (right - left) / (weeks.length - 1)
-  const y = (share: number) => bottom - share / 100 * (bottom - top)
-  const last = weeks.length - 1
-  return <svg viewBox="0 0 320 150" className={styles.chart} role="img" aria-label={label}>
-    {[100, 50, 0].map((value) => <g key={value}>
-      <line x1={left} x2={right} y1={y(value)} y2={y(value)} className="stroke-role-border" strokeDasharray={value === 0 ? undefined : '3 4'} />
-      <text x={0} y={y(value) + 3.5} className="fill-text-muted text-[10px] tabular-nums">{value}%</text>
-    </g>)}
-    {weeks.map((week, index) => (weeks.length <= 6 || index === 0 || index === last) && <text key={week.week_start} x={x(index)} y={146} textAnchor={weeks.length === 1 ? 'middle' : index === 0 ? 'start' : index === last ? 'end' : 'middle'} className={cn('text-[10px]', index === last ? 'fill-ink font-semibold' : 'fill-text-muted')}>{shortDay.format(new Date(week.week_start))}</text>)}
-    {series.map(([key]) => <g key={key} className={stroke[key]}>
-      {weeks.length > 1 && <polyline points={weeks.map((week, index) => `${x(index)},${y(week.share[key])}`).join(' ')} fill="none" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />}
-      {weeks.map((week, index) => <circle key={week.week_start} cx={x(index)} cy={y(week.share[key])} r={index === last ? 3.5 : 2.25} className="stroke-surface" strokeWidth="1.5" />)}
-    </g>)}
-  </svg>
+// A rule, not a model: misconceptions most students let go of come first.
+function Changed({ data, failed, base }: { data: TeacherDashboard | null; failed: boolean; base: string }) {
+  const items = data ? [...data.top_changed].sort((a, b) => b.resolved - a.resolved || b.held - a.held).slice(0, 4) : []
+  const resolved = items.reduce((sum, item) => sum + item.resolved, 0)
+  const rate = data?.this_week.changed_mind_rate
+  return <section className={styles.card} aria-labelledby="home-changed" aria-busy={!data && !failed}>
+    <div className={styles.head}><div><h2 id="home-changed" className={styles.big}>Berubah pikiran minggu ini</h2><p>{data ? `${number.format(data.this_week.sessions_completed)} sesi selesai dari ${number.format(data.this_week.students)} siswa` : 'Miskonsepsi yang dikoreksi siswa sendiri selama dialog.'}</p></div><Link to={`${base}/sessions`}>Hasil kelas</Link></div>
+    {resolved > 0 && <p className={styles.proud}><Nala mood="proud" size={32} head /><strong>{number.format(resolved)} siswa</strong><span>mengoreksi miskonsepsinya sendiri selama dialog{rate != null && <> · <b>{Math.round(rate * 100)}%</b> miskonsepsi berubah</>}</span></p>}
+    {!data ? <p className={styles.empty}>{failed ? 'Ringkasan minggu ini belum bisa dimuat.' : 'Nala sedang membaca hasil kelas Anda…'}</p>
+      : items.length === 0 ? <p className={styles.empty}>Daftar ini terisi setelah siswa berdialog minggu ini.</p>
+      : <ul className={styles.changes}>{items.slice(0, 2).map((item) => <li key={item.misconception_id}>
+        <q>“{item.statement}”</q>
+        <dl><div><dt>Awalnya</dt><dd>{number.format(item.held)} siswa</dd></div><div data-good={item.resolved > 0}><dt>Di akhir berubah</dt><dd>{number.format(item.resolved)} siswa</dd></div></dl>
+      </li>)}</ul>}
+  </section>
 }
 
-// The finding is recomputed from the data, so it never goes stale after a refresh.
-function Trend({ trend }: { trend: TeacherDashboard['trend'] }) {
-  const weeks = trend.map((week) => ({ ...week, total: week.mastered + week.developing + week.misconception })).filter((week) => week.total > 0)
-    .map((week) => ({ week_start: week.week_start, share: { mastered: Math.round(week.mastered / week.total * 100), developing: Math.round(week.developing / week.total * 100), misconception: Math.round(week.misconception / week.total * 100) } }))
-  const first = weeks[0]?.share.mastered, last = weeks[weeks.length - 1]?.share.mastered
-  const finding = weeks.length < 2 ? 'Komposisi hasil konsep per minggu, bukan jumlah siswa.' : last > first ? `Hasil paham naik dari ${first} ke ${last} persen.` : last < first ? `Hasil paham turun dari ${first} ke ${last} persen.` : `Hasil paham stabil di ${last} persen.`
-  return <section className={styles.panel} aria-labelledby="home-trend">
-    <div className={styles.head}><h2 id="home-trend">Tren pemahaman</h2><span className="text-[12px] leading-6 text-text-muted">{number.format(trend.length)} minggu</span></div>
-    <p className={styles.lede}>{finding}</p>
-    {weeks.length === 0 ? <p className={styles.empty}>Tren muncul setelah hasil konsep tersedia.</p> : <>
-      <ul className={styles.legend}>{series.map(([key, label]) => <li key={key}><span className={styles[key]} aria-hidden="true" />{label}</li>)}</ul>
-      <TrendChart weeks={weeks} label={`Tren pemahaman. ${finding}`} />
-      <details className={styles.table}><summary>Lihat data sebagai tabel<Icon name="chevronDown" size={16} /></summary><div className={styles.tableScroll}>
-        <table><caption>Jumlah hasil konsep per minggu, bukan jumlah siswa</caption><thead><tr><th scope="col">Minggu mulai</th>{series.map(([key, label]) => <th key={key} scope="col">{label}</th>)}</tr></thead><tbody>{trend.map((week) => <tr key={week.week_start}><th scope="row">{formatDay(week.week_start)}</th>{series.map(([key]) => <td key={key}>{number.format(week[key])}</td>)}</tr>)}</tbody></table>
-      </div></details>
+const tiles = [['safety', 'Keselamatan'], ['flag', 'Perlu verifikasi'], ['kb_review', 'Persetujuan']] as const
+function Attention({ resource, base }: { resource: AttentionResource; base: string }) {
+  const { data, error, online, refresh } = resource
+  const items = (data?.items ?? []).filter(isKnownAttention).sort((a, b) => attentionRank(a) - attentionRank(b))
+  const [lead, ...rest] = items
+  const row = (item: AttentionItem) => describeAttention(item, base)
+  return <section className={styles.card} aria-labelledby="home-attention" aria-busy={!data && !error}>
+    <div className={styles.head}><h2 id="home-attention">Perlu perhatian</h2><Link to={`${base}/attention`}>Buka semua</Link></div>
+    <LiveFeedback error={error} online={online} refresh={refresh} />
+    {!data && !error && <Loading label="Memuat tugas Anda…" />}
+    {data && <>
+      <dl className={styles.tiles}>{tiles.map(([kind, label]) => <div key={kind} data-urgent={kind === 'safety' && data.counts[kind] > 0}><dt>{label}</dt><dd>{number.format(data.counts[kind])}</dd></div>)}</dl>
+      {!lead ? <p className={styles.empty}><Icon name="check" size={16} />Tidak ada yang menunggu Anda.</p> : <>
+        <div className={styles.lead} data-kind={lead.kind}>
+          <span aria-hidden="true">{initials(row(lead).who)}</span>
+          <div><strong>{row(lead).who}</strong><small>{row(lead).summary}</small></div>
+          <time dateTime={row(lead).at}>{waitedFor(row(lead).at)}</time>
+          <Link to={row(lead).to}>{attentionKind[lead.kind].action}<span className="sr-only">: {row(lead).title}</span></Link>
+        </div>
+        {rest.length > 0 && <div className={styles.next}><p>Berikutnya</p><ul>{rest.slice(0, 3).map((item) => <li key={`${item.kind}-${item.item_id}`}><Link to={row(item).to}><b>{attentionKind[item.kind].label}</b><span>{row(item).title}</span></Link></li>)}</ul></div>}
+      </>}
     </>}
   </section>
 }
 
-const isActive = (publication: TeacherPublication) => ['lobby', 'open'].includes(publication.run.status)
-const tabs = [['active', 'Berlangsung'], ['scheduled', 'Terjadwal'], ['closed', 'Selesai']] as const
-type SessionTab = typeof tabs[number][0]
-const inTab = (publication: TeacherPublication, tab: SessionTab) => tab === 'active' ? isActive(publication) : publication.run.status === tab
-const statusLabel = (status: string) => ({ lobby: 'Lobi terbuka', open: 'Berlangsung', scheduled: 'Terjadwal', closed: 'Selesai' } as Readonly<Record<string, string>>)[status] ?? status
-const when = (publication: TeacherPublication) => publication.run.status === 'closed' ? publication.run.closes_at : publication.run.opens_at
-const sessionPath = (publication: TeacherPublication, base: string) => `${base}/publications/${publication.id}/${publication.run.mode === 'live' && isActive(publication) ? 'monitor' : 'class-map'}`
-
-function Sessions({ resource, base }: { resource: { data: TeacherPublication[] | null; error: ApiError | null; online: boolean; refresh: () => void }; base: string }) {
-  const { data, error, online, refresh } = resource
-  const [picked, setPicked] = useState<SessionTab | null>(null)
-  const tab = picked ?? tabs.find(([key]) => data?.some((publication) => inTab(publication, key)))?.[0] ?? 'active'
-  const rows = (data ?? []).filter((publication) => inTab(publication, tab)).sort((a, b) => {
-    const order = Date.parse(when(a) ?? '') - Date.parse(when(b) ?? '')
-    return Number.isNaN(order) ? 0 : tab === 'closed' ? -order : order
-  }).slice(0, 4)
-  return <section className={styles.panel} aria-labelledby="home-sessions" aria-busy={!data && !error}>
-    <div className={cn(styles.head, 'items-center')}><h2 id="home-sessions">Sesi kelas</h2>
-      {data && data.length > 0 && <div className={styles.segmented} role="group" aria-label="Tampilkan sesi">{tabs.map(([key, label]) => <button key={key} type="button" aria-pressed={tab === key} onClick={() => setPicked(key)}>{label}<span>{number.format(data.filter((publication) => inTab(publication, key)).length)}</span></button>)}</div>}
-    </div>
-    <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <Loading label="Memuat sesi…" />}
-    {data && (data.length === 0 ? <p className={styles.empty}>Belum ada sesi kelas. <Link to={`${base}/missions`}>Terbitkan misi yang sudah ditinjau</Link> untuk memulai.</p>
-      : rows.length === 0 ? <p className={styles.empty}>Tidak ada sesi {tabs.find(([key]) => key === tab)?.[1].toLowerCase()}.</p>
-      : <ul className={styles.sessions}>{rows.map((publication) => {
-        const { run, counts } = publication
-        const at = when(publication)
-        return <li key={publication.id} className="py-0.5"><Link to={sessionPath(publication, base)} state={{ publication }} className={styles.session}>
-          <span className={styles.time}><strong>{at ? clock.format(new Date(at)) : run.mode === 'live' ? 'Langsung' : 'Bebas'}</strong>{at && <small>{shortDay.format(new Date(at))}</small>}</span>
-          <span className={styles.sessionText}><strong>{publication.mission_title}</strong><small>Kelas {publication.class_name}, {counts.started === 0 ? 'belum ada siswa' : `${number.format(counts.completed)}/${number.format(counts.started)} selesai`}</small></span>
-          <span className={cn(styles.status, statusTone[run.status] ?? statusTone.closed)}>{statusLabel(run.status)}</span>
-        </Link></li>
-      })}</ul>)}
-    {data && data.length > 0 && <Link className={cn(styles.more, 'mt-2')} to={`${base}/sessions`}>Lihat semua sesi<Icon name="chevronRight" size={14} /></Link>}
+function Patterns({ data, base }: { data: TeacherDashboard | null; base: string }) {
+  const items = data ? [...data.top_changed].sort((a, b) => b.held - a.held).slice(0, 3) : []
+  const most = Math.max(1, ...items.map((item) => item.held))
+  const still = items.reduce((sum, item) => sum + Math.max(0, item.held - item.resolved), 0)
+  return <section className={styles.card} aria-labelledby="home-patterns">
+    <div className={styles.head}><div><h2 id="home-patterns">Pola kelas</h2><p>{data ? `${number.format(data.this_week.active_misconceptions)} miskonsepsi aktif di ${number.format(data.this_week.concepts_with_misconceptions)} konsep` : 'Minggu ini'}</p></div><Link to={`${base}/sessions`}>Peta kelas</Link></div>
+    {items.length === 0 ? <p className={styles.empty}>Pola muncul setelah sesi minggu ini dinilai.</p> : <>
+      <p className={styles.label}>Miskonsepsi terbanyak</p>
+      <ul className={styles.bars}>{items.map((item) => <li key={item.misconception_id}><span><span>{item.statement}</span><b>{number.format(item.held)} siswa</b></span><i aria-hidden="true"><i style={{ inlineSize: `${item.held / most * 100}%` }} /></i></li>)}</ul>
+    </>}
+    {still > 0 && <p className={styles.note}><Nala mood="search" size={36} head /><span>{number.format(still)} siswa masih memegang miskonsepsi ini. <Link to={`${base}/missions/new`}>Buat misi lanjutan</Link></span></p>}
   </section>
 }
 
-// A rule, not a model: misconceptions most students let go of come first; the footer names what is still held.
-function Changed({ data, failed, base }: { data: TeacherDashboard | null; failed: boolean; base: string }) {
-  const items = data ? [...data.top_changed].sort((a, b) => b.resolved - a.resolved || b.held - a.held).slice(0, 4) : []
-  const held = items.filter((item) => item.held > item.resolved)
-  const still = held.reduce((sum, item) => sum + item.held - item.resolved, 0)
-  const resolved = items.reduce((sum, item) => sum + item.resolved, 0)
-  return <section className={styles.rail} aria-labelledby="home-changed" aria-busy={!data && !failed}>
-    <div className={styles.railHead}>
-      <div className="min-w-0"><h2 id="home-changed">Berubah pikiran minggu ini</h2><p>Miskonsepsi yang dikoreksi siswa sendiri selama dialog.</p></div>
-    </div>
-    {resolved > 0 && <p className={styles.proud}><span className={styles.railNala}><Nala mood="proud" size={32} animate /></span><strong>{number.format(resolved)} siswa</strong>mengoreksi miskonsepsinya sendiri selama dialog</p>}
-    {!data ? <p className={styles.railEmpty}>{failed ? 'Ringkasan minggu ini belum bisa dimuat.' : 'Nala sedang membaca hasil kelas Anda…'}</p>
-      : items.length === 0 ? <p className={styles.railEmpty}>Daftar ini terisi setelah siswa berdialog minggu ini.</p>
-      : <ol className={styles.changes}>{items.map((item, index) => <li key={item.misconception_id} className={styles.change}>
-        <span aria-hidden="true">{index + 1}</span>
-        <div className="min-w-0"><strong>“{item.statement}”</strong>
-          <dl className={styles.split}><div><dt>Awalnya</dt><dd>{number.format(item.held)} siswa</dd></div><div data-good={item.resolved > 0}><dt>Berubah</dt><dd>{number.format(item.resolved)} siswa</dd></div></dl>
-        </div>
-      </li>)}</ol>}
-    {held.length > 0 && <div className={styles.railFoot}>
-      <p>{number.format(still)} siswa masih memegang {number.format(held.length)} miskonsepsi ini.</p>
-      <ButtonLink to={`${base}/missions/new`} className={styles.railAction}>Buat misi lanjutan</ButtonLink>
-    </div>}
-  </section>
+function Rail({ attention, kb, base }: { attention: AttentionPage | null; kb: Awaited<ReturnType<KnowledgeBaseService['list']>> | null; base: string }) {
+  const release = attention?.items.find((item): item is Extract<AttentionItem, { kind: 'release_ready' }> => item.kind === 'release_ready')
+  const topics = (kb ?? []).slice(0, 3)
+  return <div className={styles.rail}>
+    <section className={styles.release} aria-label="Siap dirilis ke orang tua">
+      <p>Siap dirilis ke orang tua</p>
+      {release ? <>
+        <p><strong>{number.format(release.eligible_count)}</strong>ringkasan · {release.class_name}</p>
+        <p>{release.mission_title} · skor dan catatan verifikasi tidak ikut terkirim.</p>
+        <Link to={`${base}/publications/${release.publication_id}/release`}>Pratinjau dan rilis</Link>
+      </> : <p>Belum ada ringkasan yang menunggu rilis.</p>}
+    </section>
+    <section className={styles.card} aria-labelledby="home-kb">
+      <h2 id="home-kb"><Link to={`${base}/knowledge-base`}>Basis pengetahuan</Link></h2>
+      {topics.length === 0 ? <p className={styles.empty}>Belum ada topik.</p> : <ul className={styles.topics}>{topics.map((topic) => <li key={topic.id}>
+        <Link to={`${base}/knowledge-base/${topic.id}`}><span>{topic.topic_title}</span><b data-waiting={topic.pending_count > 0}>{topic.pending_count > 0 ? `${number.format(topic.pending_count)} menunggu` : `${number.format(topic.approved_concept_count)} disetujui`}</b></Link>
+        <i aria-hidden="true"><i style={{ flexGrow: topic.approved_concept_count }} /><i style={{ flexGrow: topic.pending_count }} /></i>
+      </li>)}</ul>}
+    </section>
+  </div>
 }
 
-function summary(data: TeacherDashboard | null, attention: AttentionPage | null) {
-  if (!data) return 'Ringkasan minggu ini, tugas yang menunggu, dan sesi kelas Anda.'
-  const done = data.this_week.sessions_completed
-  const week = done === 0 ? 'Belum ada sesi selesai minggu ini.' : `${number.format(done)} sesi selesai minggu ini.`
-  const waiting = attention?.counts.total ? ` ${number.format(attention.counts.total)} hal menunggu tinjauan Anda.` : ''
-  return week + waiting
-}
-
-export function TeacherHomePage({ service, base, schoolId, user, attention }: { service: TeacherService; base: string; schoolId: string; user: string; attention: AttentionResource }) {
+export function TeacherHomePage({ service, kb, base, schoolId, user, attention }: { service: TeacherService; kb: KnowledgeBaseService; base: string; schoolId: string; user: string; attention: AttentionResource }) {
   const read = useCallback((signal: AbortSignal) => service.dashboard(schoolId, signal), [service, schoolId])
-  const { data, error, online, refresh } = useLiveResource(read, noPollMs)
+  const { data, error } = useLiveResource(read, noPollMs)
   const readSessions = useCallback((signal: AbortSignal) => service.publications(signal), [service])
   const sessions = useLiveResource(readSessions, noPollMs)
+  const readTopics = useCallback((signal: AbortSignal) => kb.list(schoolId, signal), [kb, schoolId])
+  const topics = useLiveResource(readTopics, noPollMs)
   const queue = attention.online && !attention.error ? attention.data : null
-  // A class in a live lobby or session is the one thing to jump back into; otherwise the next step is a new mission.
-  const live = sessions.data?.find((publication) => publication.run.mode === 'live' && isActive(publication))
   return <div className={styles.page}>
-    <div className={styles.header}>
-      <div><h1>{greeting()}, {user.trim().split(/\s+/)[0]}</h1><p>{summary(data, queue)}{data && <span className={styles.asOf}> Diperbarui {formatDayTime(data.as_of)}.</span>}</p></div>
-      <div className={styles.actions}>
-        {live ? <>
-          <ButtonLink tone="secondary" to={`${base}/missions/new`} className={styles.button}><Icon name="plus" size={16} />Buat misi</ButtonLink>
-          <ButtonLink to={sessionPath(live, base)} state={{ publication: live }} className={styles.button}><Icon name="play" size={16} />Pantau sesi {live.class_name}</ButtonLink>
-        </> : <>
-          <ButtonLink tone="secondary" to={`${base}/sessions`} className={styles.button}><Icon name="monitor" size={16} />Lihat sesi</ButtonLink>
-          <ButtonLink to={`${base}/missions/new`} className={styles.button}><Icon name="plus" size={16} />Buat misi</ButtonLink>
-        </>}
-      </div>
-    </div>
-    <section className={styles.week} aria-label="Minggu ini" aria-busy={!data && !error}>
-      <LiveFeedback error={error} online={online} refresh={refresh} />
-      {!data && !error && <div className={styles.skeleton} aria-hidden="true">{Array.from({ length: 4 }, (_, index) => <div key={index}><span /><span /></div>)}</div>}
-      {data && <Kpis week={data.this_week} last={data.last_week} />}
-    </section>
+    <TeacherPageHead title={`${greeting()}, ${user.trim().split(/\s+/)[0]}`} subtitle={today.format(new Date())} />
     <div className={styles.top}>
-      <Sessions resource={sessions} base={base} />
+      <Schedule resource={sessions} base={base} />
       <Changed data={data} failed={Boolean(error)} base={base} />
     </div>
     <div className={styles.bottom}>
-      <Todo resource={attention} base={base} />
-      {data && <Trend trend={data.trend} />}
+      <Attention resource={attention} base={base} />
+      <Patterns data={data} base={base} />
+      <Rail attention={queue} kb={topics.data} base={base} />
     </div>
   </div>
 }

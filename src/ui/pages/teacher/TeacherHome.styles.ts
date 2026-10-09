@@ -1,86 +1,36 @@
-// Tailwind classes for TeacherHomePage.tsx, Board v2 language: hairline cards (rounded-card), one divided KPI strip,
-// cream action cards, a warm Kunyit wash on the change-of-mind rail. Shapes: cards 14px, inner panels 10px, chips full.
-const card = 'min-w-0 rounded-2xl bg-surface'
-const press = 'transition-[background-color,border-color,color,scale] duration-150 ease-[cubic-bezier(.23,1,.32,1)] active:scale-[.98] motion-reduce:transition-none motion-reduce:active:scale-100'
-const h2 = '[&_h2]:m-0 [&_h2]:text-[15px] [&_h2]:leading-6 [&_h2]:font-semibold [&_h2]:tracking-[-.01em] [&_h2]:text-balance'
+// Tailwind classes for TeacherHomePage.tsx, after the home screen of "NALAR Guru.dc.html": borderless white cards on
+// paper, a 400px schedule beside the changed-minds card, then a 5/4/3 row (attention, class patterns, rail).
+const link = '[&>a]:ms-auto [&>a]:text-[13px] [&>a]:font-bold [&>a]:text-primary [&>a]:no-underline [&>a:hover]:text-primary-hover'
 const styles = {
-  page: 'mx-auto grid max-w-340 gap-4',
-  header: 'flex flex-wrap items-end justify-between gap-x-6 gap-y-4 [&_h1]:m-0 [&_h1]:text-[22px] [&_h1]:leading-[30px] [&_h1]:font-bold [&_h1]:tracking-[-.015em] [&_h1]:wrap-anywhere [&_p]:mt-0.5 [&_p]:mb-0 [&_p]:max-w-[64ch] [&_p]:text-[13px] [&_p]:leading-5 [&_p]:text-pretty [&_p]:text-text-muted',
-  asOf: 'whitespace-nowrap',
-  actions: 'flex flex-wrap gap-2',
-  button: 'min-h-10 gap-1.5 px-3.5 py-2 text-[13px] font-semibold transition-[background-color,scale] ease-[cubic-bezier(.23,1,.32,1)] active:not-disabled:translate-y-0 active:not-disabled:scale-[.97] motion-reduce:active:not-disabled:scale-100 max-md:min-h-11',
-
-  week: '@container min-w-0',
-  // gap-px over a border-coloured fill draws the hairlines between cells; the column counts never leave a hole.
-  kpis: 'm-0 grid grid-cols-1 gap-3 [&>*]:rounded-xl @min-[440px]:grid-cols-2 @min-[780px]:grid-cols-4 [&_dd]:ms-0',
-  kpi: 'flex min-w-0 flex-col bg-surface px-5 py-4 max-md:px-4',
-  kpiLabel: 'flex items-center gap-2 text-[11px] leading-4 font-semibold tracking-[.06em] text-text-muted uppercase',
-  kpiValue: 'mt-2 text-[24px] leading-8 font-bold tracking-[-.02em] tabular-nums text-ink data-[empty=true]:text-[17px] data-[empty=true]:leading-8 data-[empty=true]:font-semibold data-[empty=true]:tracking-normal data-[empty=true]:text-text-secondary',
-  kpiChip: 'mt-1.5',
-  chip: 'inline-flex max-w-full items-center gap-1 rounded-pill bg-surface-muted px-2 py-0.5 text-[11px] leading-4 font-semibold whitespace-nowrap text-text-secondary data-[tone=bad]:bg-misconception-bg data-[tone=bad]:text-misconception-text data-[tone=good]:bg-success-bg data-[tone=good]:text-success-strong data-[dir=down]:[&>svg]:rotate-180',
-  kpiCaption: 'mt-1 text-[12px] leading-4 text-text-muted',
-  skeleton: 'grid grid-cols-1 gap-3 [&>*]:rounded-xl @min-[440px]:grid-cols-2 @min-[780px]:grid-cols-4 [&>div]:h-[118px] [&>div]:bg-surface [&>div]:px-5 [&>div]:py-4 [&_span]:block [&_span]:rounded-[6px] [&_span]:bg-surface-muted [&_span:first-child]:h-3 [&_span:first-child]:w-24 [&_span:last-child]:mt-4 [&_span:last-child]:h-7 [&_span:last-child]:w-16',
-
-  // From 1280px: actions and the trend/sessions pair on the left, the change-of-mind rail spanning both rows on the right.
+  page: 'grid min-w-0 gap-4',
   top: 'grid items-stretch gap-4 xl:grid-cols-[400px_minmax(0,1fr)]',
-  bottom: 'grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_400px]',
-  head: `flex flex-wrap items-start justify-between gap-x-4 gap-y-1 ${h2}`,
-  count: 'ms-2 text-[14px] font-semibold tabular-nums text-text-muted',
-  lede: 'mt-1 mb-0 text-[13px] leading-5 text-pretty text-text-muted',
-  more: 'inline-flex min-h-8 items-center gap-1 text-[13px] font-semibold whitespace-nowrap text-primary no-underline hover:text-primary-hover [&>svg]:transition-[translate] [&>svg]:duration-150 hover:[&>svg]:translate-x-0.5 motion-reduce:[&>svg]:transition-none max-md:min-h-11',
-  empty: 'm-0 py-5 text-[13px] leading-5 text-text-secondary [&_a]:font-semibold [&_a]:text-primary-hover',
+  bottom: 'grid items-stretch gap-4 lg:grid-cols-12 [&>*:nth-child(1)]:lg:col-span-5 [&>*:nth-child(2)]:lg:col-span-4 [&>*:nth-child(3)]:lg:col-span-3 max-lg:[&>*]:col-span-1',
+  card: 'flex min-w-0 flex-col gap-4 rounded-2xl bg-surface p-5 [&_h2]:m-0 [&_h2]:text-[16px] [&_h2]:font-bold [&_h2_a]:text-ink [&_h2_a]:no-underline [&_h2_a:hover]:text-primary',
+  head: `flex items-baseline gap-2 [&>span]:text-[13px] [&>span]:text-text-muted [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-text-muted [&>div]:grid [&>div]:gap-0.5 ${link}`,
+  big: 'text-[18px]! font-extrabold! tracking-[-.02em]',
+  empty: 'm-0 flex items-center gap-2 text-[14px] text-text-secondary [&_a]:font-bold [&_a]:text-primary',
 
-  todo: `${card} p-5`,
-  cards: 'mx-0 mt-4 mb-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,256px),1fr))] gap-3 p-0',
-  action: 'flex min-w-0 flex-col gap-2.5 rounded-[12px] border border-[color-mix(in_srgb,var(--color-accent)_32%,var(--color-role-border))] bg-[color-mix(in_srgb,var(--color-warning-bg)_38%,var(--color-surface))] p-3.5 data-[kind=safety]:border-[color-mix(in_srgb,var(--color-danger-text)_28%,var(--color-role-border))] data-[kind=safety]:bg-[color-mix(in_srgb,var(--color-danger-bg)_55%,var(--color-surface))] [&_h3]:m-0 [&_h3]:text-[14px] [&_h3]:leading-5 [&_h3]:font-semibold [&_h3]:wrap-anywhere [&>p]:m-0 [&>p]:text-[13px] [&>p]:leading-[19px] [&>p]:text-text-secondary',
-  actionTop: 'flex items-center justify-between gap-2',
-  kind: 'inline-flex items-center gap-1 rounded-[6px] px-2 py-[3px] text-[11px] leading-4 font-bold whitespace-nowrap',
-  when: 'inline-flex min-w-0 items-center gap-1 truncate text-[11px] leading-4 text-text-muted tabular-nums',
-  next: 'rounded-[10px] bg-[color-mix(in_srgb,var(--color-warning-bg)_80%,var(--color-surface))] px-3 py-2.5 in-data-[kind=safety]:bg-[color-mix(in_srgb,var(--color-danger-bg)_90%,var(--color-surface))] [&_strong]:flex [&_strong]:items-center [&_strong]:gap-1.5 [&_strong]:text-[11px] [&_strong]:leading-4 [&_strong]:font-semibold [&_strong]:text-warning-text in-data-[kind=safety]:[&_strong]:text-danger-text [&_p]:mt-1.5 [&_p]:mb-0 [&_p]:text-[12px] [&_p]:leading-[18px] [&_p]:text-ink',
-  go: `mt-auto flex min-h-9 items-center justify-center gap-1 rounded-button border border-role-border bg-surface px-3 text-[12px] font-semibold text-ink no-underline ${press} hover:border-primary hover:text-primary max-md:min-h-11 in-data-[kind=safety]:border-transparent in-data-[kind=safety]:bg-danger-text in-data-[kind=safety]:text-surface in-data-[kind=safety]:hover:bg-danger-hover in-data-[kind=safety]:hover:text-surface`,
-  clear: 'mt-4 flex items-start gap-3 rounded-[12px] bg-success-bg p-4 [&>span]:grid [&>span]:size-8 [&>span]:shrink-0 [&>span]:place-items-center [&>span]:rounded-full [&>span]:bg-success-text [&>span]:text-surface [&_h3]:m-0 [&_h3]:text-[14px] [&_h3]:leading-5 [&_h3]:font-semibold [&_p]:mt-1 [&_p]:mb-0 [&_p]:text-[13px] [&_p]:leading-5 [&_p]:text-text-secondary',
+  schedule: 'm-0 grid list-none grid-cols-[40px_minmax(0,1fr)] gap-x-3 gap-y-2 p-0 [&>li]:contents',
+  slot: 'pt-3 text-[12px] font-bold tabular-nums text-text-muted',
+  block: 'grid gap-1.5 rounded-xl bg-paper px-3 py-2.5 text-ink data-[tone=done]:bg-success-bg data-[tone=planned]:bg-info-bg data-[tone=live]:bg-primary data-[tone=live]:text-white',
+  blockTitle: 'flex min-w-0 items-baseline gap-2 text-inherit no-underline [&_strong]:text-[16px] [&_strong]:font-extrabold [&_span]:truncate [&_span]:text-[13px] [&_span]:font-semibold hover:[&_span]:underline',
+  blockFoot: 'flex min-h-7 items-center gap-2 text-[12px] [&>span]:flex-1 [&>span]:opacity-80 [&_b]:flex [&_b]:items-center [&_b]:gap-1 [&_b]:font-bold [&_b]:text-primary [&_b[data-done]]:text-success-strong',
+  blockAction: 'flex h-7 flex-none items-center gap-1.5 rounded-[8px] bg-surface px-2.5 text-[12px] font-bold text-primary no-underline hover:bg-info-bg',
 
-  panel: `${card} p-5`,
-  legend: 'mx-0 mt-3 mb-0 flex list-none flex-wrap gap-x-3.5 gap-y-1 p-0 text-[12px] leading-5 text-text-secondary [&_li]:flex [&_li]:items-center [&_li]:gap-1.5 [&_li>span]:size-2 [&_li>span]:rounded-full',
-  chart: 'mt-2 block h-auto w-full overflow-visible',
-  mastered: 'bg-primary',
-  developing: 'bg-accent',
-  misconception: 'bg-misconception-text',
-  table: 'mt-2 border-t border-role-border text-[12px] [&_summary]:flex [&_summary]:min-h-11 [&_summary]:cursor-pointer [&_summary]:list-none [&_summary]:items-center [&_summary]:justify-between [&_summary]:gap-2 [&_summary]:pt-1 [&_summary]:font-semibold [&_summary]:text-primary [&_summary::-webkit-details-marker]:hidden [&_summary_svg]:transition-[rotate] [&_summary_svg]:duration-200 [&[open]_summary_svg]:rotate-180 [&_table]:w-full [&_table]:border-collapse [&_table]:text-text-secondary [&_caption]:pt-1 [&_caption]:pb-3 [&_caption]:text-start [&_caption]:text-[12px] [&_th]:border-t [&_th]:border-role-border [&_th]:px-2 [&_th]:py-2.5 [&_th]:text-end [&_th]:tabular-nums [&_td]:border-t [&_td]:border-role-border [&_td]:px-2 [&_td]:py-2.5 [&_td]:text-end [&_td]:tabular-nums [&_th:first-child]:text-start',
-  tableScroll: 'overflow-x-auto',
+  proud: 'm-0 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-success-bg px-4 py-2 [&_strong]:text-[20px] [&_strong]:font-extrabold [&_strong]:tracking-[-.02em] [&_strong]:text-success-strong [&>span]:text-[14px] [&>span]:text-[#1F4D38] [&_b]:font-bold',
+  changes: 'm-0 grid list-none gap-4 p-0 md:grid-cols-2 [&_li]:grid [&_li]:content-start [&_li]:gap-3 [&_li]:rounded-xl [&_li]:bg-paper [&_li]:p-4 [&_q]:font-reading [&_q]:text-[15px] [&_q]:leading-[1.5] [&_q]:text-ink [&_q]:[quotes:none] [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-2 [&_dl]:gap-2 [&_dl>div]:rounded-[10px] [&_dl>div]:bg-surface [&_dl>div]:px-3 [&_dl>div]:py-2 [&_dt]:text-[12px] [&_dt]:font-bold [&_dt]:text-text-muted [&_dd]:m-0 [&_dd]:text-[14px] [&_dd]:font-bold [&_div[data-good=true]_dt]:text-success-strong [&_div[data-good=true]_dd]:text-success-strong',
 
-  segmented: 'flex flex-wrap gap-1.5 [&>button]:inline-flex [&>button]:min-h-8 [&>button]:cursor-pointer [&>button]:items-center [&>button]:gap-1.5 [&>button]:rounded-pill [&>button]:border-0 [&>button]:bg-paper [&>button]:px-3 [&>button]:text-[13px] [&>button]:font-bold [&>button]:text-text-secondary [&>button]:transition-[background-color,color] [&>button]:duration-150 [&>button[aria-pressed=false]]:hover:bg-surface-muted [&>button[aria-pressed=true]]:bg-primary [&>button[aria-pressed=true]]:text-surface [&>button>span]:text-[12px] [&>button>span]:tabular-nums [&>button>span]:opacity-70 max-md:[&>button]:min-h-10',
-  sessions: 'mx-0 mt-4 mb-0 flex list-none flex-col gap-2 p-0',
-  session: `group grid grid-cols-[72px_minmax(0,1fr)_auto] items-center gap-3 rounded-xl bg-paper px-3 py-2.5 text-ink no-underline ${press} hover:bg-info-bg active:scale-[.99]`,
-  time: 'flex flex-col whitespace-nowrap [&_small]:text-[11px] [&_small]:leading-4 [&_small]:text-text-muted [&_strong]:text-[13px] [&_strong]:leading-5 [&_strong]:font-bold [&_strong]:tabular-nums',
-  sessionText: 'flex min-w-0 flex-col [&_small]:truncate [&_small]:text-[12px] [&_small]:leading-4 [&_small]:text-text-muted [&_strong]:truncate [&_strong]:text-[13px] [&_strong]:leading-5 [&_strong]:font-semibold',
-  status: 'rounded-pill px-2 py-0.5 text-[11px] leading-4 font-semibold whitespace-nowrap',
+  tiles: 'm-0 grid grid-cols-3 gap-2 [&>div]:flex [&>div]:flex-col-reverse [&>div]:justify-end [&>div]:gap-0.5 [&>div]:rounded-xl [&>div]:bg-paper [&>div]:p-3 [&_dd]:m-0 [&_dd]:text-[24px] [&_dd]:leading-[1.1] [&_dd]:font-extrabold [&_dd]:tracking-[-.02em] [&_dt]:text-[13px] [&_dt]:font-semibold [&_dt]:text-text-secondary [&>div[data-urgent=true]]:bg-danger-bg [&>div[data-urgent=true]_dd]:text-[#A3253F] [&>div[data-urgent=true]_dt]:text-[#A3253F]',
+  lead: 'flex items-center gap-3 border-t border-paper pt-3 [&>span]:grid [&>span]:size-8 [&>span]:flex-none [&>span]:place-items-center [&>span]:rounded-pill [&>span]:bg-info-bg [&>span]:text-[11px] [&>span]:font-extrabold [&>span]:text-primary data-[kind=safety]:[&>span]:bg-danger-bg data-[kind=safety]:[&>span]:text-[#A3253F] [&>div]:grid [&>div]:min-w-0 [&>div]:flex-1 [&_strong]:text-[14px] [&_strong]:font-bold [&_small]:truncate [&_small]:text-[13px] [&_small]:text-text-secondary [&_time]:flex-none [&_time]:text-[12px] [&_time]:text-text-muted [&>a]:flex [&>a]:h-8 [&>a]:flex-none [&>a]:items-center [&>a]:rounded-[8px] [&>a]:bg-info-bg [&>a]:px-3 [&>a]:text-[13px] [&>a]:font-bold [&>a]:text-primary [&>a]:no-underline data-[kind=safety]:[&>a]:bg-[#A3253F] data-[kind=safety]:[&>a]:text-white',
+  next: 'grid gap-1 border-t border-paper pt-3 [&>p]:m-0 [&>p]:pb-1 [&>p]:text-[12px] [&>p]:font-bold [&>p]:text-text-muted [&_ul]:m-0 [&_ul]:grid [&_ul]:list-none [&_ul]:gap-1 [&_ul]:p-0 [&_a]:flex [&_a]:items-center [&_a]:gap-3 [&_a]:rounded-[10px] [&_a]:bg-paper [&_a]:px-3 [&_a]:py-2 [&_a]:text-ink [&_a]:no-underline [&_a:hover]:bg-info-bg [&_b]:w-26 [&_b]:flex-none [&_b]:text-[12px] [&_b]:text-text-secondary [&_a>span]:truncate [&_a>span]:text-[13px] [&_a>span]:font-semibold',
 
-  rail: `${card} p-5`,
-  // The only gradient on the page: a warm Kunyit wash behind Nala, theme-aware because it mixes tokens.
-  railHead: `flex items-start gap-3 ${h2} [&_p]:mt-0.5 [&_p]:mb-0 [&_p]:text-[13px] [&_p]:leading-5 [&_p]:text-text-muted`,
-  proud: 'mt-4 flex items-center gap-3 rounded-xl bg-success-bg px-4 py-2 text-[14px] leading-5 text-success-strong [&_strong]:text-[20px] [&_strong]:leading-7 [&_strong]:font-extrabold [&_strong]:tracking-[-.02em]',
-  railNala: 'shrink-0',
-  changes: 'mx-0 mt-4 mb-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(100%,260px),1fr))] gap-4 p-0',
-  change: 'grid grid-cols-[18px_minmax(0,1fr)] gap-x-2 rounded-xl bg-paper p-4 [&>span]:pt-px [&>span]:text-[13px] [&>span]:leading-5 [&>span]:font-bold [&>span]:tabular-nums [&>span]:text-text-muted [&_strong]:block [&_strong]:text-[14px] [&_strong]:leading-5 [&_strong]:font-semibold [&_strong]:wrap-anywhere',
-  split: 'mx-0 mt-2.5 mb-0 grid grid-cols-2 gap-2 [&>div]:rounded-[10px] [&>div]:bg-surface [&>div]:px-2.5 [&>div]:py-2 [&_dt]:text-[11px] [&_dt]:leading-4 [&_dt]:text-text-muted [&_dd]:ms-0 [&_dd]:mt-0.5 [&_dd]:text-[13px] [&_dd]:leading-5 [&_dd]:font-bold [&_dd]:tabular-nums [&>div[data-good=true]]:bg-success-bg [&>div[data-good=true]_dd]:text-success-strong',
-  railFoot: 'mt-4 flex flex-wrap items-center gap-3 border-t border-role-border pt-4 [&_p]:m-0 [&_p]:flex-1 [&_p]:text-[13px] [&_p]:leading-5 [&_p]:font-semibold [&_p]:text-pretty',
-  railAction: 'ms-auto min-h-10 px-4 py-2 text-[13px] font-semibold active:not-disabled:translate-y-0 active:not-disabled:scale-[.98] motion-reduce:active:not-disabled:scale-100 max-md:min-h-11',
-  railEmpty: 'm-0 pt-3 text-[13px] leading-5 text-text-secondary',
+  label: 'm-0 text-[13px] font-bold text-text-secondary',
+  bars: 'm-0 grid list-none gap-3 p-0 [&_li]:grid [&_li]:gap-1.5 [&_li>span]:flex [&_li>span]:gap-3 [&_li>span]:text-[14px] [&_li>span>span]:flex-1 [&_li>span>span]:min-w-0 [&_b]:flex-none [&_b]:font-bold [&_li>i]:block [&_li>i]:h-1.5 [&_li>i]:rounded-pill [&_li>i]:bg-[#F3F1EC] [&_li>i>i]:block [&_li>i>i]:h-full [&_li>i>i]:rounded-pill [&_li>i>i]:bg-accent',
+  note: 'mt-auto mb-0 flex items-start gap-3 border-t border-paper pt-4 text-[13px] leading-[1.5] text-text-secondary [&_a]:font-bold [&_a]:text-primary',
+
+  rail: 'flex min-w-0 flex-col gap-4',
+  release: 'flex flex-1 flex-col justify-between gap-3 rounded-2xl bg-ink p-5 text-white [&_p]:m-0 [&>p:first-child]:text-[13px] [&>p:first-child]:font-bold [&>p:first-child]:text-account-caption [&_strong]:me-2 [&_strong]:text-[32px] [&_strong]:font-extrabold [&_strong]:tracking-[-.02em] [&_p:nth-child(2)]:text-[14px] [&_p:nth-child(2)]:text-info-bg [&_p:nth-child(3)]:text-[13px] [&_p:nth-child(3)]:leading-[1.5] [&_p:nth-child(3)]:text-account-caption [&_a]:mt-1 [&_a]:flex [&_a]:h-10 [&_a]:items-center [&_a]:justify-center [&_a]:rounded-[8px] [&_a]:bg-accent [&_a]:text-[14px] [&_a]:font-bold [&_a]:text-ink [&_a]:no-underline [&_a:hover]:bg-[#E5A42C]',
+  topics: 'm-0 grid list-none gap-4 p-0 [&_li]:grid [&_li]:gap-1.5 [&_a]:flex [&_a]:gap-2 [&_a]:text-[14px] [&_a]:text-ink [&_a]:no-underline [&_a>span]:flex-1 [&_a>span]:truncate [&_a>span]:font-semibold [&_a:hover>span]:text-primary [&_b]:text-[13px] [&_b]:font-bold [&_b]:text-success-strong [&_b[data-waiting=true]]:text-primary [&_li>i]:flex [&_li>i]:h-1.5 [&_li>i]:overflow-hidden [&_li>i]:rounded-pill [&_li>i]:bg-[#F3F1EC] [&_li>i>i:first-child]:bg-[#3C9A6E] [&_li>i>i:last-child]:bg-[#9FB2F0]',
 } satisfies Record<string, string>
-
-export const kindTone = {
-  safety: 'bg-danger-text text-surface',
-  flag: 'bg-verification-bg text-ink',
-  kb_review: 'bg-warning-bg text-warning-text',
-  release_ready: 'bg-success-bg text-success-strong',
-}
-
-export const statusTone: Readonly<Record<string, string>> = {
-  lobby: 'bg-success-bg text-success-strong',
-  open: 'bg-success-bg text-success-strong',
-  scheduled: 'bg-warning-bg text-warning-text',
-  closed: 'bg-verification-bg text-text-secondary',
-}
 
 export default styles
