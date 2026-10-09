@@ -370,7 +370,7 @@ describe('signed-in teacher pages', () => {
 
   it('opens on the weekly dashboard and badges what needs attention, each item linking to where it is handled', async () => {
     open(base, backend())
-    expect(await screen.findByText('+2 dari minggu lalu')).toBeInTheDocument()
+    expect(await screen.findByText('+2 vs minggu lalu')).toBeInTheDocument()
     expect(screen.getByText('40%')).toBeInTheDocument()
     expect(screen.getByText('“Gaya bisa habis”')).toBeInTheDocument()
     await waitFor(() => expect(screen.getAllByRole('link', { name: /Perlu perhatian/ })[0]).toHaveTextContent('2'))
