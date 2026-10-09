@@ -82,15 +82,14 @@ export function TeacherPublishPage({ service, base, schoolId }: { service: Teach
 
   return <div className={styles.content}>
     {back}
-    <h1>Terbitkan ke kelas</h1>
-    <p className={styles.lead}>{mission.title}</p>
+    <div className={styles.header}><h1>Terbitkan ke kelas</h1><p className={styles.lead}>{mission.title} · Versi {version.version_number}</p></div>
     {said && <Feedback tone="warning" title={said} announce />}
     {failure && !said && <LiveFeedback error={failure} online={online} refresh={refresh} />}
     <div className={styles.grid}>
       <section className={styles.card} aria-label="Pengaturan penerbitan">
         <div role="group" aria-labelledby="publication-classes">
           <p id="publication-classes" className={styles.label}>Kelas</p>
-          {classes.length === 0 && <p>Anda belum ditugaskan ke kelas mana pun di sekolah ini.</p>}
+          {classes.length === 0 && <p className={styles.empty}>Anda belum ditugaskan ke kelas mana pun di sekolah ini.</p>}
           <div className={styles.classes}>{classes.map((item) => <button key={item.class_id} type="button" className={styles.classButton} aria-pressed={item.class_id === classId} onClick={() => setClassId(item.class_id)}>
             <span>{item.class_name}{item.class_id === classId && <Icon name="check" size={14} />}</span><small>Kelas {item.grade_level} · {item.subject_name}</small>
           </button>)}</div>
@@ -103,12 +102,12 @@ export function TeacherPublishPage({ service, base, schoolId }: { service: Teach
           </label>)}
         </fieldset>
         {mode === 'window' && <div className={styles.times}>
-          <Field id="publication-opens" type="datetime-local" label="Dibuka (WIB)" required value={opens} onChange={(event) => setOpens(event.target.value)} />
-          <Field id="publication-closes" type="datetime-local" label="Ditutup (WIB)" required value={closes} onChange={(event) => setCloses(event.target.value)} />
+          <Field id="publication-opens" className="px-3.5 py-2.5 text-sm" type="datetime-local" label="Dibuka (WIB)" required value={opens} onChange={(event) => setOpens(event.target.value)} />
+          <Field id="publication-closes" className="px-3.5 py-2.5 text-sm" type="datetime-local" label="Ditutup (WIB)" required value={closes} onChange={(event) => setCloses(event.target.value)} />
         </div>}
         {problem && <p role="alert" className={styles.error}>{problem}</p>}
       </section>
-      <section className={styles.card} aria-labelledby="publication-summary">
+      <section className={`${styles.card} ${styles.summary}`} aria-labelledby="publication-summary">
         <h2 id="publication-summary">Ringkasan</h2>
         <dl className={styles.rows}>{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
         <p className={styles.lock}><NalaIcon name="lock" />Versi {version.version_number} dikunci saat diterbitkan dan tidak bisa diubah lagi.</p>
