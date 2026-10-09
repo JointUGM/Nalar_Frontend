@@ -89,9 +89,9 @@ export function TeacherKbUploadPage({ kb, teacher, base, schoolId }: { kb: Knowl
             placeholder="Pilih mata pelajaran" hint={data && subjects.length === 0 ? 'Belum ada penugasan mata pelajaran di sekolah ini.' : undefined} />
           <Field label="Nama topik" type="text" required maxLength={120} autoComplete="off" className="px-3.5 py-2.5 text-sm" value={title} disabled={pending} onChange={(event) => setTitle(event.target.value)} />
         </div>
-        <div className={styles.actions}><Button type="submit" pending={pending} pendingLabel="Mengunggah…"><Icon name="upload" size={16} />Unggah materi</Button></div>
+        <div className={styles.actions}><Button type="submit" className={styles.submit} pending={pending} pendingLabel="Mengunggah…"><Icon name="upload" size={16} />Unggah materi</Button></div>
       </section>
-      <RoadSteps id="kb-next-heading" title="Setelah diunggah" steps={next} />
+      <div className={styles.side}><RoadSteps id="kb-next-heading" title="Setelah diunggah" steps={next} /></div>
     </form>
   </div>
 }
