@@ -249,7 +249,8 @@ export interface paths {
         get: operations["get_kb_api_v1_knowledge_bases__kb_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Archive Kb */
+        delete: operations["archive_kb_api_v1_knowledge_bases__kb_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -5813,6 +5814,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["KbDetailOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_kb_api_v1_knowledge_bases__kb_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kb_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

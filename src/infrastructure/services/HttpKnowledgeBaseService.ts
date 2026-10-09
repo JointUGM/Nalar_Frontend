@@ -74,6 +74,10 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
     await this.api.request(`${kb(kbId)}/archive`, { method: 'POST', signal })
   }
 
+  async deleteTopic(kbId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(kb(kbId), { method: 'DELETE', signal })
+  }
+
   async archiveConcept(kbId: string, conceptId: string, signal?: AbortSignal): Promise<void> {
     await this.api.request(`${kb(kbId)}/concepts/${encodeURIComponent(conceptId)}/archive`, { method: 'POST', signal })
   }

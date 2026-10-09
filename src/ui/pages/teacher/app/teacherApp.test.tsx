@@ -584,6 +584,19 @@ describe('signed-in teacher pages', () => {
     await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'DELETE')).toHaveLength(1))
   })
 
+  it('deletes a topic from the library only after confirming, and only for its owner', async () => {
+    const request = backend({
+      [`DELETE /knowledge-bases/${kbId}`]: () => new Response(null, { status: 204 }),
+      [`GET /schools/${school}/knowledge-bases?limit=100`]: () => Response.json({ ...kbList, items: [kbList.items[0], { ...kbList.items[0], id: draft, topic_title: 'Rekan', can_edit: false }] }),
+    })
+    open(`${base}/knowledge-base`, request)
+    expect(await screen.findAllByRole('button', { name: 'Hapus' })).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus' }))
+    expect(request.mock.calls.some(([, init]) => init?.method === 'DELETE')).toBe(false)
+    fireEvent.click(await screen.findByRole('button', { name: 'Hapus topik' }))
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'DELETE')).toHaveLength(1))
+  })
+
   it('creates a mission once, asks for its draft and opens the generated version', async () => {
     const request = backend({
       'POST /missions': () => Response.json({ mission_id: draft }, { status: 201 }),

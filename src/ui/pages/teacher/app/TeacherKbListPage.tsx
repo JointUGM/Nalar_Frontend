@@ -12,6 +12,8 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherKbLibrary.styles'
 import { Loading } from '@/ui/components/loading/Loading'
+import { ConfirmAction } from './ConfirmAction'
+import { kbRefusal } from './kbText'
 
 const state = (topic: KbSummary) => topic.pending_count > 0 ? 'review' : topic.approved_concept_count > 0 ? 'approved' : 'empty'
 const filters = [['all', 'Semua topik'], ['review', 'Perlu tinjauan'], ['approved', 'Siap dipakai'], ['empty', 'Belum ada konsep']] as const
@@ -64,7 +66,7 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
         </div>
         <p className={styles.resultCount} role="status">Menampilkan {number.format(visible.length)} dari {number.format(data.length)} topik yang dimuat</p>
         {visible.length === 0 ? <NalaEmpty mood="search" title="Tidak ada topik yang cocok" action={<button className={styles.emptyAction} type="button" onClick={reset}>Tampilkan semua topik</button>}>Coba kata kunci lain atau hapus filter.</NalaEmpty> : <>
-          <div className={styles.columns} aria-hidden="true"><span>Topik dan materi</span><span>Konsep</span><span>Tindak lanjut</span></div>
+          <div className={styles.columns} aria-hidden="true"><span>Topik dan materi</span><span>Konsep</span><span>Aksi</span></div>
           <ul className={styles.list} aria-label="Topik basis pengetahuan">{visible.map(topic => {
             const tone = state(topic), path = `${base}/knowledge-base/${topic.id}`
             const label = filters.find(([value]) => value === tone)![1]
@@ -77,7 +79,10 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
               <div className={styles.review}><span className={styles.status} data-status={tone}>{label}</span>
                 <dl><div><dt>Konsep disetujui</dt><dd>{number.format(topic.approved_concept_count)}</dd></div><div><dt>Menunggu tinjauan</dt><dd>{number.format(topic.pending_count)}</dd></div></dl>
               </div>
-              <Link className={styles.action} to={path}>{topic.can_edit && topic.pending_count > 0 ? 'Tinjau konsep' : 'Buka topik'}<Icon name="chevronRight" size={16} /></Link>
+              <div className={styles.actions}>
+                <Link className={styles.action} to={path}>{topic.can_edit && topic.pending_count > 0 ? 'Tinjau konsep' : 'Buka topik'}<Icon name="chevronRight" size={16} /></Link>
+                {topic.can_edit && <ConfirmAction label={<><Icon name="x" size={14} />Hapus</>} title="Hapus topik ini?" description={`${topic.topic_title}. Topik hilang dari pustaka dan namanya bisa dipakai lagi. Misi dan laporan yang sudah memakai konsepnya tetap tersimpan.`} confirm="Hapus topik" pendingLabel="Menghapus…" action={(signal) => kb.deleteTopic(topic.id, signal)} onDone={refresh} refusal={kbRefusal} />}
+              </div>
             </li>
           })}</ul>
         </>}
