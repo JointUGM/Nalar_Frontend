@@ -2,7 +2,7 @@
 // concept navigator beside the concept and its misconceptions, small uppercase labels for what each card holds,
 // learner cues as chips in the reading face and the counter-example on a Kunyit tint.
 // `teacherkbreview-*` names carry no styles: they are hooks for the tag tones.
-const card = 'min-w-0 rounded-card border border-role-border bg-surface p-5 max-sm:p-4'
+const card = 'min-w-0 rounded-2xl bg-surface p-5 max-sm:p-4'
 const micro = 'inline-flex items-center gap-1.5 text-[10px] leading-4 font-bold tracking-[.06em] uppercase'
 const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
 const styles = {

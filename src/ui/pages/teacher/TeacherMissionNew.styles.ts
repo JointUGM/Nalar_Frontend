@@ -1,6 +1,6 @@
 // Tailwind classes for TeacherMissionNewPage.tsx, Board v2 (the upload page's twin): hairline cards on the paper canvas,
 // the form beside a card with what happens next, sentence starters as compact chips.
-const card = 'min-w-0 rounded-card border border-role-border bg-surface p-5 max-sm:p-4'
+const card = 'min-w-0 rounded-2xl bg-surface p-5 max-sm:p-4'
 const styles = {
   content: 'mx-auto grid max-w-280 gap-4',
   head: 'flex flex-wrap items-end justify-between gap-x-6 gap-y-3 [&>div:first-child]:min-w-0 [&>div:first-child]:flex-[1_1_280px] [&_h1]:m-0 [&_h1]:text-[22px] [&_h1]:leading-[30px] [&_h1]:font-bold [&_h1]:tracking-[-.015em]',

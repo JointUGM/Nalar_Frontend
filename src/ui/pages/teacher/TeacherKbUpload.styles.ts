@@ -1,6 +1,6 @@
 // Tailwind classes for TeacherKbUploadPage.tsx, Board v2: hairline cards on the paper canvas, the form beside a card
 // with what happens next. The drop zone's own classes live in ui/components/file-drop.
-const card = 'min-w-0 rounded-card border border-role-border bg-surface p-5 max-sm:p-4'
+const card = 'min-w-0 rounded-2xl bg-surface p-5 max-sm:p-4'
 const styles = {
   content: 'mx-auto grid max-w-280 gap-4',
   head: 'grid [&_h1]:m-0 [&_h1]:text-[22px] [&_h1]:leading-[30px] [&_h1]:font-bold [&_h1]:tracking-[-.015em]',

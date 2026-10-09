@@ -8,12 +8,12 @@ const styles = {
 
   strip: '@container grid min-w-0',
   // gap-px over a border-coloured fill draws the hairlines; 2 or 4 columns so a row never ends in a hole.
-  stats: 'grid grid-cols-2 gap-px overflow-hidden rounded-card border border-role-border bg-role-border @min-[800px]:grid-cols-4',
+  stats: 'grid grid-cols-2 gap-3 [&>*]:rounded-xl @min-[800px]:grid-cols-4',
   stat: `group m-0 grid min-h-11 cursor-pointer grid-cols-[28px_minmax(0,1fr)] items-center gap-x-3 gap-y-0.5 rounded-none border-0 bg-surface px-5 py-4 text-start text-ink ${press} ${focus} focus-visible:-outline-offset-2 hover:not-disabled:not-aria-pressed:bg-paper disabled:cursor-default aria-pressed:bg-info-bg aria-pressed:shadow-[inset_0_-2px_0_var(--color-primary)] wrap-normal max-md:px-4 [&>svg]:row-span-2 @max-[520px]:grid-cols-1 @max-[520px]:px-3.5`,
   statLine: 'flex min-w-0 items-baseline gap-1.5 text-[13px] leading-5 font-semibold [&_strong]:text-[20px] [&_strong]:leading-7 [&_strong]:font-bold [&_strong]:tracking-[-.01em] [&_strong]:tabular-nums group-data-[urgent=true]:[&_strong]:text-danger-text group-disabled:[&_strong]:text-text-muted',
   statHint: 'col-start-2 truncate @max-[520px]:col-start-1 text-[12px] leading-4 text-text-muted',
 
-  card: 'min-w-0 overflow-clip rounded-card border border-role-border bg-surface',
+  card: 'min-w-0 overflow-clip rounded-2xl bg-surface',
   toolbar: 'flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-role-border px-4 py-2.5 [&>div]:flex-[0_1_190px] max-md:[&>div]:flex-[1_1_150px]',
   count: 'm-0 flex-[1_1_180px] text-[12px] leading-5 tabular-nums text-text-muted',
   search: 'flex min-h-10 min-w-0 flex-[0_1_260px] items-center gap-2 rounded-button border border-control-border bg-surface px-2.5 text-text-muted transition-[border-color,box-shadow] duration-150 focus-within:border-primary focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_16%,transparent)] max-md:min-h-11 max-md:basis-full [&_input]:min-h-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:border-0 [&_input]:bg-transparent [&_input]:p-0 [&_input]:text-[13px] [&_input]:text-ink [&_input]:caret-primary [&_input]:outline-none [&_input::placeholder]:text-text-muted [&_input::placeholder]:opacity-100',

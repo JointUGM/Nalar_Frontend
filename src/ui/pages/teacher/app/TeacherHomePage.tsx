@@ -8,7 +8,6 @@ import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
 import { Nala } from '@/ui/components/nala/Nala'
-import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { NalaIconName } from '@/ui/components/nala/NalaIcon'
 import { formatDay, formatDayTime } from '@/ui/formatInstant'
@@ -168,12 +167,12 @@ function Changed({ data, failed, base }: { data: TeacherDashboard | null; failed
   const items = data ? [...data.top_changed].sort((a, b) => b.resolved - a.resolved || b.held - a.held).slice(0, 4) : []
   const held = items.filter((item) => item.held > item.resolved)
   const still = held.reduce((sum, item) => sum + item.held - item.resolved, 0)
-  const mood: NalaMood = !data ? (failed ? 'oops' : 'read') : held.length > 0 ? 'think' : items.length > 0 ? 'proud' : 'hello'
+  const resolved = items.reduce((sum, item) => sum + item.resolved, 0)
   return <section className={styles.rail} aria-labelledby="home-changed" aria-busy={!data && !failed}>
     <div className={styles.railHead}>
       <div className="min-w-0"><h2 id="home-changed">Berubah pikiran minggu ini</h2><p>Miskonsepsi yang dikoreksi siswa sendiri selama dialog.</p></div>
-      <span className={styles.railNala}><Nala key={mood} mood={mood} size={64} animate /></span>
     </div>
+    {resolved > 0 && <p className={styles.proud}><span className={styles.railNala}><Nala mood="proud" size={32} animate /></span><strong>{number.format(resolved)} siswa</strong>mengoreksi miskonsepsinya sendiri selama dialog</p>}
     {!data ? <p className={styles.railEmpty}>{failed ? 'Ringkasan minggu ini belum bisa dimuat.' : 'Nala sedang membaca hasil kelas Anda…'}</p>
       : items.length === 0 ? <p className={styles.railEmpty}>Daftar ini terisi setelah siswa berdialog minggu ini.</p>
       : <ol className={styles.changes}>{items.map((item, index) => <li key={item.misconception_id} className={styles.change}>
@@ -223,13 +222,13 @@ export function TeacherHomePage({ service, base, schoolId, user, attention }: { 
       {!data && !error && <div className={styles.skeleton} aria-hidden="true">{Array.from({ length: 4 }, (_, index) => <div key={index}><span /><span /></div>)}</div>}
       {data && <Kpis week={data.this_week} last={data.last_week} />}
     </section>
-    <div className={styles.grid}>
-      <Todo resource={attention} base={base} />
+    <div className={styles.top}>
+      <Sessions resource={sessions} base={base} />
       <Changed data={data} failed={Boolean(error)} base={base} />
-      <div className={styles.pair}>
-        {data && <Trend trend={data.trend} />}
-        <Sessions resource={sessions} base={base} />
-      </div>
+    </div>
+    <div className={styles.bottom}>
+      <Todo resource={attention} base={base} />
+      {data && <Trend trend={data.trend} />}
     </div>
   </div>
 }
