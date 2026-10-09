@@ -1,4 +1,4 @@
-// Tailwind classes for ImportHistory.tsx, SchoolImportPage.tsx, SchoolInvitationsPage.tsx.
+// Tailwind classes for SchoolInvitationsPage.tsx. The import page and its history live in ImportFlow.styles.ts.
 // `schoolimport-*` names carry no styles: they are hooks for the nested selectors in other entries.
 const styles = {
   content: 'w-full max-w-full',

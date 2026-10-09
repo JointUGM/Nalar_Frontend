@@ -26,11 +26,6 @@ export function TeacherShell({ title, user, nav, home, onChangePassword, childre
   const contentRef = useRef<HTMLElement>(null)
   const focusContent = location.state?.focusPlatformContent === true
   useEffect(() => { if (focusContent) contentRef.current?.focus() }, [focusContent, location.key])
-  // index.css re-points the shared tokens to the blue teacher palette while this is set.
-  useEffect(() => {
-    document.documentElement.dataset.workspace = 'teacher'
-    return () => { delete document.documentElement.dataset.workspace }
-  }, [])
   const close = () => setDrawerOpen(false)
   const initials = user.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('id-ID')
   const active = activeNavTarget(location.pathname, nav)
@@ -62,7 +57,7 @@ export function TeacherShell({ title, user, nav, home, onChangePassword, childre
         <Link to="/login" state={{ signOut: true }} className={shell.exit} aria-label="Keluar"><Icon name="logout" size={16} /></Link>
       </div>
     </aside>
-    <div className={cn(shell.workspace, 'bg-canvas')}>
+    <div className={cn(shell.workspace, 'bg-paper')}>
       <header className={shell.topbar}>
         <button type="button" className={cn(shell.iconButton, shell.menuButton)} aria-label="Buka navigasi" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Icon name="menu" /></button>
         <span className={shell.title}>{title}</span>

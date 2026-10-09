@@ -1,5 +1,6 @@
 import { ConfirmAction } from './ConfirmAction'
 import { useCallback, useRef, useState } from 'react'
+import type { KeyboardEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
 import type { Job, KbDetail } from '@/domain/model/KnowledgeBase'
@@ -20,6 +21,8 @@ import { Loading } from '@/ui/components/loading/Loading'
 
 interface Loaded { mission: MissionSummary; version: MissionVersion | null; detail: KbDetail | null; history: VersionHistory[] }
 type Command = '' | 'generate' | 'review' | 'save'
+const tabs = [['anchor', 'Soal dan acuan'], ['rubric', 'Rubrik'], ['bank', 'Bank pertanyaan'], ['history', 'Riwayat versi']] as const
+type Tab = typeof tabs[number][0]
 
 export function TeacherMissionPage({ service, kb, base, schoolId }: { service: TeacherService; kb: KnowledgeBaseService; base: string; schoolId: string }) {
   const { missionId = '' } = useParams()
@@ -43,6 +46,7 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
   const [draft, setDraft] = useState<{ anchor: string; reference: string } | null>(null)
   const [pending, setPending] = useState<Command>('')
   const [failure, setFailure] = useState<ApiError | null>(null)
+  const [tab, setTab] = useState<Tab>('anchor')
   const path = `${base}/missions/${missionId}`
   const jobDone = useCallback((job: Job) => {
     if (job.generation_result) navigate(`${path}?v=${job.generation_result.version_number}`, { replace: true })
@@ -54,6 +58,18 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
   const { mission, version, detail, history } = data
   const latest = mission.latest_version
   const isLatest = version !== null && latest?.id === version.id
+  // One card with tabs, as in Board v2; history is the only part that exists without a version.
+  const available = tabs.filter(([key]) => key === 'history' ? history.length > 0 : version !== null)
+  const current = available.find(([key]) => key === tab)?.[0] ?? available[0]?.[0]
+  const count = (key: Tab) => key === 'bank' ? version?.question_bank.length ?? null : key === 'history' ? history.length : null
+  function onTabKey(event: KeyboardEvent<HTMLDivElement>) {
+    const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
+    if (!step) return
+    const index = available.findIndex(([key]) => key === current)
+    const next = available[(index + step + available.length) % available.length][0]
+    setTab(next)
+    event.currentTarget.querySelector<HTMLButtonElement>(`#mission-tab-${next}`)?.focus()
+  }
   const targets = version ? version.target_concept_ids.map((id) => detail?.concepts.find((item) => item.id === id)?.name).filter(Boolean) : []
 
   // One command at a time; the page is reread afterwards, also after a refusal, because a refusal usually means it was stale.
@@ -110,7 +126,11 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
         <div><dt>Durasi maksimal</dt><dd>{version.max_duration_minutes} menit</dd></div>
         <div><dt>Bank pertanyaan</dt><dd>{version.question_bank.length}</dd></div>
       </dl>
-      <section className={styles.panelCard} aria-label="Soal pembuka dan jawaban acuan"><div className={styles.panel}>
+    </>}
+    {available.length > 0 && <section className={styles.card} aria-label="Isi misi">
+      <div className={styles.tabs} role="tablist" aria-label="Bagian misi" onKeyDown={onTabKey}>{available.map(([key, label]) => <button key={key} id={`mission-tab-${key}`} type="button" role="tab" aria-selected={current === key} aria-controls={`mission-panel-${key}`} tabIndex={current === key ? 0 : -1} className={styles.tab} onClick={() => setTab(key)}>{label}{count(key) !== null && <span className={styles.tabCount}>{count(key)}</span>}</button>)}</div>
+      <div id={`mission-panel-${current}`} role="tabpanel" aria-labelledby={`mission-tab-${current}`} className={styles.panel}>
+        {current === 'anchor' && version && <>
         <div className={styles.anchors}>
           <article className={styles.box}>{draft
             ? <label className={styles.edit}>Soal pembuka · dilihat siswa<textarea rows={5} maxLength={4000} value={draft.anchor} onChange={(event) => setDraft({ ...draft, anchor: event.target.value })} /></label>
@@ -125,38 +145,28 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
             <Button tone="secondary" className={styles.editButton} disabled={pending !== ''} onClick={() => setDraft(null)}>Batal</Button>
           </div>
           : <Button tone="secondary" className={styles.editButton} disabled={pending !== ''} onClick={() => setDraft({ anchor: version.anchor_problem, reference: version.reference_reasoning })}><Icon name="pencil" size={14} />Edit soal dan acuan</Button>)}
-      </div></section>
-      {version.live_warmup && <section className={styles.panelCard} aria-labelledby="mission-warmup"><div className={styles.panel}>
-        <h2 id="mission-warmup">Pemanasan kelas</h2>
+        {version.live_warmup && <section className={styles.warmup} aria-labelledby="mission-warmup"><h3 id="mission-warmup">Pemanasan kelas</h3>
         <p className={styles.note}>{version.live_warmup.prompt}</p>
-        <ul>{version.live_warmup.choices.map((choice) => <li key={choice.id}>{choice.text}</li>)}</ul>
-      </div></section>}
-      <section className={styles.panelCard} aria-labelledby="mission-rubric"><div className={styles.panel}>
-        <h2 id="mission-rubric">Rubrik</h2>
-        <div className={styles.tableRegion} role="region" aria-label="Rubrik (dapat digulir)" tabIndex={0}><table>
+        <ul>{version.live_warmup.choices.map((choice) => <li key={choice.id}>{choice.text}</li>)}</ul></section>}
+        </>}
+        {current === 'rubric' && version && <div className={styles.tableRegion} role="region" aria-label="Rubrik (dapat digulir)" tabIndex={0}><table>
           <caption>Rubrik penilaian per dimensi, skor 0 sampai 4</caption>
           <thead><tr><th scope="col">Dimensi</th>{[0, 1, 2, 3, 4].map((score) => <th key={score} scope="col">{score}</th>)}</tr></thead>
           <tbody>{rubricWord.map(([key, label]) => <tr key={key}><th scope="row">{label}</th>{version.rubric[key].map((level, index) => <td key={index}>{level}</td>)}</tr>)}</tbody>
-        </table></div>
-      </div></section>
-      <section className={styles.panelCard} aria-labelledby="mission-bank"><div className={styles.panel}>
-        <h2 id="mission-bank">Bank pertanyaan lanjutan</h2>
-        <ul className={styles.bank}>{[...new Set(version.question_bank.map((question) => question.move))].map((move) => {
+        </table></div>}
+        {current === 'bank' && version && <ul className={styles.bank}>{[...new Set(version.question_bank.map((question) => question.move))].map((move) => {
           const questions = version.question_bank.filter((question) => question.move === move)
           return <li key={move}>
             <div className={styles.bankHead}><h3>{moveWord[move] ?? move}</h3><span>{questions.length} pertanyaan</span></div>
             {questions.map((question) => <p key={question.id}>{question.text}</p>)}
           </li>
-        })}</ul>
-      </div></section>
-    </>}
-    {history.length > 0 && <section className={styles.panelCard} aria-labelledby="mission-history"><div className={styles.panel}>
-      <h2 id="mission-history">Riwayat versi</h2>
-      <ol className={styles.versions}>{history.map((item) => <li key={item.version_number}>
+        })}</ul>}
+        {current === 'history' && <ol className={styles.versions}>{history.map((item) => <li key={item.version_number}>
         <strong>v{item.version_number}</strong>
         <span><span>{item.created_by_name ?? 'Rekan guru'} · {formatDayTime(item.created_at)}</span><small>{item.locked_at ? `Dikunci ${formatDayTime(item.locked_at)}` : item.reviewed_at ? `Ditinjau ${formatDayTime(item.reviewed_at)}` : 'Belum ditinjau'}</small></span>
         {version?.version_number === item.version_number ? <span className={styles.tag}>Sedang dibuka</span> : <Link to={`${path}?v=${item.version_number}`}>{versionWord[item.status] ?? item.status}</Link>}
-      </li>)}</ol>
-    </div></section>}
+      </li>)}</ol>}
+      </div>
+    </section>}
   </div>
 }

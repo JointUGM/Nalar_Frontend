@@ -4,7 +4,7 @@ import { cn } from '@/ui/cn'
 import { controlLabelClass, popupSurfaceClass, popupTriggerClass } from '@/ui/components/field/controlStyles'
 import { Icon } from '@/ui/components/icon/Icon'
 
-export interface SelectOption { value: string; label: string; description?: string }
+export interface SelectOption { value: string; label: string; description?: string; disabled?: boolean }
 
 export interface SelectProps {
   label: string
@@ -63,7 +63,8 @@ export function Select({ label, value, options, onChange, compact = false, disab
                 key={option.value}
                 value={option.value}
                 label={option.label}
-                className="flex min-h-10 cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-[9px] text-sm leading-5 outline-none data-highlighted:not-data-selected:bg-surface-muted data-selected:bg-nav-hover data-selected:font-semibold data-selected:text-primary"
+                disabled={option.disabled}
+                className="flex min-h-10 cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-[9px] text-sm leading-5 outline-none data-disabled:cursor-not-allowed data-disabled:opacity-50 data-highlighted:not-data-selected:bg-surface-muted data-selected:bg-nav-hover data-selected:font-semibold data-selected:text-primary"
               >
                 <span className="flex min-w-0 flex-col gap-0.5 wrap-anywhere">
                   <Base.ItemText>{option.label}</Base.ItemText>

@@ -36,6 +36,9 @@
   --color-primary: #2447D1;
   --color-primary-hover: #1B38AB;
   --color-accent: #F2B23A;
+  /* Tinta and Dongker that stay put in dark mode: the teacher home's cobalt briefing and the dark text on Kunyit. */
+  --color-tinta: #2447D1;
+  --color-dongker: #15213B;
   --color-paper: #F6F4EF;
   --color-canvas: #FAFAF7;
   --color-surface: #FFFFFF;
@@ -48,11 +51,6 @@
   --color-text-secondary: #4D5566;
   --color-text-muted: #636978;
   --color-info-bg: #E7ECFB;
-  --color-teacher-canvas: #EAF2FC;
-  --color-teacher-inset: #DEEBFA;
-  --color-teacher-border: #D6E2F1;
-  --color-teacher-secondary: #415572;
-  --color-teacher-muted: #536782;
   --color-account-bubble: #26324F;
   --color-account-caption: #B9C2D6;
   --color-success-bg: #DFF1E9;
@@ -89,6 +87,7 @@
   --animate-nala-wave: nala-wave 560ms ease-in-out 380ms 2 both;
   --animate-nala-blink: nala-blink 220ms ease-in-out 1500ms both;
   --animate-note-in: note-in 260ms cubic-bezier(.23, 1, .32, 1) 260ms both;
+  --animate-file-in: file-in 260ms cubic-bezier(.23, 1, .32, 1) both;
   --animate-loader-appear: loader-appear 240ms cubic-bezier(.23, 1, .32, 1) 200ms forwards;
   --animate-loader-draw: loader-draw 1400ms cubic-bezier(.77, 0, .175, 1) infinite;
   --animate-loader-settle: loader-settle 1400ms cubic-bezier(.23, 1, .32, 1) infinite;
@@ -117,7 +116,10 @@
   @keyframes nala-jump { 35% { transform: translateY(-14px); } 60% { transform: translateY(0); } 75% { transform: translateY(-3px); } }
   @keyframes nala-wave { 35% { transform: rotate(-14deg); } 70% { transform: rotate(10deg); } }
   @keyframes nala-blink { 50% { transform: scaleY(.1); } }
+  /* The live badge dot on the teacher monitor: a calm beat while the run is open; off under reduced motion. */
+  @keyframes teachermonitor-pulse { 50% { opacity: .35; transform: scale(.7); } }
   @keyframes note-in { from { opacity: 0; transform: translateX(6px) scale(.96); } }
+  @keyframes file-in { from { opacity: 0; transform: translateY(8px) scale(.97); } }
   @keyframes loader-appear { to { opacity: 1; } }
   /* Draw the arch in, hold, then release it from the start so the loop never snaps. */
   @keyframes loader-draw { 0% { stroke-dashoffset: 100; } 55%, 75% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -100; } }
@@ -170,8 +172,6 @@
   --color-paper: #1B2335; --color-canvas: #0F1523; --color-surface: #161E30; --color-surface-muted: #242E45; --color-sidebar: #1B2335;
   --color-border: #2A344C; --color-role-border: #263048; --color-nav-hover: #1F2942; --color-control-border: #7C879D;
   --color-text-secondary: #B4BDD0; --color-text-muted: #98A2B8; --color-info-bg: #1E2B54;
-  --color-teacher-canvas: #111C2E; --color-teacher-inset: #213450; --color-teacher-border: #2B3D57;
-  --color-teacher-secondary: #B4C3D9; --color-teacher-muted: #9AAEC9;
   --color-success-bg: #143528; --color-success-text: #6FD1A8; --color-success-strong: #8BE0BC;
   --color-warning-bg: #3A2D10; --color-warning-text: #F0C469; --color-misconception-bg: #3F2217; --color-misconception-text: #FFA27A;
   --color-verification-bg: #252C3E; --color-danger-bg: #3F1B26; --color-danger-text: #FF8FA8; --color-danger-hover: #FFB0C2;
@@ -291,13 +291,6 @@ input[type="checkbox"]:disabled {
 a { color: var(--color-primary); text-underline-offset: .2em; }
 :focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
 code { color: var(--color-ink); font-size: .9em; overflow-wrap: anywhere; }
-/* The teacher workspace is blue. TeacherShell sets this while mounted, so dialogs portaled to <body> share the palette. */
-:root[data-workspace='teacher'] {
-  --color-canvas: var(--color-teacher-canvas); --color-paper: var(--color-teacher-canvas);
-  --color-surface-muted: var(--color-teacher-inset); --color-info-bg: var(--color-teacher-inset);
-  --color-border: var(--color-teacher-border); --color-role-border: var(--color-teacher-border);
-  --color-text-secondary: var(--color-teacher-secondary); --color-text-muted: var(--color-teacher-muted);
-}
 ::selection { color: var(--color-ink); background: var(--color-info-bg); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 

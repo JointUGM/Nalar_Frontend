@@ -1,5 +1,8 @@
-// Tailwind classes for TeacherHomePage.tsx.
-// `teacherhome-*` names carry no styles: they are hooks for the nested selectors in other entries.
+// Tailwind classes for TeacherHomePage.tsx, Board v2 language: hairline cards (rounded-card), one divided KPI strip,
+// cream action cards, a warm Kunyit wash on the change-of-mind rail. Shapes: cards 14px, inner panels 10px, chips full.
+const card = 'min-w-0 rounded-card border border-role-border bg-surface'
+const press = 'transition-[background-color,border-color,color,scale] duration-150 ease-[cubic-bezier(.23,1,.32,1)] active:scale-[.98] motion-reduce:transition-none motion-reduce:active:scale-100'
+const h2 = '[&_h2]:m-0 [&_h2]:text-[15px] [&_h2]:leading-6 [&_h2]:font-semibold [&_h2]:tracking-[-.01em] [&_h2]:text-balance'
 const styles = {
   content: 'mx-auto gap-6 max-w-340 flex flex-col max-md:gap-6',
   welcome: 'relative overflow-hidden px-10 py-7 gap-8 grid items-center grid-cols-[minmax(0,1fr)_300px] rounded-[24px] border border-role-border [background:radial-gradient(120%_120%_at_90%_10%,color-mix(in_srgb,var(--color-primary)_6%,transparent)_0%,color-mix(in_srgb,var(--color-accent)_3.5%,transparent)_45%,transparent_75%),var(--color-surface)] [box-shadow:0_1px_2px_rgb(21_33_59_/_4%),0_8px_24px_rgb(21_33_59_/_5%)] [&_h1]:m-0 [&_h1]:text-balance [&_h1]:wrap-anywhere [&_h1]:text-[32px] [&_h1]:leading-[42px] [&_h1]:font-[750] [&_h1]:tracking-[-.035em] [@media(max-width:1199px)]:py-6 max-md:p-6 max-md:gap-5 max-md:grid-cols-[minmax(0,1fr)] max-md:rounded-[20px] max-md:[&_h1]:text-[26px] max-md:[&_h1]:leading-[34px] [@media(max-width:1199px)_and_(width_>_767px)]:px-7 [@media(max-width:1199px)_and_(width_>_767px)]:gap-4 [@media(max-width:1199px)_and_(width_>_767px)]:grid-cols-[minmax(0,1fr)_240px] [@media(max-width:1199px)_and_(width_>_767px)]:[&_h1]:text-[28px] [@media(max-width:1199px)_and_(width_>_767px)]:[&_h1]:leading-[36px]',
@@ -25,5 +28,19 @@ const styles = {
   loading: 'pt-6 text-[14px] text-text-secondary',
   skeleton: 'mt-4 gap-6 grid grid-cols-[repeat(4,1fr)] [&>div]:min-h-33 [&>div]:bg-surface-muted [&>div]:rounded-[12px] max-md:gap-4 max-md:grid-cols-[repeat(2,1fr)]',
 } satisfies Record<string, string>
+
+export const kindTone = {
+  safety: 'bg-danger-text text-surface',
+  flag: 'bg-verification-bg text-ink',
+  kb_review: 'bg-warning-bg text-warning-text',
+  release_ready: 'bg-success-bg text-success-strong',
+}
+
+export const statusTone: Readonly<Record<string, string>> = {
+  lobby: 'bg-success-bg text-success-strong',
+  open: 'bg-success-bg text-success-strong',
+  scheduled: 'bg-warning-bg text-warning-text',
+  closed: 'bg-verification-bg text-text-secondary',
+}
 
 export default styles

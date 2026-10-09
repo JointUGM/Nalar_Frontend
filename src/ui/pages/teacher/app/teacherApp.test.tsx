@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { Identity } from '@/domain/model/Identity'
@@ -370,7 +370,7 @@ describe('signed-in teacher pages', () => {
 
   it('opens on the weekly dashboard and badges what needs attention, each item linking to where it is handled', async () => {
     open(base, backend())
-    expect(await screen.findByText('+2 dari minggu lalu')).toBeInTheDocument()
+    expect(await screen.findByText('+2 vs minggu lalu')).toBeInTheDocument()
     expect(screen.getByText('40%')).toBeInTheDocument()
     expect(screen.getByText('“Gaya bisa habis”')).toBeInTheDocument()
     await waitFor(() => expect(screen.getAllByRole('link', { name: /Perlu perhatian/ })[0]).toHaveTextContent('2'))
@@ -407,13 +407,27 @@ describe('signed-in teacher pages', () => {
   it('uploads a PDF as multipart and follows the reading job on the topic page', async () => {
     const request = backend({ [`POST /schools/${school}/knowledge-bases`]: () => Response.json({ knowledge_base_id: kbId, material_id: school, job_id: job, status: 'queued' }, { status: 202 }) })
     open(`${base}/knowledge-base/upload`, request)
-    await screen.findByRole('option', { name: 'IPA' })
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Mata pelajaran/ })).toHaveTextContent('IPA'))
     fireEvent.change(screen.getByLabelText(/Nama topik/), { target: { value: ' Tekanan Zat ' } })
     fireEvent.change(screen.getByLabelText(/Berkas PDF/), { target: { files: [new File(['%PDF-1.7'], 'ipa.pdf', { type: 'application/pdf' })] } })
     fireEvent.click(screen.getByRole('button', { name: 'Unggah materi' }))
     expect(await screen.findByText('Materi selesai dibaca')).toBeInTheDocument()
     const form = request.mock.calls.find(([, init]) => init?.method === 'POST')![1]?.body as FormData
     expect([form.get('school_subject_id'), form.get('topic_title'), (form.get('file') as File).name]).toEqual([school, 'Tekanan Zat', 'ipa.pdf'])
+  })
+
+  it('names the topic from the chosen PDF, refuses other files, and lets the teacher remove the file', async () => {
+    open(`${base}/knowledge-base/upload`, backend({}))
+    const chooser = await screen.findByLabelText(/Berkas PDF/)
+    fireEvent.change(chooser, { target: { files: [new File(['x'], 'catatan.docx', { type: 'application/msword' })] } })
+    expect(screen.getByRole('alert')).toHaveTextContent('Hanya berkas PDF yang bisa dibaca.')
+    fireEvent.change(chooser, { target: { files: [new File(['%PDF-1.7'], 'Tekanan_Zat-bab3.pdf', { type: 'application/pdf' })] } })
+    expect(screen.getByText('Tekanan_Zat-bab3.pdf')).toBeInTheDocument()
+    expect(screen.getByLabelText(/Nama topik/)).toHaveValue('Tekanan Zat bab3')
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus berkas Tekanan_Zat-bab3.pdf' }))
+    expect(screen.queryByText('Tekanan_Zat-bab3.pdf')).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/Nama topik/)).toHaveValue('')
+    expect(screen.getByText('Pilih berkas')).toBeInTheDocument()
   })
 
   it('approves the concept before its misconception, sending the decision once', async () => {
@@ -500,6 +514,51 @@ describe('signed-in teacher pages', () => {
     expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1)
   })
 
+  describe('while a chapter is built', () => {
+    const at = (build_status: string, empty = false) => ({
+      [`GET /knowledge-bases/${kbId}/sections`]: () => Response.json({ items: [{ ...sections.items[0], build_status }] }),
+      ...(empty && { [`GET /knowledge-bases/${kbId}`]: () => Response.json({ ...kbDetail(), concepts: [], misconceptions: [] }) }),
+    })
+
+    it('replaces the empty concept and misconception areas with one loading panel', async () => {
+      open(kbPath, backend(at('queued', true)))
+      expect(await screen.findByText('Menyusun konsep dan miskonsepsi…')).toBeInTheDocument()
+      expect(screen.queryByText(/Belum ada konsep/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/\d+ (konsep|miskonsepsi)$/)).not.toBeInTheDocument()
+    })
+
+    it('keeps the concepts it has but shows no count until the chapter is built', async () => {
+      open(kbPath, backend(at('building')))
+      expect(await screen.findByRole('heading', { name: 'Tekanan hidrostatis' })).toBeInTheDocument()
+      expect(screen.getAllByText('Sedang disusun')).toHaveLength(2)
+      expect(screen.queryByText('1 konsep')).not.toBeInTheDocument()
+      expect(screen.queryByText('1 miskonsepsi')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Coba lagi|Susun/ })).not.toBeInTheDocument()
+    })
+
+    it('says a chapter failed and builds it again from the notice', async () => {
+      const request = backend({ ...at('failed'), [`POST /knowledge-bases/${kbId}/sections/${section}/build`]: () => Response.json({ job_id: job, section_id: section, status: 'queued' }, { status: 202 }) })
+      open(kbPath, request)
+      expect(await screen.findByText('Bab “Bab 1 Tekanan” gagal disusun')).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Susun ulang Bab 1 Tekanan' }))
+      await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1))
+    })
+
+    it('stops waiting after an hour and offers a retry', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      try {
+        open(kbPath, backend(at('building')))
+        await screen.findByRole('heading', { name: 'Tekanan hidrostatis' })
+        expect(screen.queryByText(/belum selesai disusun/)).not.toBeInTheDocument()
+        await act(async () => {}) // let the page arm its timer before the clock jumps
+        act(() => { vi.advanceTimersByTime(3_600_000) })
+        expect(await screen.findByText('Bab “Bab 1 Tekanan” belum selesai disusun')).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Coba lagi Bab 1 Tekanan' })).toBeInTheDocument()
+        expect(screen.queryByText('Sedang disusun', { selector: 'span' })).not.toBeInTheDocument()
+      } finally { vi.useRealTimers() }
+    })
+  })
+
   it('shows a colleague’s knowledge base without any way to change it', async () => {
     open(kbPath, backend({ [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail('pending', false)) }))
     await screen.findByText(/milik rekan guru/)
@@ -525,6 +584,19 @@ describe('signed-in teacher pages', () => {
     await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'DELETE')).toHaveLength(1))
   })
 
+  it('deletes a topic from the library only after confirming, and only for its owner', async () => {
+    const request = backend({
+      [`DELETE /knowledge-bases/${kbId}`]: () => new Response(null, { status: 204 }),
+      [`GET /schools/${school}/knowledge-bases?limit=100`]: () => Response.json({ ...kbList, items: [kbList.items[0], { ...kbList.items[0], id: draft, topic_title: 'Rekan', can_edit: false }] }),
+    })
+    open(`${base}/knowledge-base`, request)
+    expect(await screen.findAllByRole('button', { name: 'Hapus' })).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Hapus' }))
+    expect(request.mock.calls.some(([, init]) => init?.method === 'DELETE')).toBe(false)
+    fireEvent.click(await screen.findByRole('button', { name: 'Hapus topik' }))
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'DELETE')).toHaveLength(1))
+  })
+
   it('creates a mission once, asks for its draft and opens the generated version', async () => {
     const request = backend({
       'POST /missions': () => Response.json({ mission_id: draft }, { status: 201 }),
@@ -532,7 +604,7 @@ describe('signed-in teacher pages', () => {
       [`GET /jobs/${job}`]: () => Response.json(jobOut({ kind: 'mission_generate', generation_result: { version_id: draft, version_number: 1, ungrounded_concept_ids: [] } })),
     })
     open(`${base}/missions/new`, request)
-    await screen.findByRole('option', { name: /Tekanan Zat/ })
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Basis pengetahuan/ })).toHaveTextContent('Tekanan Zat'))
     fireEvent.change(screen.getByLabelText(/Judul misi/), { target: { value: ' Tekanan Zat ' } })
     fireEvent.change(screen.getByLabelText(/Tujuan pembelajaran/), { target: { value: 'Siswa menjelaskan tekanan hidrostatis.' } })
     const create = screen.getByRole('button', { name: 'Buat misi' })
@@ -543,6 +615,13 @@ describe('signed-in teacher pages', () => {
     const posts = request.mock.calls.filter(([, init]) => init?.method === 'POST')
     expect(posts.map(([url]) => String(url))).toEqual(['/api/v1/missions', `/api/v1/missions/${draft}/generate`])
     expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ knowledge_base_id: kbId, title: 'Tekanan Zat', learning_objective: 'Siswa menjelaskan tekanan hidrostatis.' })
+  })
+
+  it('starts the learning objective from a sentence opening that disappears once used', async () => {
+    open(`${base}/missions/new`, backend({}))
+    fireEvent.click(await screen.findByRole('button', { name: 'Siswa dapat menjelaskan' }))
+    expect(screen.getByLabelText(/Tujuan pembelajaran/)).toHaveValue('Siswa dapat menjelaskan ')
+    expect(screen.queryByRole('group', { name: 'Awal kalimat tujuan' })).not.toBeInTheDocument()
   })
 
   it('saves an edit as a new version that carries the rest of the draft over', async () => {
