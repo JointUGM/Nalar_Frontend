@@ -1,14 +1,12 @@
 import { useCallback, useState } from 'react'
+import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { Link } from 'react-router'
 import type { KbSummary } from '@/domain/model/KnowledgeBase'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
-import type { NalaMood } from '@/ui/components/nala/Nala'
-import { NalaIcon } from '@/ui/components/nala/NalaIcon'
-import type { NalaIconName } from '@/ui/components/nala/NalaIcon'
-import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
+import { NalaEmpty } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
@@ -20,23 +18,14 @@ type TopicState = 'review' | 'approved' | 'empty'
 const state = (topic: KbSummary): TopicState => topic.pending_count > 0 ? 'review' : topic.approved_concept_count > 0 ? 'approved' : 'empty'
 const stateLabel: Record<TopicState, string> = { review: 'Perlu tinjauan', approved: 'Siap dipakai', empty: 'Belum ada konsep' }
 // The strip is the filter; "Semua topik" keeps every cell meaningful and the grid free of holes.
-const filters: readonly { value: 'all' | TopicState; label: string; icon: NalaIconName; hint: (topics: readonly KbSummary[]) => string }[] = [
-  { value: 'all', label: 'Semua topik', icon: 'book', hint: (topics) => `${number.format(topics.filter((topic) => topic.can_edit).length)} milik Anda` },
-  { value: 'review', label: stateLabel.review, icon: 'verify', hint: () => 'konsep menunggu Anda' },
-  { value: 'approved', label: stateLabel.approved, icon: 'done', hint: () => 'bisa dipakai untuk misi' },
-  { value: 'empty', label: stateLabel.empty, icon: 'file', hint: () => 'bab belum disusun' },
+const filters: readonly { value: 'all' | TopicState; label: string; hint: (topics: readonly KbSummary[]) => string }[] = [
+  { value: 'all', label: 'Semua topik', hint: (topics) => `${number.format(topics.filter((topic) => topic.can_edit).length)} milik Anda` },
+  { value: 'review', label: stateLabel.review, hint: () => 'konsep menunggu Anda' },
+  { value: 'approved', label: stateLabel.approved, hint: () => 'bisa dipakai untuk misi' },
+  { value: 'empty', label: stateLabel.empty, hint: () => 'bab belum disusun' },
 ]
 const titleOrder = new Intl.Collator('id-ID', { numeric: true, sensitivity: 'base' })
 const number = new Intl.NumberFormat('id-ID')
-
-// Null while the library itself shows Nala (empty, no match, unavailable): one Nala per view.
-function companion(data: readonly KbSummary[] | null, failed: boolean): [NalaMood, string] | null {
-  if (!data) return failed ? null : ['think', 'Sebentar, materi ajar sedang dimuat.']
-  const waiting = data.filter(topic => topic.can_edit && topic.pending_count > 0).length
-  if (waiting > 0) return ['read', `${number.format(waiting)} topik menunggu tinjauan konsep Anda.`]
-  if (data.some(topic => topic.approved_concept_count > 0)) return ['proud', 'Konsep yang disetujui siap dipakai untuk misi.']
-  return ['think', 'Susun bab materi agar konsepnya bisa ditinjau.']
-}
 
 export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseService; base: string; schoolId: string }) {
   const read = useCallback((signal: AbortSignal) => kb.list(schoolId, signal), [kb, schoolId])
@@ -49,26 +38,21 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
   if (sort !== 'original') visible.sort((a, b) => titleOrder.compare(a.topic_title, b.topic_title) * (sort === 'title-desc' ? -1 : 1))
   const filtered = Boolean(query.trim()) || filter !== 'all' || ownership !== 'all'
   function reset() { setQuery(''); setFilter('all'); setOwnership('all') }
-  const note = visible.length > 0 || !data ? companion(data, Boolean(error)) : null
   const waiting = data?.filter((topic) => topic.pending_count > 0).length ?? 0
 
   return <div className={styles.page}>
-    <div className={styles.header}>
-      <div><h1>Basis pengetahuan</h1><p>{data && data.length > 0 ? `${number.format(data.length)} topik${waiting > 0 ? `, ${number.format(waiting)} menunggu tinjauan` : ''}. Hanya konsep yang Anda setujui dipakai untuk misi.` : 'Unggah materi ajar, tinjau konsepnya, lalu gunakan yang disetujui untuk misi.'}</p></div>
-      {note && <NalaNote mood={note[0]} text={note[1]} />}
-      <ButtonLink className={styles.button} to={`${base}/knowledge-base/upload`}><Icon name="upload" size={16} />Unggah materi</ButtonLink>
-    </div>
+    <TeacherPageHead title="Basis pengetahuan" subtitle={data && data.length > 0 ? `${number.format(data.length)} topik${waiting > 0 ? `, ${number.format(waiting)} menunggu tinjauan` : ''}. Hanya konsep yang Anda setujui dipakai untuk misi.` : 'Unggah materi ajar, tinjau konsepnya, lalu gunakan yang disetujui untuk misi.'} />
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <section className={styles.panel}><div className={styles.state}><Loading label="Memuat basis pengetahuan…" /></div></section>}
     {!data && error && <section className={styles.panel}><NalaEmpty mood="oops" title="Basis pengetahuan belum dapat ditampilkan">Coba muat ulang melalui pilihan di atas.</NalaEmpty></section>}
     {data && data.length === 0 && <section className={styles.panel}><NalaEmpty mood="ask" title="Belum ada basis pengetahuan" action={<ButtonLink tone="secondary" className={styles.button} to={`${base}/knowledge-base/upload`}><Icon name="upload" size={16} />Unggah materi pertama</ButtonLink>}>
       Unggah materi ajar (PDF) untuk memulai topik pertama.
     </NalaEmpty></section>}
-    {data && data.length > 0 && <>
+    {data && data.length > 0 && <div className={styles.layout}><div className={styles.main}>
       <div className={styles.strip}><div className={styles.stats} role="group" aria-label="Status topik">{filters.map((entry) => {
         const count = data.filter((topic) => entry.value === 'all' || state(topic) === entry.value).length
         return <button key={entry.value} type="button" className={styles.stat} aria-pressed={filter === entry.value} disabled={count === 0 && filter !== entry.value} onClick={() => setFilter(filter === entry.value ? 'all' : entry.value)}>
-          <NalaIcon name={entry.icon} size={28} />
+
           <span className={styles.statLine}><strong>{number.format(count)}</strong>{entry.label}</span>
           <span className={styles.statHint}>{entry.hint(data)}</span>
         </button>
@@ -88,10 +72,10 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
             return <li key={topic.id} className={styles.card}>
               <div className={styles.cardTop}><span className={styles.status} data-status={tone}>{stateLabel[tone]}</span><span className={styles.owner}>{topic.can_edit ? 'Milik Anda' : `Dari ${topic.owner_name ?? 'rekan guru'}`}</span></div>
               <h3 className={styles.title}><Link to={path}>{topic.topic_title}</Link></h3>
-              <dl className={styles.tiles}>
-                <div><dt>Konsep disetujui</dt><dd>{number.format(topic.approved_concept_count)}</dd></div>
-                <div data-waiting={topic.pending_count > 0}><dt>Menunggu tinjauan</dt><dd>{number.format(topic.pending_count)}</dd></div>
-              </dl>
+              <div className={styles.tiles}>
+                <span className={styles.bar} aria-hidden="true"><span style={{ flexGrow: topic.approved_concept_count }} /><span style={{ flexGrow: topic.pending_count }} /></span>
+                <p>{number.format(topic.approved_concept_count)} disetujui · <span data-waiting={topic.pending_count > 0}>{number.format(topic.pending_count)} menunggu tinjauan</span></p>
+              </div>
               <p className={styles.meta}><Icon name="file" size={14} />{number.format(topic.material_count)} materi, {number.format(topic.built_section_count)} bab disusun</p>
               <div className={styles.foot}>
                 {/* The title link already covers the card; this cue only says what opening it is for. */}
@@ -101,6 +85,11 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
             </li>
           })}</ul>}
       </section>
-    </>}
+    </div>
+      <aside className={styles.rail} aria-label="Bahan ajar">
+        <Link className={styles.upload} to={`${base}/knowledge-base/upload`}><span aria-hidden="true"><Icon name="upload" size={24} /></span><strong>Unggah bahan ajar</strong><small>PDF buku, modul, salindia, atau LKPD. Bab dideteksi otomatis, Anda memilih yang dibangun.</small></Link>
+        <section className={styles.share} aria-labelledby="kb-share-title"><h2 id="kb-share-title">Berbagi di sekolah</h2><p>Guru lain di sekolah ini bisa memakai topik milik Anda tanpa mengubahnya. Hanya pemilik yang menyetujui dan mengedit.</p></section>
+      </aside>
+    </div>}
   </div>
 }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
 import type { KbDetail, KbItemKind, KbItemPatch, KbReviewQueue, KbSection } from '@/domain/model/KnowledgeBase'
@@ -126,11 +127,8 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   </section>
 
   return <div className={styles.content}>
-    {back}
-    <div className={styles.header}><div>
-      <div className={styles.title}><h1>{detail.topic_title}</h1>{detail.concepts.length > 0 && !loading && <span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span>}</div>
-      <p>{loading ? 'Konsep dan miskonsepsi sedang disusun.' : waiting > 0 ?`${queue.pending_concepts} konsep dan ${queue.pending_misconceptions} miskonsepsi menunggu tinjauan` : `${detail.concepts.length} konsep · ${detail.misconceptions.length} miskonsepsi`}</p>
-    </div><div className={styles.jumpLinks}><a href="#kb-review">Tinjau konsep<Icon name="chevronDown" size={14} /></a><a href="#kb-sources">Materi dan bab<Icon name="chevronDown" size={14} /></a>{canEdit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan topik</>} title="Arsipkan topik ini?" description={`${detail.topic_title}. Topik hilang dari daftar dan tidak bisa dipakai untuk misi baru. Misi dan sesi yang sudah memakainya tetap tersimpan. Arsip tidak bisa dibuka kembali dari aplikasi.`} confirm="Arsipkan topik" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archive(detail.id, signal)} onDone={() => navigate(`${base}/knowledge-base`)} refusal={kbRefusal} />}</div></div>
+    <TeacherPageHead crumb={<><Link to={`${base}/knowledge-base`}>Basis pengetahuan</Link><Icon name="chevronRight" size={14} /></>} title={detail.topic_title} tag={<>{detail.concepts.length > 0 && !loading && <span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span>}</>} subtitle={loading ? 'Konsep dan miskonsepsi sedang disusun.' : waiting > 0 ?`${queue.pending_concepts} konsep dan ${queue.pending_misconceptions} miskonsepsi menunggu tinjauan` : `${detail.concepts.length} konsep · ${detail.misconceptions.length} miskonsepsi`} />
+    <div className={styles.header}><div className={styles.jumpLinks}><a href="#kb-review">Tinjau konsep<Icon name="chevronDown" size={14} /></a><a href="#kb-sources">Materi dan bab<Icon name="chevronDown" size={14} /></a>{canEdit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan topik</>} title="Arsipkan topik ini?" description={`${detail.topic_title}. Topik hilang dari daftar dan tidak bisa dipakai untuk misi baru. Misi dan sesi yang sudah memakainya tetap tersimpan. Arsip tidak bisa dibuka kembali dari aplikasi.`} confirm="Arsipkan topik" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archive(detail.id, signal)} onDone={() => navigate(`${base}/knowledge-base`)} refusal={kbRefusal} />}</div></div>
     {!canEdit && <p className={styles.note}>Basis pengetahuan ini milik rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {jobId && <JobNotice key={jobId} kb={kb} jobId={jobId} onDone={refresh} />}
