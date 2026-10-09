@@ -36,6 +36,9 @@
   --color-primary: #2447D1;
   --color-primary-hover: #1B38AB;
   --color-accent: #F2B23A;
+  /* Tinta and Dongker that stay put in dark mode: the teacher home's cobalt briefing and the dark text on Kunyit. */
+  --color-tinta: #2447D1;
+  --color-dongker: #15213B;
   --color-paper: #F6F4EF;
   --color-canvas: #FAFAF7;
   --color-surface: #FFFFFF;
