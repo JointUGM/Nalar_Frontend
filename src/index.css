@@ -127,14 +127,10 @@
   @keyframes fade-in { from { opacity: 0; } }
 }
 
-/* Ruled notebook paper with a margin line, behind admin record headers. */
+/* Clean modern ambient background behind headers. */
 @utility notebook-paper {
-  --rule: color-mix(in srgb, var(--color-primary) 12%, transparent);
-  --margin-line: color-mix(in srgb, var(--color-danger-text) 40%, transparent);
-  --margin-x: 24px;
   background:
-    linear-gradient(90deg, transparent calc(var(--margin-x) - 1px), var(--margin-line) calc(var(--margin-x) - 1px) calc(var(--margin-x) + 1px), transparent calc(var(--margin-x) + 1px)),
-    repeating-linear-gradient(180deg, transparent 0 31px, var(--rule) 31px 32px) 0 14px,
+    radial-gradient(120% 120% at 90% 10%, color-mix(in srgb, var(--color-primary) 6%, transparent) 0%, color-mix(in srgb, var(--color-accent) 3.5%, transparent) 45%, transparent 75%),
     var(--color-surface);
 }
 
