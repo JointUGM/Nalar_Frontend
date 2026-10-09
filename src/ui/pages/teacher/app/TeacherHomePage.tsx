@@ -1,12 +1,11 @@
 import { useCallback, useState } from 'react'
 import { Link } from 'react-router'
 import type { ApiError } from '@/domain/model/ApiError'
-import type { AttentionItem, AttentionPage, DashboardWeek, TeacherDashboard, TeacherPublication } from '@/domain/model/Teacher'
+import type { AttentionPage, DashboardWeek, TeacherDashboard, TeacherPublication } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { cn } from '@/ui/cn'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
-import type { IconName } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
 import { Nala } from '@/ui/components/nala/Nala'
 import type { NalaMood } from '@/ui/components/nala/Nala'
@@ -15,6 +14,7 @@ import type { NalaIconName } from '@/ui/components/nala/NalaIcon'
 import { formatDay, formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
+import { attentionKind, attentionRank, describeAttention, isKnownAttention, waitedFor } from '@/ui/pages/teacher/app/attentionText'
 import styles, { kindTone, statusTone } from '@/ui/pages/teacher/TeacherHome.styles'
 
 interface AttentionResource { data: AttentionPage | null; error: ApiError | null; online: boolean; refresh: () => void }
@@ -24,7 +24,6 @@ const clock = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-dig
 const jakartaHour = new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Asia/Jakarta' })
 const series = [['mastered', 'Paham'], ['developing', 'Berkembang'], ['misconception', 'Miskonsepsi']] as const
 const stroke = { mastered: 'stroke-primary fill-primary', developing: 'stroke-accent fill-accent', misconception: 'stroke-misconception-text fill-misconception-text' }
-const day = 86_400_000
 
 // School days run on WIB, whatever the computer's clock says.
 function greeting(now = new Date()) {
@@ -58,42 +57,16 @@ function Kpis({ week, last }: { week: DashboardWeek; last: DashboardWeek }) {
   </div>)}</dl>
 }
 
-// Each kind keeps its own chip, Nala head and the one thing to do next; safety copy stays plain.
-const kinds: Record<AttentionItem['kind'], { chip: string; icon: IconName; nala: NalaIconName; next: string }> = {
-  safety: { chip: 'Keselamatan', icon: 'heart', nala: 'care', next: 'Periksa kondisi siswa secara langsung. Sesi tetap dijeda sampai Anda melanjutkannya.' },
-  flag: { chip: 'Perlu verifikasi', icon: 'flag', nala: 'verify', next: 'Buka dialognya dulu, lalu putuskan apakah perlu dibahas bersama siswa.' },
-  kb_review: { chip: 'Menunggu tinjauan', icon: 'book', nala: 'book', next: 'Setujui atau ubah drafnya. Siswa hanya bertemu materi yang sudah Anda setujui.' },
-  release_ready: { chip: 'Siap dirilis', icon: 'send', nala: 'send', next: 'Pratinjau dulu. Orang tua hanya melihat ringkasan yang Anda rilis.' },
-}
-const priority = { safety: 0, flag: 1, kb_review: 2, release_ready: 3 }
-const known = (item: AttentionItem) => item.kind in kinds
-
-function attentionLink(item: AttentionItem, base: string): { title: string; detail: string; action: string; to: string } {
-  switch (item.kind) {
-    case 'safety': return { title: `${item.student_name} membutuhkan pendampingan`, detail: 'Sesi dijeda untuk keselamatan.', action: 'Dampingi siswa', to: `${base}/publications/${item.publication_id}/sessions/${item.session_id}` }
-    case 'flag': return { title: `Verifikasi sesi ${item.student_name}`, detail: 'Catatan ini tidak mengubah skor.', action: 'Tinjau sesi', to: `${base}/publications/${item.publication_id}/sessions/${item.session_id}` }
-    case 'kb_review': return { title: `Tinjau materi ${item.topic_title}`, detail: `${number.format(item.pending_concepts)} konsep, ${number.format(item.pending_misconceptions)} miskonsepsi menunggu.`, action: 'Tinjau materi', to: `${base}/knowledge-base/${item.knowledge_base_id}` }
-    case 'release_ready': return { title: `Ringkasan kelas ${item.class_name} siap dirilis`, detail: `${number.format(item.eligible_count)} ringkasan, ${item.mission_title}.`, action: 'Pratinjau rilis', to: `${base}/publications/${item.publication_id}/release` }
-  }
-}
-
-function oldestWait(items: readonly AttentionItem[], now = Date.now()) {
-  const first = Math.min(...items.map((item) => Date.parse(item.created_at)))
-  if (!Number.isFinite(first)) return null
-  const days = Math.floor((now - first) / day)
-  return days < 1 ? 'sejak hari ini' : `${number.format(days)} hari`
-}
-
 function Todo({ resource, base }: { resource: AttentionResource; base: string }) {
   const { data, error, online, refresh } = resource
-  const open = data ? data.items.filter(known) : []
-  const items = [...open].sort((a, b) => priority[a.kind] - priority[b.kind]).slice(0, 4)
-  const waited = oldestWait(open)
+  const open = data ? data.items.filter(isKnownAttention) : []
+  const items = [...open].sort((a, b) => attentionRank(a) - attentionRank(b)).slice(0, 4)
+  const oldest = open.reduce<string | null>((first, item) => !first || Date.parse(item.created_at) < Date.parse(first) ? item.created_at : first, null)
   return <section className={styles.todo} aria-labelledby="home-todo" aria-busy={!data && !error}>
     <div className={styles.head}>
       <div>
         <div className="flex items-baseline"><h2 id="home-todo">Perlu tindakan</h2>{data && data.counts.total > 0 && <span className={styles.count}>{number.format(data.counts.total)}<span className="sr-only"> menunggu</span></span>}</div>
-        <p className={styles.lede}>Keselamatan siswa selalu di urutan pertama.{waited && ` Paling lama menunggu ${waited}.`}</p>
+        <p className={styles.lede}>Keselamatan siswa selalu di urutan pertama.{oldest && ` Paling lama menunggu ${waitedFor(oldest)}.`}</p>
       </div>
       <Link className={styles.more} to={`${base}/attention`}>Lihat semua<Icon name="chevronRight" size={14} /></Link>
     </div>
@@ -102,14 +75,14 @@ function Todo({ resource, base }: { resource: AttentionResource; base: string })
     {data && (data.counts.total === 0 ? <div className={styles.clear}><span><Icon name="check" size={18} /></span><div><h3>Tidak ada yang menunggu Anda.</h3><p>Siapkan misi berikutnya atau lihat hasil kelas.</p></div></div>
       : items.length === 0 ? <p className={styles.empty}>Buka <Link to={`${base}/attention`}>Perlu perhatian</Link> untuk melihat tugas yang tersedia.</p>
       : <ul className={styles.cards}>{items.map((item) => {
-        const entry = attentionLink(item, base)
-        const kind = kinds[item.kind]
+        const entry = describeAttention(item, base)
+        const kind = attentionKind[item.kind]
         return <li key={`${item.kind}-${item.item_id}`} className={styles.action} data-kind={item.kind}>
-          <div className={styles.actionTop}><span className={cn(styles.kind, kindTone[item.kind])}><Icon name={kind.icon} size={12} />{kind.chip}</span><span className={styles.when}><Icon name="clock" size={12} />{formatDayTime(item.created_at)}</span></div>
+          <div className={styles.actionTop}><span className={cn(styles.kind, kindTone[item.kind])}><Icon name={kind.icon} size={12} />{kind.label}</span><span className={styles.when}><Icon name="clock" size={12} />{formatDayTime(item.created_at)}</span></div>
           <h3>{entry.title}</h3>
-          <p>{entry.detail}</p>
+          <p>{entry.summary}</p>
           <div className={styles.next}><strong><NalaIcon name={kind.nala} size={22} />Langkah berikutnya</strong><p>{kind.next}</p></div>
-          <Link to={entry.to} className={styles.go}>{entry.action}<span className="sr-only">: {entry.title}</span><Icon name="chevronRight" size={14} /></Link>
+          <Link to={entry.to} className={styles.go}>{kind.action}<span className="sr-only">: {entry.title}</span><Icon name="chevronRight" size={14} /></Link>
         </li>
       })}</ul>)}
   </section>
