@@ -116,6 +116,8 @@
   @keyframes nala-jump { 35% { transform: translateY(-14px); } 60% { transform: translateY(0); } 75% { transform: translateY(-3px); } }
   @keyframes nala-wave { 35% { transform: rotate(-14deg); } 70% { transform: rotate(10deg); } }
   @keyframes nala-blink { 50% { transform: scaleY(.1); } }
+  /* The live badge dot on the teacher monitor: a calm beat while the run is open; off under reduced motion. */
+  @keyframes teachermonitor-pulse { 50% { opacity: .35; transform: scale(.7); } }
   @keyframes note-in { from { opacity: 0; transform: translateX(6px) scale(.96); } }
   @keyframes file-in { from { opacity: 0; transform: translateY(8px) scale(.97); } }
   @keyframes loader-appear { to { opacity: 1; } }

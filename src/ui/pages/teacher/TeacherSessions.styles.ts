@@ -1,9 +1,9 @@
 // Tailwind classes for ConfirmAction.tsx, PublicationManage.tsx, TeacherSessionsPage.tsx.
 // `teachersessions-*` names carry no styles: they are hooks for the nested selectors in other entries.
 const styles = {
-  content: 'teachersessions-content mx-auto gap-6 max-w-340 grid [&_:is(a,_button,_input,_select):focus-visible]:[outline:2px_solid_var(--color-primary)] [&_:is(a,_button,_input,_select):focus-visible]:outline-offset-[3px] [&_:is(a,_button,_input,_select):focus-visible]:[scroll-margin-block:80px] max-md:gap-6',
-  header: 'teachersessions-header [&>div:first-child]:min-w-0 [&>div:first-child]:flex-[1_1_280px] py-2 gap-6 flex flex-wrap items-center justify-between [&_h1]:m-0 [&_h1]:text-[32px] [&_h1]:leading-[40px] [&_h1]:font-bold [&_h1]:tracking-[-.035em] [&_p]:mx-0 [&_p]:mt-2 [&_p]:mb-0 [&_p]:text-[14px] [&_p]:leading-[24px] [&_p]:text-text-secondary max-md:gap-4 max-md:items-start max-md:[&_h1]:text-[28px] max-md:[&_h1]:leading-[36px]',
-  publish: '[.teachersessions-header_&]:px-6 [.teachersessions-header_&]:min-h-12 [.teachersessions-header_&]:rounded-pill [.teachersessions-header_&]:text-[14px] [.teachersessions-header_&]:font-semibold',
+  content: 'teachersessions-content mx-auto gap-4 max-w-340 grid [&_:is(a,_button,_input,_select):focus-visible]:[outline:2px_solid_var(--color-primary)] [&_:is(a,_button,_input,_select):focus-visible]:outline-offset-[3px] [&_:is(a,_button,_input,_select):focus-visible]:[scroll-margin-block:80px] max-md:gap-6',
+  header: 'teachersessions-header [&>div:first-child]:min-w-0 [&>div:first-child]:flex-[1_1_280px] gap-x-6 gap-y-3 flex flex-wrap items-end justify-between [&_h1]:m-0 [&_h1]:text-[22px] [&_h1]:leading-[30px] [&_h1]:font-bold [&_h1]:tracking-[-.015em] [&_p]:mx-0 [&_p]:mt-0.5 [&_p]:mb-0 [&_p]:max-w-[64ch] [&_p]:text-[13px] [&_p]:leading-5 [&_p]:text-text-muted',
+  publish: '[.teachersessions-header_&]:px-3.5 [.teachersessions-header_&]:py-2 [.teachersessions-header_&]:min-h-10 max-md:[.teachersessions-header_&]:min-h-11 [.teachersessions-header_&]:text-[13px] [.teachersessions-header_&]:font-semibold',
   library: 'min-w-0 bg-surface rounded-[24px] max-md:rounded-[20px]',
   libraryHead: 'px-6 pt-6 pb-2 gap-y-2 gap-x-4 flex flex-wrap items-center justify-between [&_h2]:m-0 [&_h2]:text-[18px] [&_h2]:leading-[24px] [&_h2]:font-[650] [&_h2]:tracking-[-.025em] max-md:px-4 max-md:pt-6 max-md:pb-2',
   sync: 'text-text-muted text-[12px] leading-[20px]',

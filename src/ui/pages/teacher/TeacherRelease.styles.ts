@@ -1,7 +1,7 @@
 // Tailwind classes for TeacherReleasePage.tsx.
 // `teacherrelease-*` names carry no styles: they are hooks for the nested selectors in other entries.
 const styles = {
-  content: 'max-w-340',
+  content: 'mx-auto max-w-340',
   back: 'gap-1 min-h-11 inline-flex items-center no-underline text-[13px] font-semibold text-text-secondary hover:text-primary',
   header: 'gap-4 flex flex-wrap items-end justify-between [&_h1]:m-0 [&_h1]:text-[22px] [&_h1]:leading-[30px] [&_h1]:tracking-[-.015em] [&_p]:mx-0 [&_p]:mt-0.5 [&_p]:mb-0 [&_p]:text-[13px] [&_p]:text-text-muted [&_button]:gap-1.5 [&_button]:whitespace-nowrap [&_button]:text-[13px] [&_button]:rounded-[8px] [&_button:disabled]:border-success-bg [&_button:disabled]:bg-success-bg [&_button:disabled]:text-success-strong [&_button:disabled]:opacity-100',
   note: 'mx-0 mt-2 mb-0 max-w-[72ch] text-[13px] leading-[20px] text-text-secondary',
