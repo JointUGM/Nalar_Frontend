@@ -109,9 +109,9 @@ export function TeacherMissionNewPage({ service, kb, base, schoolId }: { service
             <span className={styles.count} aria-hidden="true">{goal.length}/{goalMax}</span>
           </div>
         </div>
-        <div className={styles.actions}><Button type="submit" pending={pending} pendingLabel="Membuat misi…"><Icon name="sparkle" size={16} />Buat misi</Button></div>
+        <div className={styles.actions}><Button type="submit" className={styles.submit} pending={pending} pendingLabel="Membuat misi…"><Icon name="sparkle" size={16} />Buat misi</Button></div>
       </div>
-      <RoadSteps id="mission-next-heading" title="Setelah misi dibuat" steps={next} />
+      <div className={styles.side}><RoadSteps id="mission-next-heading" title="Setelah misi dibuat" steps={next} /></div>
     </form>
   </div>
 }
