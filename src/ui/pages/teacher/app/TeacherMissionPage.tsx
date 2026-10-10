@@ -1,3 +1,6 @@
+import { MissionRevisionForm } from './MissionRevisionForm'
+import { MissionVersionComparison } from './MissionVersionComparison'
+import type { MissionRevisionFeedback, MissionRevisionInput, MissionRevisionRequest } from '@/domain/model/Teacher'
 import { ConfirmAction } from './ConfirmAction'
 import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { useCallback, useRef, useState } from 'react'
@@ -20,7 +23,7 @@ import { JobNotice } from './JobNotice'
 import { missionRefusal, moveWord, problemWord, rubricWord, versionWord } from './missionText'
 import { Loading } from '@/ui/components/loading/Loading'
 
-interface Loaded { mission: MissionSummary; version: MissionVersion | null; detail: KbDetail | null; history: VersionHistory[] }
+interface Loaded { mission: MissionSummary; version: MissionVersion | null; detail: KbDetail | null; history: VersionHistory[]; comparisonBase: MissionVersion | null; revisionRequest: MissionRevisionRequest | null }
 type Command = '' | 'generate' | 'review' | 'save'
 const tabs = [['anchor', 'Soal dan acuan'], ['rubric', 'Rubrik'], ['bank', 'Bank pertanyaan'], ['history', 'Riwayat versi']] as const
 type Tab = typeof tabs[number][0]
@@ -30,6 +33,7 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const wanted = Number(params.get('v'))
+  const requestedJob = params.get('job')
   const requested = Number.isInteger(wanted) && wanted > 0 ? wanted : null
   const read = useCallback(async (signal: AbortSignal): Promise<Loaded> => {
     const mission = (await service.missions(schoolId, signal)).find((item) => item.id === missionId)
@@ -38,8 +42,11 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
     // The knowledge base only supplies the concept names, so the mission still opens without it.
     // The history and the concept names are extras; the version still opens without them.
     const [version, detail, history] = await Promise.all([number ? service.missionVersion(missionId, number, signal) : null, kb.detail(mission.knowledge_base_id, signal).catch(() => null), service.missionVersions(missionId, signal).catch((): VersionHistory[] => [])])
-    return { mission, version, detail, history }
-  }, [service, kb, schoolId, missionId, requested])
+    const comparisonBase = version?.base_version_number
+      ? await service.missionVersion(missionId, version.base_version_number, signal).catch(() => null) : null
+    const revisionRequest = requestedJob && mission.can_edit ? await service.revisionRequest(missionId, requestedJob, signal).catch(() => null) : null
+    return { mission, version, detail, history, revisionRequest, comparisonBase: comparisonBase?.id === version?.base_version_id ? comparisonBase : null }
+  }, [service, kb, schoolId, missionId, requested, requestedJob])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   const commandSignal = useCommandSignal()
   const busy = useRef(false)
@@ -47,16 +54,19 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
   const [draft, setDraft] = useState<{ anchor: string; reference: string } | null>(null)
   const [pending, setPending] = useState<Command>('')
   const [failure, setFailure] = useState<ApiError | null>(null)
+  const [revision, setRevision] = useState<{ component: MissionRevisionFeedback['component'] | null } | null>(null)
+  const [jobBusy, setJobBusy] = useState(Boolean(params.get('job')))
   const [tab, setTab] = useState<Tab>('anchor')
   const path = `${base}/missions/${missionId}`
   const jobDone = useCallback((job: Job) => {
+    setJobBusy(false)
     if (job.generation_result) navigate(`${path}?v=${job.generation_result.version_number}`, { replace: true })
     refresh()
   }, [navigate, path, refresh])
   const back = <Link className={styles.back} to={`${base}/missions`}><Icon name="chevronLeft" size={14} />Misi</Link>
 
   if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat misi…" />}</div>
-  const { mission, version, detail, history } = data
+  const { mission, version, detail, history, comparisonBase, revisionRequest } = data
   const latest = mission.latest_version
   const isLatest = version !== null && latest?.id === version.id
   // One card with tabs, as in Board v2; history is the only part that exists without a version.
@@ -95,13 +105,23 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
       question_bank: from.question_bank, answer_terms: from.answer_terms, live_warmup: from.live_warmup, max_turns: from.max_turns, max_duration_minutes: from.max_duration_minutes,
     }, signal), (saved) => { setDraft(null); navigate(`${path}?v=${saved.version_number}`, { replace: true }) })
   }
+  async function revise(input: MissionRevisionInput) {
+    await run('generate', (signal) => service.reviseMission(mission.id, input, signal), (queued) => {
+      setRevision(null); setJobId(queued.job_id); setJobBusy(!['succeeded', 'failed'].includes(queued.status))
+      const query = new URLSearchParams(params); query.set('job', queued.job_id)
+      if (version) query.set('v', String(version.version_number))
+      navigate(`${path}?${query.toString()}`, { replace: true })
+    })
+  }
   const said = failure && missionRefusal(failure)
 
   return <div className={styles.content}>
-    <TeacherPageHead crumb={<><Link to={`${base}/missions`}>Misi</Link><Icon name="chevronRight" size={14} /></>} title={mission.title} tag={<span className={[styles.tag, version?.status === 'draft' ? styles.draft : version ? styles.version : styles.locked].join(' ')}>{version ? `${versionWord[version.status] ?? version.status} · v${version.version_number}` : 'Belum ada versi'}</span>} subtitle={[detail && `Basis pengetahuan: ${detail.topic_title}`, mission.can_edit ? 'Misi Anda' : `Dari ${mission.created_by_name ?? 'rekan guru'}`].filter(Boolean).join(' · ')} />
+    <TeacherPageHead crumb={<><Link to={`${base}/missions`}>Misi</Link><Icon name="chevronRight" size={14} /></>} title={version?.title || mission.title} tag={<span className={[styles.tag, version?.status === 'draft' ? styles.draft : version ? styles.version : styles.locked].join(' ')}>{version ? `${versionWord[version.status] ?? version.status} · v${version.version_number}` : 'Belum ada versi'}</span>} subtitle={[detail && `Basis pengetahuan: ${detail.topic_title}`, mission.can_edit ? 'Misi Anda' : `Dari ${mission.created_by_name ?? 'rekan guru'}`].filter(Boolean).join(' · ')} />
     <div className={styles.header}>
       <div className={styles.actions}>
-        {mission.can_edit && <Button tone="secondary" pending={pending === 'generate'} pendingLabel="Meminta draf…" disabled={pending !== '' || draft !== null} onClick={() => { void run('generate', (signal) => service.generateMission(mission.id, signal), (queued) => setJobId(queued.job_id)) }}><Icon name="sparkle" size={14} />{version ? 'Buat ulang dengan AI' : 'Buat draf dengan AI'}</Button>}
+        {mission.can_edit && (version?.can_revise_with_ai
+          ? <Button tone="secondary" disabled={pending !== '' || draft !== null || jobBusy} onClick={() => { setFailure(null); setRevision({ component: null }) }}><Icon name="sparkle" size={14} />Revisi dengan AI</Button>
+          : <Button tone="secondary" pending={pending === 'generate'} pendingLabel="Meminta draf…" disabled={pending !== '' || draft !== null || jobBusy} onClick={() => { void run('generate', (signal) => service.generateMission(mission.id, signal), (queued) => { setJobId(queued.job_id); setJobBusy(true); navigate(`${path}?job=${queued.job_id}`, { replace: true }) }) }}><Icon name="sparkle" size={14} />{version ? 'Buat ulang dengan AI' : 'Buat draf dengan AI'}</Button>)}
         {version?.can_edit && version.status === 'draft' && <Button pending={pending === 'review'} pendingLabel="Memeriksa…" disabled={pending !== '' || draft !== null} onClick={() => { void run('review', (signal) => service.reviewMissionVersion(mission.id, version.version_number, signal)) }}><Icon name="check" size={14} />Tandai sudah ditinjau</Button>}
         {isLatest && publishable(mission) && <Link className={styles.publish} to={`${path}/publish`}><Icon name="send" size={14} />Terbitkan ke kelas</Link>}
         {mission.can_edit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan</>} title="Arsipkan misi ini?" description={`${mission.title}. Misi hilang dari daftar dan tidak bisa diterbitkan lagi. Sesi dan hasil yang sudah ada tetap tersimpan. Arsip tidak bisa dibuka kembali dari aplikasi.`} confirm="Arsipkan misi" pendingLabel="Mengarsipkan…" disabled={pending !== ''} action={(signal) => service.archiveMission(mission.id, signal)} onDone={() => navigate(`${base}/missions`)} refusal={missionRefusal} />}
@@ -116,9 +136,14 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
       {!said && failure.requestId && <small>Referensi: {failure.requestId}</small>}
     </Feedback>}
     {!version && <Feedback title="Belum ada draf">{mission.can_edit ? 'Minta AI menyusun draf dari konsep yang sudah disetujui, lalu periksa hasilnya di sini.' : 'Pembuat misi belum menyusun drafnya.'}</Feedback>}
+    {version?.base_version_id && (comparisonBase
+      ? <MissionVersionComparison key={version.id} base={comparisonBase} version={version} names={Object.fromEntries((detail?.concepts ?? []).map((c) => [c.id, c.name]))} />
+      : <Feedback tone="warning" title="Versi dasar belum dapat dimuat">Perbandingan belum tersedia. Muat ulang halaman untuk memeriksa versi dasar.</Feedback>)}
+    {revision && version && latest && <MissionRevisionForm key={version.id} version={version} latestId={latest.id} concepts={detail?.concepts ?? null} initialComponent={revision.component} initialInput={revision.component === null && revisionRequest?.status === 'failed' && revisionRequest.intent.base_version_id === version.id ? revisionRequest.intent : null} pending={pending !== ''} error={failure ? said ?? failure.message : null} onClose={() => setRevision(null)} onSubmit={revise} />}
     <div className={styles.layout}>
     {available.length > 0 && <section className={styles.card} aria-label="Isi misi">
       <div className={styles.tabs} role="tablist" aria-label="Bagian misi" onKeyDown={onTabKey}>{available.map(([key, label]) => <button key={key} id={`mission-tab-${key}`} type="button" role="tab" aria-selected={current === key} aria-controls={`mission-panel-${key}`} tabIndex={current === key ? 0 : -1} className={styles.tab} onClick={() => setTab(key)}>{label}{count(key) !== null && <span className={styles.tabCount}>{count(key)}</span>}</button>)}</div>
+      {version?.can_revise_with_ai && mission.can_edit && current !== 'history' && <div className="px-6 pt-4"><Button tone="secondary" disabled={pending !== '' || jobBusy || draft !== null} onClick={() => { setFailure(null); setRevision({ component: current === 'bank' ? 'bank' : current === 'rubric' ? 'rubric' : 'anchor_problem' }) }}>Revisi bagian ini</Button></div>}
       <div id={`mission-panel-${current}`} role="tabpanel" aria-labelledby={`mission-tab-${current}`} className={styles.panel}>
         {current === 'anchor' && version && <>
         <div className={styles.anchors}>
@@ -159,6 +184,7 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
       </div>
     </section>}
     {version && <aside className={styles.rail}>
+      {version.learning_objective && <section className={styles.side}><h2>Tujuan pembelajaran</h2><p className="text-[14px] leading-6 text-text-secondary">{version.learning_objective}</p></section>}
       <section className={styles.side} aria-labelledby="mission-targets">
         <h2 id="mission-targets">Konsep target</h2>
         {targets.length > 0 ? <ul className={styles.targets}>{targets.map((name) => <li key={name}>{name}</li>)}</ul> : <p className={styles.note}>{version.target_concept_ids.length} konsep</p>}
