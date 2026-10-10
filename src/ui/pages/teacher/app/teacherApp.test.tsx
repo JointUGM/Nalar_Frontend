@@ -672,3 +672,46 @@ describe('Nala on the attention page', () => {
     expect(screen.queryByText('Semua catatan sudah ditindaklanjuti.')).not.toBeInTheDocument()
   })
 })
+
+
+describe('teacher-guided mission revision', () => {
+  it('revises a selected locked historical version and keeps the intent key after a lost reply', async () => {
+    let failedOnce = false
+    const request = backend({
+      [`GET /schools/${school}/missions?limit=100`]: () => Response.json({ items: [{ id: draft, title: 'Gesekan', knowledge_base_id: kbId, can_edit: true, created_by_name: 'Bu Sari', latest_version: { id: version, version_number: 2, status: 'draft' } }], next_cursor: null }),
+      [`GET /missions/${draft}/versions/1`]: () => Response.json(versionOut({ status: 'locked', can_edit: false, can_revise_with_ai: true, learning_objective: 'Menjelaskan gerak', title: 'Gesekan' })),
+      [`POST /missions/${draft}/revise`]: () => {
+        if (!failedOnce) { failedOnce = true; throw new TypeError('Lost response') }
+        return Response.json({ job_id: job, status: 'queued', base_version_id: draft, effective_scope: ['rubric'] }, { status: 202 })
+      },
+      [`GET /jobs/${job}`]: () => Response.json(jobOut({ kind: 'mission_revise', status: 'queued' })),
+    })
+    open(`${base}/missions/${draft}?v=1`, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Revisi dengan AI' }))
+    const dialog = screen.getByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Rubrik' }))
+    fireEvent.change(within(dialog).getByLabelText('Perubahan untuk rubrik'), { target: { value: 'Bedakan penggunaan bukti pada skor 2 dan 3.' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Buat draf revisi' }))
+    await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Buat draf revisi' })).toBeEnabled())
+    expect(within(dialog).getByLabelText('Perubahan untuk rubrik')).toHaveValue('Bedakan penggunaan bukti pada skor 2 dan 3.')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Buat draf revisi' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    const posts = request.mock.calls.filter(([url, init]) => String(url).endsWith('/revise') && init?.method === 'POST')
+    expect(posts).toHaveLength(2)
+    expect(new Headers(posts[0][1]?.headers).get('Idempotency-Key')).toBe(new Headers(posts[1][1]?.headers).get('Idempotency-Key'))
+    expect(posts[0][1]?.body).toBe(posts[1][1]?.body)
+    expect(JSON.parse(String(posts[1][1]?.body))).toMatchObject({ base_version_id: draft, expected_latest_version_id: version, feedback: [{ component: 'rubric', desired_change: 'Bedakan penggunaan bukti pada skor 2 dan 3.' }] })
+  })
+
+  it('reloads the saved comparison against its exact parent and still requires review', async () => {
+    const request = backend({
+      [`GET /missions/${draft}/versions/2`]: () => Response.json(versionOut({ id: version, version_number: 2, title: 'Misi revisi', learning_objective: 'Menjelaskan bukti pengamatan', base_version_id: draft, base_version_number: 1, can_revise_with_ai: true, revision_feedback: [], revision_changed_fields: ['learning_objective'] })),
+      [`GET /missions/${draft}/versions/1`]: () => Response.json(versionOut({ title: 'Misi awal', learning_objective: 'Menjelaskan gerak', status: 'locked', can_edit: false })),
+    })
+    open(`${base}/missions/${draft}?v=2`, request)
+    expect(await screen.findByRole('heading', { name: 'Perbandingan v1 → v2' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tandai sudah ditinjau' })).toBeInTheDocument()
+    expect(screen.getByText('Misi awal')).toBeInTheDocument()
+    expect(request.mock.calls.some(([url]) => String(url).endsWith('/versions/1'))).toBe(true)
+  })
+})

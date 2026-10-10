@@ -1,6 +1,9 @@
+import type { MissionRevisionInput, MissionRevisionRequest, RevisionQueued } from '@/domain/model/Teacher'
 import type { StudentHistoryPage, AttemptGrantInput, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 
 export interface TeacherService {
+  revisionRequest(missionId: string, jobId: string, signal?: AbortSignal): Promise<MissionRevisionRequest>
+  reviseMission(missionId: string, input: MissionRevisionInput, signal?: AbortSignal): Promise<RevisionQueued>
   publications(signal?: AbortSignal): Promise<TeacherPublication[]>
   assignments(signal?: AbortSignal): Promise<TeacherAssignment[]>
   missions(schoolId: string, signal?: AbortSignal): Promise<MissionSummary[]>

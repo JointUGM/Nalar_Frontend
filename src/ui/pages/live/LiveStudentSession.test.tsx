@@ -6,7 +6,7 @@ import type { LiveAnswer, LiveJoin, LiveLobby, LiveMonitor, LivePublications, Li
 import type { LiveService } from '@/domain/services/LiveService'
 import { LiveStudentSession } from './LiveStudentSession'
 
-const initial: LiveState = { status: 'awaiting_answer', turn_index: 0, probe_number: 0, probe_total: 3, started_at: '2026-10-02T00:00:00Z', deadline_at: '2026-10-02T00:15:00Z', server_now: '2026-10-02T00:01:00Z', prompt: { kind: 'opening', text: 'Jelaskan alasanmu.', turn_index: 0 }, safety_message: null, reflection_ready: false }
+const initial: LiveState = { status: 'awaiting_answer', turn_index: 0, probe_number: 0, probe_total: 3, started_at: '2026-10-02T00:00:00Z', deadline_at: '2026-10-02T00:15:00Z', server_now: '2026-10-02T00:01:00Z', prompt: { kind: 'opening', text: 'Jelaskan alasanmu.', turn_index: 0 }, safety_message: null, reflection_ready: false, activity_notices: [] }
 
 class FakeLiveService implements LiveService {
   current = { ...initial }

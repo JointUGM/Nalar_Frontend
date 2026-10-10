@@ -1,3 +1,4 @@
+import type { MissionRevisionFeedback } from '@/domain/model/Teacher'
 import type { ApiError } from '@/domain/model/ApiError'
 import type { MissionRubric } from '@/domain/model/Teacher'
 
@@ -9,6 +10,15 @@ export const moveWord: Readonly<Record<string, string>> = {
 }
 
 const refusals: Readonly<Record<string, string>> = {
+  REVISION_IN_PROGRESS: 'Misi ini sedang disusun atau direvisi. Tunggu sampai proses selesai.',
+  MISSION_VERSION_CHANGED: 'Ada versi baru sejak halaman dibuka. Periksa versi terbaru, lalu kirim revisi lagi.',
+  IDEMPOTENCY_KEY_REUSED: 'Isian berubah setelah dikirim. Periksa kembali permintaan revisi.',
+  REVISION_NO_CHANGE: 'Pilih bagian atau ubah tujuan, konsep, atau judul versi.',
+  REVISION_BASE_INVALID: 'Versi dasar belum memiliki paket lengkap. Buat draf lengkap terlebih dahulu.',
+  REVISION_SETTINGS_UNSUPPORTED: 'Revisi AI mendukung 2–3 konsep, 4–6 giliran, dan durasi 5–20 menit.',
+  REVISION_QUESTIONS_UNKNOWN: 'Pertanyaan yang dipilih tidak ditemukan dalam versi dasar.',
+  MISSION_REVISION_UNAVAILABLE: 'Revisi AI belum tersedia. Versi yang ada tetap dapat digunakan.',
+  ITEM_NOT_APPROVED: 'Konsep atau miskonsepsi versi ini sudah tidak aktif atau belum disetujui.',
   MISSION_BUSY: 'Draf misi ini sedang disusun. Tunggu sampai selesai, lalu arsipkan.',
   MISSION_VERSION_INVALID: 'Versi ini belum bisa dipakai.',
   VERSION_LOCKED: 'Versi ini sudah diterbitkan dan terkunci. Simpan perubahan sebagai versi baru.',
@@ -31,3 +41,7 @@ const problems: Readonly<Record<string, string>> = {
   AI_PACK_REJECTED: 'AI menolak isi versi ini. Buat ulang drafnya.',
 }
 export const problemWord = (code: string) => problems[code] ?? `Bank pertanyaan atau isi versi belum konsisten (${code}).`
+
+export const revisionComponentWord: Record<MissionRevisionFeedback['component'], string> = {
+  anchor_problem: 'Soal pembuka', reference_reasoning: 'Jawaban acuan', rubric: 'Rubrik', bank: 'Bank pertanyaan',
+}

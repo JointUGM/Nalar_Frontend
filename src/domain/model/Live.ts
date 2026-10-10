@@ -1,6 +1,19 @@
 import { ApiError } from './ApiError'
 
 export interface LiveClock { server_now: string }
+export interface StudentActivityNotice {
+  id: string
+  kind: 'own_words' | 'stay_on_page'
+  message: string
+  created_at: string
+}
+export interface LiveFlag {
+  id: string
+  flag_type: string
+  severity: string
+  turn_index: number | null
+  created_at: string
+}
 export interface LiveJoin {
   run_id: string
   participant_id: string
@@ -29,6 +42,7 @@ export interface LiveState extends LiveClock {
   prompt: { kind: string; text: string; turn_index: number } | null
   safety_message: string | null
   reflection_ready: boolean
+  activity_notices: StudentActivityNotice[]
 }
 export interface LiveStudent {
   student_id: string
@@ -38,6 +52,7 @@ export interface LiveStudent {
   max_turns: number
   deadline_at: string | null
   open_flag_count: number
+  open_flags: LiveFlag[]
   safety_paused: boolean
   // The student's latest session in this run; it opens the teacher report.
   session_id: string | null

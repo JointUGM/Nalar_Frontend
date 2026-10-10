@@ -11,6 +11,7 @@ const jobPollMs = (job: Job | null) => job && jobEnded(job) ? null : 3000
 const words: Readonly<Record<string, readonly [string, string, string, string]>> = {
   kb_detect_sections: ['Membaca materi dan daftar babnya', 'Materi gagal dibaca', 'Materi selesai dibaca', 'Pilih bab yang ingin disusun menjadi konsep.'],
   kb_build_section: ['Menyusun konsep dan miskonsepsi dari bab ini, biasanya beberapa menit', 'Bab gagal disusun', 'Bab selesai disusun', 'Tinjau konsep dan miskonsepsi barunya.'],
+  mission_revise: ['Menyusun draf revisi berdasarkan masukan Anda', 'Draf revisi gagal disusun', 'Draf revisi selesai disusun', 'Bandingkan dengan versi dasar, lalu tinjau sebelum diterbitkan.'],
   mission_generate: ['Menyusun soal pembuka, rubrik, dan bank pertanyaan, biasanya satu sampai dua menit', 'Draf misi gagal disusun', 'Draf misi selesai disusun', 'Periksa isinya, lalu tandai sudah ditinjau.'],
 }
 
