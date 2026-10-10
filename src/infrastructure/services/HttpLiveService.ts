@@ -2,6 +2,7 @@ import { LiveError } from '@/domain/model/Live'
 import type { LiveAnswer, LiveJoin, LiveLobby, LiveMonitor, LivePublications, LiveReflection, LiveState } from '@/domain/model/Live'
 import type { LiveService } from '@/domain/services/LiveService'
 import type { components } from './contracts/backend'
+import { liveFlags, studentActivityNotices } from './integrity'
 
 type Schemas = components['schemas']
 type RecordValue = Record<string, unknown>
@@ -85,7 +86,7 @@ export class HttpLiveService implements LiveService {
     dates(value, ['started_at', 'deadline_at'])
     if (value.prompt !== null) check(record(value.prompt), ['kind', 'text'], ['turn_index'])
     const data = value as unknown as Schemas['StateOut']
-    return { status: data.status, turn_index: data.turn_index, probe_number: data.probe_number, probe_total: data.probe_total, started_at: data.started_at, deadline_at: data.deadline_at, prompt: data.prompt ? { kind: data.prompt.kind, text: data.prompt.text, turn_index: data.prompt.turn_index } : null, safety_message: data.safety_message, reflection_ready: data.reflection_ready, server_now: data.server_now }
+    return { status: data.status, turn_index: data.turn_index, probe_number: data.probe_number, probe_total: data.probe_total, started_at: data.started_at, deadline_at: data.deadline_at, prompt: data.prompt ? { kind: data.prompt.kind, text: data.prompt.text, turn_index: data.prompt.turn_index } : null, safety_message: data.safety_message, reflection_ready: data.reflection_ready, server_now: data.server_now, activity_notices: studentActivityNotices(value.activity_notices) }
   }
   async answer(sessionId: string, answer: LiveAnswer, signal?: AbortSignal) {
     const value = record(await this.request(`/student/sessions/${encodeURIComponent(sessionId)}/answers`, signal, 'POST', answer))
@@ -121,7 +122,7 @@ export class HttpLiveService implements LiveService {
       if (student.current_turn_index !== null && (!Number.isInteger(student.current_turn_index) || student.current_turn_index < 0)) throw new LiveError(502, 'INVALID_RESPONSE')
       if (student.session_id != null && typeof student.session_id !== 'string') throw new LiveError(502, 'INVALID_RESPONSE')
       if (student.participant_id != null && typeof student.participant_id !== 'string') throw new LiveError(502, 'INVALID_RESPONSE')
-      return { student_id: student.student_id, name: student.name, status: student.status, current_turn_index: student.current_turn_index, max_turns: student.max_turns, deadline_at: student.deadline_at, open_flag_count: student.open_flag_count, safety_paused: student.safety_paused, session_id: student.session_id ?? null, participant_id: student.participant_id ?? null }
+      return { student_id: student.student_id, name: student.name, status: student.status, current_turn_index: student.current_turn_index, max_turns: student.max_turns, deadline_at: student.deadline_at, open_flag_count: student.open_flag_count, open_flags: liveFlags(record(student).open_flags), safety_paused: student.safety_paused, session_id: student.session_id ?? null, participant_id: student.participant_id ?? null }
     }) }
   }
   async control(runId: string, action: 'open-lobby' | 'start' | 'close', signal?: AbortSignal) { await this.request(`/runs/${encodeURIComponent(runId)}/${action}`, signal, 'POST') }
