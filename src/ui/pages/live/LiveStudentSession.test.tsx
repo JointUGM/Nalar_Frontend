@@ -48,6 +48,21 @@ describe('student live session', () => {
     expect(service.answers[1]).toEqual(service.answers[0])
   })
 
+  it('shows a reminder that arrives mid-answer without touching the draft, focus or selection', async () => {
+    const service = new FakeLiveService()
+    renderSession(service)
+    const field = await screen.findByRole('textbox', { name: 'Jawabanmu' }) as HTMLTextAreaElement
+    await waitFor(() => expect(field).not.toHaveAttribute('readonly'))
+    fireEvent.change(field, { target: { value: 'Karena ada gaya gesek.' } })
+    field.focus(); field.setSelectionRange(3, 8)
+    service.current = { ...service.current, activity_notices: [{ id: 'n1', kind: 'own_words', message: 'Jelaskan alasanmu dengan kata-katamu sendiri.', created_at: '2026-10-02T00:01:00Z' }] }
+    await screen.findByRole('heading', { name: 'Tetap gunakan kata-katamu sendiri' }, { timeout: 6000 })
+    expect(field).toHaveValue('Karena ada gaya gesek.')
+    expect(field).toHaveFocus()
+    expect([field.selectionStart, field.selectionEnd]).toEqual([3, 8])
+    expect(screen.getByRole('button', { name: 'Kirim' })).toBeEnabled()
+  }, 10_000)
+
   it('locks input at the server deadline even when the lab clock is earlier', async () => {
     const service = new FakeLiveService()
     service.current = { ...initial, deadline_at: '2026-10-02T00:00:30Z' }

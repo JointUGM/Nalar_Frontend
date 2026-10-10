@@ -4,7 +4,6 @@ const styles = {
   content: 'mx-auto max-w-340',
   back: 'min-h-8 inline-flex items-center gap-1 text-[13px] font-semibold text-text-muted no-underline hover:text-ink',
   safety: 'p-3 gap-2 grid rounded-xl bg-danger-bg text-[13px] [&_strong]:text-[14px] [&_strong]:font-bold [&_strong]:text-ink [&>span]:leading-[1.45] [&>span]:text-[#7A2335] [&_a]:font-bold [&_a]:text-[#A3253F] [&_b]:font-bold [&_b]:text-ink',
-  flagAlert: 'mb-4 p-3 gap-2 flex flex-wrap items-center rounded-xl bg-warning-bg text-warning-text text-[13px] [&_strong]:text-[14px] [&_strong]:font-bold [&_strong]:text-ink [&>span]:leading-[1.45] [&>span]:text-ink [&_b]:font-bold',
   safetyAction: 'px-3 min-h-8 bg-[#A3253F] whitespace-nowrap rounded-[8px] text-[13px] font-bold hover:not-disabled:bg-danger-hover max-md:min-h-11',
   header: 'px-5 py-4 gap-x-6 gap-y-3 flex flex-wrap items-center rounded-2xl bg-surface',
   title: 'gap-2 flex flex-wrap items-center [&_h1]:m-0 [&_h1]:wrap-anywhere [&_h1]:text-[24px] [&_h1]:leading-[30px] [&_h1]:font-extrabold [&_h1]:tracking-[-.02em]',

@@ -7,10 +7,10 @@ import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
 import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { Nala } from '@/ui/components/nala/Nala'
-import { Feedback } from '@/ui/components/feedback/Feedback'
 import { LiveFeedback } from './LiveFrame'
 import { sessionPollMs, useCommandSignal, useLiveResource, useServerTime } from './useLiveResource'
 import { LiveStudentFinish } from './LiveStudentReflection'
+import { StudentActivityBanner } from './StudentActivityBanner'
 import { useSessionTelemetry } from './useSessionTelemetry'
 import type { SendTelemetry } from './useSessionTelemetry'
 import styles from '@/ui/pages/student/StudentSession.styles'
@@ -46,39 +46,12 @@ export function LiveStudentSession({ service, sessionId, base, telemetry }: { se
   const reconciling = submission?.answer.turn_index === current && resource.requestStartedAt <= (submission?.reconcileAfter ?? -Infinity)
   const writable = state?.status === 'awaiting_answer' && !!state.prompt && remaining !== null && remaining > 0 && countdown === 0 && !sending && !unresolved && !reconciling
   const editable = writable && resource.online && !resource.error
-  const [warning, setWarning] = useState<{ type: 'paste' | 'tab_switch'; message: string } | null>(null)
   useEffect(() => { if (state?.status === 'awaiting_answer') question.current?.focus() }, [current, state?.status])
   const status = state?.status
   // A pause, an early end or the finish screen takes focus, so a screen reader hears it at once.
   useEffect(() => { if (status && status !== 'awaiting_answer' && status !== 'processing') outcome.current?.focus() }, [status])
   const track = useSessionTelemetry(telemetry, current, status === 'awaiting_answer' || status === 'processing')
   useEffect(() => { if (remaining === 0 && status && ['awaiting_answer', 'processing', 'paused_safety'].includes(status)) refresh() }, [remaining, status, refresh])
-
-  useEffect(() => {
-    if (status !== 'awaiting_answer' && status !== 'processing') return
-    function onVisibility() {
-      if (document.hidden) {
-        setWarning({
-          type: 'tab_switch',
-          message: 'Kamu terdeteksi berpindah tab atau aplikasi lain. Tetap berada di halaman asesmen. Aktivitas ini dicatat dan dilaporkan langsung ke guru.',
-        })
-        track.flush()
-      }
-    }
-    function onBlur() {
-      setWarning({
-        type: 'tab_switch',
-        message: 'Kamu terdeteksi keluar dari jendela asesmen. Tetap berada di halaman ini. Aktivitas ini dicatat dan dilaporkan langsung ke guru.',
-      })
-      track.flush()
-    }
-    document.addEventListener('visibilitychange', onVisibility)
-    window.addEventListener('blur', onBlur)
-    return () => {
-      document.removeEventListener('visibilitychange', onVisibility)
-      window.removeEventListener('blur', onBlur)
-    }
-  }, [status, track])
 
   async function submit() {
     if (busy.current || !editable || !text.trim() || current === undefined) return
@@ -126,23 +99,7 @@ export function LiveStudentSession({ service, sessionId, base, telemetry }: { se
       : countdown > 0 ? <section className={styles.countdown}><Nala mood="calm" size={96} /><h1>Tarik napas. Jelaskan alasanmu dengan kata-katamu sendiri.</h1><p className={styles.count} role="status">{countdown}</p></section>
       : <div className={styles.page}>
         <p className={styles.time} role="timer">{remaining === 0 ? 'Waktu habis. Memeriksa sesi…' : `Sisa waktu ${Math.floor((remaining ?? 0) / 60)}:${String((remaining ?? 0) % 60).padStart(2, '0')}`}</p>
-        {warning && (
-          <div className="mb-4">
-            <Feedback tone="warning" variant="student" title="Peringatan Kejujuran Asesmen" announce>
-              <div className="flex items-start justify-between gap-3">
-                <p>{warning.message}</p>
-                <button
-                  type="button"
-                  onClick={() => setWarning(null)}
-                  className="ml-2 -mt-1 p-1 rounded hover:bg-black/10 cursor-pointer text-inherit"
-                  aria-label="Tutup peringatan"
-                >
-                  <Icon name="x" size={16} />
-                </button>
-              </div>
-            </Feedback>
-          </div>
-        )}
+        <StudentActivityBanner key={sessionId} notices={state.activity_notices} />
         {draft.text && draft.turn !== current && <p className={styles.note}>Tulisan dari pertanyaan sebelumnya: {draft.text}</p>}
         <div className={styles.grid}>
           <section className={styles.ask}><div className={styles.askHead}><Nala mood={state.status === 'processing' || unresolved ? 'think' : 'ask'} size={64} /><span className={styles.askName}>Nala bertanya</span><span className={styles.turn}>{state.probe_number === 0 ? 'Soal pembuka' : `Pertanyaan ${state.probe_number} dari ${state.probe_total}`}</span></div>
@@ -156,15 +113,7 @@ export function LiveStudentSession({ service, sessionId, base, telemetry }: { se
               maxLength={4000}
               readOnly={!writable}
               placeholder="Tulis alasanmu di sini…"
-              onPaste={(event) => {
-                const len = event.clipboardData.getData('text').length
-                track.paste(len)
-                setWarning({
-                  type: 'paste',
-                  message: 'Menempelkan teks terdeteksi. Gunakan pemikiran dan kata-katamu sendiri. Tindakan ini dicatat dan dilaporkan langsung ke guru.',
-                })
-                track.flush()
-              }}
+              onPaste={(event) => track.paste(event.clipboardData.getData('text').length)}
               onChange={(event) => { if (current !== undefined) { track.typed(event.target.value.length - text.length); setDraft({ turn: current, text: event.target.value }); setError(null) } }}
               onKeyDown={(event) => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); void submit() } }}
             />

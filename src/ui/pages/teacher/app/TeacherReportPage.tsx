@@ -9,11 +9,12 @@ import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
-import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
+import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import { CsvDownload } from '@/ui/components/csv-download/CsvDownload'
 import styles from '@/ui/pages/teacher/TeacherReport.styles'
 import dialogStyles from '@/ui/pages/teacher/ReportDialogs.styles'
 import { moveWord, rubricWord } from './missionText'
+import { FlagEvidence } from './FlagEvidence'
 import { Loading } from '@/ui/components/loading/Loading'
 
 const flagWord: Readonly<Record<string, string>> = {
@@ -44,6 +45,8 @@ function activityLine({ paste_chars, away_seconds, typing_ms }: { paste_chars: n
   const parts = [paste_chars > 0 && `${paste_chars} karakter ditempel`, away_seconds >= 1 && `${Math.round(away_seconds)} detik di luar halaman`, typing_ms > 0 && `${Math.round(typing_ms / 1000)} detik mengetik`].filter(Boolean)
   return parts.length ? parts.join(' · ') : null
 }
+// A live session keeps gaining flags and an unevaluated one is still being scored; a settled report stops polling and is refreshed by hand (publication similarity can add a flag later).
+const reportPollMs = (data: { report: SessionReport } | null) => !data || ['in_progress', 'paused_safety'].includes(data.report.session.status) || !data.report.evaluation ? 3000 : null
 const minutes = (from: string, to: string | null) => to ? `${Math.max(1, Math.round((Date.parse(to) - Date.parse(from)) / 60000))} menit` : null
 
 type Pending = { kind: 'score'; score: ReportScore } | { kind: 'safety'; action: SafetyAction } | { kind: 'grant' } | null
@@ -55,7 +58,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
     const [report, map] = await Promise.all([service.report(sessionId, signal), service.classMap(publicationId, signal).catch((): ClassMap | null => null)])
     return { report, map }
   }, [service, sessionId, publicationId])
-  const { data, error, online, refresh } = useLiveResource(read, noPollMs)
+  const { data, error, online, refresh } = useLiveResource(read, reportPollMs)
   const commandSignal = useCommandSignal()
   const busy = useRef(false)
   const [dialog, setDialog] = useState<Pending>(null)
@@ -98,6 +101,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
         {finished && <Button tone="secondary" disabled={pending || granted} onClick={() => open({ kind: 'grant' })}><Icon name="refresh" size={14} />{granted ? 'Kesempatan lagi diberikan' : 'Beri kesempatan lagi'}</Button>}
       </div>
     </div>
+    {data && reportPollMs(data) === null && <Button tone="secondary" onClick={refresh}><Icon name="refresh" size={14} />Perbarui laporan</Button>}
     {granted && <Feedback tone="success" title="Kesempatan lagi diberikan" announce>Siswa melihatnya sebagai misi baru di Misi saya. Hasil percobaan ini tetap tersimpan.</Feedback>}
     <p className={styles.note}>Hanya untuk guru · tidak ditampilkan kepada siswa atau orang tua.</p>
     {said && !dialog && <Feedback tone="warning" title={said} announce />}
@@ -141,6 +145,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
         {report.flags.map((item) => <section key={item.id} className={styles.flag} aria-label={`Perlu verifikasi: ${flagWord[item.flag_type] ?? item.flag_type}`}>
           <p><Icon name="flag" size={12} />Perlu verifikasi · {severityWord[item.severity] ?? item.severity}</p>
           <h2>{flagWord[item.flag_type] ?? item.flag_type}</h2>
+          <FlagEvidence evidence={item.evidence} turnIndex={item.turn_index} createdAt={item.created_at} />
           <p className={styles.hint}>Catatan ini petunjuk, bukan tuduhan. Anda yang menilai.</p>
           {item.status === 'open'
             ? <div className={styles.flagActions}>{(['cleared', 'concern_confirmed'] as FlagDecision[]).map((decision) => <Button key={decision} tone="secondary" disabled={pending} onClick={() => { void run((signal) => service.reviewFlag(item.id, decision, null, signal)) }}>{decision === 'cleared' ? 'Tidak ada masalah' : 'Perlu dibahas'}</Button>)}</div>

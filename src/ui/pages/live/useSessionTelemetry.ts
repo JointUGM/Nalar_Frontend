@@ -10,7 +10,7 @@ const maxEvents = 200
 export function useSessionTelemetry(send: SendTelemetry | undefined, turnIndex: number | undefined, active: boolean) {
   const sendRef = useRef(send)
   const turnRef = useRef(turnIndex)
-  const store = useRef({ events: [] as TelemetryEvent[], pending: null as TelemetryBatch | null, seq: 0, sending: false, hiddenAt: 0, skipTyped: false, typing: { chars: 0, first: 0, last: 0 } })
+  const store = useRef({ events: [] as TelemetryEvent[], pending: null as TelemetryBatch | null, seq: 0, sending: false, again: false, hiddenAt: 0, skipTyped: false, typing: { chars: 0, first: 0, last: 0 } })
   useEffect(() => { sendRef.current = send }, [send])
 
   const record = useCallback((event: TelemetryEvent) => {
@@ -25,19 +25,25 @@ export function useSessionTelemetry(send: SendTelemetry | undefined, turnIndex: 
   const flush = useCallback(async () => {
     const state = store.current
     const sender = sendRef.current
-    if (!sender || state.sending) return
-    // NFR-R1: a batch that was not confirmed goes out again unchanged, with the same sequence number.
-    if (!state.pending) {
-      if (state.events.length === 0) return
-      // ponytail: the sequence starts at the clock's second so a reload never reuses a number; batches are 10 s apart, so it cannot outrun the clock. Persist it per session if batches ever get faster than one a second.
-      state.seq ||= Math.floor(Date.now() / 1000)
-      state.pending = { client_seq: state.seq++, turn_index: turnRef.current ?? null, events: state.events.splice(0) }
-    }
-    state.sending = true
-    try { await sender(state.pending); state.pending = null } catch (cause) {
-      // A batch the server refuses for good is dropped so it cannot hold up the ones after it; anything else is kept for the next attempt.
-      if (cause instanceof ApiError && cause.status >= 400 && cause.status < 500 && ![401, 408, 429].includes(cause.status)) state.pending = null
-    } finally { state.sending = false }
+    if (!sender) return
+    // One sender at a time; a request made meanwhile is served once it finishes.
+    if (state.sending) { state.again = true; return }
+    // ponytail: only a send that settled drains again, so a failing server is retried by the 10 s timer, never in a tight loop.
+    do {
+      state.again = false
+      // NFR-R1: a batch that was not confirmed goes out again unchanged, with the same sequence number.
+      if (!state.pending) {
+        if (state.events.length === 0) return
+        // ponytail: the sequence starts at the clock's second so a reload never reuses a number; batches are 10 s apart, so it cannot outrun the clock. Persist it per session if batches ever get faster than one a second.
+        state.seq ||= Math.floor(Date.now() / 1000)
+        state.pending = { client_seq: state.seq++, turn_index: turnRef.current ?? null, events: state.events.splice(0) }
+      }
+      state.sending = true
+      try { await sender(state.pending); state.pending = null } catch (cause) {
+        // A batch the server refuses for good is dropped so it cannot hold up the ones after it; anything else is kept for the next attempt.
+        if (cause instanceof ApiError && cause.status >= 400 && cause.status < 500 && ![401, 408, 429].includes(cause.status)) state.pending = null
+      } finally { state.sending = false }
+    } while (state.again && !state.pending)
   }, [])
 
   // A new question closes the typing count of the previous one, sent with that question's index.
@@ -53,7 +59,7 @@ export function useSessionTelemetry(send: SendTelemetry | undefined, turnIndex: 
     function visibility() {
       const state = store.current
       if (document.hidden) state.hiddenAt = Date.now()
-      else if (state.hiddenAt) { record({ type: 'visibility_hidden', at: at(), value: Date.now() - state.hiddenAt }); state.hiddenAt = 0 }
+      else if (state.hiddenAt) { record({ type: 'visibility_hidden', at: at(), value: Date.now() - state.hiddenAt }); state.hiddenAt = 0; void flush() }
     }
     const offline = () => record({ type: 'disconnect', at: at() })
     const online = () => record({ type: 'reconnect', at: at() })
@@ -71,7 +77,7 @@ export function useSessionTelemetry(send: SendTelemetry | undefined, turnIndex: 
   }, [active, record, endTyping, flush])
 
   return {
-    paste: useCallback((length: number) => { store.current.skipTyped = true; record({ type: 'paste', at: new Date().toISOString(), value: length }) }, [record]),
+    paste: useCallback((length: number) => { store.current.skipTyped = true; record({ type: 'paste', at: new Date().toISOString(), value: length }); void flush() }, [record, flush]),
     // delta is how many characters the answer grew; the growth caused by a paste is not typing.
     typed: useCallback((delta: number) => {
       const state = store.current

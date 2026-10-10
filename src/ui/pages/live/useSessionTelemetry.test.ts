@@ -18,13 +18,35 @@ describe('session telemetry', () => {
     act(() => { result.current.typed(3); vi.advanceTimersByTime(2000); result.current.typed(2); result.current.paste(120); result.current.typed(120) })
     act(() => result.current.flush())
     await act(async () => {})
+    // The paste goes out at once; the typing count follows when the answer is flushed.
+    expect(send).toHaveBeenCalledTimes(2)
+    const [paste, typing] = send.mock.calls.map(([batch]) => batch)
+    expect([paste.turn_index, typing.turn_index]).toEqual([1, 1])
+    expect(paste.events).toEqual([{ type: 'paste', at: expect.any(String), value: 120 }])
+    expect(typing.events).toEqual([{ type: 'typing', at: expect.any(String), value: { chars: 5, duration_ms: 2000 } }])
+  })
+
+  it('sends a paste at once and queues one drain when another event lands during that send', async () => {
+    let release = () => {}
+    const send = vi.fn<(batch: TelemetryBatch) => Promise<void>>().mockImplementationOnce(() => new Promise<void>((resolve) => { release = resolve })).mockResolvedValue()
+    const { result } = renderHook(() => useSessionTelemetry(send, 0, true))
+    act(() => result.current.paste(300))
     expect(send).toHaveBeenCalledTimes(1)
-    const batch = send.mock.calls[0][0]
-    expect(batch.turn_index).toBe(1)
-    expect(batch.events).toEqual([
-      { type: 'paste', at: expect.any(String), value: 120 },
-      { type: 'typing', at: expect.any(String), value: { chars: 5, duration_ms: 2000 } },
-    ])
+    act(() => result.current.paste(40))
+    expect(send).toHaveBeenCalledTimes(1)
+    await act(async () => { release() })
+    expect(send).toHaveBeenCalledTimes(2)
+    expect(send.mock.calls[1][0].events).toEqual([{ type: 'paste', at: expect.any(String), value: 40 }])
+  })
+
+  it('does not retry in a tight loop while the server keeps failing', async () => {
+    const send = vi.fn<(batch: TelemetryBatch) => Promise<void>>().mockRejectedValue(new Error('offline'))
+    const { result } = renderHook(() => useSessionTelemetry(send, 0, true))
+    act(() => result.current.paste(300))
+    await act(async () => {})
+    act(() => result.current.paste(40))
+    await act(async () => {})
+    expect(send).toHaveBeenCalledTimes(2)
   })
 
   it('re-sends a failed batch with the same sequence number and body, and keeps later events for the next one', async () => {
@@ -74,10 +96,14 @@ describe('session telemetry', () => {
     hidden.mockReturnValue(true); act(() => { document.dispatchEvent(new Event('visibilitychange')) })
     vi.advanceTimersByTime(4000)
     hidden.mockReturnValue(false); act(() => { document.dispatchEvent(new Event('visibilitychange')) })
+    // Coming back flushes at once, so the teacher side learns of the absence while it matters.
+    await act(async () => {})
+    expect(send).toHaveBeenCalledTimes(1)
     act(() => { window.dispatchEvent(new Event('offline')); window.dispatchEvent(new Event('online')) })
     await flushTimer()
     hidden.mockRestore()
-    expect(send.mock.calls[0][0].events.map((event) => event.type)).toEqual(['visibility_hidden', 'disconnect', 'reconnect'])
+    expect(send.mock.calls[0][0].events.map((event) => event.type)).toEqual(['visibility_hidden'])
     expect(send.mock.calls[0][0].events[0]).toMatchObject({ value: 4000 })
+    expect(send.mock.calls[1][0].events.map((event) => event.type)).toEqual(['disconnect', 'reconnect'])
   })
 })
