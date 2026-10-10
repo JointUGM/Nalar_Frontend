@@ -23,6 +23,7 @@ interface Loaded { detail: KbDetail; sections: KbSection[]; queue: KbReviewQueue
 // Lists are edited one entry per line.
 type Draft = { id: string; kind: 'concept'; name: string; description: string } | { id: string; kind: 'misconception'; statement: string; correct: string; cues: string; counters: string }
 
+const misPerPage = 1
 const building = (section: KbSection) => section.build_status === 'queued' || section.build_status === 'building'
 // A chapter being built changes on its own, so the page keeps reading until none is.
 const pollMs = (data: Loaded | null) => data?.sections.some(building) ? 3000 : null
@@ -47,6 +48,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const busy = useRef(false)
   const [jobId, setJobId] = useState(params.get('job'))
   const [selectedId, setSelectedId] = useState('')
+  const [page, setPage] = useState(0)
   const [draft, setDraft] = useState<Draft | null>(null)
   const [adding, setAdding] = useState<'concept' | 'misconception' | null>(null)
   const [pending, setPending] = useState(false)
@@ -74,7 +76,9 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const total = detail.concepts.length + detail.misconceptions.length
   const nameOf = (id: string) => detail.concepts.find((item) => item.id === id)?.name ?? ''
   const related = detail.misconceptions.filter(item => item.concept_id === selected?.id)
-  function chooseConcept(id: string) { setSelectedId(id); setDraft(null); setAdding(null) }
+  const pageCount = Math.max(1, Math.ceil(related.length / misPerPage)), misPage = Math.min(page, pageCount - 1)
+  const shown = related.slice(misPage * misPerPage, (misPage + 1) * misPerPage)
+  function chooseConcept(id: string) { setPage(0); setSelectedId(id); setDraft(null); setAdding(null) }
 
   // One command at a time. The page is reread after a refusal too, because a refusal usually means it was stale.
   async function run<T>(action: (signal?: AbortSignal) => Promise<T>, done?: (result: T) => void) {
@@ -124,6 +128,40 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
     <p className={styles.note}>Sedang disusun dari bab yang dipilih, biasanya beberapa menit. Halaman ini memperbarui sendiri.</p>
   </section>
 
+  const sources = (
+    <div id="kb-sources" className={styles.sources}>
+      <section className={styles.card} aria-labelledby="kb-materials">
+        <div className={styles.sectionHead}><h2 id="kb-materials">Materi</h2><span>{detail.materials.length} berkas</span></div>
+        <ul className={styles.items}>{detail.materials.map((material) => <li key={material.id}>
+          <span className={styles.fileIcon} aria-hidden="true"><Icon name="file" size={18} /></span>
+          <span className={styles.itemText}>
+            <strong>{material.title}</strong>
+            <small>{material.page_count === null ? 'Sedang dibaca' : `${material.page_count} halaman`}{material.pages_without_text.length > 0 && ` · ${material.pages_without_text.length} halaman tanpa teks`}{material.archived_at && ' · dihapus'}</small>
+          </span>
+          <span className={styles.materialActions}>
+            <Button tone="ghost" disabled={pending} aria-label={`Buka PDF ${material.title}`} onClick={() => openPdf(material.id)}>Buka PDF</Button>
+            {canEdit && !material.archived_at && <ConfirmAction label={<><Icon name="x" size={14} />Hapus</>} title="Hapus materi ini?" description={`${material.title}. Materi tidak dipakai lagi untuk menyusun bab baru. Bab, konsep, dan sumber yang sudah dikutip tetap tersimpan.`} confirm="Hapus materi" pendingLabel="Menghapus…" disabled={pending} action={(signal) => kb.deleteMaterial(detail.id, material.id, signal)} onDone={refresh} refusal={kbRefusal} />}
+          </span></li>)}</ul>
+        {detail.materials.length === 0 && <p className={styles.note}>Belum ada materi untuk topik ini.</p>}
+        {canEdit && <div className={styles.upload}><label className={styles.fileControl}>
+          <input aria-label="Tambah materi (PDF, maks. 50 MB)" aria-describedby="kb-upload-help" type="file" accept=".pdf,application/pdf" disabled={pending} onChange={(event) => {
+          const file = event.target.files?.[0]
+          event.target.value = ''
+          if (file) void run((signal) => kb.addMaterial(detail.id, file, signal), followJob)
+        }} /><Icon name="upload" size={20} /><span><strong>{pending ? 'Mohon tunggu…' : 'Tambah materi PDF'}</strong><small>Pilih berkas · maks. 50 MB</small></span><Icon name="plus" size={18} />
+        </label><p id="kb-upload-help" className={styles.note}>Berkas yang dipilih langsung diunggah dan dibaca.</p></div>}
+      </section>
+      <section className={styles.card} aria-labelledby="kb-sections">
+        <div className={styles.sectionHead}><h2 id="kb-sections">Bab</h2><span>{sections.length} bab</span></div>
+        {sections.length === 0 ? <p className={styles.note}>Daftar bab muncul setelah materi selesai dibaca.</p> : <ul className={styles.items}>{sections.map((section) => <li key={section.id} style={{ marginInlineStart: `${Math.min(Math.max(section.level - 1, 0), 3) * 16}px` }}>
+          <span className={styles.itemText}><strong>{section.title}</strong><small>hlm. {section.page_start}–{section.page_end}{section.suggested && section.build_status !== 'built' && ' · disarankan'}</small></span>
+          <span className={styles.chip} data-status={section.build_status}>{stuck && building(section) ? 'Terhenti' : buildWord[section.build_status] ?? 'Belum disusun'}</span>
+          {canEdit && section.build_status !== 'built' && (!building(section) || stuck) && <Button tone="secondary" disabled={pending} aria-label={`${retryable(section) ? 'Coba lagi' : 'Susun'} ${section.title}`} onClick={() => build(section.id)}>{retryable(section) ? 'Coba lagi' : 'Susun'}</Button>}
+        </li>)}</ul>}
+      </section>
+    </div>
+  )
+
   return <div className={styles.content}>
     <TeacherPageHead crumb={<><Link to={`${base}/knowledge-base`}>Basis pengetahuan</Link><Icon name="chevronRight" size={14} /></>} title={detail.topic_title} tag={<>{detail.concepts.length > 0 && !loading && <span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span>}</>} subtitle={loading ? 'Konsep dan miskonsepsi sedang disusun.' : waiting > 0 ?`${queue.pending_concepts} konsep dan ${queue.pending_misconceptions} miskonsepsi menunggu tinjauan` : `${detail.concepts.length} konsep · ${detail.misconceptions.length} miskonsepsi`} />
     <div className={styles.header}>
@@ -150,7 +188,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
     {!generatingPanel && <div id="kb-review" className={styles.grid} data-empty={!selected}>
       <div className={styles.mapColumn}>
         <section className={styles.card} aria-labelledby="kb-concepts">
-          <div className={styles.sectionHead}><h2 id="kb-concepts">Peta konsep</h2><span>{loading ? 'Sedang disusun' : 'Panah: dipelajari lebih dulu · klik konsep untuk meninjau'}</span>
+          <div className={styles.sectionHead}><h2 id="kb-concepts">Peta konsep</h2><span>{loading ? 'Sedang disusun' : 'Panah: dipelajari lebih dulu · klik untuk meninjau, seret untuk memindah'}</span>
             {canEdit && adding !== 'concept' && <Button tone="secondary" className={styles.add} disabled={pending} onClick={() => { setDraft(null); setAdding('concept') }}><Icon name="plus" size={14} />Tambah konsep</Button>}</div>
           {adding === 'concept' && <KbNewItem kind="concept" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addConcept(detail.id, value, key, signal), (created) => { setAdding(null); setSelectedId(created.id) }) }} />}
           {!selected ? <p className={styles.note}>Belum ada konsep. Susun satu bab untuk membuat drafnya.</p> : <>
@@ -181,7 +219,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
           <div className={styles.sectionHead}><h2>Miskonsepsi terkait</h2><span>{loading ? 'Sedang disusun' : `${related.length} miskonsepsi`}</span></div>
           {canEdit && adding !== 'misconception' && <Button tone="secondary" className={styles.add} disabled={pending} onClick={() => { setDraft(null); setAdding('misconception') }}><Icon name="plus" size={14} />Tambah miskonsepsi</Button>}
           {adding === 'misconception' && <KbNewItem kind="misconception" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addMisconception(detail.id, selected.id, value, key, signal), () => setAdding(null)) }} />}
-          {related.map((item) => <section key={item.id} className={styles.misconception} aria-label={`Miskonsepsi: ${item.statement}`}>
+          {shown.map((item) => <section key={item.id} className={styles.misconception} aria-label={`Miskonsepsi: ${item.statement}`}>
             <div className={styles.misHead}><span className={styles.misTag}><NalaIcon name="alert" />Miskonsepsi</span>{tag(item.review_status)}</div>
             {draft?.kind === 'misconception' && draft.id === item.id ? <>
               <Field label="Pernyataan keliru" required maxLength={1000} value={draft.statement} onChange={(event) => setDraft({ ...draft, statement: event.target.value })} />
@@ -198,36 +236,15 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
               {actions('misconception', item, selected.review_status !== 'approved', () => setDraft({ id: item.id, kind: 'misconception', statement: item.statement, correct: item.correct_understanding, cues: item.detection_cues.join('\n'), counters: item.counter_examples.join('\n') }))}
             </>}
           </section>)}
+          {related.length > misPerPage && <nav className={styles.pager} aria-label="Halaman miskonsepsi">
+            <Button tone="ghost" disabled={misPage === 0} onClick={() => setPage(misPage - 1)}><Icon name="chevronLeft" size={14} />Sebelumnya</Button>
+            <span role="status">{misPage + 1} dari {pageCount}</span>
+            <Button tone="ghost" disabled={misPage >= pageCount - 1} onClick={() => setPage(misPage + 1)}>Berikutnya<Icon name="chevronRight" size={14} /></Button>
+          </nav>}
           {related.length === 0 && !loading && <p className={styles.note}>Tidak ada miskonsepsi untuk konsep ini.</p>}
         </div>
       </div>}
     </div>}
-    <div id="kb-sources" className={styles.sources}>
-        <section className={styles.card} aria-labelledby="kb-materials">
-          <h2 id="kb-materials">Materi</h2>
-          <ul className={styles.items}>{detail.materials.map((material) => <li key={material.id}><span>
-            <strong>{material.title}</strong>
-            <small>{material.page_count === null ? 'Sedang dibaca' : `${material.page_count} halaman`}{material.pages_without_text.length > 0 && ` · ${material.pages_without_text.length} halaman tanpa teks`}{material.archived_at && ' · dihapus'}</small>
-          </span><span className={styles.materialActions}>
-            <Button tone="ghost" disabled={pending} aria-label={`Buka PDF ${material.title}`} onClick={() => openPdf(material.id)}><Icon name="file" size={14} />Buka PDF</Button>
-            {canEdit && !material.archived_at && <ConfirmAction label={<><Icon name="x" size={14} />Hapus</>} title="Hapus materi ini?" description={`${material.title}. Materi tidak dipakai lagi untuk menyusun bab baru. Bab, konsep, dan sumber yang sudah dikutip tetap tersimpan.`} confirm="Hapus materi" pendingLabel="Menghapus…" disabled={pending} action={(signal) => kb.deleteMaterial(detail.id, material.id, signal)} onDone={refresh} refusal={kbRefusal} />}
-          </span></li>)}</ul>
-          {detail.materials.length === 0 && <p className={styles.note}>Belum ada materi untuk topik ini.</p>}
-          {canEdit && <div className={styles.upload}><label className={styles.fileControl}>
-            <input aria-label="Tambah materi (PDF, maks. 50 MB)" aria-describedby="kb-upload-help" type="file" accept=".pdf,application/pdf" disabled={pending} onChange={(event) => {
-            const file = event.target.files?.[0]
-            event.target.value = ''
-            if (file) void run((signal) => kb.addMaterial(detail.id, file, signal), followJob)
-          }} /><Icon name="upload" size={20} /><span><strong>{pending ? 'Mohon tunggu…' : 'Tambah materi PDF'}</strong><small>Pilih berkas · maks. 50 MB</small></span><Icon name="plus" size={18} />
-          </label><p id="kb-upload-help" className={styles.note}>Berkas yang dipilih langsung diunggah dan dibaca.</p></div>}
-        </section>
-        <section className={styles.card} aria-labelledby="kb-sections">
-          <h2 id="kb-sections">Bab</h2>
-          {sections.length === 0 ? <p className={styles.note}>Daftar bab muncul setelah materi selesai dibaca.</p> : <ul className={styles.items}>{sections.map((section) => <li key={section.id} style={{ paddingInlineStart: `${Math.min(Math.max(section.level - 1, 0), 3) * 16}px` }}>
-            <span><strong>{section.title}</strong><small>hlm. {section.page_start}–{section.page_end} · {buildWord[section.build_status] ?? 'Belum disusun'}{section.suggested && section.build_status !== 'built' && ' · disarankan'}</small></span>
-            {canEdit && section.build_status !== 'built' && (!building(section) || stuck) && <Button tone="secondary" disabled={pending} aria-label={`${retryable(section) ? 'Coba lagi' : 'Susun'} ${section.title}`} onClick={() => build(section.id)}>{retryable(section) ? 'Coba lagi' : 'Susun'}</Button>}
-          </li>)}</ul>}
-        </section>
-    </div>
+    {sources}
   </div>
 }

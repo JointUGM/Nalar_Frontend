@@ -531,7 +531,7 @@ describe('signed-in teacher pages', () => {
     it('keeps the concepts it has but shows no count until the chapter is built', async () => {
       open(kbPath, backend(at('building')))
       expect(await screen.findByRole('heading', { name: 'Tekanan hidrostatis' })).toBeInTheDocument()
-      expect(screen.getAllByText('Sedang disusun')).toHaveLength(2)
+      expect(screen.getAllByText('Sedang disusun')).toHaveLength(3)
       expect(screen.queryByText('1 konsep')).not.toBeInTheDocument()
       expect(screen.queryByText('1 miskonsepsi')).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: /Coba lagi|Susun/ })).not.toBeInTheDocument()
