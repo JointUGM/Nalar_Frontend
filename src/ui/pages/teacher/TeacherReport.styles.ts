@@ -24,6 +24,7 @@ const styles = {
   changes: 'mt-2 mb-0 p-3 gap-1 grid list-none rounded-xl bg-paper text-[13px] leading-[20px] text-text-secondary [&_b]:text-ink',
   flag: 'p-5 min-w-0 bg-danger-bg rounded-2xl grid gap-2 [&>p:first-child]:m-0 [&>p:first-child]:gap-1.5 [&>p:first-child]:flex [&>p:first-child]:items-center [&>p:first-child]:text-[12px] [&>p:first-child]:font-bold [&>p:first-child]:text-danger-text [&_h2]:m-0 [&_h2]:text-[16px] [&_h2]:font-bold',
   hint: 'm-0 text-[13px] text-danger-hover',
+  evidence: 'gap-1 grid [&_p]:m-0 [&_p]:text-[14px] [&_p]:leading-[21px] [&_p]:text-ink [&_p:first-child]:text-[13px] [&_p:first-child]:text-text-secondary',
   flagActions: 'gap-2 flex flex-wrap [&_button]:min-h-9 [&_button]:text-[13px] [&_button]:font-bold [&_button]:rounded-[8px] [&_button]:border-0 [&_button]:bg-surface',
   decision: 'm-0 text-[13px] text-text-secondary',
   muted: 'm-0 text-[13px] leading-[20px] text-text-muted',

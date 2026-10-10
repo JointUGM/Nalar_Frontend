@@ -12,6 +12,7 @@ import type { IconName } from '@/ui/components/icon/Icon'
 import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { ConfirmAction } from '@/ui/pages/teacher/app/ConfirmAction'
 import { LiveFeedback } from './LiveFrame'
+import { TeacherIntegrityAlerts } from './TeacherIntegrityAlerts'
 import { useCommandSignal, useLiveResource, useServerTime } from './useLiveResource'
 import projectorStyles from '@/ui/pages/teacher/TeacherProjector.styles'
 import monitorStyles from '@/ui/pages/teacher/TeacherMonitor.styles'
@@ -140,7 +141,6 @@ export function LiveTeacherMonitor({ service, publicationId, base }: { service: 
     const paused = data.students.filter((student) => student.safety_paused)
     const visible = filter ? data.students.filter((student) => inGroup(student, filter)) : data.students
     const report = (sessionId: string) => `${base}/publications/${publicationId}/sessions/${sessionId}`
-    const flagged = data.students.filter((student) => student.open_flag_count > 0)
     const done = data.students.filter((student) => finished.includes(student.status))
     return <>
       <TeacherPageHead crumb={<><Link to={`${base}/sessions`}>Sesi dan hasil</Link><Icon name="chevronRight" size={14} /></>} title={run.title} subtitle={`Diperbarui setiap 3 detik · ${data.waiting_count} di ruang tunggu`} />
@@ -159,6 +159,7 @@ export function LiveTeacherMonitor({ service, publicationId, base }: { service: 
         </div>
       </div>
       <div className={monitorStyles.connection} data-connection={offline ? 'offline' : 'ok'}><span role="status">{offline ? 'Terputus · menampilkan data terakhir. Tindakan yang mengubah sesi dinonaktifkan.' : 'Terhubung · data diperbarui otomatis'}</span></div>
+      <TeacherIntegrityAlerts key={publicationId} students={data.students} reportHref={report} />
       <div className={monitorStyles.tallies} role="group" aria-label="Filter status siswa">{groups.map(([group, label]) => <button key={group} type="button" aria-pressed={filter === group} onClick={() => setFilter(filter === group ? null : group)}>
         <span><i data-group={group} aria-hidden="true" />{label}</span><strong>{data.students.filter((student) => inGroup(student, group)).length}</strong>
       </button>)}</div>
@@ -180,10 +181,9 @@ export function LiveTeacherMonitor({ service, publicationId, base }: { service: 
         <h2 id="events-title">Peristiwa</h2>
         {paused.length > 0 && <div className={monitorStyles.safety} role="alert"><strong>Keselamatan</strong><span>{paused.map((student, index) => <span key={student.student_id}>{index > 0 && ', '}{student.session_id ? <Link to={report(student.session_id)}>{student.name}</Link> : <b>{student.name}</b>}</span>)} mungkin butuh bantuan Anda. Sesinya dijeda; buka laporannya untuk melanjutkan atau mengakhiri sesi.</span></div>}
         <ul>
-          {flagged.map((student) => <li key={`flag-${student.student_id}`}><Icon name="flag" size={14} /><span><b>{student.name}</b> · {student.open_flag_count} catatan perlu verifikasi</span></li>)}
           {done.map((student) => <li key={`done-${student.student_id}`}><Icon name="check" size={14} /><span><b>{student.name}</b> menyelesaikan sesi</span></li>)}
         </ul>
-        {paused.length + flagged.length + done.length === 0 && <p>Belum ada peristiwa. Yang perlu Anda ketahui muncul di sini.</p>}
+        {paused.length + done.length === 0 && <p>Belum ada peristiwa. Yang perlu Anda ketahui muncul di sini.</p>}
       </aside>
       </div>
     </>
