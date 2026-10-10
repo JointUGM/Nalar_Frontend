@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { Link, useNavigate, useParams } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
 import { publishable } from '@/domain/model/Teacher'
@@ -81,8 +82,7 @@ export function TeacherPublishPage({ service, base, schoolId }: { service: Teach
   const said = failure && refusal(failure)
 
   return <div className={styles.content}>
-    {back}
-    <div className={styles.header}><h1>Terbitkan ke kelas</h1><p className={styles.lead}>{mission.title} · Versi {version.version_number}</p></div>
+    <TeacherPageHead crumb={<><Link to={`${base}/missions/${mission.id}`}>{mission.title}</Link><Icon name="chevronRight" size={14} /></>} title="Terbitkan ke kelas" subtitle={`${mission.title} · Versi ${version.version_number}`} />
     {said && <Feedback tone="warning" title={said} announce />}
     {failure && !said && <LiveFeedback error={failure} online={online} refresh={refresh} />}
     <div className={styles.grid}>
@@ -108,7 +108,7 @@ export function TeacherPublishPage({ service, base, schoolId }: { service: Teach
         {problem && <p role="alert" className={styles.error}>{problem}</p>}
       </section>
       <section className={`${styles.card} ${styles.summary}`} aria-labelledby="publication-summary">
-        <h2 id="publication-summary">Ringkasan</h2>
+        <h2 id="publication-summary">Yang akan dikunci</h2>
         <dl className={styles.rows}>{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
         <p className={styles.lock}><NalaIcon name="lock" />Versi {version.version_number} dikunci saat diterbitkan dan tidak bisa diubah lagi.</p>
         <Button onClick={check}><Icon name="send" size={14} />Terbitkan</Button>

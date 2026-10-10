@@ -25,7 +25,7 @@ const styles = {
   note: 'm-0 px-[clamp(16px,5vw,64px)] pt-3 pb-6 max-w-[72ch] text-[13px] leading-[20px] text-text-secondary',
   unavailable: 'mx-auto my-12 px-4 gap-4 max-w-160 grid justify-items-start',
   hidden: 'm-0 w-px h-px overflow-hidden absolute [clip-path:inset(50%)]',
-  rows: 'm-0 flex flex-col text-[14px] [&>div]:px-0 [&>div]:py-2 [&>div]:gap-4 [&>div]:border-t [&>div]:border-t-surface-muted [&>div]:flex [&>div]:justify-between [&_dt]:text-text-muted [&_dd]:m-0 [&_dd]:text-end [&_dd]:wrap-anywhere [&_dd]:font-semibold',
+  rows: 'm-0 flex flex-col text-[14px] [&>div]:px-0 [&>div]:py-2 [&>div]:gap-4 [&>div]:border-t [&>div]:border-t-paper [&>div]:flex [&>div]:justify-between [&_dt]:text-text-muted [&_dd]:m-0 [&_dd]:text-end [&_dd]:wrap-anywhere [&_dd]:font-semibold',
   dialogNote: 'mx-0 mt-3 mb-0 text-[14px] leading-[22px] text-text-secondary',
   scenario: 'mt-4 gap-2 grid text-[14px] font-semibold [&_select]:p-2.5 [&_select]:w-full [&_select]:min-w-0 [&_select]:min-h-11 [&_select]:border [&_select]:border-control-border [&_select]:bg-surface [&_select]:[font-style:inherit] [&_select]:rounded-[12px] [&_select]:[font-variant:inherit] [&_select]:font-normal [&_select]:[font-stretch:inherit] [&_select]:[font-size:inherit] [&_select]:[line-height:inherit] [&_select]:[font-family:inherit] [&_select]:text-ink',
   actions: 'mt-4 gap-3 flex flex-wrap',

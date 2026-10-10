@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
@@ -72,11 +73,7 @@ export function TeacherKbUploadPage({ kb, teacher, base, schoolId }: { kb: Knowl
   const said = failure && kbRefusal(failure)
 
   return <div className={styles.content}>
-    <div className={styles.head}>
-      <Link className={styles.back} to={`${base}/knowledge-base`}><Icon name="chevronLeft" size={14} />Basis pengetahuan</Link>
-      <h1>Unggah materi ajar</h1>
-      <p className={styles.lead}>Draf konsep dan miskonsepsi harus Anda setujui sebelum sampai ke siswa.</p>
-    </div>
+    <TeacherPageHead crumb={<><Link to={`${base}/knowledge-base`}>Basis pengetahuan</Link><Icon name="chevronRight" size={14} /></>} title="Unggah materi ajar" subtitle="Draf konsep dan miskonsepsi harus Anda setujui sebelum sampai ke siswa." />
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {said && <Feedback tone="warning" title={said} announce />}
     {failure && !said && <Feedback tone="warning" title={failure.message} announce>{failure.requestId && <small>Referensi: {failure.requestId}</small>}</Feedback>}
