@@ -20,7 +20,7 @@ export function LiveStudentFinish({ service, sessionId, base, ready, heading }: 
       <h1 ref={heading} tabIndex={-1}>Selesai. Kamu sudah berpikir keras hari ini.</h1>
     </header>
     {ready ? <Reflection service={service} sessionId={sessionId} /> : <p role="status" className={styles.wait}>Menyiapkan refleksimu… Layar ini berganti sendiri.</p>}
-    <div className={styles.actions}><ButtonLink tone="ghost" to={base}>Kembali ke Misi saya</ButtonLink></div>
+    <div className={styles.actions}><ButtonLink to={base}><Icon name="chevronLeft" size={16} />Kembali ke Misi saya</ButtonLink></div>
   </div>
 }
 
