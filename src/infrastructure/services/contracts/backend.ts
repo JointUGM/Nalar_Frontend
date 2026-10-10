@@ -2631,6 +2631,16 @@ export interface components {
             /** Timed Out */
             timed_out: number;
         };
+        /** CrossStudentSimilarityEvidenceOut */
+        CrossStudentSimilarityEvidenceOut: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "cross_student_similarity";
+            /** Similarity Score */
+            similarity_score: number;
+        };
         /** CurriculumCreatedOut */
         CurriculumCreatedOut: {
             /**
@@ -2797,6 +2807,18 @@ export interface components {
              */
             week_start: string;
         };
+        /** DisconnectPatternEvidenceOut */
+        DisconnectPatternEvidenceOut: {
+            /** Disconnect Count */
+            disconnect_count: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "disconnect_pattern";
+            /** Quality Jump */
+            quality_jump: number;
+        };
         /** DraftCurriculumOut */
         DraftCurriculumOut: {
             /** Decree Code */
@@ -2924,6 +2946,16 @@ export interface components {
             dimension: string;
             /** Final Level */
             final_level: number;
+        };
+        /** InconsistencyGapEvidenceOut */
+        InconsistencyGapEvidenceOut: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "inconsistency_gap";
+            /** Quality Levels */
+            quality_levels: number[];
         };
         /** InsightOut */
         InsightOut: {
@@ -3184,6 +3216,18 @@ export interface components {
             topic_title: string;
         };
         Label: string;
+        /** LargePasteEvidenceOut */
+        LargePasteEvidenceOut: {
+            /** Answer Chars */
+            answer_chars: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "large_paste";
+            /** Paste Chars */
+            paste_chars: number;
+        };
         /** LearningOutcomeIn */
         LearningOutcomeIn: {
             /** Description */
@@ -3568,6 +3612,25 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** MonitorFlagOut */
+        MonitorFlagOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Flag Type */
+            flag_type: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Severity */
+            severity: string;
+            /** Turn Index */
+            turn_index: number | null;
+        };
         /** MonitorOut */
         MonitorOut: {
             run: components["schemas"]["MonitorRunOut"];
@@ -3609,6 +3672,8 @@ export interface components {
             name: string;
             /** Open Flag Count */
             open_flag_count: number;
+            /** Open Flags */
+            open_flags?: components["schemas"]["MonitorFlagOut"][];
             /** Participant Id */
             participant_id: string | null;
             /** Safety Paused */
@@ -4411,6 +4476,13 @@ export interface components {
         };
         /** ReportFlagOut */
         ReportFlagOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Evidence */
+            evidence?: (components["schemas"]["LargePasteEvidenceOut"] | components["schemas"]["TabSwitchingEvidenceOut"] | components["schemas"]["InconsistencyGapEvidenceOut"] | components["schemas"]["DisconnectPatternEvidenceOut"] | components["schemas"]["CrossStudentSimilarityEvidenceOut"]) | null;
             /** Flag Type */
             flag_type: string;
             /**
@@ -4422,6 +4494,8 @@ export interface components {
             severity: string;
             /** Status */
             status: string;
+            /** Turn Index */
+            turn_index?: number | null;
         };
         /** ReportMissionOut */
         ReportMissionOut: {
@@ -5008,6 +5082,8 @@ export interface components {
         };
         /** StateOut */
         StateOut: {
+            /** Activity Notices */
+            activity_notices?: components["schemas"]["StudentActivityNoticeOut"][];
             /**
              * Deadline At
              * Format: date-time
@@ -5036,6 +5112,26 @@ export interface components {
             status: string;
             /** Turn Index */
             turn_index: number;
+        };
+        /** StudentActivityNoticeOut */
+        StudentActivityNoticeOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "own_words" | "stay_on_page";
+            /** Message */
+            message: string;
         };
         /** StudentConceptCountsOut */
         StudentConceptCountsOut: {
@@ -5225,6 +5321,27 @@ export interface components {
             student_id: string;
             /** Summary Text */
             summary_text: string;
+        };
+        /** TabAwaySecondsOut */
+        TabAwaySecondsOut: {
+            /** Seconds */
+            seconds: number;
+            /** Turn Index */
+            turn_index: number;
+        };
+        /** TabSwitchingEvidenceOut */
+        TabSwitchingEvidenceOut: {
+            /** Away Events */
+            away_events: number;
+            /** Away Seconds By Turn */
+            away_seconds_by_turn: components["schemas"]["TabAwaySecondsOut"][];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "tab_switching";
+            /** Turn Indices */
+            turn_indices: number[];
         };
         /** TeacherDashboardOut */
         TeacherDashboardOut: {

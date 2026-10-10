@@ -4,7 +4,8 @@ import { LiveError } from '@/domain/model/Live'
 
 export const sessionPollMs = (state: { status: string; reflection_ready: boolean } | null) => {
   if (!state || state.status === 'processing') return 1000
-  if (state.status === 'awaiting_answer') return 10_000
+  // Short enough that an activity reminder shows up while it still matters.
+  if (state.status === 'awaiting_answer') return 3000
   return state.reflection_ready ? null : 3000
 }
 export const lobbyPollMs = (state: { session_id: string | null; participant_status: string } | null) => state?.session_id || state?.participant_status === 'cancelled' ? null : 3000

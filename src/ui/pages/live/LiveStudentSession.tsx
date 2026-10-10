@@ -10,6 +10,7 @@ import { Nala } from '@/ui/components/nala/Nala'
 import { LiveFeedback } from './LiveFrame'
 import { sessionPollMs, useCommandSignal, useLiveResource, useServerTime } from './useLiveResource'
 import { LiveStudentFinish } from './LiveStudentReflection'
+import { StudentActivityBanner } from './StudentActivityBanner'
 import { useSessionTelemetry } from './useSessionTelemetry'
 import type { SendTelemetry } from './useSessionTelemetry'
 import styles from '@/ui/pages/student/StudentSession.styles'
@@ -98,6 +99,7 @@ export function LiveStudentSession({ service, sessionId, base, telemetry }: { se
       : countdown > 0 ? <section className={styles.countdown}><Nala mood="calm" size={96} /><h1>Tarik napas. Jelaskan alasanmu dengan kata-katamu sendiri.</h1><p className={styles.count} role="status">{countdown}</p></section>
       : <div className={styles.page}>
         <p className={styles.time} role="timer">{remaining === 0 ? 'Waktu habis. Memeriksa sesi…' : `Sisa waktu ${Math.floor((remaining ?? 0) / 60)}:${String((remaining ?? 0) % 60).padStart(2, '0')}`}</p>
+        <StudentActivityBanner key={sessionId} notices={state.activity_notices} />
         {draft.text && draft.turn !== current && <p className={styles.note}>Tulisan dari pertanyaan sebelumnya: {draft.text}</p>}
         <div className={styles.grid}>
           <section className={styles.ask}><div className={styles.askHead}><Nala mood={state.status === 'processing' || unresolved ? 'think' : 'ask'} size={64} /><span className={styles.askName}>Nala bertanya</span><span className={styles.turn}>{state.probe_number === 0 ? 'Soal pembuka' : `Pertanyaan ${state.probe_number} dari ${state.probe_total}`}</span></div>
