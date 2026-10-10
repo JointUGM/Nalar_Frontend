@@ -562,6 +562,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/missions/{mission_id}/revise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revise Mission */
+        post: operations["revise_mission_api_v1_missions__mission_id__revise_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/missions/{mission_id}/revisions/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Revision Request */
+        get: operations["get_revision_request_api_v1_missions__mission_id__revisions__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/missions/{mission_id}/versions": {
         parameters: {
             query?: never;
@@ -2506,6 +2540,11 @@ export interface components {
             /** Status */
             status: string;
         };
+        /**
+         * Component
+         * @enum {string}
+         */
+        Component: "anchor_problem" | "reference_reasoning" | "rubric" | "bank";
         /** ConceptCountOut */
         ConceptCountOut: {
             /**
@@ -2973,6 +3012,11 @@ export interface components {
             /** Skipped */
             skipped: number;
         };
+        /**
+         * Issue
+         * @enum {string}
+         */
+        Issue: "too_long" | "too_difficult" | "unfamiliar_context" | "unclear_levels" | "repetitive" | "gives_hint" | "science_concern" | "other";
         ItemText: string;
         /** JobOut */
         JobOut: {
@@ -3444,6 +3488,60 @@ export interface components {
             items: components["schemas"]["MissionSummaryOut"][];
             /** Next Cursor */
             next_cursor: string | null;
+        };
+        /** MissionRevisionIn */
+        MissionRevisionIn: {
+            /**
+             * Base Version Id
+             * Format: uuid
+             */
+            base_version_id: string;
+            /**
+             * Expected Latest Version Id
+             * Format: uuid
+             */
+            expected_latest_version_id: string;
+            /** Feedback */
+            feedback?: components["schemas"]["RevisionFeedback"][];
+            /** Learning Objective */
+            learning_objective?: string | null;
+            /** Target Concept Ids */
+            target_concept_ids?: string[] | null;
+            /** Title */
+            title?: string | null;
+        };
+        /** MissionRevisionQueuedOut */
+        MissionRevisionQueuedOut: {
+            /**
+             * Base Version Id
+             * Format: uuid
+             */
+            base_version_id: string;
+            /** Effective Scope */
+            effective_scope: string[];
+            /**
+             * Job Id
+             * Format: uuid
+             */
+            job_id: string;
+            /**
+             * Status
+             * @default queued
+             */
+            status: string;
+        };
+        /** MissionRevisionRequestOut */
+        MissionRevisionRequestOut: {
+            /** Effective Scope */
+            effective_scope: string[];
+            intent: components["schemas"]["MissionRevisionIn"];
+            /**
+             * Job Id
+             * Format: uuid
+             */
+            job_id: string;
+            /** Status */
+            status: string;
         };
         /** MissionSummaryOut */
         MissionSummaryOut: {
@@ -4476,6 +4574,20 @@ export interface components {
             /** Pending Misconceptions */
             pending_misconceptions: number;
         };
+        /** RevisionFeedback */
+        RevisionFeedback: {
+            component: components["schemas"]["Component"];
+            /** Desired Change */
+            desired_change: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            issue: components["schemas"]["Issue"];
+            /** Question Ids */
+            question_ids?: string[] | null;
+        };
         /** @enum {string} */
         Role: "school_admin" | "teacher" | "student" | "parent";
         /** RoleOut */
@@ -5248,13 +5360,21 @@ export interface components {
             anchor_problem: string;
             /** Answer Terms */
             answer_terms: string[];
+            /** Base Version Id */
+            base_version_id: string | null;
+            /** Base Version Number */
+            base_version_number: number | null;
             /** Can Edit */
             can_edit: boolean;
+            /** Can Revise With Ai */
+            can_revise_with_ai: boolean;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            /** Learning Objective */
+            learning_objective: string;
             /** Live Warmup */
             live_warmup: {
                 [key: string]: unknown;
@@ -5271,6 +5391,12 @@ export interface components {
             }[];
             /** Reference Reasoning */
             reference_reasoning: string;
+            /** Revision Changed Fields */
+            revision_changed_fields: string[];
+            /** Revision Feedback */
+            revision_feedback: components["schemas"]["RevisionFeedback"][];
+            /** Revision Job Id */
+            revision_job_id: string | null;
             /** Rubric */
             rubric: {
                 [key: string]: string[];
@@ -5281,6 +5407,8 @@ export interface components {
             status: string;
             /** Target Concept Ids */
             target_concept_ids: string[];
+            /** Title */
+            title: string;
             /** Version Number */
             version_number: number;
         };
@@ -6421,6 +6549,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MissionGenerationQueuedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revise_mission_api_v1_missions__mission_id__revise_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                mission_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MissionRevisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MissionRevisionQueuedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_revision_request_api_v1_missions__mission_id__revisions__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mission_id: string;
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MissionRevisionRequestOut"];
                 };
             };
             /** @description Validation Error */
