@@ -10,13 +10,13 @@ const styles = {
   strip: 'flex min-w-0 flex-wrap items-center gap-2',
   // gap-px over a border-coloured fill draws the hairlines; 2 or 4 columns so a row never ends in a hole.
   stats: 'flex flex-wrap items-center gap-2',
-  stat: `group m-0 inline-flex h-9 cursor-pointer items-center rounded-pill border-0 bg-surface px-3.5 text-[14px] font-bold text-ink ${press} ${focus} hover:not-disabled:not-aria-pressed:bg-info-bg disabled:cursor-default disabled:opacity-60 aria-pressed:bg-ink aria-pressed:text-white [&>:first-child]:hidden`,
+  stat: `group m-0 inline-flex h-9 cursor-pointer items-center rounded-pill border-0 bg-surface px-3.5 text-[14px] font-bold text-ink ${press} ${focus} hover:not-disabled:not-aria-pressed:bg-info-bg disabled:cursor-default disabled:opacity-60 aria-pressed:bg-ink aria-pressed:text-white`,
   statLine: 'flex flex-row-reverse items-baseline gap-2 [&_strong]:text-[12px] [&_strong]:font-bold [&_strong]:tabular-nums [&_strong]:opacity-70',
   statHint: 'sr-only',
 
-  toolbar: 'flex flex-wrap items-center justify-end gap-2 [&>div]:flex-[0_1_180px] max-md:[&>div]:flex-[1_1_150px]',
+  toolbar: 'flex flex-wrap items-center gap-2 [&>div]:flex-[0_0_160px] max-md:[&>div]:flex-[1_1_150px]',
   count: 'sr-only',
-  search: 'flex min-h-10 min-w-0 flex-[0_1_280px] items-center gap-2 rounded-[8px] bg-surface px-3 text-text-muted focus-within:outline-2 focus-within:outline-primary max-md:min-h-11 max-md:basis-full [&_input]:min-h-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:border-0 [&_input]:bg-transparent [&_input]:p-0 [&_input]:text-[13px] [&_input]:text-ink [&_input]:caret-primary [&_input]:outline-none [&_input::placeholder]:text-text-muted [&_input::placeholder]:opacity-100',
+  search: 'flex min-h-10 min-w-0 flex-[1_1_220px] items-center gap-2 rounded-[8px] bg-surface px-3 text-text-muted focus-within:outline-2 focus-within:outline-primary max-md:min-h-11 max-md:basis-full [&_input]:min-h-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:border-0 [&_input]:bg-transparent [&_input]:p-0 [&_input]:text-[13px] [&_input]:text-ink [&_input]:caret-primary [&_input]:outline-none [&_input::placeholder]:text-text-muted [&_input::placeholder]:opacity-100',
   reset: `m-0 min-h-10 cursor-pointer rounded-button border-0 bg-transparent px-3 text-[13px] font-semibold text-primary hover:bg-nav-hover ${focus} max-md:min-h-11`,
 
   panel: 'min-w-0 overflow-clip rounded-2xl bg-surface',
@@ -29,9 +29,8 @@ const styles = {
   title: "m-0 text-[17px] leading-[24px] font-extrabold tracking-[-.01em] text-balance wrap-anywhere [&_a]:text-ink [&_a]:no-underline [&_a]:outline-none [&_a]:after:absolute [&_a]:after:inset-0 [&_a]:after:rounded-2xl [&_a]:after:content-[''] [&_a:hover]:text-primary-hover",
   tiles: 'grid gap-1.5 [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-text-secondary [&_[data-waiting=true]]:font-bold [&_[data-waiting=true]]:text-primary',
   meta: 'm-0 flex items-center gap-1.5 text-[13px] leading-4 text-text-muted',
-  foot: 'mt-auto flex min-h-11 items-center justify-between gap-2 border-t border-paper pt-3',
-  next: 'inline-flex items-center gap-1 text-[13px] font-bold text-primary [&>svg]:transition-[translate] [&>svg]:duration-150 group-has-[h3_a:hover]:[&>svg]:translate-x-0.5 motion-reduce:[&>svg]:transition-none',
-  remove: 'relative z-[1] -me-2 [&_button]:min-h-10 [&_button]:gap-1 [&_button]:px-2.5 [&_button]:py-1.5 [&_button]:text-[12px] [&_button]:font-semibold [&_button]:text-text-secondary [&_button:hover]:text-danger-text',
+  foot: 'relative z-[1] mt-auto flex min-h-11 flex-wrap items-center gap-x-4 gap-y-1 border-t border-paper pt-3 [&_a]:whitespace-nowrap [&_a]:text-[14px] [&_a]:font-bold [&_a]:text-primary [&_a]:no-underline [&_a:hover]:text-primary-hover',
+  remove: 'ms-auto shrink-0 -me-2 whitespace-nowrap [&_button]:min-h-10 [&_button]:gap-1 [&_button]:whitespace-nowrap [&_button]:px-2.5 [&_button]:py-1.5 [&_button]:text-[12px] [&_button]:font-semibold [&_button]:text-text-secondary [&_button:hover]:text-danger-text',
   note: 'm-0 flex items-center gap-2 text-[12px] leading-5 text-text-muted',
   bar: 'flex h-1.5 overflow-hidden rounded-pill bg-[#F3F1EC] [&>span]:min-w-0 [&>span:first-child]:bg-[#3C9A6E] [&>span:last-child]:bg-[#9FB2F0]',
   layout: 'grid items-start gap-4 xl:grid-cols-12',

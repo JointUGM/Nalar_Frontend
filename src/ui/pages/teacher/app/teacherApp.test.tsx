@@ -437,7 +437,8 @@ describe('signed-in teacher pages', () => {
       [`POST /concepts/${concept}/review`]: () => { status = 'approved'; return Response.json({ id: concept, review_status: status, reviewed_at: '2026-10-02T04:00:00+00:00' }) },
     })
     open(kbPath, request)
-    const approve = within(await screen.findByRole('region', { name: 'Konsep: Tekanan hidrostatis' })).getByRole('button', { name: 'Setujui' })
+    await screen.findByRole('region', { name: 'Konsep: Tekanan hidrostatis' })
+    const approve = screen.getByRole('button', { name: 'Setujui konsep' })
     const misconceptionCard = within(screen.getByRole('region', { name: /^Miskonsepsi:/ }))
     expect(misconceptionCard.getByRole('button', { name: 'Setujui' })).toBeDisabled()
     fireEvent.click(approve)

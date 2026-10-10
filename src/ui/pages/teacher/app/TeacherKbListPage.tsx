@@ -78,8 +78,8 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
               </div>
               <p className={styles.meta}><Icon name="file" size={14} />{number.format(topic.material_count)} materi, {number.format(topic.built_section_count)} bab disusun</p>
               <div className={styles.foot}>
-                {/* The title link already covers the card; this cue only says what opening it is for. */}
-                <span className={styles.next} aria-hidden="true">{topic.can_edit && topic.pending_count > 0 ? 'Tinjau konsep' : 'Buka topik'}<Icon name="chevronRight" size={14} /></span>
+                <Link to={path}>{topic.can_edit && topic.pending_count > 0 ? 'Tinjau' : 'Lihat isi'}</Link>
+                {topic.can_edit && <Link to={`${path}#kb-sources`}>Tambah bab</Link>}
                 {topic.can_edit && <span className={styles.remove}><ConfirmAction label={<><Icon name="x" size={14} />Hapus</>} title="Hapus topik ini?" description={`${topic.topic_title}. Topik hilang dari pustaka dan namanya bisa dipakai lagi. Misi dan laporan yang sudah memakai konsepnya tetap tersimpan.`} confirm="Hapus topik" pendingLabel="Menghapus…" action={(signal) => kb.deleteTopic(topic.id, signal)} onDone={refresh} refusal={kbRefusal} /></span>}
               </div>
             </li>
