@@ -261,10 +261,10 @@ describe('signed-in teacher pages', () => {
   it('shows the safety alert first and filters the monitored students by status', async () => {
     open(`${base}/publications/${publication}/monitor`, backend())
     expect(await screen.findByRole('alert')).toHaveTextContent('Raka Pratama mungkin butuh bantuan Anda')
-    const done = screen.getByRole('button', { name: /SELESAI/ })
+    const done = screen.getByRole('button', { name: /^Selesai/ })
     expect(done).toHaveTextContent('1')
     fireEvent.click(done)
-    expect(screen.getByText('Sinta Dewi')).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: /Siswa/ })).getByText('Sinta Dewi')).toBeInTheDocument()
     expect(within(screen.getByRole('region', { name: /Siswa/ })).queryByText('Raka Pratama')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Kode K7Q2MW/ })).toHaveAttribute('href', `${base}/publications/${publication}/projector`)
     expect(within(screen.getByRole('alert')).getByRole('link', { name: 'Raka Pratama' })).toHaveAttribute('href', reportPath)
@@ -370,7 +370,7 @@ describe('signed-in teacher pages', () => {
 
   it('opens on the weekly dashboard and badges what needs attention, each item linking to where it is handled', async () => {
     open(base, backend())
-    expect(await screen.findByText('+2 vs minggu lalu')).toBeInTheDocument()
+    expect(await screen.findByText('12 sesi selesai dari 30 siswa')).toBeInTheDocument()
     expect(screen.getByText('40%')).toBeInTheDocument()
     expect(screen.getByText('“Gaya bisa habis”')).toBeInTheDocument()
     await waitFor(() => expect(screen.getAllByRole('link', { name: /Perlu perhatian/ })[0]).toHaveTextContent('2'))
@@ -437,7 +437,8 @@ describe('signed-in teacher pages', () => {
       [`POST /concepts/${concept}/review`]: () => { status = 'approved'; return Response.json({ id: concept, review_status: status, reviewed_at: '2026-10-02T04:00:00+00:00' }) },
     })
     open(kbPath, request)
-    const approve = within(await screen.findByRole('region', { name: 'Konsep: Tekanan hidrostatis' })).getByRole('button', { name: 'Setujui' })
+    await screen.findByRole('region', { name: 'Konsep: Tekanan hidrostatis' })
+    const approve = screen.getByRole('button', { name: 'Setujui konsep' })
     const misconceptionCard = within(screen.getByRole('region', { name: /^Miskonsepsi:/ }))
     expect(misconceptionCard.getByRole('button', { name: 'Setujui' })).toBeDisabled()
     fireEvent.click(approve)
@@ -530,7 +531,7 @@ describe('signed-in teacher pages', () => {
     it('keeps the concepts it has but shows no count until the chapter is built', async () => {
       open(kbPath, backend(at('building')))
       expect(await screen.findByRole('heading', { name: 'Tekanan hidrostatis' })).toBeInTheDocument()
-      expect(screen.getAllByText('Sedang disusun')).toHaveLength(2)
+      expect(screen.getAllByText('Sedang disusun')).toHaveLength(3)
       expect(screen.queryByText('1 konsep')).not.toBeInTheDocument()
       expect(screen.queryByText('1 miskonsepsi')).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: /Coba lagi|Susun/ })).not.toBeInTheDocument()
@@ -657,7 +658,7 @@ describe('Nala on the attention page', () => {
 
   it('puts student support first, and shows one Nala when the queue is clear', () => {
     const { unmount } = show({ counts: { ...counts, safety: 1, total: 1 }, items: [paused] })
-    expect(screen.getByText('Dahulukan pendampingan siswa, ya.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Raka Pratama' })).toBeInTheDocument()
     unmount()
     show({ counts, items: [] })
     expect(screen.getByRole('heading', { name: 'Tidak ada yang perlu perhatian di sini.' })).toBeInTheDocument()

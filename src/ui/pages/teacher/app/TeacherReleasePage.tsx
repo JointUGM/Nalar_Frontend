@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { Link, useLocation, useParams } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
 import type { TeacherPublication } from '@/domain/model/Teacher'
@@ -7,6 +8,7 @@ import { Button } from '@/ui/components/button/Button'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
+import { Nala } from '@/ui/components/nala/Nala'
 import { NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
@@ -55,44 +57,41 @@ export function TeacherReleasePage({ service, base }: { service: TeacherService;
   }
 
   return <div className={styles.content}>
-    <Link className={styles.back} to={`${base}/publications/${publicationId}/class-map`} state={location.state}><Icon name="chevronLeft" size={14} />Peta miskonsepsi</Link>
-    <div className={styles.header}>
-      <div><h1>Rilis ke orang tua</h1><p>{subtitle}</p></div>
-      {data && <Button disabled={!data.ready || released !== null} tone={released ? 'secondary' : 'primary'} onClick={() => setConfirming(true)}><Icon name={released ? 'check' : 'send'} size={14} />{released ? 'Sudah dirilis' : `Rilis ${data.eligible_count} ringkasan`}</Button>}
-    </div>
+    <TeacherPageHead crumb={<><Link to={`${base}/publications/${publicationId}/class-map`} state={location.state}>Peta kelas</Link><Icon name="chevronRight" size={14} /></>} title="Rilis ke orang tua" subtitle={subtitle} />
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <Loading label="Memuat pratinjau rilis…" />}
     {failure && (failure.code === 'RELEASE_NOT_READY'
       ? <Feedback tone="warning" title="Rilis belum bisa dilakukan" announce>Data berubah sejak pratinjau dibuka. Periksa daftar terbaru di bawah, lalu coba lagi.</Feedback>
       : <LiveFeedback error={failure} online={online} refresh={refresh} />)}
     {data && <>
-      <p role="status" className={styles.banner} data-released={released !== null}><NalaIcon name="info" />{released ? `Dirilis ${formatDayTime(released)}. Ringkasan sudah dikunci dan dapat dilihat orang tua.` : 'Orang tua belum melihat apa pun dari misi ini. Ringkasan dikunci saat Anda merilis.'}</p>
-      {!released && data.blockers.length > 0 && <Feedback tone="warning" title="Belum siap dirilis">
-        <ul>{data.blockers.map((blocker) => <li key={blocker.code}>{blockerText[blocker.code]?.(blocker.count) ?? `${blocker.code} (${blocker.count})`}</li>)}</ul>
-      </Feedback>}
-
       <div className={styles.grid}>
-        <section className={styles.table} aria-labelledby="release-students">
-          <h2 id="release-students">Ringkasan siap <span>{data.summaries.length}</span></h2>
-          {data.ineligible_count > 0 && <p>{data.ineligible_count} siswa belum selesai atau belum dinilai, dan tidak ikut dirilis.</p>}
-          <div className={styles.region} role="region" aria-label="Ringkasan per siswa (dapat digulir)" tabIndex={0}>
-            <table>
-              <caption>Ringkasan untuk orang tua per siswa</caption>
-              <thead><tr><th scope="col">SISWA</th><th scope="col">STATUS</th></tr></thead>
-              <tbody>{data.summaries.map((row) => <tr key={row.student_id} data-selected={shown?.student_id === row.student_id}>
-                <th scope="row"><button type="button" aria-pressed={shown?.student_id === row.student_id} onClick={() => setSelected(row.student_id)}>{row.name}</button></th>
-                <td><span data-ready="true">{released ? 'Dirilis' : 'Siap'}</span></td>
-              </tr>)}</tbody>
-            </table>
+        <div className={styles.rail}>
+          <section className={styles.card} aria-labelledby="release-ready">
+            <h2 id="release-ready">Kesiapan rilis</h2>
+            <p role="status" className={styles.check} data-released={released !== null}><span aria-hidden="true"><Icon name="check" size={14} /></span>{released ? `Dirilis ${formatDayTime(released)}. Ringkasan sudah dikunci.` : 'Orang tua belum melihat apa pun dari misi ini.'}</p>
+            {!released && data.blockers.length === 0 && <p className={styles.check}><span aria-hidden="true"><Icon name="check" size={14} /></span>Semua ringkasan sudah dinilai</p>}
+            {!released && data.blockers.length > 0 && <Feedback tone="warning" title="Belum siap dirilis">
+              <ul>{data.blockers.map((blocker) => <li key={blocker.code}>{blockerText[blocker.code]?.(blocker.count) ?? `${blocker.code} (${blocker.count})`}</li>)}</ul>
+            </Feedback>}
+            {data.ineligible_count > 0 && <p className={styles.note}>{data.ineligible_count} siswa belum selesai atau belum dinilai, dan tidak ikut dirilis.</p>}
+          </section>
+          <section className={styles.release} aria-label="Rilis">
+            <p><strong>{data.eligible_count}</strong>ringkasan siap</p>
+            <p>Setelah dirilis, ringkasan dibekukan dan langsung terlihat oleh orang tua yang terhubung. Skor dan catatan verifikasi tidak ikut terkirim.</p>
+            <Button disabled={!data.ready || released !== null} onClick={() => setConfirming(true)}><Icon name={released ? 'check' : 'send'} size={16} />{released ? 'Sudah dirilis' : `Rilis ${data.eligible_count} ringkasan`}</Button>
+          </section>
+        </div>
+        <section className={styles.main} aria-labelledby="release-students">
+          <div className={styles.list}>
+            <h2 id="release-students">Pratinjau per siswa <span>{data.summaries.length}</span></h2>
+            <ul>{data.summaries.map((row) => <li key={row.student_id}><button type="button" aria-pressed={shown?.student_id === row.student_id} onClick={() => setSelected(row.student_id)}>{row.name}<span>{released ? 'Dirilis' : 'Siap'}</span></button></li>)}</ul>
+          </div>
+          <div className={styles.preview} aria-live="polite">
+            <div className={styles.who}><Nala mood="read" size={40} head /><div><span>Yang dilihat orang tua</span><strong>{shown ? `Ringkasan ${shown.name}` : 'Belum ada ringkasan'}</strong></div></div>
+            <p>{shown ? shown.summary_text : 'Belum ada ringkasan untuk ditampilkan.'}</p>
+            <p className={styles.lock}><NalaIcon name="lock" />Tanpa skor dan catatan verifikasi · dikunci saat dirilis</p>
           </div>
         </section>
-        <aside className={styles.preview} aria-labelledby="release-preview">
-          <h2 id="release-preview">PRATINJAU YANG DILIHAT ORANG TUA</h2>
-          <div aria-live="polite">{shown
-            ? <><div className={styles.who}><span aria-hidden="true">{shown.name.trim().charAt(0).toLocaleUpperCase('id-ID')}</span><div><strong>{shown.name}</strong></div></div><p>{shown.summary_text}</p></>
-            : <p>Belum ada ringkasan untuk ditampilkan.</p>}</div>
-          <p className={styles.lock}><NalaIcon name="lock" />Tanpa skor dan catatan verifikasi · dikunci saat dirilis</p>
-        </aside>
       </div>
 
       <Dialog open={confirming} title={`Rilis ${data.eligible_count} ringkasan?`} description="Orang tua yang tertaut langsung dapat melihat ringkasan dan refleksi anaknya. Ringkasan tidak dapat diubah setelah dirilis." onClose={() => { if (!pending) setConfirming(false) }} dismissible={!pending}>

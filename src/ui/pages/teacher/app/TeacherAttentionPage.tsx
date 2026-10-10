@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { Link } from 'react-router'
 import type { AttentionItem, AttentionPage } from '@/domain/model/Teacher'
 import type { ApiError } from '@/domain/model/ApiError'
@@ -6,9 +7,8 @@ import { cn } from '@/ui/cn'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
-import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaAvatar, NalaIcon } from '@/ui/components/nala/NalaIcon'
-import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
+import { NalaEmpty } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
 import { formatDayTime } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
@@ -19,13 +19,6 @@ import styles from '@/ui/pages/teacher/TeacherAttention.styles'
 type Kind = AttentionItem['kind']
 interface Entry { key: string; item: AttentionItem; view: AttentionView }
 const number = new Intl.NumberFormat('id-ID')
-
-// Null while the queue itself shows Nala (cleared, no match, unavailable): one Nala per view.
-function companion(data: AttentionPage | null, failed: boolean): [NalaMood, string] | null {
-  if (!data) return failed ? null : ['think', 'Sebentar, daftar perhatian sedang dimuat.']
-  if (data.counts.safety > 0) return ['calm', 'Dahulukan pendampingan siswa, ya.']
-  return ['ask', `${data.counts.total} catatan menunggu tinjauan Anda.`]
-}
 
 // The few facts a teacher weighs before opening the item, read straight from the queue.
 function facts(item: AttentionItem, at: string): [string, string][] {
@@ -56,9 +49,8 @@ function Detail({ entry }: { entry: Entry }) {
   return <aside id="attention-detail" className={styles.detail} aria-labelledby="attention-detail-title">
     <span className={styles.sev} data-kind={item.kind}><Icon name={kind.icon} size={11} />{kind.label}</span>
     <div className={styles.detailWho}><span aria-hidden="true"><Lead entry={entry} size={40} /></span><div className="min-w-0"><h2 id="attention-detail-title">{view.who}</h2><p>{view.summary}</p></div></div>
-    <dl className={cn(styles.facts, rows.length === 2 ? 'grid-cols-2' : 'grid-cols-3')}>{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
-    <h3>Catatan</h3>
-    <p>{kind.note}</p>
+    <dl className={styles.facts}>{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+    <p className={styles.noteText}>{kind.note}</p>
     <div className={styles.next} data-kind={item.kind}><strong><NalaIcon name={kind.nala} size={22} />Langkah berikutnya</strong><p>{kind.next}</p></div>
     <ButtonLink to={view.to} className={styles.go} data-kind={item.kind}>{kind.action}<Icon name="chevronRight" size={16} /></ButtonLink>
   </aside>
@@ -75,9 +67,8 @@ export function TeacherAttentionPage({ data, error, online, refresh, base }: { d
   const selected = visible.find((entry) => entry.key === picked) ?? visible[0]
   const filtered = kind !== 'all' || Boolean(needle)
   function reset() { setKind('all'); setQuery('') }
-  const note = visible.length > 0 || !data ? companion(data, Boolean(error)) : null
   return <div className={styles.page}>
-    <div className={styles.header}><div><h1>Perlu perhatian</h1><p>Keselamatan siswa, catatan verifikasi, materi, dan rilis yang menunggu keputusan Anda.</p></div>{note && <NalaNote mood={note[0]} text={note[1]} />}</div>
+    <TeacherPageHead title="Perlu perhatian" subtitle="Keselamatan siswa, catatan verifikasi, materi, dan rilis yang menunggu keputusan Anda." />
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {data && <div className={styles.strip}><div className={styles.stats} role="group" aria-label="Saring jenis catatan">
       {attentionKinds.map((entry) => {

@@ -1,4 +1,5 @@
 import { useCallback, useId, useRef, useState } from 'react'
+import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import type { FormEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { Link, useNavigate } from 'react-router'
@@ -10,7 +11,6 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
 import type { NalaMood } from '@/ui/components/nala/Nala'
-import { NalaNote } from '@/ui/components/nala/NalaState'
 import { RoadSteps } from '@/ui/components/road/RoadSteps'
 import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
@@ -69,26 +69,9 @@ export function TeacherMissionNewPage({ service, kb, base, schoolId }: { service
     goalBox.current?.focus()
   }
 
-  // Nala follows the form: waiting, working, or how far along the teacher is. One Nala per view.
-  const typed = Boolean(title.trim() || goal.trim())
-  const [mood, line]: [NalaMood, string] = pending ? ['think', 'Sedang menyusun draf misi…']
-    : failure ? ['oops', 'Misi belum berhasil dibuat.']
-    : error ? ['oops', 'Basis pengetahuan belum dapat dimuat.']
-    : !data ? ['think', 'Sebentar, basis pengetahuan sedang dimuat.']
-    : ready.length === 0 ? ['ask', 'Setujui sedikitnya dua konsep dulu di basis pengetahuan.']
-    : !typed ? ['hello', 'Halo! Apa yang ingin siswa pahami lewat misi ini?']
-    : chosen && title.trim() && goal.trim() ? ['proud', 'Siap! Draf disusun dari konsep yang sudah Anda setujui.']
-    : ['think', chosen ? 'Lengkapi judul dan tujuannya, lalu AI menyusun draf.' : 'Pilih basis pengetahuan sebagai acuan draf.']
 
   return <div className={styles.content}>
-    <div className={styles.head}>
-      <div>
-        <Link className={styles.back} to={`${base}/missions`}><Icon name="chevronLeft" size={14} />Misi</Link>
-        <h1>Misi baru</h1>
-        <p className={styles.lead}>Tulis tujuan pembelajaran, lalu AI menyusun draf dari konsep yang sudah Anda setujui. Anda memeriksanya sebelum dipakai.</p>
-      </div>
-      <NalaNote mood={mood} text={line} />
-    </div>
+    <TeacherPageHead crumb={<><Link to={`${base}/missions`}>Misi</Link><Icon name="chevronRight" size={14} /></>} title="Misi baru" subtitle="Tulis tujuan pembelajaran, lalu AI menyusun draf dari konsep yang sudah Anda setujui. Anda memeriksanya sebelum dipakai." />
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {data && ready.length === 0 && <Feedback tone="warning" title="Belum ada basis pengetahuan yang siap" announce>Misi memerlukan sedikitnya dua konsep yang disetujui. <Link to={`${base}/knowledge-base`}>Buka basis pengetahuan</Link></Feedback>}
     {failure && <Feedback tone="warning" title={missionRefusal(failure) ?? failure.message} announce>{failure.requestId && <small>Referensi: {failure.requestId}</small>}</Feedback>}
