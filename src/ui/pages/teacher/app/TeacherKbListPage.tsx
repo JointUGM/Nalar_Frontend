@@ -17,13 +17,8 @@ import { kbRefusal } from './kbText'
 type TopicState = 'review' | 'approved' | 'empty'
 const state = (topic: KbSummary): TopicState => topic.pending_count > 0 ? 'review' : topic.approved_concept_count > 0 ? 'approved' : 'empty'
 const stateLabel: Record<TopicState, string> = { review: 'Perlu tinjauan', approved: 'Siap dipakai', empty: 'Belum ada konsep' }
-// The strip is the filter; "Semua topik" keeps every cell meaningful and the grid free of holes.
-const filters: readonly { value: 'all' | TopicState; label: string; hint: (topics: readonly KbSummary[]) => string }[] = [
-  { value: 'all', label: 'Semua topik', hint: (topics) => `${number.format(topics.filter((topic) => topic.can_edit).length)} milik Anda` },
-  { value: 'review', label: stateLabel.review, hint: () => 'konsep menunggu Anda' },
-  { value: 'approved', label: stateLabel.approved, hint: () => 'bisa dipakai untuk misi' },
-  { value: 'empty', label: stateLabel.empty, hint: () => 'bab belum disusun' },
-]
+const statusOptions = [{ value: 'all', label: 'Semua status' }, { value: 'review', label: stateLabel.review }, { value: 'approved', label: stateLabel.approved }, { value: 'empty', label: stateLabel.empty }]
+const perPageOptions = ['10', '25', '50'].map((value) => ({ value, label: `${value} baris` }))
 const titleOrder = new Intl.Collator('id-ID', { numeric: true, sensitivity: 'base' })
 const number = new Intl.NumberFormat('id-ID')
 
@@ -32,12 +27,18 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   const [query, setQuery] = useState(''), [filter, setFilter] = useState<'all' | TopicState>('all')
   const [ownership, setOwnership] = useState('all'), [sort, setSort] = useState('original')
+  const [page, setPage] = useState(0), [perPage, setPerPage] = useState('10')
   const visible = (data ?? []).filter(topic => (filter === 'all' || state(topic) === filter)
     && (ownership === 'all' || topic.can_edit === (ownership === 'mine'))
     && topic.topic_title.toLocaleLowerCase('id-ID').includes(query.trim().toLocaleLowerCase('id-ID')))
   if (sort !== 'original') visible.sort((a, b) => titleOrder.compare(a.topic_title, b.topic_title) * (sort === 'title-desc' ? -1 : 1))
   const filtered = Boolean(query.trim()) || filter !== 'all' || ownership !== 'all'
-  function reset() { setQuery(''); setFilter('all'); setOwnership('all') }
+  // Any change to what is listed starts again from the first page.
+  const first = (set: (value: string) => void) => (value: string) => { set(value); setPage(0) }
+  function reset() { setQuery(''); setFilter('all'); setOwnership('all'); setPage(0) }
+  const size = Number(perPage), pageCount = Math.max(1, Math.ceil(visible.length / size)), current = Math.min(page, pageCount - 1)
+  const rows = visible.slice(current * size, (current + 1) * size)
+  const firstPage = Math.min(Math.max(current - 2, 0), Math.max(pageCount - 5, 0))
   const waiting = data?.filter((topic) => topic.pending_count > 0).length ?? 0
 
   return <div className={styles.page}>
@@ -48,48 +49,51 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
     {data && data.length === 0 && <section className={styles.panel}><NalaEmpty mood="ask" title="Belum ada basis pengetahuan" action={<ButtonLink tone="secondary" className={styles.button} to={`${base}/knowledge-base/upload`}><Icon name="upload" size={16} />Unggah materi pertama</ButtonLink>}>
       Unggah materi ajar (PDF) untuk memulai topik pertama.
     </NalaEmpty></section>}
-    {data && data.length > 0 && <div className={styles.layout}><div className={styles.main}>
-      <div className={styles.strip}><div className={styles.stats} role="group" aria-label="Status topik">{filters.map((entry) => {
-        const count = data.filter((topic) => entry.value === 'all' || state(topic) === entry.value).length
-        return <button key={entry.value} type="button" className={styles.stat} aria-pressed={filter === entry.value} disabled={count === 0 && filter !== entry.value} onClick={() => setFilter(filter === entry.value ? 'all' : entry.value)}>
-
-          <span className={styles.statLine}><strong>{number.format(count)}</strong>{entry.label}</span>
-          <span className={styles.statHint}>{entry.hint(data)}</span>
-        </button>
-      })}</div></div>
-      <section aria-labelledby="topic-library-title" className="grid gap-4">
-        <h2 id="topic-library-title" className="sr-only">Pustaka materi ajar</h2>
-        <div className={styles.toolbar}>
-          <p className={styles.count} role="status">{filtered ? `Menampilkan ${number.format(visible.length)} dari ${number.format(data.length)} topik` : `${number.format(data.length)} topik di pustaka sekolah`}</p>
-          <label className={styles.search}><Icon name="search" size={16} /><input type="search" aria-label="Cari topik" placeholder="Cari topik materi ajar…" value={query} onChange={event => setQuery(event.target.value)} /></label>
-          <Select compact label="Filter pemilik topik" value={ownership} onChange={setOwnership} options={[{ value: 'all', label: 'Semua guru' }, { value: 'mine', label: 'Milik Anda' }, { value: 'colleagues', label: 'Rekan guru' }]} />
-          <Select compact label="Urutkan topik" value={sort} onChange={setSort} options={[{ value: 'original', label: 'Urutan awal' }, { value: 'title-asc', label: 'Judul A-Z' }, { value: 'title-desc', label: 'Judul Z-A' }]} />
-          {filtered && <button className={styles.reset} type="button" onClick={reset}>Hapus filter</button>}
-        </div>
-        {visible.length === 0 ? <div className={styles.panel}><NalaEmpty mood="search" title="Tidak ada topik yang cocok" action={<button className={styles.reset} type="button" onClick={reset}>Tampilkan semua topik</button>}>Coba kata kunci lain atau hapus filter.</NalaEmpty></div>
-          : <ul className={styles.grid} aria-label="Topik basis pengetahuan">{visible.map(topic => {
+    {data && data.length > 0 && <section className={styles.panel} aria-labelledby="topic-library-title">
+      <h2 id="topic-library-title" className="sr-only">Pustaka materi ajar</h2>
+      <div className={styles.filters}>
+        <label className={styles.search}><Icon name="search" size={16} /><input type="search" aria-label="Cari topik" placeholder="Cari topik materi ajar…" value={query} onChange={event => { setQuery(event.target.value); setPage(0) }} /></label>
+        <Select compact label="Filter status topik" value={filter} onChange={first((value) => setFilter(value as 'all' | TopicState))} options={statusOptions} />
+        <Select compact label="Filter pemilik topik" value={ownership} onChange={first(setOwnership)} options={[{ value: 'all', label: 'Semua guru' }, { value: 'mine', label: 'Milik Anda' }, { value: 'colleagues', label: 'Rekan guru' }]} />
+        <Select compact label="Urutkan topik" value={sort} onChange={first(setSort)} options={[{ value: 'original', label: 'Urutan awal' }, { value: 'title-asc', label: 'Judul A-Z' }, { value: 'title-desc', label: 'Judul Z-A' }]} />
+        {filtered && <button className={styles.reset} type="button" onClick={reset}>Hapus filter</button>}
+        <ButtonLink className={styles.upload} to={`${base}/knowledge-base/upload`}><Icon name="upload" size={16} />Unggah bahan ajar</ButtonLink>
+      </div>
+      <p className={styles.count} role="status">{filtered ? `Menampilkan ${number.format(visible.length)} dari ${number.format(data.length)} topik` : `${number.format(data.length)} topik di pustaka sekolah`}</p>
+      {visible.length === 0 ? <NalaEmpty mood="search" title="Tidak ada topik yang cocok" action={<button className={styles.reset} type="button" onClick={reset}>Tampilkan semua topik</button>}>Coba kata kunci lain atau hapus filter.</NalaEmpty> : <>
+        <div className={styles.scroll}><table className={styles.table} aria-label="Topik basis pengetahuan">
+          <thead><tr><th scope="col">Topik</th><th scope="col">Status</th><th scope="col">Konsep</th><th scope="col" data-extra>Pemilik</th><th scope="col"><span className="sr-only">Aksi</span></th></tr></thead>
+          <tbody>{rows.map(topic => {
             const tone = state(topic), path = `${base}/knowledge-base/${topic.id}`
-            return <li key={topic.id} className={styles.card}>
-              <div className={styles.cardTop}><span className={styles.status} data-status={tone}>{stateLabel[tone]}</span><span className={styles.owner}>{topic.can_edit ? 'Milik Anda' : `Dari ${topic.owner_name ?? 'rekan guru'}`}</span></div>
-              <h3 className={styles.title}><Link to={path}>{topic.topic_title}</Link></h3>
-              <div className={styles.tiles}>
+            return <tr key={topic.id}>
+              <td><div className={styles.topic}><Link to={path}>{topic.topic_title}</Link><small>{number.format(topic.material_count)} materi, {number.format(topic.built_section_count)} bab disusun</small></div></td>
+              <td><span className={styles.status} data-status={tone}>{stateLabel[tone]}</span></td>
+              <td><div className={styles.coverage}>
                 <span className={styles.bar} aria-hidden="true"><span style={{ flexGrow: topic.approved_concept_count }} /><span style={{ flexGrow: topic.pending_count }} /></span>
-                <p>{number.format(topic.approved_concept_count)} disetujui · <span data-waiting={topic.pending_count > 0}>{number.format(topic.pending_count)} menunggu tinjauan</span></p>
-              </div>
-              <p className={styles.meta}><Icon name="file" size={14} />{number.format(topic.material_count)} materi, {number.format(topic.built_section_count)} bab disusun</p>
-              <div className={styles.foot}>
+                <span>{number.format(topic.approved_concept_count)} disetujui{topic.pending_count > 0 ? <b> · {number.format(topic.pending_count)} menunggu</b> : ' · 0 menunggu'}</span>
+              </div></td>
+              <td data-extra className={styles.owner}>{topic.can_edit ? 'Milik Anda' : topic.owner_name ?? 'Rekan guru'}</td>
+              <td><div className={styles.actions}>
                 <Link to={path}>{topic.can_edit && topic.pending_count > 0 ? 'Tinjau' : 'Lihat isi'}</Link>
                 {topic.can_edit && <Link to={`${path}#kb-sources`}>Tambah bab</Link>}
                 {topic.can_edit && <span className={styles.remove}><ConfirmAction label={<><Icon name="x" size={14} />Hapus</>} title="Hapus topik ini?" description={`${topic.topic_title}. Topik hilang dari pustaka dan namanya bisa dipakai lagi. Misi dan laporan yang sudah memakai konsepnya tetap tersimpan.`} confirm="Hapus topik" pendingLabel="Menghapus…" action={(signal) => kb.deleteTopic(topic.id, signal)} onDone={refresh} refusal={kbRefusal} /></span>}
-              </div>
-            </li>
-          })}</ul>}
-      </section>
-    </div>
-      <aside className={styles.rail} aria-label="Bahan ajar">
-        <Link className={styles.upload} to={`${base}/knowledge-base/upload`}><span aria-hidden="true"><Icon name="upload" size={24} /></span><strong>Unggah bahan ajar</strong><small>PDF buku, modul, salindia, atau LKPD. Bab dideteksi otomatis, Anda memilih yang dibangun.</small></Link>
-        <section className={styles.share} aria-labelledby="kb-share-title"><h2 id="kb-share-title">Berbagi di sekolah</h2><p>Guru lain di sekolah ini bisa memakai topik milik Anda tanpa mengubahnya. Hanya pemilik yang menyetujui dan mengedit.</p></section>
-      </aside>
-    </div>}
+              </div></td>
+            </tr>
+          })}</tbody>
+        </table></div>
+        <div className={styles.foot}>
+          <span>Menampilkan {number.format(current * size + 1)}-{number.format(current * size + rows.length)} dari {number.format(visible.length)} topik</span>
+          <div>
+            <span className={styles.perPage}><Select compact label="Baris per halaman" value={perPage} onChange={first(setPerPage)} options={perPageOptions} /></span>
+            {pageCount > 1 && <nav className={styles.pager} aria-label="Halaman topik">
+              <button type="button" className={styles.pageButton} aria-label="Halaman sebelumnya" disabled={current === 0} onClick={() => setPage(current - 1)}><Icon name="chevronLeft" size={16} /></button>
+              {Array.from({ length: Math.min(5, pageCount) }, (_, index) => firstPage + index).map((index) => <button key={index} type="button" className={styles.pageButton} aria-label={`Halaman ${index + 1}`} aria-current={index === current ? 'page' : undefined} onClick={() => setPage(index)}>{index + 1}</button>)}
+              <button type="button" className={styles.pageButton} aria-label="Halaman berikutnya" disabled={current >= pageCount - 1} onClick={() => setPage(current + 1)}><Icon name="chevronRight" size={16} /></button>
+            </nav>}
+          </div>
+        </div>
+      </>}
+    </section>}
+    {data && data.length > 0 && <p className={styles.note}>Guru lain di sekolah ini bisa memakai topik milik Anda tanpa mengubahnya. Hanya pemilik yang menyetujui dan mengedit. Bab dari PDF yang Anda unggah dideteksi otomatis, Anda memilih yang dibangun.</p>}
   </div>
 }

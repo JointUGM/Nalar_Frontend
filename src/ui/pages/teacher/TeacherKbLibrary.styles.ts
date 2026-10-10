@@ -1,43 +1,35 @@
-// Tailwind classes for TeacherKbListPage.tsx, Board v2 library: a divided state strip that filters, a toolbar row and a
-// grid of hairline topic cards. The title link stretches over its card; Hapus sits above it so it stays clickable.
+// Tailwind classes for TeacherKbListPage.tsx: a B2B data table in one borderless card (filter bar, dense rows with a
+// coverage bar, row actions, pagination), like the Guru design's other tables. Static rows on purpose: this list is
+// opened many times a day, so only colour and press feedback transition (150ms, ease-out).
 const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
-const press = 'transition-[background-color,border-color,color,box-shadow,scale] duration-150 ease-[cubic-bezier(.23,1,.32,1)] motion-reduce:transition-none'
+const press = 'transition-[background-color,color,scale] duration-150 ease-[cubic-bezier(.23,1,.32,1)] motion-reduce:transition-none'
 const styles = {
   page: 'mx-auto grid max-w-340 gap-4',
-  header: 'flex flex-wrap items-end justify-between gap-x-6 gap-y-3 [&>div:first-child]:min-w-0 [&>div:first-child]:flex-[1_1_280px] [&_h1]:m-0 [&_h1]:text-[24px] [&_h1]:leading-[30px] [&_h1]:font-extrabold [&_h1]:tracking-[-.02em] [&_p]:mt-0.5 [&_p]:mb-0 [&_p]:max-w-[64ch] [&_p]:text-[14px] [&_p]:leading-5 [&_p]:text-text-secondary',
   button: 'ms-auto min-h-9 gap-2 rounded-[8px] border-0 bg-surface px-3.5 text-[14px] font-bold text-ink hover:not-disabled:bg-info-bg [&>svg]:text-primary max-md:min-h-11',
-
-  strip: 'flex min-w-0 flex-wrap items-center gap-2',
-  // gap-px over a border-coloured fill draws the hairlines; 2 or 4 columns so a row never ends in a hole.
-  stats: 'flex flex-wrap items-center gap-2',
-  stat: `group m-0 inline-flex h-9 cursor-pointer items-center rounded-pill border-0 bg-surface px-3.5 text-[14px] font-bold text-ink ${press} ${focus} hover:not-disabled:not-aria-pressed:bg-info-bg disabled:cursor-default disabled:opacity-60 aria-pressed:bg-ink aria-pressed:text-white`,
-  statLine: 'flex flex-row-reverse items-baseline gap-2 [&_strong]:text-[12px] [&_strong]:font-bold [&_strong]:tabular-nums [&_strong]:opacity-70',
-  statHint: 'sr-only',
-
-  toolbar: 'flex flex-wrap items-center gap-2 [&>div]:flex-[0_0_160px] max-md:[&>div]:flex-[1_1_150px]',
-  count: 'sr-only',
-  search: 'flex min-h-10 min-w-0 flex-[1_1_220px] items-center gap-2 rounded-[8px] bg-surface px-3 text-text-muted focus-within:outline-2 focus-within:outline-primary max-md:min-h-11 max-md:basis-full [&_input]:min-h-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:border-0 [&_input]:bg-transparent [&_input]:p-0 [&_input]:text-[13px] [&_input]:text-ink [&_input]:caret-primary [&_input]:outline-none [&_input::placeholder]:text-text-muted [&_input::placeholder]:opacity-100',
-  reset: `m-0 min-h-10 cursor-pointer rounded-button border-0 bg-transparent px-3 text-[13px] font-semibold text-primary hover:bg-nav-hover ${focus} max-md:min-h-11`,
-
   panel: 'min-w-0 overflow-clip rounded-2xl bg-surface',
   state: 'px-4 py-5',
-  grid: 'm-0 grid list-none grid-cols-3 gap-4 p-0 max-xl:grid-cols-2 max-md:grid-cols-1',
-  card: `group relative flex min-w-0 flex-col gap-3 rounded-2xl bg-surface p-5 ${press} has-[h3_a:hover]:-translate-y-0.5 has-[h3_a:hover]:shadow-[0_8px_24px_rgb(21_33_59/8%)] has-[h3_a:focus-visible]:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_28%,transparent)] motion-reduce:has-[h3_a:hover]:translate-y-0`,
-  cardTop: 'flex items-center gap-2',
-  status: 'inline-flex rounded-pill bg-paper px-2 py-0.5 text-[12px] leading-4 font-bold whitespace-nowrap text-text-secondary data-[status=approved]:bg-success-bg data-[status=approved]:text-success-strong data-[status=review]:bg-info-bg data-[status=review]:text-primary',
-  owner: 'ms-auto min-w-0 truncate text-[12px] leading-4 text-text-muted',
-  title: "m-0 text-[17px] leading-[24px] font-extrabold tracking-[-.01em] text-balance wrap-anywhere [&_a]:text-ink [&_a]:no-underline [&_a]:outline-none [&_a]:after:absolute [&_a]:after:inset-0 [&_a]:after:rounded-2xl [&_a]:after:content-[''] [&_a:hover]:text-primary-hover",
-  tiles: 'grid gap-1.5 [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-text-secondary [&_[data-waiting=true]]:font-bold [&_[data-waiting=true]]:text-primary',
-  meta: 'm-0 flex items-center gap-1.5 text-[13px] leading-4 text-text-muted',
-  foot: 'relative z-[1] mt-auto flex min-h-11 flex-wrap items-center gap-x-4 gap-y-1 border-t border-paper pt-3 [&_a]:whitespace-nowrap [&_a]:text-[14px] [&_a]:font-bold [&_a]:text-primary [&_a]:no-underline [&_a:hover]:text-primary-hover',
-  remove: 'ms-auto shrink-0 -me-2 whitespace-nowrap [&_button]:min-h-10 [&_button]:gap-1 [&_button]:whitespace-nowrap [&_button]:px-2.5 [&_button]:py-1.5 [&_button]:text-[12px] [&_button]:font-semibold [&_button]:text-text-secondary [&_button:hover]:text-danger-text',
-  note: 'm-0 flex items-center gap-2 text-[12px] leading-5 text-text-muted',
-  bar: 'flex h-1.5 overflow-hidden rounded-pill bg-[#F3F1EC] [&>span]:min-w-0 [&>span:first-child]:bg-[#3C9A6E] [&>span:last-child]:bg-[#9FB2F0]',
-  layout: 'grid items-start gap-4 xl:grid-cols-12',
-  main: 'grid min-w-0 gap-4 xl:col-span-8',
-  rail: 'grid min-w-0 gap-4 xl:col-span-4',
-  upload: 'flex flex-col items-center gap-3 rounded-2xl bg-surface p-6 text-center text-ink no-underline transition-[background-color] duration-150 hover:bg-info-bg [&>span:first-child]:grid [&>span:first-child]:size-14 [&>span:first-child]:place-items-center [&>span:first-child]:rounded-2xl [&>span:first-child]:bg-info-bg [&>span:first-child]:text-primary [&_strong]:text-[16px] [&_strong]:font-bold [&_small]:text-[13px] [&_small]:leading-[1.5] [&_small]:text-text-secondary',
-  share: 'grid gap-2 rounded-2xl bg-surface p-5 [&_h2]:m-0 [&_h2]:text-[16px] [&_h2]:font-bold [&_p]:m-0 [&_p]:text-[13px] [&_p]:leading-[1.55] [&_p]:text-text-secondary',
+  reset: `m-0 min-h-10 cursor-pointer rounded-button border-0 bg-transparent px-3 text-[13px] font-semibold text-primary hover:bg-nav-hover ${focus} max-md:min-h-11`,
+
+  filters: 'flex flex-wrap items-center gap-2 p-3 [&>div]:flex-[0_0_168px] max-md:[&>div]:flex-[1_1_140px]',
+  search: 'flex min-h-[38px] min-w-0 flex-[1_1_240px] items-center gap-2 rounded-[10px] bg-paper px-3 text-text-muted focus-within:outline-2 focus-within:outline-primary max-md:basis-full [&_input]:min-h-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:border-0 [&_input]:bg-transparent [&_input]:p-0 [&_input]:text-[13px] [&_input]:text-ink [&_input]:caret-primary [&_input]:outline-none [&_input::placeholder]:text-text-muted [&_input::placeholder]:opacity-100',
+  upload: 'ms-auto min-h-[38px] gap-2 rounded-[10px] px-4 text-[14px] font-bold whitespace-nowrap max-md:ms-0 max-md:min-h-11 max-md:basis-full',
+  count: 'sr-only',
+
+  scroll: 'overflow-x-auto',
+  table: 'w-full min-w-[620px] border-collapse text-left text-[14px] leading-5 max-md:min-w-[520px] [&_thead]:bg-paper/70 [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-[11px] [&_th]:font-bold [&_th]:tracking-[.06em] [&_th]:whitespace-nowrap [&_th]:text-text-muted [&_th]:uppercase [&_td]:border-t [&_td]:border-paper [&_td]:px-4 [&_td]:py-3.5 [&_td]:align-middle [&_tbody_tr]:transition-colors [&_tbody_tr]:duration-150 [&_tbody_tr:hover]:bg-paper/50 max-md:[&_[data-extra]]:hidden',
+  topic: 'grid min-w-0 gap-0.5 [&_a]:w-fit [&_a]:text-[15px] [&_a]:font-bold [&_a]:text-ink [&_a]:no-underline [&_a:hover]:text-primary-hover [&_small]:text-[12px] [&_small]:leading-4 [&_small]:text-text-muted',
+  status: 'inline-flex rounded-pill bg-paper px-2.5 py-0.5 text-[12px] leading-4 font-bold whitespace-nowrap text-text-secondary data-[status=approved]:bg-success-bg data-[status=approved]:text-success-strong data-[status=review]:bg-info-bg data-[status=review]:text-primary',
+  coverage: 'grid min-w-40 gap-1.5 text-[13px] tabular-nums text-text-secondary [&_b]:font-bold [&_b]:text-primary',
+  bar: 'flex h-1.5 w-full max-w-44 overflow-hidden rounded-pill bg-[#F3F1EC] [&>span]:min-w-0 [&>span:first-child]:bg-[#3C9A6E] [&>span:last-child]:bg-[#9FB2F0]',
+  owner: 'text-text-secondary',
+  actions: 'ms-auto grid w-max grid-cols-[4.5rem_6rem_4.5rem] items-center justify-items-start gap-2 [&_a]:text-[14px] [&_a]:font-bold [&_a]:whitespace-nowrap [&_a]:text-primary [&_a]:no-underline [&_a:hover]:text-primary-hover',
+  remove: 'whitespace-nowrap [&_button]:min-h-9 [&_button]:gap-1 [&_button]:px-2 [&_button]:py-1 [&_button]:text-[13px] [&_button]:font-semibold [&_button]:whitespace-nowrap [&_button]:text-text-secondary [&_button:hover]:text-danger-text',
+
+  foot: 'flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-paper px-4 py-3 text-[13px] text-text-secondary [&>div]:flex [&>div]:items-center [&>div]:gap-2',
+  perPage: '[&_[role=combobox]]:min-w-18',
+  pager: 'flex items-center gap-1',
+  pageButton: `grid size-9 min-w-9 cursor-pointer place-items-center rounded-lg border-0 bg-transparent px-2 text-[13px] font-bold text-ink tabular-nums ${press} ${focus} hover:not-disabled:not-aria-current:bg-paper active:not-disabled:scale-[.96] disabled:cursor-default disabled:opacity-40 aria-[current=page]:bg-ink aria-[current=page]:text-white max-md:size-11`,
+  note: 'm-0 px-1 text-[13px] leading-5 text-text-muted',
 } satisfies Record<string, string>
 
 export default styles
