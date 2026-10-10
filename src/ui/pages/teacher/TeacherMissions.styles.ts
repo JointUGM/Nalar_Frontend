@@ -10,13 +10,11 @@ const styles = {
 
   strip: 'flex min-w-0 flex-wrap items-center gap-2',
   stats: 'flex flex-wrap items-center gap-2',
-  stat: `group m-0 inline-flex h-9 cursor-pointer items-center rounded-pill border-0 bg-surface px-3.5 text-[14px] font-bold text-ink ${press} ${focus} hover:not-disabled:not-aria-pressed:bg-info-bg disabled:cursor-default disabled:opacity-60 aria-pressed:bg-ink aria-pressed:text-white [&>:first-child]:hidden`,
-  statLine: 'flex flex-row-reverse items-baseline gap-2 [&_strong]:text-[12px] [&_strong]:font-bold [&_strong]:tabular-nums [&_strong]:opacity-70',
-  statHint: 'sr-only',
+  stat: `group m-0 inline-flex h-11 cursor-pointer items-center rounded-pill border-0 bg-surface px-5 text-[16px] font-bold text-ink ${press} ${focus} hover:not-disabled:not-aria-pressed:bg-info-bg disabled:cursor-default disabled:opacity-60 aria-pressed:bg-ink aria-pressed:text-white`,
 
-  toolbar: 'flex flex-wrap items-center justify-end gap-2 [&>div]:flex-[0_1_180px] max-md:[&>div]:flex-[1_1_150px]',
+  toolbar: 'flex flex-wrap items-center gap-2 [&>div]:flex-[0_0_170px] max-md:[&>div]:flex-[1_1_150px]',
   count: 'sr-only',
-  search: 'flex min-h-10 min-w-0 flex-[0_1_280px] items-center gap-2 rounded-[8px] bg-surface px-3 text-text-muted focus-within:outline-2 focus-within:outline-primary max-md:min-h-11 max-md:basis-full [&_input]:min-h-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:border-0 [&_input]:bg-transparent [&_input]:p-0 [&_input]:text-[13px] [&_input]:text-ink [&_input]:caret-primary [&_input]:outline-none [&_input::placeholder]:text-text-muted [&_input::placeholder]:opacity-100',
+  search: 'flex min-h-10 min-w-0 flex-[1_1_220px] items-center gap-2 rounded-[8px] bg-surface px-3 text-text-muted focus-within:outline-2 focus-within:outline-primary max-md:min-h-11 max-md:basis-full [&_input]:min-h-0 [&_input]:w-full [&_input]:min-w-0 [&_input]:border-0 [&_input]:bg-transparent [&_input]:p-0 [&_input]:text-[13px] [&_input]:text-ink [&_input]:caret-primary [&_input]:outline-none [&_input::placeholder]:text-text-muted [&_input::placeholder]:opacity-100',
   reset: `m-0 min-h-10 cursor-pointer rounded-button border-0 bg-transparent px-3 text-[13px] font-semibold text-primary hover:bg-nav-hover ${focus} max-md:min-h-11`,
 
   panel: 'min-w-0 overflow-clip rounded-2xl bg-surface',
@@ -30,8 +28,8 @@ const styles = {
   title: "m-0 text-[17px] leading-[24px] font-extrabold tracking-[-.01em] text-balance wrap-anywhere [&_a]:text-ink [&_a]:no-underline [&_a]:outline-none [&_a]:after:absolute [&_a]:after:inset-0 [&_a]:after:rounded-2xl [&_a]:after:content-[''] [&_a:hover]:text-primary-hover",
   state: 'm-0 text-[14px] leading-[1.5] text-text-secondary',
   foot: 'mt-auto flex min-h-11 flex-wrap items-center justify-between gap-2 border-t border-paper pt-3',
-  next: 'inline-flex items-center gap-1 text-[13px] font-bold text-primary [&>svg]:transition-[translate] [&>svg]:duration-150 group-has-[h3_a:hover]:[&>svg]:translate-x-0.5 motion-reduce:[&>svg]:transition-none',
   publish: `relative z-[1] inline-flex min-h-8 items-center gap-1.5 rounded-[8px] bg-ink px-3 text-[13px] font-bold whitespace-nowrap text-white no-underline ${press} ${focus} hover:bg-account-bubble active:scale-[.97] max-md:min-h-11`,
+  meta: 'text-[14px] leading-5 text-text-muted',
   note: 'm-0 flex items-center gap-2 text-[12px] leading-5 text-text-muted',
 } satisfies Record<string, string>
 

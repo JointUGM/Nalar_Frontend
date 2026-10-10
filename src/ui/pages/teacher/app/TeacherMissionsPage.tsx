@@ -15,12 +15,7 @@ import { versionWord } from './missionText'
 
 type MissionFilter = 'all' | 'ready' | 'draft'
 const matches = (mission: MissionSummary, filter: MissionFilter) => filter === 'all' || (filter === 'ready' ? publishable(mission) : !mission.latest_version || mission.latest_version.status === 'draft')
-// The strip is the filter; a second press shows every mission again.
-const filters: readonly { value: MissionFilter; label: string; hint: string }[] = [
-  { value: 'all', label: 'Semua misi', hint: 'di sekolah ini' },
-  { value: 'ready', label: 'Siap diterbitkan', hint: 'versi ditinjau atau terkunci' },
-  { value: 'draft', label: 'Dalam persiapan', hint: 'draf menunggu tinjauan' },
-]
+const owners: readonly { value: string; label: string }[] = [{ value: 'all', label: 'Semua' }, { value: 'mine', label: 'Buatan saya' }, { value: 'colleagues', label: 'Dari rekan' }]
 const titleOrder = new Intl.Collator('id-ID', { numeric: true, sensitivity: 'base' })
 const number = new Intl.NumberFormat('id-ID')
 
@@ -29,15 +24,13 @@ function MissionCard({ mission, base }: { mission: MissionSummary; base: string 
   const nextAction = mission.can_edit && (!version || version.status === 'draft') ? (version ? 'Tinjau misi' : 'Susun draf') : 'Lihat misi'
   return <li className={styles.card} aria-label={mission.title}>
     <div className={styles.cardTop}>
-      <span className={styles.status} data-status={version?.status ?? 'none'}>{version ? `${versionWord[version.status] ?? version.status} · v${version.version_number}` : 'Belum ada versi'}</span>
-      <span className={styles.owner}>{mission.can_edit ? 'Misi Anda' : `Dari ${mission.created_by_name ?? 'rekan guru'}`}</span>
+      <span className={styles.status} data-status={version?.status ?? 'none'}>{version ? (versionWord[version.status] ?? version.status) : 'Belum ada versi'}</span>
     </div>
     <h3 className={styles.title}><Link to={path}>{mission.title}</Link></h3>
     <p className={styles.state}>{ready ? (version?.status === 'locked' ? 'Dapat diterbitkan lagi ke kelas lain.' : 'Siap digunakan di kelas.') : version?.status === 'draft' ? 'Tinjau draf sebelum diterbitkan.' : !version ? 'Draf belum disusun.' : 'Belum siap diterbitkan.'}</p>
     <div className={styles.foot}>
-      {/* The title link already covers the card; this cue only says what opening it is for. */}
-      <span className={styles.next} aria-hidden="true">{nextAction}<Icon name="chevronRight" size={14} /></span>
-      {ready && <Link className={styles.publish} to={`${path}/publish`}><Icon name="send" size={14} />Terbitkan ke kelas</Link>}
+      <span className={styles.meta}>{version ? `v${version.version_number} · ${nextAction}` : nextAction}</span>
+      {ready ? <Link className={styles.publish} to={`${path}/publish`}><Icon name="send" size={14} />Terbitkan ke kelas</Link> : <span className={styles.meta}>{mission.can_edit ? 'Anda' : mission.created_by_name ?? 'Rekan guru'}</span>}
     </div>
   </li>
 }
@@ -66,20 +59,13 @@ export function TeacherMissionsPage({ service, base, schoolId }: { service: Teac
       Mulai dari basis pengetahuan dengan konsep yang sudah disetujui, lalu susun misi pertama Anda.
     </NalaEmpty></section>}
     {data && data.length > 0 && <>
-      <div className={styles.strip}><div className={styles.stats} role="group" aria-label="Status misi">{filters.map((entry) => {
-        const count = data.filter((mission) => matches(mission, entry.value)).length
-        return <button key={entry.value} type="button" className={styles.stat} aria-pressed={filter === entry.value} disabled={count === 0 && filter !== entry.value} onClick={() => setFilter(filter === entry.value ? 'all' : entry.value)}>
-
-          <span className={styles.statLine}><strong>{number.format(count)}</strong>{entry.label}</span>
-          <span className={styles.statHint}>{entry.hint}</span>
-        </button>
-      })}</div><ButtonLink className={styles.button} to={`${base}/missions/new`}><Icon name="plus" size={16} />Misi baru</ButtonLink></div>
+      <div className={styles.strip}><div className={styles.stats} role="group" aria-label="Pembuat misi">{owners.map((entry) => <button key={entry.value} type="button" className={styles.stat} aria-pressed={ownership === entry.value} onClick={() => setOwnership(entry.value)}>{entry.label}</button>)}</div><ButtonLink className={styles.button} to={`${base}/missions/new`}><Icon name="plus" size={16} />Misi baru</ButtonLink></div>
       <section aria-labelledby="mission-library-title" className="grid gap-4">
         <h2 id="mission-library-title" className="sr-only">Pustaka misi</h2>
         <div className={styles.toolbar}>
           <p className={styles.count} role="status">{filtered ? `Menampilkan ${number.format(visible.length)} dari ${number.format(data.length)} misi` : `${number.format(data.length)} misi di pustaka sekolah`}</p>
           <label className={styles.search}><Icon name="search" size={16} /><input type="search" aria-label="Cari judul misi" placeholder="Cari judul misi…" value={query} onChange={event => setQuery(event.target.value)} /></label>
-          <Select compact label="Filter pembuat misi" value={ownership} onChange={setOwnership} options={[{ value: 'all', label: 'Semua guru' }, { value: 'mine', label: 'Misi Anda' }, { value: 'colleagues', label: 'Rekan guru' }]} />
+          <Select compact label="Filter status misi" value={filter} onChange={(value) => setFilter(value as MissionFilter)} options={[{ value: 'all', label: 'Semua status' }, { value: 'ready', label: 'Siap diterbitkan' }, { value: 'draft', label: 'Dalam persiapan' }]} />
           <Select compact label="Urutkan misi" value={sort} onChange={setSort} options={[{ value: 'original', label: 'Urutan awal' }, { value: 'title-asc', label: 'Judul A-Z' }, { value: 'title-desc', label: 'Judul Z-A' }]} />
           {filtered && <button className={styles.reset} type="button" onClick={reset}>Hapus filter</button>}
         </div>
