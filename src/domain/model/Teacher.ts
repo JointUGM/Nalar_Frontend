@@ -34,6 +34,7 @@ export interface PublicationWindow { opens_at: string; closes_at: string }
 export interface PublishInput { class_id: string; mission_version_id: string; mode: 'live' | 'window'; opens_at?: string; closes_at?: string }
 export interface Published { publication_id: string; run_id: string; run_status: string }
 // Only a reviewed version can be published; publishing locks it, and a locked one can still go to another class.
+export const isActive = (publication: TeacherPublication) => ['lobby', 'open'].includes(publication.run.status)
 export const publishable = (mission: MissionSummary) => mission.latest_version !== null && ['reviewed', 'locked'].includes(mission.latest_version.status)
 
 export interface MissionInput { knowledge_base_id: string; title: string; learning_objective: string }
