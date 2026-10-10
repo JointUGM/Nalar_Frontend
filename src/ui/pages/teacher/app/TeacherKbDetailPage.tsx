@@ -9,12 +9,12 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
 import { NalaIcon } from '@/ui/components/nala/NalaIcon'
-import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherKbReview.styles'
 import { ConfirmAction } from './ConfirmAction'
 import { JobNotice } from './JobNotice'
+import { KbConceptMap } from './KbConceptMap'
 import { KbNewItem } from './KbNewItem'
 import { buildWord, kbRefusal, reviewWord } from './kbText'
 import { Loading } from '@/ui/components/loading/Loading'
@@ -47,7 +47,6 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const busy = useRef(false)
   const [jobId, setJobId] = useState(params.get('job'))
   const [selectedId, setSelectedId] = useState('')
-  const [query, setQuery] = useState(''), [reviewFilter, setReviewFilter] = useState('all')
   const [draft, setDraft] = useState<Draft | null>(null)
   const [adding, setAdding] = useState<'concept' | 'misconception' | null>(null)
   const [pending, setPending] = useState(false)
@@ -71,11 +70,10 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const loading = generating && !stuck
   const retryable = (section: KbSection) => section.build_status === 'failed' || (stuck && building(section))
   const selected =detail.concepts.find((item) => item.id === selectedId) ?? detail.concepts[0]
+  const done = detail.concepts.filter((item) => item.review_status === 'approved').length + detail.misconceptions.filter((item) => item.review_status === 'approved').length
+  const total = detail.concepts.length + detail.misconceptions.length
   const nameOf = (id: string) => detail.concepts.find((item) => item.id === id)?.name ?? ''
-  const pendingIn = (conceptId: string) => detail.misconceptions.filter((item) => item.concept_id === conceptId && item.review_status === 'pending').length
   const related = detail.misconceptions.filter(item => item.concept_id === selected?.id)
-  const visibleConcepts = detail.concepts.filter(item => item.name.toLocaleLowerCase('id-ID').includes(query.trim().toLocaleLowerCase('id-ID'))
-    && (reviewFilter === 'all' || (reviewFilter === 'pending' ? item.review_status === 'pending' || pendingIn(item.id) > 0 : item.review_status === reviewFilter)))
   function chooseConcept(id: string) { setSelectedId(id); setDraft(null); setAdding(null) }
 
   // One command at a time. The page is reread after a refusal too, because a refusal usually means it was stale.
@@ -128,7 +126,17 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
 
   return <div className={styles.content}>
     <TeacherPageHead crumb={<><Link to={`${base}/knowledge-base`}>Basis pengetahuan</Link><Icon name="chevronRight" size={14} /></>} title={detail.topic_title} tag={<>{detail.concepts.length > 0 && !loading && <span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span>}</>} subtitle={loading ? 'Konsep dan miskonsepsi sedang disusun.' : waiting > 0 ?`${queue.pending_concepts} konsep dan ${queue.pending_misconceptions} miskonsepsi menunggu tinjauan` : `${detail.concepts.length} konsep · ${detail.misconceptions.length} miskonsepsi`} />
-    <div className={styles.header}><div className={styles.jumpLinks}><a href="#kb-review">Tinjau konsep<Icon name="chevronDown" size={14} /></a><a href="#kb-sources">Materi dan bab<Icon name="chevronDown" size={14} /></a>{canEdit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan topik</>} title="Arsipkan topik ini?" description={`${detail.topic_title}. Topik hilang dari daftar dan tidak bisa dipakai untuk misi baru. Misi dan sesi yang sudah memakainya tetap tersimpan. Arsip tidak bisa dibuka kembali dari aplikasi.`} confirm="Arsipkan topik" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archive(detail.id, signal)} onDone={() => navigate(`${base}/knowledge-base`)} refusal={kbRefusal} />}</div></div>
+    <div className={styles.header}>
+      {detail.concepts.length > 0 && !loading && <div className={styles.progress}><span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span><span className={styles.bar} aria-hidden="true"><span style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></span><span>{done} dari {total} disetujui</span></div>}
+      <div className={styles.jumpLinks}>
+        {canEdit && selected?.review_status === 'pending' && !draft && <>
+          <Button tone="secondary" disabled={pending} onClick={() => setDraft({ id: selected.id, kind: 'concept', name: selected.name, description: selected.description ?? '' })}><Icon name="pencil" size={14} />Edit</Button>
+          <Button disabled={pending} onClick={() => { void run((signal) => kb.review('concept', selected.id, 'approved', signal)) }}><Icon name="check" size={14} />Setujui konsep</Button>
+        </>}
+        <a href="#kb-sources">Materi dan bab<Icon name="chevronDown" size={14} /></a>
+        {canEdit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan topik</>} title="Arsipkan topik ini?" description={`${detail.topic_title}. Topik hilang dari daftar dan tidak bisa dipakai untuk misi baru. Misi dan sesi yang sudah memakainya tetap tersimpan. Arsip tidak bisa dibuka kembali dari aplikasi.`} confirm="Arsipkan topik" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archive(detail.id, signal)} onDone={() => navigate(`${base}/knowledge-base`)} refusal={kbRefusal} />}
+      </div>
+    </div>
     {!canEdit && <p className={styles.note}>Basis pengetahuan ini milik rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {jobId && <JobNotice key={jobId} kb={kb} jobId={jobId} onDone={refresh} />}
@@ -140,29 +148,18 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
     </Feedback>)}
     {generatingPanel}
     {!generatingPanel && <div id="kb-review" className={styles.grid} data-empty={!selected}>
-      <div className={styles.column}>
+      <div className={styles.mapColumn}>
         <section className={styles.card} aria-labelledby="kb-concepts">
-          <div className={styles.sectionHead}><h2 id="kb-concepts">Konsep</h2><span>{loading ? 'Sedang disusun' : `${detail.concepts.length} konsep`}</span></div>
-          {canEdit && adding !== 'concept' && <Button tone="secondary" className={styles.add} disabled={pending} onClick={() => { setDraft(null); setAdding('concept') }}><Icon name="plus" size={14} />Tambah konsep</Button>}
+          <div className={styles.sectionHead}><h2 id="kb-concepts">Peta konsep</h2><span>{loading ? 'Sedang disusun' : 'Panah: dipelajari lebih dulu · klik konsep untuk meninjau'}</span>
+            {canEdit && adding !== 'concept' && <Button tone="secondary" className={styles.add} disabled={pending} onClick={() => { setDraft(null); setAdding('concept') }}><Icon name="plus" size={14} />Tambah konsep</Button>}</div>
           {adding === 'concept' && <KbNewItem kind="concept" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addConcept(detail.id, value, key, signal), (created) => { setAdding(null); setSelectedId(created.id) }) }} />}
           {!selected ? <p className={styles.note}>Belum ada konsep. Susun satu bab untuk membuat drafnya.</p> : <>
-            <div className={styles.mobilePicker}><Select label="Konsep yang ditinjau" value={selected.id} onChange={chooseConcept} options={detail.concepts.map(item => ({ value: item.id, label: item.name, description: `${reviewWord[item.review_status] ?? item.review_status} · ${pendingIn(item.id)} miskonsepsi menunggu` }))} /></div>
-            <div className={styles.conceptTools}>
-              <label className={styles.search}><Icon name="search" size={16} /><input type="search" aria-label="Cari konsep" placeholder="Cari konsep…" value={query} onChange={event => setQuery(event.target.value)} /></label>
-              <Select compact label="Filter tinjauan konsep" value={reviewFilter} onChange={setReviewFilter} options={[{ value: 'all', label: 'Semua status' }, { value: 'pending', label: 'Perlu tinjauan', description: 'Konsep atau miskonsepsinya menunggu' }, { value: 'approved', label: 'Konsep disetujui' }, { value: 'rejected', label: 'Konsep ditolak' }]} />
-              <p className={styles.note} role="status">{visibleConcepts.length} dari {detail.concepts.length} konsep ditampilkan</p>
-            </div>
-            <ul className={styles.conceptList}>{visibleConcepts.map(concept => {
-              const open = (concept.review_status === 'pending' ? 1 : 0) + pendingIn(concept.id)
-              return <li key={concept.id}><button type="button" className={styles.pick} aria-pressed={concept.id === selected.id} onClick={() => chooseConcept(concept.id)}>
-                <span><strong>{concept.name}</strong><small>{reviewWord[concept.review_status] ?? concept.review_status}</small></span>{open > 0 ? <span className={styles.count}>{open} menunggu</span> : concept.review_status === 'approved' && <Icon name="check" size={16} />}
-              </button></li>
-            })}</ul>
-            {visibleConcepts.length === 0 && <p className={styles.noConcept}>Tidak ada konsep yang cocok. Coba kata kunci atau status lain.</p>}
+            <div className={styles.map}><KbConceptMap concepts={detail.concepts} prerequisites={detail.prerequisites} selectedId={selected.id} count={(id) => detail.misconceptions.filter((item) => item.concept_id === id).length} onSelect={chooseConcept} /></div>
+            <p className={styles.legend}><span data-status="approved">Disetujui</span><span>Menunggu</span><span data-status="rejected">Ditolak</span><span data-status="count">Jumlah miskonsepsi</span></p>
           </>}
         </section>
       </div>
-      {selected && <div className={styles.column}>
+      {selected && <div className={styles.railColumn}>
         <section className={styles.card} aria-label={`Konsep: ${selected.name}`}>
           <div className={styles.misHead}><span className={styles.contentType}><NalaIcon name="idea" />Konsep</span>{tag(selected.review_status)}</div>
           {draft?.kind === 'concept' && draft.id === selected.id ? <>
@@ -177,8 +174,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
               <div><dt>Dipelajari lebih dulu</dt><dd>{detail.prerequisites.filter((link) => link.concept_id === selected.id).map((link) => nameOf(link.prerequisite_concept_id)).join(', ') || 'Tidak ada prasyarat tercatat'}</dd></div>
               <div><dt>Dilanjutkan ke</dt><dd>{detail.prerequisites.filter((link) => link.prerequisite_concept_id === selected.id).map((link) => nameOf(link.concept_id)).join(', ') || 'Tidak ada lanjutan tercatat'}</dd></div>
             </dl>
-            {actions('concept', selected, false, () => setDraft({ id: selected.id, kind: 'concept', name: selected.name, description: selected.description ?? '' }))}
-            {canEdit && <div className={styles.compact}><ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan konsep</>} title="Arsipkan konsep ini?" description={`${selected.name}. Konsep dan miskonsepsinya tidak dipakai lagi untuk misi baru. Misi yang sudah memakainya tidak berubah.`} confirm="Arsipkan konsep" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archiveConcept(detail.id, selected.id, signal)} onDone={() => { setSelectedId(''); refresh() }} refusal={kbRefusal} /></div>}
+                        {canEdit && <div className={styles.compact}><ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan konsep</>} title="Arsipkan konsep ini?" description={`${selected.name}. Konsep dan miskonsepsinya tidak dipakai lagi untuk misi baru. Misi yang sudah memakainya tidak berubah.`} confirm="Arsipkan konsep" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archiveConcept(detail.id, selected.id, signal)} onDone={() => { setSelectedId(''); refresh() }} refusal={kbRefusal} /></div>}
           </>}
         </section>
         <div className={styles.misconceptions}>
