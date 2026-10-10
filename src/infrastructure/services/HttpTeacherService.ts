@@ -1,9 +1,11 @@
+import type { MissionRevisionInput, MissionRevisionRequest, MissionRevisionFeedback, RevisionQueued } from '@/domain/model/Teacher'
 import type { StudentHistoryPage, AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 import { ApiError } from '@/domain/model/ApiError'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { allItems, count, flag, instant, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
+import { reportFlag } from './integrity'
 
 type Schemas = components['schemas']
 const publication = (id: string) => `/publications/${encodeURIComponent(id)}`
@@ -50,6 +52,24 @@ export class HttpTeacherService implements TeacherService {
   async createMission(input: MissionInput, signal?: AbortSignal): Promise<{ mission_id: string }> {
     const body: Schemas['MissionIn'] = input
     return { mission_id: text(record((await this.api.request('/missions', { method: 'POST', body, idempotent: true, signal })).data).mission_id) }
+  }
+
+  async revisionRequest(missionId: string, jobId: string, signal?: AbortSignal): Promise<MissionRevisionRequest> {
+    const value = record((await this.api.request(`${mission(missionId)}/revisions/${encodeURIComponent(jobId)}`, { signal })).data)
+    const input = record(value.intent)
+    return { job_id: text(value.job_id), status: text(value.status), effective_scope: texts(value.effective_scope), intent: {
+      base_version_id: text(input.base_version_id), expected_latest_version_id: text(input.expected_latest_version_id),
+      feedback: list(input.feedback).map((raw) => { const item = record(raw); return { id: text(item.id), component: text(item.component) as MissionRevisionFeedback['component'], issue: text(item.issue) as MissionRevisionFeedback['issue'], desired_change: text(item.desired_change), question_ids: item.question_ids == null ? [] : texts(item.question_ids) } }),
+      ...(input.title == null ? {} : { title: text(input.title) }),
+      ...(input.learning_objective == null ? {} : { learning_objective: text(input.learning_objective) }),
+      ...(input.target_concept_ids == null ? {} : { target_concept_ids: texts(input.target_concept_ids) }),
+    } }
+  }
+
+  async reviseMission(missionId: string, input: MissionRevisionInput, signal?: AbortSignal): Promise<RevisionQueued> {
+    const body: Schemas['MissionRevisionIn'] = input
+    const value = record((await this.api.request(`${mission(missionId)}/revise`, { method: 'POST', body, idempotent: true, signal })).data)
+    return { job_id: text(value.job_id), status: text(value.status), base_version_id: text(value.base_version_id), effective_scope: texts(value.effective_scope) }
   }
 
   async generateMission(missionId: string, signal?: AbortSignal): Promise<{ job_id: string }> {
@@ -100,6 +120,16 @@ export class HttpTeacherService implements TeacherService {
         return { prompt: text(warmup.prompt), choices: list(warmup.choices).map((entry) => { const choice = record(entry); return { id: text(choice.id), text: text(choice.text) } }) }
       }),
       max_turns: count(value.max_turns), max_duration_minutes: count(value.max_duration_minutes),
+      learning_objective: value.learning_objective === undefined ? '' : text(value.learning_objective),
+      title: value.title === undefined ? '' : text(value.title),
+      base_version_id: nullable(value.base_version_id, text), base_version_number: nullable(value.base_version_number, count),
+      revision_job_id: nullable(value.revision_job_id, text),
+      revision_feedback: value.revision_feedback === undefined ? [] : list(value.revision_feedback).map((raw) => {
+        const item = record(raw)
+        return { id: text(item.id), component: text(item.component) as MissionRevisionFeedback['component'], issue: text(item.issue) as MissionRevisionFeedback['issue'], desired_change: text(item.desired_change), question_ids: texts(item.question_ids) }
+      }),
+      revision_changed_fields: value.revision_changed_fields === undefined ? [] : texts(value.revision_changed_fields),
+      can_revise_with_ai: value.can_revise_with_ai === undefined ? false : flag(value.can_revise_with_ai),
     }
   }
 
@@ -166,7 +196,7 @@ export class HttpTeacherService implements TeacherService {
         }
       }),
       concept_results: list(value.concept_results).map((entry) => { const result = record(entry); return { concept_id: text(result.concept_id), misconception_id: nullable(result.misconception_id, text), outcome: text(result.outcome), resolved_in_session: flag(result.resolved_in_session) } }),
-      flags: list(value.flags).map((entry) => { const item = record(entry); return { id: text(item.id), flag_type: text(item.flag_type), severity: text(item.severity), status: text(item.status) } }),
+      flags: list(value.flags).map(reportFlag),
       turns: list(value.turns).map((entry) => {
         const turn = record(entry)
         return { turn_id: text(turn.turn_id), turn_index: count(turn.turn_index), kind: text(turn.kind), prompt: text(turn.prompt), answer: nullable(turn.answer, text), move: nullable(turn.move, text), safety_paused: flag(turn.safety_paused),

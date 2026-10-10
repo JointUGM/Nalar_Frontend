@@ -1,3 +1,4 @@
+import type { MissionRevisionInput } from '@/domain/model/Teacher'
 import { ApiError, resourceId } from '@/domain/model/ApiError'
 import type { AttemptGrantInput, FlagDecision, MissionInput, MissionVersionDraft, PublicationWindow, PublishInput, SafetyAction } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
@@ -25,6 +26,14 @@ export class TeacherUseCases implements TeacherService {
   missions(schoolId: string, signal?: AbortSignal) { return this.service.missions(resourceId(schoolId), signal) }
   createMission(input: MissionInput, signal?: AbortSignal) {
     return this.service.createMission({ knowledge_base_id: resourceId(input.knowledge_base_id), title: required(input.title, 200), learning_objective: required(input.learning_objective, 1000) }, signal)
+  }
+  revisionRequest(missionId: string, jobId: string, signal?: AbortSignal) { return this.service.revisionRequest(resourceId(missionId), resourceId(jobId), signal) }
+  reviseMission(missionId: string, input: MissionRevisionInput, signal?: AbortSignal) {
+    return this.service.reviseMission(resourceId(missionId), { ...input,
+      base_version_id: resourceId(input.base_version_id), expected_latest_version_id: resourceId(input.expected_latest_version_id),
+      ...(input.learning_objective === undefined ? {} : { learning_objective: required(input.learning_objective, 1000) }),
+      ...(input.title === undefined ? {} : { title: required(input.title, 200) }),
+    }, signal)
   }
   generateMission(missionId: string, signal?: AbortSignal) { return this.service.generateMission(resourceId(missionId), signal) }
   archiveMission(missionId: string, signal?: AbortSignal) { return this.service.archiveMission(resourceId(missionId), signal) }

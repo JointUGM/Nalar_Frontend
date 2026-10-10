@@ -40,7 +40,29 @@ export const publishable = (mission: MissionSummary) => mission.latest_version !
 export interface MissionInput { knowledge_base_id: string; title: string; learning_objective: string }
 export interface BankQuestion { id: string; concept_id: string; misconception_id: string | null; move: string; text: string }
 export interface MissionRubric { claim: string[]; evidence: string[]; mechanism: string[]; transfer: string[] }
-export interface MissionVersion {
+export interface MissionRevisionFeedback {
+  id: string
+  component: 'anchor_problem' | 'reference_reasoning' | 'rubric' | 'bank'
+  issue: 'too_long' | 'too_difficult' | 'unfamiliar_context' | 'unclear_levels' | 'repetitive' | 'gives_hint' | 'science_concern' | 'other'
+  desired_change: string
+  question_ids: string[]
+}
+export interface MissionRevisionInput {
+  base_version_id: string
+  expected_latest_version_id: string
+  feedback: MissionRevisionFeedback[]
+  learning_objective?: string
+  target_concept_ids?: string[]
+  title?: string
+}
+export interface MissionRevisionRequest { job_id: string; status: string; intent: MissionRevisionInput; effective_scope: string[] }
+export interface RevisionQueued { job_id: string; status: string; base_version_id: string; effective_scope: string[] }
+export interface MissionRevisionMetadata {
+  learning_objective: string; title: string
+  base_version_id: string | null; base_version_number: number | null; revision_job_id: string | null
+  revision_feedback: MissionRevisionFeedback[]; revision_changed_fields: string[]; can_revise_with_ai: boolean
+}
+export interface MissionVersion extends MissionRevisionMetadata {
   id: string; version_number: number; status: string; can_edit: boolean
   anchor_problem: string; reference_reasoning: string; rubric: MissionRubric
   target_concept_ids: string[]; misconception_ids: string[]; source_chunk_ids: string[]
@@ -49,12 +71,27 @@ export interface MissionVersion {
   max_turns: number; max_duration_minutes: number
 }
 // A saved edit is always a new version: everything the teacher did not change is carried over from the base.
-export type MissionVersionDraft = Omit<MissionVersion, 'id' | 'version_number' | 'status' | 'can_edit'> & { base_version_id: string }
+export type MissionVersionDraft = Omit<MissionVersion, 'id' | 'version_number' | 'status' | 'can_edit' | keyof MissionRevisionMetadata> & { base_version_id: string }
 
 // One student's session as the teacher sees it. Scores are AI levels 0-4 that the teacher may change, never the student's view.
 export interface ReportScore { score_id: string; dimension: string; ai_level: number; final_level: number; rationale: string | null; evidence: { turn_id: string; quote: string }[]; overrides: { previous_level: number; new_level: number; reason: string; created_at: string }[] }
 // Activity is counted, never recorded: pasted characters, seconds away from the tab and typing time.
 export interface ReportTurn { turn_id: string; turn_index: number; kind: string; prompt: string; answer: string | null; move: string | null; safety_paused: boolean; activity: { paste_chars: number; away_seconds: number; typing_ms: number } }
+export type ReportFlagEvidence =
+  | { kind: 'large_paste'; paste_chars: number; answer_chars: number }
+  | { kind: 'tab_switching'; turn_indices: number[]; away_events: number; away_seconds_by_turn: { turn_index: number; seconds: number }[] }
+  | { kind: 'inconsistency_gap'; quality_levels: number[] }
+  | { kind: 'disconnect_pattern'; quality_jump: number; disconnect_count: number }
+  | { kind: 'cross_student_similarity'; similarity_score: number }
+export interface ReportFlag {
+  id: string
+  flag_type: string
+  severity: string
+  status: string
+  turn_index: number | null
+  created_at: string | null
+  evidence: ReportFlagEvidence | null
+}
 export interface SessionReport {
   student: { id: string; name: string }
   // The published version the session ran, and its rubric (5 descriptors per dimension, index = level 0-4).
@@ -64,7 +101,7 @@ export interface SessionReport {
   evaluation: { status: string; summary: string | null } | null
   scores: ReportScore[]
   concept_results: { concept_id: string; misconception_id: string | null; outcome: string; resolved_in_session: boolean }[]
-  flags: { id: string; flag_type: string; severity: string; status: string }[]
+  flags: ReportFlag[]
   turns: ReportTurn[]
 }
 export type FlagDecision = 'cleared' | 'concern_confirmed'
