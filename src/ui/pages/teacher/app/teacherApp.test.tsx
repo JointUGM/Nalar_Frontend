@@ -1,3 +1,4 @@
+import userEvent from '@testing-library/user-event'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -147,7 +148,10 @@ describe('signed-in teacher pages', () => {
     open(`${base}/sessions`, backend())
     const card = within(await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?, kelas 8B' }))
     expect(card.getAllByText('28')).toHaveLength(2)
-    for (const [name, page] of [['Proyektor', 'projector'], ['Pantau', 'monitor'], ['Peta kelas', 'class-map'], ['Rilis ke orang tua', 'release']]) expect(card.getByRole('link', { name })).toHaveAttribute('href', `${base}/publications/${publication}/${page}`)
+    // The next page is one button; the rest sit in the row's menu.
+    expect(card.getByRole('link', { name: 'Peta kelas' })).toHaveAttribute('href', `${base}/publications/${publication}/class-map`)
+    await userEvent.setup().click(card.getByRole('button', { name: /Aksi lain/ }))
+    for (const [name, page] of [['Proyektor', 'projector'], ['Pantau', 'monitor'], ['Rilis ke orang tua', 'release']]) expect(await screen.findByRole('menuitem', { name })).toHaveAttribute('href', `${base}/publications/${publication}/${page}`)
     expect(screen.queryByText('Pratinjau · data contoh')).not.toBeInTheDocument()
   })
 
@@ -155,7 +159,8 @@ describe('signed-in teacher pages', () => {
     const scheduled = { items: [{ ...publications.items[0], run: { id: school, mode: 'window', status: 'scheduled', join_code: null, opens_at: '2030-01-02T01:00:00Z', closes_at: '2030-01-02T03:00:00Z' }, counts: { started: 0, completed: 0, timed_out: 0, evaluated: 0 } }], next_cursor: null }
     const request = backend({ 'GET /teacher/publications?limit=100': () => Response.json(scheduled), [`PATCH /publications/${publication}`]: () => new Response(null, { status: 204 }) })
     open(`${base}/sessions`, request)
-    fireEvent.click(await screen.findByRole('button', { name: 'Ubah jadwal' }))
+    await userEvent.setup().click(await screen.findByRole('button', { name: /Aksi lain/ }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Ubah jadwal' }))
     expect(screen.getByLabelText(/Dibuka \(WIB\)/)).toHaveValue('2030-01-02T08:00')
     fireEvent.change(screen.getByLabelText(/Ditutup \(WIB\)/), { target: { value: '2030-01-02T11:30' } })
     const save = screen.getByRole('button', { name: 'Simpan jadwal' })
@@ -169,15 +174,17 @@ describe('signed-in teacher pages', () => {
     const idle = { items: [{ ...publications.items[0], run: { ...publications.items[0].run, status: 'scheduled' }, counts: { started: 0, completed: 0, timed_out: 0, evaluated: 0 } }], next_cursor: null }
     const request = backend({ 'GET /teacher/publications?limit=100': () => Response.json(idle), [`POST /publications/${publication}/cancel`]: () => Response.json({ error: { code: 'PUBLICATION_HAS_SESSIONS' } }, { status: 409 }) })
     open(`${base}/sessions`, request)
-    expect(screen.queryByRole('button', { name: 'Ubah jadwal' })).not.toBeInTheDocument()
-    fireEvent.click(await screen.findByRole('button', { name: 'Batalkan sesi' }))
+    await userEvent.setup().click(await screen.findByRole('button', { name: /Aksi lain/ }))
+    expect(screen.queryByRole('menuitem', { name: 'Ubah jadwal' })).not.toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Batalkan sesi' }))
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Batalkan sesi' }))
     expect((await screen.findAllByText('Sudah ada siswa yang memulai, jadi sesi ini tidak bisa diubah atau dibatalkan.')).length).toBeGreaterThan(0)
   })
   it('offers no change once students have started', async () => {
     open(`${base}/sessions`, backend())
-    await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?, kelas 8B' })
-    expect(screen.queryByRole('button', { name: 'Batalkan sesi' })).not.toBeInTheDocument()
+    await userEvent.setup().click(within(await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?, kelas 8B' })).getByRole('button', { name: /Aksi lain/ }))
+    await screen.findByRole('menuitem', { name: 'Proyektor' })
+    expect(screen.queryByRole('menuitem', { name: 'Batalkan sesi' })).not.toBeInTheDocument()
   })
   it('shows the class map with the exact counts and the saved explanation', async () => {
     open(`${base}/publications/${publication}/class-map`, backend())
