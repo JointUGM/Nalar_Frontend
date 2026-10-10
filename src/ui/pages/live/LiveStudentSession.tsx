@@ -107,7 +107,16 @@ export function LiveStudentSession({ service, sessionId, base, telemetry }: { se
           </section>
           <form className={styles.composer} onSubmit={(event) => { event.preventDefault(); void submit() }}>
             <div className={styles.composerHead}><label htmlFor="live-answer">Jawabanmu</label><span>Pakai kata-katamu sendiri</span></div>
-            <textarea id="live-answer" value={text} maxLength={4000} readOnly={!writable} placeholder="Tulis alasanmu di sini…" onPaste={(event) => track.paste(event.clipboardData.getData('text').length)} onChange={(event) => { if (current !== undefined) { track.typed(event.target.value.length - text.length); setDraft({ turn: current, text: event.target.value }); setError(null) } }} onKeyDown={(event) => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); void submit() } }} />
+            <textarea
+              id="live-answer"
+              value={text}
+              maxLength={4000}
+              readOnly={!writable}
+              placeholder="Tulis alasanmu di sini…"
+              onPaste={(event) => track.paste(event.clipboardData.getData('text').length)}
+              onChange={(event) => { if (current !== undefined) { track.typed(event.target.value.length - text.length); setDraft({ turn: current, text: event.target.value }); setError(null) } }}
+              onKeyDown={(event) => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); void submit() } }}
+            />
             {error && <div className={styles.failure}><LiveFeedback error={error} online={resource.online} refresh={resource.refresh} /><p>Tulisanmu tetap ada. Periksa status sesi sebelum mengirim ulang.</p></div>}
             <div className={styles.foot}><span>{text.length}/4000 · Ctrl + Enter untuk kirim</span><Button variant="student" type="submit" pending={sending} pendingLabel="Mengirim…" disabled={!editable || !text.trim()}>Kirim</Button></div>
           </form>

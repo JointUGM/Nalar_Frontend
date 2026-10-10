@@ -139,9 +139,9 @@ export function LiveTeacherMonitor({ service, publicationId, base }: { service: 
   function roster(data: LiveMonitor) {
     const phase = data.run.status
     const paused = data.students.filter((student) => student.safety_paused)
+    const done = data.students.filter((student) => finished.includes(student.status))
     const visible = filter ? data.students.filter((student) => inGroup(student, filter)) : data.students
     const report = (sessionId: string) => `${base}/publications/${publicationId}/sessions/${sessionId}`
-    const done = data.students.filter((student) => finished.includes(student.status))
     return <>
       <TeacherPageHead crumb={<><Link to={`${base}/sessions`}>Sesi dan hasil</Link><Icon name="chevronRight" size={14} /></>} title={run.title} subtitle={`Diperbarui setiap 3 detik · ${data.waiting_count} di ruang tunggu`} />
       <div className={monitorStyles.header}>
@@ -167,8 +167,8 @@ export function LiveTeacherMonitor({ service, publicationId, base }: { service: 
       <section className={monitorStyles.roster} aria-labelledby="roster-title" data-stale={offline}>
         <div className={monitorStyles.rosterHead}><h2 id="roster-title">Siswa <small>{visible.length} dari {data.students.length}</small></h2></div>
         {visible.length === 0 ? <p className={monitorStyles.empty}>Tidak ada siswa dengan status ini.</p> : <ul className={monitorStyles.grid}>{visible.map((student) => <li key={student.student_id}>
-          <div className={monitorStyles.student} data-status={student.safety_paused ? 'paused' : finished.includes(student.status) ? 'done' : student.status === 'in_progress' ? 'running' : 'not-started'}>
-            <span className={monitorStyles.studentTop}>{student.session_id ? <Link className={monitorStyles.name} to={report(student.session_id)} aria-label={`Laporan ${student.name}`}>{student.name}</Link> : <span className={monitorStyles.name}>{student.name}</span>}<Icon name={statusIcon(student)} size={13} /></span>
+          <div className={monitorStyles.student} data-status={student.safety_paused ? 'paused' : finished.includes(student.status) ? 'done' : student.status === 'in_progress' ? 'running' : 'not-started'} data-flagged={student.open_flag_count > 0}>
+            <span className={monitorStyles.studentTop}>{student.session_id ? <Link className={monitorStyles.name} to={report(student.session_id)} aria-label={`Laporan ${student.name}`}>{student.name}</Link> : <span className={monitorStyles.name}>{student.name}</span>}<span className="inline-flex items-center gap-1">{student.open_flag_count > 0 && <span title={`${student.open_flag_count} catatan perlu verifikasi`} className="text-warning-text"><Icon name="flag" size={13} /></span>}<Icon name={statusIcon(student)} size={13} /></span></span>
             <span className={monitorStyles.dots} aria-hidden="true">{Array.from({ length: student.max_turns }, (_, step) => <span key={step} data-on={step < (student.current_turn_index ?? 0)} />)}</span>
             <span className={monitorStyles.status}>{statusLabel(student)}{student.current_turn_index !== null && ` · pertanyaan ${student.current_turn_index} dari ${student.max_turns}`}{student.open_flag_count > 0 && ` · ${student.open_flag_count} perlu verifikasi`}</span>
             {phase === 'lobby' && student.status === 'waiting' && student.participant_id && <ConfirmAction label="Keluarkan" title={`Keluarkan ${student.name} dari lobi?`} description="Siswa kembali ke beranda dan tidak bisa masuk lagi ke sesi ini. Pakai bila siswa masuk ke sesi yang salah." confirm="Keluarkan" pendingLabel="Mengeluarkan…" disabled={offline} action={(signal) => service.removeParticipant(data.run.id, student.participant_id!, signal)} onDone={run.resource.refresh} refusal={(error) => error.code === 'RUN_NOT_IN_LOBBY' ? 'Sesi sudah dimulai, jadi siswa tidak bisa dikeluarkan dari lobi lagi.' : null} />}

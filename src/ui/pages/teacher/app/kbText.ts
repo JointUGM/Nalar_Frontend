@@ -16,9 +16,12 @@ const refusals: Readonly<Record<string, string>> = {
   KNOWLEDGE_BASE_BUSY: 'Materi atau bab topik ini sedang diproses. Tunggu sampai selesai, lalu coba lagi.',
   KNOWLEDGE_BASE_ARCHIVED: 'Topik ini sudah diarsipkan, jadi tidak bisa diubah lagi.',
   SECTION_OVERLAP: 'Halaman bab ini tumpang-tindih dengan bab lain yang sudah disusun.',
+  MATERIAL_FILE_UNAVAILABLE: 'Berkas PDF materi belum tersedia atau tautan kedaluwarsa.',
+  MATERIAL_NOT_FOUND: 'Berkas PDF materi tidak ditemukan.',
+  NOT_FOUND: 'Berkas PDF materi tidak ditemukan di penyimpanan.',
 }
 // A refusal the teacher can act on; anything else falls back to the status message.
-export const kbRefusal = (error: ApiError) => refusals[error.code] ?? null
+export const kbRefusal = (error: ApiError) => refusals[error.code] ?? (error.status === 404 ? 'Berkas PDF materi tidak ditemukan di penyimpanan.' : null)
 
 export const jobFailure: Readonly<Record<string, string>> = {
   MISSION_VERSION_CHANGED: 'Ada versi baru ketika revisi berjalan. Buka versi terbaru dan kirim revisi lagi.',
