@@ -101,14 +101,31 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const build = (sectionId: string) => { setTries((count) => count + 1); void run((signal) => kb.build(detail.id, sectionId, signal), followJob) }
   // The tab opens on the click itself, so a popup blocker allows it; the signed link arrives a moment later.
   function openPdf(materialId: string) {
-    const tab = window.open('about:blank', '_blank')
-    if (tab) tab.opener = null
+    const tab = typeof window !== 'undefined' && typeof window.open === 'function' ? window.open('about:blank', '_blank') : null
     let opened = false
     void run((signal) => kb.materialFile(detail.id, materialId, signal), (url) => {
       opened = true
-      if (tab) tab.location.href = url
-      else window.open(url, '_blank', 'noopener')
-    }).then(() => { if (!opened) tab?.close() })
+      if (tab && !tab.closed) {
+        try {
+          tab.location.href = url
+          tab.opener = null
+          return
+        } catch {
+          // If cross-origin restrictions block location update, fallback to link click
+        }
+      }
+      try {
+        const link = document.createElement('a')
+        link.href = url
+        link.target = '_blank'
+        link.rel = 'noopener noreferrer'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      } catch {
+        window.open(url, '_blank', 'noopener')
+      }
+    }).then(() => { if (!opened && tab && !tab.closed) tab.close() })
   }
   const actions = (kind: KbItemKind, item: { id: string; review_status: string }, blocked: boolean, edit: () => void) => canEdit && item.review_status === 'pending' && <div className={styles.actions}>
     <Button disabled={pending || blocked} onClick={() => { void run((signal) => kb.review(kind, item.id, 'approved', signal)) }}><Icon name="check" size={14} />Setujui</Button>
