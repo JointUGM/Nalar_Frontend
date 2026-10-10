@@ -21,6 +21,11 @@ const refusals: Readonly<Record<string, string>> = {
 export const kbRefusal = (error: ApiError) => refusals[error.code] ?? null
 
 export const jobFailure: Readonly<Record<string, string>> = {
+  MISSION_VERSION_CHANGED: 'Ada versi baru ketika revisi berjalan. Buka versi terbaru dan kirim revisi lagi.',
+  REVISION_SCOPE_CONFLICT: 'Perbaikan memerlukan perubahan pada bagian lain. Perluas bagian yang direvisi.',
+  REVISION_INVALID: 'Draf revisi belum konsisten. Periksa masukan dan konsep target sebelum mencoba lagi.',
+  ai_output_invalid: 'Hasil AI belum lolos pemeriksaan. Versi sebelumnya tetap dapat digunakan.',
+  budget_exceeded: 'Batas pemrosesan revisi tercapai. Ringkas masukan atau revisi lebih sedikit bagian.',
   SECTION_HAS_NO_TEXT: 'Bab ini tidak punya teks yang bisa dibaca (mungkin hasil pindai).',
   MISSION_TARGETS_UNAVAILABLE: 'Basis pengetahuan ini perlu sedikitnya dua konsep yang disetujui.',
   MISSION_ITEMS_CHANGED: 'Basis pengetahuan berubah saat draf disusun. Coba lagi.',
