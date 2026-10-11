@@ -514,6 +514,7 @@ describe('signed-in teacher pages', () => {
       [`GET /jobs/${job}`]: () => Response.json(jobOut({ kind: 'kb_build_section', status: 'failed', error_code: 'SECTION_HAS_NO_TEXT' })),
     })
     open(kbPath, request)
+    fireEvent.click(await screen.findByRole('tab', { name: /Materi & bab/ }))
     const build = await screen.findByRole('button', { name: 'Susun Bab 1 Tekanan' })
     fireEvent.click(build)
     fireEvent.click(build)
@@ -561,6 +562,7 @@ describe('signed-in teacher pages', () => {
         await act(async () => {}) // let the page arm its timer before the clock jumps
         act(() => { vi.advanceTimersByTime(3_600_000) })
         expect(await screen.findByText('Bab “Bab 1 Tekanan” belum selesai disusun')).toBeInTheDocument()
+        fireEvent.click(screen.getByRole('tab', { name: /Materi & bab/ }))
         expect(screen.getByRole('button', { name: 'Coba lagi Bab 1 Tekanan' })).toBeInTheDocument()
         expect(screen.queryByText('Sedang disusun', { selector: 'span' })).not.toBeInTheDocument()
       } finally { vi.useRealTimers() }
@@ -582,6 +584,7 @@ describe('signed-in teacher pages', () => {
     const tab = { opener: {}, location: { href: 'about:blank' }, close: vi.fn() }
     const opened = vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window)
     open(kbPath, request)
+    fireEvent.click(await screen.findByRole('tab', { name: /Materi & bab/ }))
     fireEvent.click(await screen.findByRole('button', { name: 'Buka PDF IPA Kelas 8.pdf' }))
     await waitFor(() => expect(tab.location.href).toBe('https://storage.example/materi.pdf?token=t'))
     expect(tab.opener).toBeNull()
