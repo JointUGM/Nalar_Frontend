@@ -1,4 +1,5 @@
 import { ConfirmAction } from './ConfirmAction'
+import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { useCallback, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
@@ -97,12 +98,8 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
   const said = failure && missionRefusal(failure)
 
   return <div className={styles.content}>
-    {back}
+    <TeacherPageHead crumb={<><Link to={`${base}/missions`}>Misi</Link><Icon name="chevronRight" size={14} /></>} title={mission.title} tag={<span className={[styles.tag, version?.status === 'draft' ? styles.draft : version ? styles.version : styles.locked].join(' ')}>{version ? `${versionWord[version.status] ?? version.status} · v${version.version_number}` : 'Belum ada versi'}</span>} subtitle={[detail && `Basis pengetahuan: ${detail.topic_title}`, mission.can_edit ? 'Misi Anda' : `Dari ${mission.created_by_name ?? 'rekan guru'}`].filter(Boolean).join(' · ')} />
     <div className={styles.header}>
-      <div>
-        <div className={styles.title}><h1>{mission.title}</h1><span className={[styles.tag, version?.status === 'draft' ? styles.draft : version ? styles.version : styles.locked].join(' ')}>{version ? `${versionWord[version.status] ?? version.status} · v${version.version_number}` : 'Belum ada versi'}</span></div>
-        <p>{[detail && `Basis pengetahuan: ${detail.topic_title}`, mission.can_edit ? 'Misi Anda' : `Dari ${mission.created_by_name ?? 'rekan guru'}`].filter(Boolean).join(' · ')}</p>
-      </div>
       <div className={styles.actions}>
         {mission.can_edit && <Button tone="secondary" pending={pending === 'generate'} pendingLabel="Meminta draf…" disabled={pending !== '' || draft !== null} onClick={() => { void run('generate', (signal) => service.generateMission(mission.id, signal), (queued) => setJobId(queued.job_id)) }}><Icon name="sparkle" size={14} />{version ? 'Buat ulang dengan AI' : 'Buat draf dengan AI'}</Button>}
         {version?.can_edit && version.status === 'draft' && <Button pending={pending === 'review'} pendingLabel="Memeriksa…" disabled={pending !== '' || draft !== null} onClick={() => { void run('review', (signal) => service.reviewMissionVersion(mission.id, version.version_number, signal)) }}><Icon name="check" size={14} />Tandai sudah ditinjau</Button>}
@@ -119,14 +116,7 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
       {!said && failure.requestId && <small>Referensi: {failure.requestId}</small>}
     </Feedback>}
     {!version && <Feedback title="Belum ada draf">{mission.can_edit ? 'Minta AI menyusun draf dari konsep yang sudah disetujui, lalu periksa hasilnya di sini.' : 'Pembuat misi belum menyusun drafnya.'}</Feedback>}
-    {version && <>
-      <dl className={styles.stats}>
-        <div><dt>Konsep sasaran</dt><dd>{version.target_concept_ids.length}</dd>{targets.length > 0 && <small>{targets.join(', ')}</small>}</div>
-        <div><dt>Giliran maksimal</dt><dd>{version.max_turns}</dd></div>
-        <div><dt>Durasi maksimal</dt><dd>{version.max_duration_minutes} menit</dd></div>
-        <div><dt>Bank pertanyaan</dt><dd>{version.question_bank.length}</dd></div>
-      </dl>
-    </>}
+    <div className={styles.layout}>
     {available.length > 0 && <section className={styles.card} aria-label="Isi misi">
       <div className={styles.tabs} role="tablist" aria-label="Bagian misi" onKeyDown={onTabKey}>{available.map(([key, label]) => <button key={key} id={`mission-tab-${key}`} type="button" role="tab" aria-selected={current === key} aria-controls={`mission-panel-${key}`} tabIndex={current === key ? 0 : -1} className={styles.tab} onClick={() => setTab(key)}>{label}{count(key) !== null && <span className={styles.tabCount}>{count(key)}</span>}</button>)}</div>
       <div id={`mission-panel-${current}`} role="tabpanel" aria-labelledby={`mission-tab-${current}`} className={styles.panel}>
@@ -168,5 +158,21 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
       </li>)}</ol>}
       </div>
     </section>}
+    {version && <aside className={styles.rail}>
+      <section className={styles.side} aria-labelledby="mission-targets">
+        <h2 id="mission-targets">Konsep target</h2>
+        {targets.length > 0 ? <ul className={styles.targets}>{targets.map((name) => <li key={name}>{name}</li>)}</ul> : <p className={styles.note}>{version.target_concept_ids.length} konsep</p>}
+      </section>
+      <section className={styles.side} aria-labelledby="mission-settings">
+        <h2 id="mission-settings">Pengaturan</h2>
+        <dl className={styles.stats}>
+          <div><dt>Konsep sasaran</dt><dd>{version.target_concept_ids.length}</dd></div>
+          <div><dt>Giliran maksimal</dt><dd>{version.max_turns}</dd></div>
+          <div><dt>Durasi maksimal</dt><dd>{version.max_duration_minutes} menit</dd></div>
+          <div><dt>Bank pertanyaan</dt><dd>{version.question_bank.length}</dd></div>
+        </dl>
+      </section>
+    </aside>}
+    </div>
   </div>
 }

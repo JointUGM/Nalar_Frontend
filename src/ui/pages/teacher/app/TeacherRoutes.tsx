@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Route, Routes, useLocation, useNavigate, useParams } from 'react-router'
+import { Link, Route, Routes, useLocation, useNavigate, useParams } from 'react-router'
 import type { Identity } from '@/domain/model/Identity'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
 import type { LiveService } from '@/domain/services/LiveService'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import type { AccountDependencies } from '@/ui/pages/account/AccountDependencies'
 import { ChangePasswordDialog } from '@/ui/pages/account/ChangePasswordDialog'
+import { Icon } from '@/ui/components/icon/Icon'
 import { LiveTeacherMonitor } from '@/ui/pages/live/LiveTeacherRun'
 import { TeacherContextProvider } from '@/ui/components/teacher-shell/TeacherContextProvider'
 import { TeacherShell } from '@/ui/components/teacher-shell/TeacherShell'
@@ -47,9 +48,12 @@ export function TeacherRoutes({ service, kb, live, identity, changePassword }: {
   ] as const
   const title = pathname.includes('/sessions/') ? 'Hasil kelas / Laporan siswa' : pathname.endsWith('/monitor') ? 'Sesi langsung' : pathname.endsWith('/class-map') ? 'Hasil kelas / Peta miskonsepsi' : pathname.endsWith('/release') ? 'Hasil kelas / Rilis ke orang tua' : pathname.includes('/missions') ? 'Misi' : pathname.includes('/knowledge-base') ? 'Basis pengetahuan' : pathname.endsWith('/classes') || pathname.includes('/students/') ? 'Kelas dan siswa' : pathname.endsWith('/attention') ? 'Perlu perhatian' : pathname.endsWith('/sessions') ? 'Sesi dan hasil' : 'Beranda'
   return <TeacherContextProvider schools={schools.map((item) => item.schoolName)} current={school} onChange={(name) => { const next = schools.find((item) => item.schoolName === name); if (next) navigate(`/teacher/${next.schoolId}`) }}>
-    <TeacherShell title={title} user={identity.fullName} nav={nav} home={base} onChangePassword={changePassword ? () => setPasswordOpen(true) : undefined}>
+    <TeacherShell title={title} user={identity.fullName} nav={nav} home={base} actions={<>
+      <Link to={`${base}/attention`} className="relative flex size-10 shrink-0 items-center justify-center rounded-[8px] bg-surface text-ink hover:bg-info-bg" aria-label={waiting > 0 ? `Perlu perhatian, ${waiting} catatan` : 'Perlu perhatian'}><Icon name="bell" size={18} />{waiting > 0 && <span className="absolute top-2.25 right-2.5 size-2 rounded-pill bg-[#D9485F]" aria-hidden="true" />}</Link>
+      <Link to={`${base}/missions/new`} className="flex h-10 shrink-0 items-center gap-2 rounded-[8px] bg-primary px-4 text-[14px] font-bold text-white no-underline hover:bg-primary-hover"><Icon name="plus" size={16} />Buat misi</Link>
+    </>} onChangePassword={changePassword ? () => setPasswordOpen(true) : undefined}>
       <Routes>
-        <Route path=":schoolId" element={<TeacherHomePage service={service} base={base} schoolId={schoolId} user={identity.fullName} attention={attention} />} />
+        <Route path=":schoolId" element={<TeacherHomePage service={service} kb={kb} base={base} schoolId={schoolId} user={identity.fullName} attention={attention} />} />
         <Route path=":schoolId/classes" element={<TeacherClassesPage service={service} base={base} schoolId={schoolId} />} />
         <Route path=":schoolId/students/:studentId" element={<TeacherStudentHistoryPage service={service} base={base} />} />
         <Route path=":schoolId/attention" element={<TeacherAttentionPage data={attention.data} error={attention.error} online={attention.online} refresh={attention.refresh} base={base} />} />

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { Link, useLocation, useParams } from 'react-router'
 import type { StudentHistoryItem } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
@@ -26,8 +27,7 @@ export function TeacherStudentHistoryPage({ service, base }: { service: TeacherS
   const items = [...earlier, ...(data?.items ?? [])]
   const years = [...new Set(items.map((item) => item.academic_year_name))]
   return <div className={report.content}>
-    <Link className={report.back} to={`${base}/classes`}><Icon name="chevronLeft" size={14} />Kelas dan siswa</Link>
-    <div className={report.header}><div><h1>{name ? `Riwayat ${name}` : 'Riwayat siswa'}</h1><p className={report.note}>Semua percobaan di kelas dan mata pelajaran yang Anda ajar, termasuk tahun ajaran sebelumnya. Skor adalah skor akhir setelah diperiksa guru.</p></div></div>
+    <TeacherPageHead crumb={<><Link to={`${base}/classes`}>Kelas saya</Link><Icon name="chevronRight" size={14} /></>} title={name ? `Riwayat ${name}` : 'Riwayat siswa'} subtitle="Semua percobaan di kelas dan mata pelajaran yang Anda ajar, termasuk tahun ajaran sebelumnya. Skor adalah skor akhir setelah diperiksa guru." />
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <Loading label="Memuat riwayat…" />}
     {data && items.length === 0 && <p className={report.note}>Belum ada percobaan yang tercatat.</p>}

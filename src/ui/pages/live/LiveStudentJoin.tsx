@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import type { LiveService } from '@/domain/services/LiveService'
 import { LiveError } from '@/domain/model/Live'
@@ -18,7 +18,23 @@ export function LiveStudentJoin({ service, base }: { service: LiveService; base:
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<LiveError | null>(null)
   const busy = useRef(false)
+  const inputRef = useRef<HTMLInputElement>(null)
   const commandSignal = useCommandSignal()
+
+  // Focus automatically on mount and capture direct typing so students don't have to manually click
+  useEffect(() => {
+    inputRef.current?.focus()
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
+      if (event.ctrlKey || event.metaKey || event.altKey) return
+      if (event.key.length === 1 && /[a-zA-Z0-9]/.test(event.key)) {
+        inputRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   async function join(value: string) {
     if (busy.current || value.length < codeLength) return
     busy.current = true; setPending(true); setError(null)
@@ -45,14 +61,14 @@ export function LiveStudentJoin({ service, base }: { service: LiveService; base:
         <p id="join-help">Enam huruf dan angka. Biasanya ada di pojok atas layar proyektor.</p>
       </div>
 
-      <div className={styles.code} data-state={wrong ? 'wrong' : 'typing'}>
+      <div className={styles.code} data-state={wrong ? 'wrong' : 'typing'} onClick={() => inputRef.current?.focus()}>
         <div className={styles.boxes} aria-hidden="true">
           {Array.from({ length: codeLength }, (_, index) => <span key={index} data-filled={Boolean(code[index])} style={{ animationDelay: `${index * 0.07}s` }}>
             {code[index] && <span className={styles.char}>{code[index]}</span>}
             {index === caret && <span className={styles.caret} />}
           </span>)}
         </div>
-        <input aria-label="Kode gabung" aria-describedby="join-help join-message" aria-invalid={wrong ? true : undefined} value={code} readOnly={pending}
+        <input ref={inputRef} autoFocus aria-label="Kode gabung" aria-describedby="join-help join-message" aria-invalid={wrong ? true : undefined} value={code} readOnly={pending}
           autoComplete="off" autoCapitalize="characters" autoCorrect="off" spellCheck={false} inputMode="text"
           onChange={(event) => { const next = normalize(event.target.value); setCode(next); setError(null); if (next.length === codeLength) void join(next) }}
           onKeyDown={(event) => { if (event.key === 'Enter') void join(code) }} />

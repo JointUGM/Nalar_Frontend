@@ -86,12 +86,18 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
     await this.api.request(`${kb(kbId)}/materials/${encodeURIComponent(materialId)}`, { method: 'DELETE', signal })
   }
 
-  // The link is opened in a new tab, so only an https address is accepted.
+  // The link is opened in a new tab; accepts valid https or http (for local/dev) addresses or relative paths.
   async materialFile(kbId: string, materialId: string, signal?: AbortSignal): Promise<string> {
     const value = record((await this.api.request(`${kb(kbId)}/materials/${encodeURIComponent(materialId)}/file`, { signal })).data)
-    const url = text(value.url)
-    if (!URL.canParse(url) || new URL(url).protocol !== 'https:') throw new ApiError(502, 'INVALID_RESPONSE')
-    return url
+    const raw = text(value.url)
+    let parsed: URL
+    try {
+      parsed = new URL(raw, typeof window !== 'undefined' ? window.location.origin : 'http://localhost')
+    } catch {
+      throw new ApiError(502, 'INVALID_RESPONSE')
+    }
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:' && parsed.protocol !== 'blob:') throw new ApiError(502, 'INVALID_RESPONSE')
+    return parsed.toString()
   }
 
   async sections(kbId: string, signal?: AbortSignal): Promise<KbSection[]> {

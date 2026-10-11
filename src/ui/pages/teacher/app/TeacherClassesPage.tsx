@@ -1,14 +1,13 @@
 import { useCallback, useState } from 'react'
+import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { Link } from 'react-router'
 import type { ClassStudent } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
-import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
-import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaAvatar, NalaIcon } from '@/ui/components/nala/NalaIcon'
 import type { NalaIconName } from '@/ui/components/nala/NalaIcon'
-import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
+import { NalaEmpty } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
@@ -28,13 +27,6 @@ const nameOrder = new Intl.Collator('id-ID', { numeric: true, sensitivity: 'base
 const number = new Intl.NumberFormat('id-ID')
 const matches = (student: ClassStudent, filter: StudentFilter) => filter === 'all' || (filter === 'flagged' ? student.open_flag_count > 0 : (student.status ?? 'not_started') === filter)
 const runWord: Readonly<Record<string, string>> = { open: 'Sedang berlangsung', lobby: 'Lobi terbuka', scheduled: 'Belum dimulai', closed: 'Penerimaan ditutup' }
-
-// Null while the page body shows Nala (no classes, unavailable): one Nala per view.
-function companion(classes: number | null, failed: boolean): [NalaMood, string] | null {
-  if (classes === null) return failed ? null : ['think', 'Sebentar, daftar kelas sedang dimuat.']
-  if (classes === 0) return null
-  return ['hello', `Anda mengajar ${number.format(classes)} kelas. Pilih satu untuk melihat progresnya.`]
-}
 
 function Skeleton({ label }: { label: string }) {
   return <div aria-busy="true">
@@ -71,16 +63,11 @@ export function TeacherClassesPage({ service, base, schoolId }: { service: Teach
   const missions = data?.publications.filter(item => item.class_id === chosen) ?? []
   const publication = missions.find(item => item.id === publicationId) ?? missions[0]
   const mission = publication?.id ?? ''
-  const note = companion(data ? data.classes.length : null, Boolean(error))
   const subjects = [...new Set(data?.assignments.map(item => item.subject_name).filter(Boolean) ?? [])]
   const missionCount = (id: string) => data?.publications.filter(item => item.class_id === id).length ?? 0
 
   return <div className={styles.page}>
-    <div className={styles.header}>
-      <div><h1>Kelas saya</h1><p>{data && data.classes.length > 0 ? `${subjects.length > 0 ? `${subjects.join(', ')} · ` : ''}${number.format(data.classes.length)} kelas. Buka laporan untuk melihat penalaran siswa.` : 'Kenali progres siswa, lalu buka laporan untuk melihat penalarannya.'}</p></div>
-      {note && <NalaNote mood={note[0]} text={note[1]} />}
-      <ButtonLink className={styles.button} to={`${base}/missions`}><Icon name="plus" size={16} />Terbitkan misi</ButtonLink>
-    </div>
+    <TeacherPageHead title="Kelas saya" subtitle={data && data.classes.length > 0 ? `${subjects.length > 0 ? `${subjects.join(', ')} · ` : ''}${number.format(data.classes.length)} kelas. Buka laporan untuk melihat penalaran siswa.` : 'Kenali progres siswa, lalu buka laporan untuk melihat penalarannya.'} />
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <section className={styles.card}><Skeleton label="Memuat kelas…" /></section>}
     {!data && error && <section className={styles.card}><NalaEmpty mood="oops" title="Daftar kelas belum dapat ditampilkan">Gunakan “Coba lagi” di atas untuk memuatnya.</NalaEmpty></section>}

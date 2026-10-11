@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import type { TeacherPublication } from '@/domain/model/Teacher'
+import { Link } from 'react-router'
+import { isActive, type TeacherPublication } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
+import { ActionMenu, MenuItem, MenuLink, MenuSeparator } from '@/ui/components/action-menu/ActionMenu'
 import { Button } from '@/ui/components/button/Button'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
+import { Icon } from '@/ui/components/icon/Icon'
 import { useCommand } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherSessions.styles'
 
@@ -19,17 +22,20 @@ function refusal(code: string): string | null {
   return null
 }
 
-// Before any student has started, a teacher can still move a window or take the publication back.
-export function PublicationManage({ publication, service, onChanged }: { publication: TeacherPublication; service: TeacherService; onChanged: () => void }) {
+// One main action per row (the page a teacher needs next) and a menu for the rest. Before any student has started, the menu
+// also lets a teacher move a window or take the publication back.
+export function SessionActions({ publication, base, service, onChanged }: { publication: TeacherPublication; base: string; service: TeacherService; onChanged: () => void }) {
   const { id, run, counts, released_to_parents_at, mission_title, class_name } = publication
-  const open = counts.started === 0 && !released_to_parents_at
-  const movable = open && run.mode === 'window' && run.status === 'scheduled'
+  const path = `${base}/publications/${id}`
+  const live = run.mode === 'live'
+  const monitorFirst = live && isActive(publication)
+  const editable = counts.started === 0 && !released_to_parents_at
+  const movable = editable && run.mode === 'window' && run.status === 'scheduled'
   const [dialog, setDialog] = useState<'window' | 'cancel' | null>(null)
   const [opens, setOpens] = useState('')
   const [closes, setCloses] = useState('')
   const [problem, setProblem] = useState('')
   const command = useCommand()
-  if (!open) return null
   const close = () => { command.reset(); setProblem(''); setDialog(null) }
   const said = command.failure && (refusal(command.failure.code) ?? command.failure.message)
   async function save() {
@@ -40,9 +46,20 @@ export function PublicationManage({ publication, service, onChanged }: { publica
   async function cancel() {
     if (await command.run((signal) => service.cancelPublication(id, signal))) { setDialog(null); onChanged() }
   }
-  return <>
-    {movable && <Button tone="ghost" onClick={() => { setOpens(local(run.opens_at)); setCloses(local(run.closes_at)); setDialog('window') }}>Ubah jadwal</Button>}
-    <Button tone="ghost" onClick={() => setDialog('cancel')}>Batalkan sesi</Button>
+  const state = { publication }
+  return <div className={styles.actions}>
+    <Link className={styles.mainAction} data-tone={monitorFirst ? 'live' : 'quiet'} to={`${path}/${monitorFirst ? 'monitor' : 'class-map'}`} state={state}>
+      <Icon name={monitorFirst ? 'monitor' : 'graph'} size={16} />{monitorFirst ? 'Pantau' : 'Peta kelas'}
+    </Link>
+    <ActionMenu label={`Aksi lain untuk ${mission_title}, kelas ${class_name}`}>
+      {monitorFirst && <MenuLink render={<Link to={`${path}/class-map`} state={state} />}><Icon name="graph" size={16} />Peta kelas</MenuLink>}
+      {live && !monitorFirst && <MenuLink render={<Link to={`${path}/monitor`} state={state} />}><Icon name="monitor" size={16} />Pantau</MenuLink>}
+      {live && <MenuLink render={<Link to={`${path}/projector`} state={state} />}><Icon name="play" size={16} />Proyektor</MenuLink>}
+      <MenuLink data-tone={released_to_parents_at ? 'success' : undefined} render={<Link to={`${path}/release`} state={state} />}><Icon name={released_to_parents_at ? 'check' : 'send'} size={16} />{released_to_parents_at ? 'Sudah dirilis' : 'Rilis ke orang tua'}</MenuLink>
+      {editable && <MenuSeparator />}
+      {movable && <MenuItem onClick={() => { setOpens(local(run.opens_at)); setCloses(local(run.closes_at)); setDialog('window') }}><Icon name="clock" size={16} />Ubah jadwal</MenuItem>}
+      {editable && <MenuItem data-tone="danger" onClick={() => setDialog('cancel')}><Icon name="x" size={16} />Batalkan sesi</MenuItem>}
+    </ActionMenu>
     <Dialog open={dialog === 'window'} onClose={close} dismissible={!command.pending} title="Ubah jadwal sesi" description={`${mission_title}, kelas ${class_name}. Hanya bisa diubah sebelum jam buka dan sebelum ada siswa yang mulai.`}>
       <form className={styles.dialogForm} noValidate onSubmit={(event) => { event.preventDefault(); void save() }}>
         <Field id={`opens-${id}`} type="datetime-local" label="Dibuka (WIB)" required value={opens} onChange={(event) => setOpens(event.target.value)} />
@@ -56,5 +73,5 @@ export function PublicationManage({ publication, service, onChanged }: { publica
       {said && <Feedback tone="warning" title={said} announce />}
       <div className={styles.dialogActions}><Button tone="secondary" disabled={command.pending} onClick={close}>Kembali</Button><Button tone="danger" pending={command.pending} pendingLabel="Membatalkan…" onClick={() => { void cancel() }}>Batalkan sesi</Button></div>
     </Dialog>
-  </>
+  </div>
 }

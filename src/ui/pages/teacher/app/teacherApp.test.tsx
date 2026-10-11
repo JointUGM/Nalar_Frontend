@@ -1,3 +1,4 @@
+import userEvent from '@testing-library/user-event'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -147,7 +148,10 @@ describe('signed-in teacher pages', () => {
     open(`${base}/sessions`, backend())
     const card = within(await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?, kelas 8B' }))
     expect(card.getAllByText('28')).toHaveLength(2)
-    for (const [name, page] of [['Proyektor', 'projector'], ['Pantau', 'monitor'], ['Peta kelas', 'class-map'], ['Rilis ke orang tua', 'release']]) expect(card.getByRole('link', { name })).toHaveAttribute('href', `${base}/publications/${publication}/${page}`)
+    // The next page is one button; the rest sit in the row's menu.
+    expect(card.getByRole('link', { name: 'Peta kelas' })).toHaveAttribute('href', `${base}/publications/${publication}/class-map`)
+    await userEvent.setup().click(card.getByRole('button', { name: /Aksi lain/ }))
+    for (const [name, page] of [['Proyektor', 'projector'], ['Pantau', 'monitor'], ['Rilis ke orang tua', 'release']]) expect(await screen.findByRole('menuitem', { name })).toHaveAttribute('href', `${base}/publications/${publication}/${page}`)
     expect(screen.queryByText('Pratinjau · data contoh')).not.toBeInTheDocument()
   })
 
@@ -155,7 +159,8 @@ describe('signed-in teacher pages', () => {
     const scheduled = { items: [{ ...publications.items[0], run: { id: school, mode: 'window', status: 'scheduled', join_code: null, opens_at: '2030-01-02T01:00:00Z', closes_at: '2030-01-02T03:00:00Z' }, counts: { started: 0, completed: 0, timed_out: 0, evaluated: 0 } }], next_cursor: null }
     const request = backend({ 'GET /teacher/publications?limit=100': () => Response.json(scheduled), [`PATCH /publications/${publication}`]: () => new Response(null, { status: 204 }) })
     open(`${base}/sessions`, request)
-    fireEvent.click(await screen.findByRole('button', { name: 'Ubah jadwal' }))
+    await userEvent.setup().click(await screen.findByRole('button', { name: /Aksi lain/ }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Ubah jadwal' }))
     expect(screen.getByLabelText(/Dibuka \(WIB\)/)).toHaveValue('2030-01-02T08:00')
     fireEvent.change(screen.getByLabelText(/Ditutup \(WIB\)/), { target: { value: '2030-01-02T11:30' } })
     const save = screen.getByRole('button', { name: 'Simpan jadwal' })
@@ -169,15 +174,17 @@ describe('signed-in teacher pages', () => {
     const idle = { items: [{ ...publications.items[0], run: { ...publications.items[0].run, status: 'scheduled' }, counts: { started: 0, completed: 0, timed_out: 0, evaluated: 0 } }], next_cursor: null }
     const request = backend({ 'GET /teacher/publications?limit=100': () => Response.json(idle), [`POST /publications/${publication}/cancel`]: () => Response.json({ error: { code: 'PUBLICATION_HAS_SESSIONS' } }, { status: 409 }) })
     open(`${base}/sessions`, request)
-    expect(screen.queryByRole('button', { name: 'Ubah jadwal' })).not.toBeInTheDocument()
-    fireEvent.click(await screen.findByRole('button', { name: 'Batalkan sesi' }))
+    await userEvent.setup().click(await screen.findByRole('button', { name: /Aksi lain/ }))
+    expect(screen.queryByRole('menuitem', { name: 'Ubah jadwal' })).not.toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Batalkan sesi' }))
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Batalkan sesi' }))
     expect((await screen.findAllByText('Sudah ada siswa yang memulai, jadi sesi ini tidak bisa diubah atau dibatalkan.')).length).toBeGreaterThan(0)
   })
   it('offers no change once students have started', async () => {
     open(`${base}/sessions`, backend())
-    await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?, kelas 8B' })
-    expect(screen.queryByRole('button', { name: 'Batalkan sesi' })).not.toBeInTheDocument()
+    await userEvent.setup().click(within(await screen.findByRole('listitem', { name: 'Kenapa kelereng berhenti?, kelas 8B' })).getByRole('button', { name: /Aksi lain/ }))
+    await screen.findByRole('menuitem', { name: 'Proyektor' })
+    expect(screen.queryByRole('menuitem', { name: 'Batalkan sesi' })).not.toBeInTheDocument()
   })
   it('shows the class map with the exact counts and the saved explanation', async () => {
     open(`${base}/publications/${publication}/class-map`, backend())
@@ -261,10 +268,10 @@ describe('signed-in teacher pages', () => {
   it('shows the safety alert first and filters the monitored students by status', async () => {
     open(`${base}/publications/${publication}/monitor`, backend())
     expect(await screen.findByRole('alert')).toHaveTextContent('Raka Pratama mungkin butuh bantuan Anda')
-    const done = screen.getByRole('button', { name: /SELESAI/ })
+    const done = screen.getByRole('button', { name: /^Selesai/ })
     expect(done).toHaveTextContent('1')
     fireEvent.click(done)
-    expect(screen.getByText('Sinta Dewi')).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: /Siswa/ })).getByText('Sinta Dewi')).toBeInTheDocument()
     expect(within(screen.getByRole('region', { name: /Siswa/ })).queryByText('Raka Pratama')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Kode K7Q2MW/ })).toHaveAttribute('href', `${base}/publications/${publication}/projector`)
     expect(within(screen.getByRole('alert')).getByRole('link', { name: 'Raka Pratama' })).toHaveAttribute('href', reportPath)
@@ -370,7 +377,7 @@ describe('signed-in teacher pages', () => {
 
   it('opens on the weekly dashboard and badges what needs attention, each item linking to where it is handled', async () => {
     open(base, backend())
-    expect(await screen.findByText('+2 vs minggu lalu')).toBeInTheDocument()
+    expect(await screen.findByText('12 sesi selesai dari 30 siswa')).toBeInTheDocument()
     expect(screen.getByText('40%')).toBeInTheDocument()
     expect(screen.getByText('“Gaya bisa habis”')).toBeInTheDocument()
     await waitFor(() => expect(screen.getAllByRole('link', { name: /Perlu perhatian/ })[0]).toHaveTextContent('2'))
@@ -437,7 +444,8 @@ describe('signed-in teacher pages', () => {
       [`POST /concepts/${concept}/review`]: () => { status = 'approved'; return Response.json({ id: concept, review_status: status, reviewed_at: '2026-10-02T04:00:00+00:00' }) },
     })
     open(kbPath, request)
-    const approve = within(await screen.findByRole('region', { name: 'Konsep: Tekanan hidrostatis' })).getByRole('button', { name: 'Setujui' })
+    await screen.findByRole('region', { name: 'Konsep: Tekanan hidrostatis' })
+    const approve = screen.getByRole('button', { name: 'Setujui konsep' })
     const misconceptionCard = within(screen.getByRole('region', { name: /^Miskonsepsi:/ }))
     expect(misconceptionCard.getByRole('button', { name: 'Setujui' })).toBeDisabled()
     fireEvent.click(approve)
@@ -530,7 +538,7 @@ describe('signed-in teacher pages', () => {
     it('keeps the concepts it has but shows no count until the chapter is built', async () => {
       open(kbPath, backend(at('building')))
       expect(await screen.findByRole('heading', { name: 'Tekanan hidrostatis' })).toBeInTheDocument()
-      expect(screen.getAllByText('Sedang disusun')).toHaveLength(2)
+      expect(screen.getAllByText('Sedang disusun')).toHaveLength(3)
       expect(screen.queryByText('1 konsep')).not.toBeInTheDocument()
       expect(screen.queryByText('1 miskonsepsi')).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: /Coba lagi|Susun/ })).not.toBeInTheDocument()
@@ -657,7 +665,7 @@ describe('Nala on the attention page', () => {
 
   it('puts student support first, and shows one Nala when the queue is clear', () => {
     const { unmount } = show({ counts: { ...counts, safety: 1, total: 1 }, items: [paused] })
-    expect(screen.getByText('Dahulukan pendampingan siswa, ya.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Raka Pratama' })).toBeInTheDocument()
     unmount()
     show({ counts, items: [] })
     expect(screen.getByRole('heading', { name: 'Tidak ada yang perlu perhatian di sini.' })).toBeInTheDocument()
