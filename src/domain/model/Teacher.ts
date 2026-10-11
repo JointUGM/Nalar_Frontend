@@ -29,13 +29,13 @@ export interface ReleasePreview {
 export interface Released { released_to_parents_at: string; summary_count: number }
 
 export interface TeacherAssignment { school_id: string; class_id: string; class_name: string; grade_level: number; school_subject_id: string; subject_name: string }
-export interface MissionSummary { id: string; title: string; knowledge_base_id: string; can_edit: boolean; created_by_name: string | null; latest_version: { id: string; version_number: number; status: string } | null }
+export interface MissionSummary { id: string; title: string; knowledge_base_id: string; can_edit: boolean; archived_at: string | null; created_by_name: string | null; latest_version: { id: string; version_number: number; status: string } | null }
 export interface PublicationWindow { opens_at: string; closes_at: string }
 export interface PublishInput { class_id: string; mission_version_id: string; mode: 'live' | 'window'; opens_at?: string; closes_at?: string }
 export interface Published { publication_id: string; run_id: string; run_status: string }
 // Only a reviewed version can be published; publishing locks it, and a locked one can still go to another class.
 export const isActive = (publication: TeacherPublication) => ['lobby', 'open'].includes(publication.run.status)
-export const publishable = (mission: MissionSummary) => mission.latest_version !== null && ['reviewed', 'locked'].includes(mission.latest_version.status)
+export const publishable = (mission: MissionSummary) => mission.archived_at === null && mission.latest_version !== null && ['reviewed', 'locked'].includes(mission.latest_version.status)
 
 export interface MissionInput { knowledge_base_id: string; title: string; learning_objective: string }
 export interface BankQuestion { id: string; concept_id: string; misconception_id: string | null; move: string; text: string }
@@ -63,7 +63,7 @@ export interface MissionRevisionMetadata {
   revision_feedback: MissionRevisionFeedback[]; revision_changed_fields: string[]; can_revise_with_ai: boolean
 }
 export interface MissionVersion extends MissionRevisionMetadata {
-  id: string; version_number: number; status: string; can_edit: boolean
+  id: string; version_number: number; status: string; can_edit: boolean; archived_at: string | null
   anchor_problem: string; reference_reasoning: string; rubric: MissionRubric
   target_concept_ids: string[]; misconception_ids: string[]; source_chunk_ids: string[]
   question_bank: BankQuestion[]; answer_terms: string[]
@@ -71,7 +71,7 @@ export interface MissionVersion extends MissionRevisionMetadata {
   max_turns: number; max_duration_minutes: number
 }
 // A saved edit is always a new version: everything the teacher did not change is carried over from the base.
-export type MissionVersionDraft = Omit<MissionVersion, 'id' | 'version_number' | 'status' | 'can_edit' | keyof MissionRevisionMetadata> & { base_version_id: string }
+export type MissionVersionDraft = Omit<MissionVersion, 'id' | 'version_number' | 'status' | 'can_edit' | 'archived_at' | keyof MissionRevisionMetadata> & { base_version_id: string }
 
 // One student's session as the teacher sees it. Scores are AI levels 0-4 that the teacher may change, never the student's view.
 export interface ReportScore { score_id: string; dimension: string; ai_level: number; final_level: number; rationale: string | null; evidence: { turn_id: string; quote: string }[]; overrides: { previous_level: number; new_level: number; reason: string; created_at: string }[] }

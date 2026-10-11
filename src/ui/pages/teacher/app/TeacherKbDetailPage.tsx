@@ -19,6 +19,7 @@ import { KbConceptMap } from './KbConceptMap'
 import { KbNewItem } from './KbNewItem'
 import { buildWord, kbRefusal, reviewWord } from './kbText'
 import { Loading } from '@/ui/components/loading/Loading'
+import { formatDayTime } from '@/ui/formatInstant'
 
 interface Loaded { detail: KbDetail; sections: KbSection[]; queue: KbReviewQueue }
 // Lists are edited one entry per line.
@@ -49,7 +50,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const busy = useRef(false)
   const [jobId, setJobId] = useState(params.get('job'))
   const [selectedId, setSelectedId] = useState('')
-  const [activeTab, setActiveTab] = useState('review')
+  const [activeTab, setActiveTab] = useState(params.get('tab') === 'materials' ? 'materials' : 'review')
   const [page, setPage] = useState(0)
   const [draft, setDraft] = useState<Draft | null>(null)
   const [adding, setAdding] = useState<'concept' | 'misconception' | null>(null)
@@ -64,11 +65,13 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
     const timer = setTimeout(() => setStuck(true), stuckAfterMs)
     return () => { clearTimeout(timer); setStuck(false) }
   }, [generating, tries])
-  const back =<Link className={styles.back} to={`${base}/knowledge-base`}><Icon name="chevronLeft" size={14} />Basis pengetahuan</Link>
+  const libraryPath = `${base}/knowledge-base${data?.detail.archived_at || params.get('status') === 'archived' ? '?status=archived' : ''}`
+  const back =<Link className={styles.back} to={libraryPath}><Icon name="chevronLeft" size={14} />Basis pengetahuan</Link>
 
   if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat basis pengetahuan…" />}</div>
   const { detail, sections, queue } = data
-  const canEdit = detail.can_edit
+  const canEdit = detail.can_edit && detail.archived_at === null
+  const editableDraft = canEdit ? draft : null
   const waiting = queue.pending_concepts + queue.pending_misconceptions
   // Counts are only real once no chapter is being built; until then they would be partial.
   const loading = generating && !stuck
@@ -184,14 +187,14 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   )
 
   return <div className={styles.content}>
-    <TeacherPageHead crumb={<><Link to={`${base}/knowledge-base`}>Basis pengetahuan</Link><Icon name="chevronRight" size={14} /></>} title={detail.topic_title} tag={<>{detail.concepts.length > 0 && !loading && <span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span>}</>} subtitle={loading ? 'Konsep dan miskonsepsi sedang disusun.' : waiting > 0 ?`${queue.pending_concepts} konsep dan ${queue.pending_misconceptions} miskonsepsi menunggu tinjauan` : `${detail.concepts.length} konsep · ${detail.misconceptions.length} miskonsepsi`} />
+    <TeacherPageHead crumb={<><Link to={libraryPath}>Basis pengetahuan</Link><Icon name="chevronRight" size={14} /></>} title={detail.topic_title} tag={<>{detail.archived_at ? <span className={styles.tag}>Diarsipkan</span> : detail.concepts.length > 0 && !loading && <span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span>}</>} subtitle={loading ? 'Konsep dan miskonsepsi sedang disusun.' : waiting > 0 ?`${queue.pending_concepts} konsep dan ${queue.pending_misconceptions} miskonsepsi menunggu tinjauan` : `${detail.concepts.length} konsep · ${detail.misconceptions.length} miskonsepsi`} />
     <div className={styles.header}>
       {detail.concepts.length > 0 && !loading && <div className={styles.progress}><span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span><span className={styles.bar} role="progressbar" aria-label="Item disetujui" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done}><span style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></span><span>{done} dari {total} item disetujui{rejected > 0 && ` · ${rejected} ditolak`}</span></div>}
       <div className={styles.jumpLinks}>
-        {canEdit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan topik</>} title="Arsipkan topik ini?" description={`${detail.topic_title}. Topik hilang dari daftar dan tidak bisa dipakai untuk misi baru. Misi dan sesi yang sudah memakainya tetap tersimpan. Arsip tidak bisa dibuka kembali dari aplikasi.`} confirm="Arsipkan topik" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archive(detail.id, signal)} onDone={() => navigate(`${base}/knowledge-base`)} refusal={kbRefusal} />}
+        {canEdit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan topik</>} title="Arsipkan topik ini?" description={`${detail.topic_title}. Topik tidak dipakai untuk misi baru. Materi, misi, dan sesi sebelumnya tetap tersimpan dan dapat dibaca dari Diarsipkan.`} confirm="Arsipkan topik" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archive(detail.id, signal)} onDone={() => navigate(`${base}/knowledge-base?status=archived`)} refusal={kbRefusal} />}
       </div>
     </div>
-    {!canEdit && <p className={styles.note}>Basis pengetahuan ini milik rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
+    {detail.archived_at ? <Feedback title="Topik diarsipkan">Diarsipkan {formatDayTime(detail.archived_at)}. Materi, bab, dan konsep tetap dapat dibaca. Arsip tidak dapat diubah atau dipakai untuk misi baru.</Feedback> : !canEdit && <p className={styles.note}>Basis pengetahuan ini milik rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {jobId && <JobNotice key={jobId} kb={kb} jobId={jobId} onDone={refresh} />}
     {said && <Feedback tone="warning" title={said} announce />}
@@ -212,7 +215,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
             <section className={styles.card} aria-labelledby="kb-concepts">
               <div className={styles.sectionHead}><h2 id="kb-concepts">Peta konsep</h2><span>{loading ? 'Sedang disusun' : 'Panah: dipelajari lebih dulu · klik untuk meninjau, seret untuk memindah'}</span>
                 {canEdit && adding !== 'concept' && <Button tone="secondary" className={styles.add} disabled={pending} onClick={() => { setDraft(null); setAdding('concept') }}><Icon name="plus" size={14} />Tambah konsep</Button>}</div>
-              {adding === 'concept' && <KbNewItem kind="concept" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addConcept(detail.id, value, key, signal), (created) => { setAdding(null); setSelectedId(created.id) }) }} />}
+              {canEdit && adding === 'concept' && <KbNewItem kind="concept" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addConcept(detail.id, value, key, signal), (created) => { setAdding(null); setSelectedId(created.id) }) }} />}
               {!selected ? <p className={styles.note}>Belum ada konsep. Susun satu bab untuk membuat drafnya.</p> : <>
                 <div className={styles.map}>{activeTab === 'review' && <KbConceptMap concepts={detail.concepts} prerequisites={detail.prerequisites} selectedId={selected.id} count={(id) => detail.misconceptions.filter((item) => item.concept_id === id).length} onSelect={chooseConcept} />}</div>
                 <p className={styles.legend}><span data-status="approved">Disetujui</span><span>Menunggu</span><span data-status="rejected">Ditolak</span><span data-status="count">Jumlah miskonsepsi</span></p>
@@ -222,9 +225,9 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
           {selected && <div className={styles.railColumn}>
             <section className={styles.card} aria-label={`Konsep: ${selected.name}`}>
               <div className={styles.misHead}><span className={styles.contentType}><NalaIcon name="idea" />Konsep</span>{tag(selected.review_status)}</div>
-              {draft?.kind === 'concept' && draft.id === selected.id ? <>
-                <Field label="Nama konsep" required maxLength={300} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
-                <label className={styles.area}>Deskripsi<textarea rows={3} maxLength={2000} value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
+              {editableDraft?.kind === 'concept' && editableDraft.id === selected.id ? <>
+                <Field label="Nama konsep" required maxLength={300} value={editableDraft.name} onChange={(event) => setDraft({ ...editableDraft, name: event.target.value })} />
+                <label className={styles.area}>Deskripsi<textarea rows={3} maxLength={2000} value={editableDraft.description} onChange={(event) => setDraft({ ...editableDraft, description: event.target.value })} /></label>
               </> : <>
                 <h2 className={styles.conceptTitle}>{selected.name}</h2>
                 {selected.description && <p className={styles.description}>{selected.description}</p>}
@@ -239,7 +242,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
                   </div>
                   : <span role="status" className={[styles.tag, selected.review_status === 'approved' ? styles.approved : ''].join(' ')}>{selected.review_status === 'approved' ? 'Konsep disetujui' : selected.review_status === 'rejected' ? 'Konsep ditolak' : reviewWord[selected.review_status] ?? selected.review_status}</span>}
               </div>}
-              {!(draft?.kind === 'concept' && draft.id === selected.id) && <>
+              {!(editableDraft?.kind === 'concept' && editableDraft.id === selected.id) && <>
                 <dl className={styles.relations}>
                   <div><dt>Dipelajari lebih dulu</dt><dd>{detail.prerequisites.filter((link) => link.concept_id === selected.id).map((link) => nameOf(link.prerequisite_concept_id)).join(', ') || 'Tidak ada prasyarat tercatat'}</dd></div>
                   <div><dt>Dilanjutkan ke</dt><dd>{detail.prerequisites.filter((link) => link.prerequisite_concept_id === selected.id).map((link) => nameOf(link.concept_id)).join(', ') || 'Tidak ada lanjutan tercatat'}</dd></div>
@@ -250,14 +253,14 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
             <div className={styles.misconceptions}>
               <div className={styles.sectionHead}><h2>Miskonsepsi terkait</h2><span>{loading ? 'Sedang disusun' : `${related.length} miskonsepsi`}</span></div>
               {canEdit && adding !== 'misconception' && <Button tone="secondary" className={styles.add} disabled={pending} onClick={() => { setDraft(null); setAdding('misconception') }}><Icon name="plus" size={14} />Tambah miskonsepsi</Button>}
-              {adding === 'misconception' && <KbNewItem kind="misconception" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addMisconception(detail.id, selected.id, value, key, signal), () => setAdding(null)) }} />}
+              {canEdit && adding === 'misconception' && <KbNewItem kind="misconception" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addMisconception(detail.id, selected.id, value, key, signal), () => setAdding(null)) }} />}
               {shown.map((item) => <section key={item.id} className={styles.misconception} aria-label={`Miskonsepsi: ${item.statement}`}>
                 <div className={styles.misHead}><span className={styles.misTag}><NalaIcon name="alert" />Miskonsepsi</span>{tag(item.review_status)}</div>
-                {draft?.kind === 'misconception' && draft.id === item.id ? <>
-                  <Field label="Pernyataan keliru" required maxLength={1000} value={draft.statement} onChange={(event) => setDraft({ ...draft, statement: event.target.value })} />
-                  <label className={styles.area}>Pemahaman yang benar<textarea rows={3} maxLength={2000} value={draft.correct} onChange={(event) => setDraft({ ...draft, correct: event.target.value })} /></label>
-                  <label className={styles.area}>Contoh ucapan siswa (satu per baris)<textarea rows={3} value={draft.cues} onChange={(event) => setDraft({ ...draft, cues: event.target.value })} /></label>
-                  <label className={styles.area}>Contoh pembanding (satu per baris)<textarea rows={3} value={draft.counters} onChange={(event) => setDraft({ ...draft, counters: event.target.value })} /></label>
+                {editableDraft?.kind === 'misconception' && editableDraft.id === item.id ? <>
+                  <Field label="Pernyataan keliru" required maxLength={1000} value={editableDraft.statement} onChange={(event) => setDraft({ ...editableDraft, statement: event.target.value })} />
+                  <label className={styles.area}>Pemahaman yang benar<textarea rows={3} maxLength={2000} value={editableDraft.correct} onChange={(event) => setDraft({ ...editableDraft, correct: event.target.value })} /></label>
+                  <label className={styles.area}>Contoh ucapan siswa (satu per baris)<textarea rows={3} value={editableDraft.cues} onChange={(event) => setDraft({ ...editableDraft, cues: event.target.value })} /></label>
+                  <label className={styles.area}>Contoh pembanding (satu per baris)<textarea rows={3} value={editableDraft.counters} onChange={(event) => setDraft({ ...editableDraft, counters: event.target.value })} /></label>
                   {saveBar}
                 </> : <>
                   <blockquote>“{item.statement}”</blockquote>

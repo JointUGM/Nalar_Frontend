@@ -20,6 +20,8 @@ const refusals: Readonly<Record<string, string>> = {
   MISSION_REVISION_UNAVAILABLE: 'Revisi AI belum tersedia. Versi yang ada tetap dapat digunakan.',
   ITEM_NOT_APPROVED: 'Konsep atau miskonsepsi versi ini sudah tidak aktif atau belum disetujui.',
   MISSION_BUSY: 'Draf misi ini sedang disusun. Tunggu sampai selesai, lalu arsipkan.',
+  MISSION_ARCHIVED: 'Misi ini sudah diarsipkan. Buka Diarsipkan untuk membaca riwayatnya.',
+  KNOWLEDGE_BASE_ARCHIVED: 'Topik misi ini sudah diarsipkan. Misi tetap dapat dibaca, tetapi tidak dapat diubah atau diterbitkan.',
   MISSION_VERSION_INVALID: 'Versi ini belum bisa dipakai.',
   VERSION_LOCKED: 'Versi ini sudah diterbitkan dan terkunci. Simpan perubahan sebagai versi baru.',
   MISSION_TARGETS_UNAVAILABLE: 'Basis pengetahuan misi ini perlu sedikitnya dua konsep yang disetujui sebelum draf bisa disusun.',

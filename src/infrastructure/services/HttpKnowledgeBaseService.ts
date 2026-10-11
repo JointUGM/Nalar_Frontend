@@ -25,11 +25,13 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
   constructor(private readonly api: HttpApi) {}
 
   // Up to 500 topics per school (five pages).
-  async list(schoolId: string, signal?: AbortSignal): Promise<KbSummary[]> {
-    return (await allItems(this.api, `/schools/${encodeURIComponent(schoolId)}/knowledge-bases?limit=100`, signal)).map((entry) => {
+  async list(schoolId: string, signal?: AbortSignal, status: 'active' | 'archived' = 'active'): Promise<KbSummary[]> {
+    return (await allItems(this.api, `/schools/${encodeURIComponent(schoolId)}/knowledge-bases?limit=100${status === 'archived' ? '&status=archived' : ''}`, signal)).map((entry) => {
       const value = record(entry)
+      const archivedAt = nullable(value.archived_at, instant)
+      if (status === 'archived' && archivedAt === null) throw new ApiError(502, 'INVALID_RESPONSE')
       return {
-        id: text(value.id), topic_title: text(value.topic_title), owner_name: nullable(value.owner_name, text), school_subject_id: text(value.school_subject_id), can_edit: flag(value.can_edit),
+        id: text(value.id), topic_title: text(value.topic_title), owner_name: nullable(value.owner_name, text), school_subject_id: text(value.school_subject_id), can_edit: flag(value.can_edit) && archivedAt === null, archived_at: archivedAt,
         material_count: count(value.material_count), built_section_count: count(value.built_section_count), pending_count: count(value.pending_count), approved_concept_count: count(value.approved_concept_count),
       }
     })
@@ -42,8 +44,9 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
 
   async detail(kbId: string, signal?: AbortSignal): Promise<KbDetail> {
     const value = record((await this.api.request(kb(kbId), { signal })).data)
+    const archivedAt = nullable(value.archived_at, instant)
     return {
-      id: text(value.id), topic_title: text(value.topic_title), can_edit: flag(value.can_edit),
+      id: text(value.id), topic_title: text(value.topic_title), can_edit: flag(value.can_edit) && archivedAt === null, archived_at: archivedAt,
       materials: list(value.materials).map((entry) => {
         const material = record(entry)
         return { id: text(material.id), title: text(material.title), page_count: nullable(material.page_count, count), pages_without_text: list(material.pages_without_text).map((page) => count(page)), archived_at: nullable(material.archived_at, instant) }
