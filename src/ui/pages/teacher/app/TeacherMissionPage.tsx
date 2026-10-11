@@ -35,8 +35,11 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
   const wanted = Number(params.get('v'))
   const requestedJob = params.get('job')
   const requested = Number.isInteger(wanted) && wanted > 0 ? wanted : null
+  const archivedLibrary = params.get('status') === 'archived'
   const read = useCallback(async (signal: AbortSignal): Promise<Loaded> => {
-    const mission = (await service.missions(schoolId, signal)).find((item) => item.id === missionId)
+    let mission = (await service.missions(schoolId, signal, archivedLibrary ? 'archived' : 'active')).find((item) => item.id === missionId)
+    // Old report/history links do not carry a library filter; archived missions remain reachable by id.
+    if (!mission && !archivedLibrary) mission = (await service.missions(schoolId, signal, 'archived')).find((item) => item.id === missionId)
     if (!mission) throw new ApiError(404, 'NOT_FOUND')
     const number = requested ?? mission.latest_version?.version_number
     // The knowledge base only supplies the concept names, so the mission still opens without it.
@@ -46,7 +49,7 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
       ? await service.missionVersion(missionId, version.base_version_number, signal).catch(() => null) : null
     const revisionRequest = requestedJob && mission.can_edit ? await service.revisionRequest(missionId, requestedJob, signal).catch(() => null) : null
     return { mission, version, detail, history, revisionRequest, comparisonBase: comparisonBase?.id === version?.base_version_id ? comparisonBase : null }
-  }, [service, kb, schoolId, missionId, requested, requestedJob])
+  }, [service, kb, schoolId, missionId, requested, requestedJob, archivedLibrary])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   const commandSignal = useCommandSignal()
   const busy = useRef(false)
@@ -63,10 +66,14 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
     if (job.generation_result) navigate(`${path}?v=${job.generation_result.version_number}`, { replace: true })
     refresh()
   }, [navigate, path, refresh])
-  const back = <Link className={styles.back} to={`${base}/missions`}><Icon name="chevronLeft" size={14} />Misi</Link>
+  const libraryPath = `${base}/missions${archivedLibrary || data?.mission.archived_at ? '?status=archived' : ''}`
+  const back = <Link className={styles.back} to={libraryPath}><Icon name="chevronLeft" size={14} />Misi</Link>
 
   if (!data) return <div className={styles.content}>{back}<LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat misi…" />}</div>
   const { mission, version, detail, history, comparisonBase, revisionRequest } = data
+  const archivedAt = mission.archived_at ?? version?.archived_at ?? detail?.archived_at ?? null
+  const canEditMission = mission.can_edit && archivedAt === null
+  const canEditVersion = version !== null && version.can_edit && archivedAt === null
   const latest = mission.latest_version
   const isLatest = version !== null && latest?.id === version.id
   // One card with tabs, as in Board v2; history is the only part that exists without a version.
@@ -116,18 +123,18 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
   const said = failure && missionRefusal(failure)
 
   return <div className={styles.content}>
-    <TeacherPageHead crumb={<><Link to={`${base}/missions`}>Misi</Link><Icon name="chevronRight" size={14} /></>} title={version?.title || mission.title} tag={<span className={[styles.tag, version?.status === 'draft' ? styles.draft : version ? styles.version : styles.locked].join(' ')}>{version ? `${versionWord[version.status] ?? version.status} · v${version.version_number}` : 'Belum ada versi'}</span>} subtitle={[detail && `Basis pengetahuan: ${detail.topic_title}`, mission.can_edit ? 'Misi Anda' : `Dari ${mission.created_by_name ?? 'rekan guru'}`].filter(Boolean).join(' · ')} />
+    <TeacherPageHead crumb={<><Link to={libraryPath}>Misi</Link><Icon name="chevronRight" size={14} /></>} title={version?.title || mission.title} tag={<span className={[styles.tag, version?.status === 'draft' ? styles.draft : version ? styles.version : styles.locked].join(' ')}>{archivedAt ? 'Diarsipkan · ' : ''}{version ? `${versionWord[version.status] ?? version.status} · v${version.version_number}` : 'Belum ada versi'}</span>} subtitle={[detail && `Basis pengetahuan: ${detail.topic_title}`, mission.can_edit ? 'Misi Anda' : `Dari ${mission.created_by_name ?? 'rekan guru'}`].filter(Boolean).join(' · ')} />
     <div className={styles.header}>
       <div className={styles.actions}>
-        {mission.can_edit && (version?.can_revise_with_ai
+        {canEditMission && (version?.can_revise_with_ai
           ? <Button tone="secondary" disabled={pending !== '' || draft !== null || jobBusy} onClick={() => { setFailure(null); setRevision({ component: null }) }}><Icon name="sparkle" size={14} />Revisi dengan AI</Button>
           : <Button tone="secondary" pending={pending === 'generate'} pendingLabel="Meminta draf…" disabled={pending !== '' || draft !== null || jobBusy} onClick={() => { void run('generate', (signal) => service.generateMission(mission.id, signal), (queued) => { setJobId(queued.job_id); setJobBusy(true); navigate(`${path}?job=${queued.job_id}`, { replace: true }) }) }}><Icon name="sparkle" size={14} />{version ? 'Buat ulang dengan AI' : 'Buat draf dengan AI'}</Button>)}
-        {version?.can_edit && version.status === 'draft' && <Button pending={pending === 'review'} pendingLabel="Memeriksa…" disabled={pending !== '' || draft !== null} onClick={() => { void run('review', (signal) => service.reviewMissionVersion(mission.id, version.version_number, signal)) }}><Icon name="check" size={14} />Tandai sudah ditinjau</Button>}
-        {isLatest && publishable(mission) && <Link className={styles.publish} to={`${path}/publish`}><Icon name="send" size={14} />Terbitkan ke kelas</Link>}
-        {mission.can_edit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan</>} title="Arsipkan misi ini?" description={`${mission.title}. Misi hilang dari daftar dan tidak bisa diterbitkan lagi. Sesi dan hasil yang sudah ada tetap tersimpan. Arsip tidak bisa dibuka kembali dari aplikasi.`} confirm="Arsipkan misi" pendingLabel="Mengarsipkan…" disabled={pending !== ''} action={(signal) => service.archiveMission(mission.id, signal)} onDone={() => navigate(`${base}/missions`)} refusal={missionRefusal} />}
+        {canEditVersion && version.status === 'draft' && <Button pending={pending === 'review'} pendingLabel="Memeriksa…" disabled={pending !== '' || draft !== null} onClick={() => { void run('review', (signal) => service.reviewMissionVersion(mission.id, version.version_number, signal)) }}><Icon name="check" size={14} />Tandai sudah ditinjau</Button>}
+        {isLatest && archivedAt === null && publishable(mission) && <Link className={styles.publish} to={`${path}/publish`}><Icon name="send" size={14} />Terbitkan ke kelas</Link>}
+        {canEditMission && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan</>} title="Arsipkan misi ini?" description={`${mission.title}. Misi tidak dapat diterbitkan lagi. Versi, sesi, dan hasil sebelumnya tetap tersimpan dan dapat dibaca dari Diarsipkan.`} confirm="Arsipkan misi" pendingLabel="Mengarsipkan…" disabled={pending !== ''} action={(signal) => service.archiveMission(mission.id, signal)} onDone={() => navigate(`${base}/missions?status=archived`)} refusal={missionRefusal} />}
       </div>
     </div>
-    {!mission.can_edit && <p className={styles.note}>Misi ini dibuat rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
+    {archivedAt ? <Feedback title="Misi diarsipkan">Diarsipkan {formatDayTime(archivedAt)}. Versi dan riwayat tetap dapat dibaca. Arsip tidak dapat diubah atau diterbitkan.</Feedback> : !mission.can_edit && <p className={styles.note}>Misi ini dibuat rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
     {version && latest && !isLatest && <p className={styles.note}>Anda melihat versi {version.version_number}. <Link to={path}>Buka versi terbaru (v{latest.version_number})</Link></p>}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {jobId && <JobNotice key={jobId} kb={kb} jobId={jobId} onDone={jobDone} />}
@@ -135,26 +142,26 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
       {failure.problems.length > 0 && <ul>{[...new Set(failure.problems)].map((code) => <li key={code}>{problemWord(code)}</li>)}</ul>}
       {!said && failure.requestId && <small>Referensi: {failure.requestId}</small>}
     </Feedback>}
-    {!version && <Feedback title="Belum ada draf">{mission.can_edit ? 'Minta AI menyusun draf dari konsep yang sudah disetujui, lalu periksa hasilnya di sini.' : 'Pembuat misi belum menyusun drafnya.'}</Feedback>}
+    {!version && <Feedback title="Belum ada draf">{archivedAt ? 'Misi ini diarsipkan sebelum draf disusun.' : mission.can_edit ? 'Minta AI menyusun draf dari konsep yang sudah disetujui, lalu periksa hasilnya di sini.' : 'Pembuat misi belum menyusun drafnya.'}</Feedback>}
     {version?.base_version_id && (comparisonBase
       ? <MissionVersionComparison key={version.id} base={comparisonBase} version={version} names={Object.fromEntries((detail?.concepts ?? []).map((c) => [c.id, c.name]))} />
       : <Feedback tone="warning" title="Versi dasar belum dapat dimuat">Perbandingan belum tersedia. Muat ulang halaman untuk memeriksa versi dasar.</Feedback>)}
-    {revision && version && latest && <MissionRevisionForm key={version.id} version={version} latestId={latest.id} concepts={detail?.concepts ?? null} initialComponent={revision.component} initialInput={revision.component === null && revisionRequest?.status === 'failed' && revisionRequest.intent.base_version_id === version.id ? revisionRequest.intent : null} pending={pending !== ''} error={failure ? said ?? failure.message : null} onClose={() => setRevision(null)} onSubmit={revise} />}
+    {revision && canEditMission && version?.can_revise_with_ai && latest && <MissionRevisionForm key={version.id} version={version} latestId={latest.id} concepts={detail?.concepts ?? null} initialComponent={revision.component} initialInput={revision.component === null && revisionRequest?.status === 'failed' && revisionRequest.intent.base_version_id === version.id ? revisionRequest.intent : null} pending={pending !== ''} error={failure ? said ?? failure.message : null} onClose={() => setRevision(null)} onSubmit={revise} />}
     <div className={styles.layout}>
     {available.length > 0 && <section className={styles.card} aria-label="Isi misi">
       <div className={styles.tabs} role="tablist" aria-label="Bagian misi" onKeyDown={onTabKey}>{available.map(([key, label]) => <button key={key} id={`mission-tab-${key}`} type="button" role="tab" aria-selected={current === key} aria-controls={`mission-panel-${key}`} tabIndex={current === key ? 0 : -1} className={styles.tab} onClick={() => setTab(key)}>{label}{count(key) !== null && <span className={styles.tabCount}>{count(key)}</span>}</button>)}</div>
-      {version?.can_revise_with_ai && mission.can_edit && current !== 'history' && <div className="px-6 pt-4"><Button tone="secondary" disabled={pending !== '' || jobBusy || draft !== null} onClick={() => { setFailure(null); setRevision({ component: current === 'bank' ? 'bank' : current === 'rubric' ? 'rubric' : 'anchor_problem' }) }}>Revisi bagian ini</Button></div>}
+      {version?.can_revise_with_ai && canEditMission && current !== 'history' && <div className="px-6 pt-4"><Button tone="secondary" disabled={pending !== '' || jobBusy || draft !== null} onClick={() => { setFailure(null); setRevision({ component: current === 'bank' ? 'bank' : current === 'rubric' ? 'rubric' : 'anchor_problem' }) }}>Revisi bagian ini</Button></div>}
       <div id={`mission-panel-${current}`} role="tabpanel" aria-labelledby={`mission-tab-${current}`} className={styles.panel}>
         {current === 'anchor' && version && <>
         <div className={styles.anchors}>
-          <article className={styles.box}>{draft
+          <article className={styles.box}>{canEditVersion && draft
             ? <label className={styles.edit}>Soal pembuka · dilihat siswa<textarea rows={5} maxLength={4000} value={draft.anchor} onChange={(event) => setDraft({ ...draft, anchor: event.target.value })} /></label>
             : <><p className={styles.eyebrow}>SOAL PEMBUKA · DILIHAT SISWA</p><p className={styles.question}>{version.anchor_problem}</p></>}</article>
-          <article className={[styles.box, styles.private].join(' ')}>{draft
+          <article className={[styles.box, styles.private].join(' ')}>{canEditVersion && draft
             ? <label className={styles.edit}>Jawaban acuan · tidak dilihat siswa<textarea rows={5} maxLength={8000} value={draft.reference} onChange={(event) => setDraft({ ...draft, reference: event.target.value })} /></label>
             : <><p className={styles.eyebrow}>JAWABAN ACUAN · TIDAK DILIHAT SISWA<Icon name="lock" size={12} /></p><p>{version.reference_reasoning}</p></>}</article>
         </div>
-        {version.can_edit && (draft
+        {canEditVersion && (draft
           ? <div className={styles.actions}>
             <Button className={styles.editButton} pending={pending === 'save'} pendingLabel="Menyimpan…" disabled={!draft.anchor.trim() || !draft.reference.trim()} onClick={() => save(version, draft)}>Simpan sebagai versi baru</Button>
             <Button tone="secondary" className={styles.editButton} disabled={pending !== ''} onClick={() => setDraft(null)}>Batal</Button>

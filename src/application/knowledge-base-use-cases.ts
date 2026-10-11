@@ -20,7 +20,7 @@ const lines = (values: string[], max: number) => values.map((value) => value.tri
 
 export class KnowledgeBaseUseCases implements KnowledgeBaseService {
   constructor(private readonly service: KnowledgeBaseService) {}
-  list(schoolId: string, signal?: AbortSignal) { return this.service.list(resourceId(schoolId), signal) }
+  list(schoolId: string, signal?: AbortSignal, status?: 'active' | 'archived') { return this.service.list(resourceId(schoolId), signal, status) }
   create(schoolId: string, input: KbCreateInput, signal?: AbortSignal) {
     return this.service.create(resourceId(schoolId), { school_subject_id: resourceId(input.school_subject_id), topic_title: required(input.topic_title, 120), file: pdf(input.file) }, signal)
   }

@@ -6,7 +6,7 @@ export interface TeacherService {
   reviseMission(missionId: string, input: MissionRevisionInput, signal?: AbortSignal): Promise<RevisionQueued>
   publications(signal?: AbortSignal): Promise<TeacherPublication[]>
   assignments(signal?: AbortSignal): Promise<TeacherAssignment[]>
-  missions(schoolId: string, signal?: AbortSignal): Promise<MissionSummary[]>
+  missions(schoolId: string, signal?: AbortSignal, status?: 'active' | 'archived'): Promise<MissionSummary[]>
   createMission(input: MissionInput, signal?: AbortSignal): Promise<{ mission_id: string }>
   generateMission(missionId: string, signal?: AbortSignal): Promise<{ job_id: string }>
   archiveMission(missionId: string, signal?: AbortSignal): Promise<void>

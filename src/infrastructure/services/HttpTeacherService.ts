@@ -39,11 +39,13 @@ export class HttpTeacherService implements TeacherService {
   }
 
   // Up to 500 missions per school (five pages).
-  async missions(schoolId: string, signal?: AbortSignal): Promise<MissionSummary[]> {
-    return (await allItems(this.api, `/schools/${encodeURIComponent(schoolId)}/missions?limit=100`, signal)).map((item) => {
+  async missions(schoolId: string, signal?: AbortSignal, status: 'active' | 'archived' = 'active'): Promise<MissionSummary[]> {
+    return (await allItems(this.api, `/schools/${encodeURIComponent(schoolId)}/missions?limit=100${status === 'archived' ? '&status=archived' : ''}`, signal)).map((item) => {
       const value = record(item)
+      const archivedAt = nullable(value.archived_at, instant)
+      if (status === 'archived' && archivedAt === null) throw new ApiError(502, 'INVALID_RESPONSE')
       return {
-        id: text(value.id), title: text(value.title), knowledge_base_id: text(value.knowledge_base_id), can_edit: flag(value.can_edit), created_by_name: nullable(value.created_by_name, text),
+        id: text(value.id), title: text(value.title), knowledge_base_id: text(value.knowledge_base_id), can_edit: flag(value.can_edit) && archivedAt === null, archived_at: archivedAt, created_by_name: nullable(value.created_by_name, text),
         latest_version: nullable(value.latest_version, (raw) => { const version = record(raw); return { id: text(version.id), version_number: count(version.version_number), status: text(version.status) } }),
       }
     })
@@ -106,8 +108,9 @@ export class HttpTeacherService implements TeacherService {
 
   async missionVersion(missionId: string, number: number, signal?: AbortSignal): Promise<MissionVersion> {
     const value = record((await this.api.request(`${mission(missionId)}/versions/${number}`, { signal })).data), rubric = record(value.rubric)
+    const archivedAt = nullable(value.archived_at, instant)
     return {
-      id: text(value.id), version_number: count(value.version_number), status: text(value.status), can_edit: flag(value.can_edit),
+      id: text(value.id), version_number: count(value.version_number), status: text(value.status), can_edit: flag(value.can_edit) && archivedAt === null, archived_at: archivedAt,
       anchor_problem: text(value.anchor_problem), reference_reasoning: text(value.reference_reasoning),
       rubric: { claim: texts(rubric.claim), evidence: texts(rubric.evidence), mechanism: texts(rubric.mechanism), transfer: texts(rubric.transfer) },
       target_concept_ids: texts(value.target_concept_ids), misconception_ids: texts(value.misconception_ids), source_chunk_ids: texts(value.source_chunk_ids), answer_terms: texts(value.answer_terms),
@@ -129,7 +132,7 @@ export class HttpTeacherService implements TeacherService {
         return { id: text(item.id), component: text(item.component) as MissionRevisionFeedback['component'], issue: text(item.issue) as MissionRevisionFeedback['issue'], desired_change: text(item.desired_change), question_ids: texts(item.question_ids) }
       }),
       revision_changed_fields: value.revision_changed_fields === undefined ? [] : texts(value.revision_changed_fields),
-      can_revise_with_ai: value.can_revise_with_ai === undefined ? false : flag(value.can_revise_with_ai),
+      can_revise_with_ai: value.can_revise_with_ai === undefined ? false : flag(value.can_revise_with_ai) && archivedAt === null,
     }
   }
 
