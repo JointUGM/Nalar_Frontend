@@ -10,6 +10,12 @@ const styles = {
   header: 'flex flex-wrap items-end justify-between gap-x-6 gap-y-3 [&>div:first-child]:min-w-0 [&_p]:mt-0.5 [&_p]:mb-0 [&_p]:text-[14px] [&_p]:leading-5 [&_p]:text-text-secondary',
   title: 'flex flex-wrap items-center gap-2.5 [&_h1]:m-0 [&_h1]:text-[24px] [&_h1]:leading-[30px] [&_h1]:font-extrabold [&_h1]:tracking-[-.02em] [&_h1]:wrap-anywhere',
   jumpLinks: `flex flex-wrap items-center gap-2 [&_a]:inline-flex [&_a]:min-h-10 [&_a]:items-center [&_a]:gap-1.5 [&_a]:rounded-[8px] [&_a]:bg-surface [&_a]:px-3.5 [&_a]:text-[14px] [&_a]:font-bold [&_a]:text-ink [&_a]:no-underline [&_a:hover]:text-primary max-md:[&_a]:min-h-11 [&_button]:min-h-10 [&_button]:text-[14px] [&_button]:font-bold max-md:[&_button]:min-h-11`,
+  tabs: 'grid min-w-0 gap-4',
+  tabList: 'flex w-fit max-w-full flex-wrap gap-1 rounded-xl bg-surface p-1 max-sm:w-full',
+  tab: 'flex min-h-10 cursor-pointer flex-wrap items-center justify-center gap-x-2 gap-y-0.5 rounded-lg border-0 bg-transparent px-4 py-2 text-[14px] leading-5 font-bold text-text-secondary hover:bg-paper hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary data-[active]:bg-info-bg data-[active]:text-primary max-md:min-h-11 max-sm:flex-1 max-sm:px-3',
+  tabCount: 'text-[12px] leading-4 font-semibold tabular-nums',
+  tabPanel: 'min-w-0 data-[hidden]:hidden focus-visible:rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary',
+  inspectorActions: 'mt-4 flex min-h-11 items-center [&>div]:mt-0 [&_button]:py-2',
   tag: 'rounded-pill px-2.5 py-[3px] text-[12px] leading-4 font-bold whitespace-nowrap [&:where(:not(.teacherkbreview-approved)):where(:not(.teacherkbreview-review))]:bg-paper [&:where(:not(.teacherkbreview-approved)):where(:not(.teacherkbreview-review))]:text-text-secondary',
   approved: 'teacherkbreview-approved bg-success-bg text-success-strong',
   review: 'teacherkbreview-review bg-warning-bg text-warning-text',
@@ -17,7 +23,7 @@ const styles = {
   grid: 'grid scroll-mt-20 items-start gap-4 xl:grid-cols-12 xl:data-[empty=false]:items-stretch',
   mapColumn: 'grid min-w-0 gap-4 [&>section]:flex [&>section]:flex-col xl:col-span-8 xl:in-data-[empty=true]:col-span-12',
   railColumn: 'grid min-w-0 gap-4 xl:col-span-4',
-  progress: 'flex min-w-0 flex-1 items-center gap-3 text-[14px] text-text-secondary',
+  progress: 'flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-text-secondary',
   bar: 'block h-1.5 w-44 max-w-full overflow-hidden rounded-pill bg-paper [&>span]:block [&>span]:h-full [&>span]:bg-success-text',
   map: 'mt-3 flex min-h-[420px] flex-1 flex-col',
   pager: 'flex items-center justify-between gap-2 text-[13px] text-text-muted [&_button]:min-h-9 [&_button]:gap-1 [&_button]:rounded-[8px] [&_button]:px-3 [&_button]:text-[13px] [&_button]:font-bold',
@@ -52,7 +58,7 @@ const styles = {
   itemText: 'grid min-w-0 flex-1 gap-0.5 wrap-anywhere [&_strong]:text-[14px] [&_strong]:leading-5 [&_strong]:font-bold [&_small]:text-[12px] [&_small]:leading-4 [&_small]:text-text-muted',
   fileIcon: 'grid size-9 flex-none place-items-center rounded-[10px] bg-info-bg text-primary',
   chip: 'flex-none rounded-pill bg-surface px-2.5 py-0.5 text-[12px] leading-4 font-bold whitespace-nowrap text-text-secondary data-[status=built]:bg-success-bg data-[status=built]:text-success-strong data-[status=building]:bg-info-bg data-[status=building]:text-primary data-[status=queued]:bg-info-bg data-[status=queued]:text-primary data-[status=failed]:bg-danger-bg data-[status=failed]:text-danger-text',
-  materialActions: 'flex flex-none flex-wrap justify-end gap-1',
+  materialActions: 'flex flex-none flex-wrap justify-end gap-1 max-sm:basis-full max-sm:justify-start max-sm:pl-12',
 } satisfies Record<string, string>
 
 export default styles
