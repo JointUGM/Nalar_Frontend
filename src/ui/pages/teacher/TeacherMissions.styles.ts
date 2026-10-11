@@ -7,6 +7,8 @@ const styles = {
   page: 'mx-auto grid max-w-340 gap-4',
   header: 'flex flex-wrap items-end justify-between gap-x-6 gap-y-3 [&>div:first-child]:min-w-0 [&>div:first-child]:flex-[1_1_280px] [&_h1]:m-0 [&_h1]:text-[24px] [&_h1]:leading-[30px] [&_h1]:font-extrabold [&_h1]:tracking-[-.02em] [&_p]:mt-0.5 [&_p]:mb-0 [&_p]:max-w-[64ch] [&_p]:text-[14px] [&_p]:leading-5 [&_p]:text-text-secondary',
   button: 'ms-auto min-h-9 gap-2 rounded-[8px] border-0 bg-surface px-3.5 text-[14px] font-bold text-ink hover:not-disabled:bg-info-bg [&>svg]:text-primary max-md:min-h-11',
+  // Same button inside the empty state, where `ms-auto` would push it off the centre line.
+  buttonCentered: 'min-h-9 gap-2 rounded-[8px] border-0 bg-surface px-3.5 text-[14px] font-bold text-ink hover:not-disabled:bg-info-bg [&>svg]:text-primary max-md:min-h-11',
 
   strip: 'flex min-w-0 flex-wrap items-center gap-2',
   stats: 'flex flex-wrap items-center gap-2',

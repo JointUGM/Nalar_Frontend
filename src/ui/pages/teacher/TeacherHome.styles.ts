@@ -1,6 +1,8 @@
 // Tailwind classes for TeacherHomePage.tsx, after the home screen of "NALAR Guru.dc.html": borderless white cards on
 // paper, a 400px schedule beside the changed-minds card, then a 5/4/3 row (attention, class patterns, rail).
 const link = '[&>a]:ms-auto [&>a]:text-[13px] [&>a]:font-bold [&>a]:text-primary [&>a]:no-underline [&>a:hover]:text-primary-hover'
+// A press answers within one frame; reduced motion keeps the colour change and drops the scale.
+const press = 'transition-[background-color,transform] duration-150 ease-[cubic-bezier(.23,1,.32,1)] active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100'
 const styles = {
   page: 'grid min-w-0 gap-4',
   top: 'grid items-stretch gap-4 xl:grid-cols-[400px_minmax(0,1fr)]',
@@ -10,12 +12,14 @@ const styles = {
   big: 'text-[18px]! font-extrabold! tracking-[-.02em]',
   empty: 'm-0 flex items-center gap-2 text-[14px] text-text-secondary [&_a]:font-bold [&_a]:text-primary',
 
-  schedule: 'm-0 grid list-none grid-cols-[40px_minmax(0,1fr)] gap-x-3 gap-y-2 p-0 [&>li]:contents',
-  slot: 'pt-3 text-[12px] font-bold tabular-nums text-text-muted',
-  block: 'grid gap-1.5 rounded-xl bg-paper px-3 py-2.5 text-ink data-[tone=done]:bg-success-bg data-[tone=planned]:bg-info-bg data-[tone=live]:bg-primary data-[tone=live]:text-white',
-  blockTitle: 'flex min-w-0 items-baseline gap-2 text-inherit no-underline [&_strong]:text-[16px] [&_strong]:font-extrabold [&_span]:truncate [&_span]:text-[13px] [&_span]:font-semibold hover:[&_span]:underline',
-  blockFoot: 'flex min-h-7 items-center gap-2 text-[12px] [&>span]:flex-1 [&>span]:opacity-80 [&_b]:flex [&_b]:items-center [&_b]:gap-1 [&_b]:font-bold [&_b]:text-primary [&_b[data-done]]:text-success-strong',
-  blockAction: 'flex h-7 flex-none items-center gap-1.5 rounded-[8px] bg-surface px-2.5 text-[12px] font-bold text-primary no-underline hover:bg-info-bg',
+  schedule: 'm-0 grid list-none gap-2 p-0',
+  // One boxed row per session, tinted by status: running is yellow, not started is red, done is green. The label always says it too.
+  row: 'grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-x-3 rounded-xl px-3 py-3 text-ink data-[tone=live]:bg-warning-bg data-[tone=planned]:bg-danger-bg data-[tone=done]:bg-success-bg',
+  rowClass: 'grid size-10 place-items-center self-start rounded-[10px] bg-surface text-[14px] font-extrabold tabular-nums text-ink [&>span]:max-w-full [&>span]:truncate [&>span]:px-1',
+  rowBody: 'grid min-w-0 gap-0.5 [&>a]:line-clamp-2 [&>a]:text-[14px] [&>a]:leading-5 [&>a]:font-bold [&>a]:text-ink [&>a]:no-underline [&>a:hover]:text-primary [&>p]:m-0 [&>p]:text-[13px] [&>p]:leading-5 [&>p]:text-text-secondary',
+  code: 'font-extrabold tracking-[.12em] tabular-nums',
+  badge: 'flex items-center gap-1 text-[13px] leading-5 font-bold whitespace-nowrap data-[tone=planned]:text-danger-text data-[tone=done]:text-success-strong',
+  blockAction: `flex h-9 flex-none items-center gap-1.5 rounded-[8px] bg-tinta px-3 text-[13px] font-bold whitespace-nowrap text-white no-underline hover:bg-primary-hover ${press}`,
 
   proud: 'm-0 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-success-bg px-4 py-2 [&_strong]:text-[20px] [&_strong]:font-extrabold [&_strong]:tracking-[-.02em] [&_strong]:text-success-strong [&>span]:text-[14px] [&>span]:text-[#1F4D38] [&_b]:font-bold',
   changes: 'm-0 grid list-none gap-4 p-0 md:grid-cols-2 [&_li]:grid [&_li]:content-start [&_li]:gap-3 [&_li]:rounded-xl [&_li]:bg-paper [&_li]:p-4 [&_q]:font-reading [&_q]:text-[15px] [&_q]:leading-[1.5] [&_q]:text-ink [&_q]:[quotes:none] [&_dl]:m-0 [&_dl]:grid [&_dl]:grid-cols-2 [&_dl]:gap-2 [&_dl>div]:rounded-[10px] [&_dl>div]:bg-surface [&_dl>div]:px-3 [&_dl>div]:py-2 [&_dt]:text-[12px] [&_dt]:font-bold [&_dt]:text-text-muted [&_dd]:m-0 [&_dd]:text-[14px] [&_dd]:font-bold [&_div[data-good=true]_dt]:text-success-strong [&_div[data-good=true]_dd]:text-success-strong',

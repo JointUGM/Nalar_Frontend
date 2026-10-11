@@ -46,7 +46,7 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <section className={styles.panel}><div className={styles.state}><Loading label="Memuat basis pengetahuan…" /></div></section>}
     {!data && error && <section className={styles.panel}><NalaEmpty mood="oops" title="Basis pengetahuan belum dapat ditampilkan">Coba muat ulang melalui pilihan di atas.</NalaEmpty></section>}
-    {data && data.length === 0 && <section className={styles.panel}><NalaEmpty mood="ask" title="Belum ada basis pengetahuan" action={<ButtonLink tone="secondary" className={styles.button} to={`${base}/knowledge-base/upload`}><Icon name="upload" size={16} />Unggah materi pertama</ButtonLink>}>
+    {data && data.length === 0 && <section className={styles.panel}><NalaEmpty mood="ask" title="Belum ada basis pengetahuan" action={<ButtonLink tone="secondary" className={styles.buttonCentered} to={`${base}/knowledge-base/upload`}><Icon name="upload" size={16} />Unggah materi pertama</ButtonLink>}>
       Unggah materi ajar (PDF) untuk memulai topik pertama.
     </NalaEmpty></section>}
     {data && data.length > 0 && <section className={styles.panel} aria-labelledby="topic-library-title">

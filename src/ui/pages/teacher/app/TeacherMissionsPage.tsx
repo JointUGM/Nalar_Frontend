@@ -55,7 +55,7 @@ export function TeacherMissionsPage({ service, base, schoolId }: { service: Teac
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <><div className={styles.panel}><div className={styles.panelState}><Loading label="Memuat misi…" /></div></div><div className={styles.skeleton} aria-hidden="true">{[0, 1, 2].map(key => <div key={key} />)}</div></>}
     {!data && error && <section className={styles.panel}><NalaEmpty mood="oops" title="Pustaka misi belum dapat ditampilkan">Gunakan pilihan pemulihan di atas untuk memuatnya lagi.</NalaEmpty></section>}
-    {data && data.length === 0 && <section className={styles.panel}><NalaEmpty mood="ask" title="Belum ada misi" action={<ButtonLink className={styles.button} to={`${base}/missions/new`}><Icon name="plus" size={16} />Buat misi pertama</ButtonLink>}>
+    {data && data.length === 0 && <section className={styles.panel}><NalaEmpty mood="ask" title="Belum ada misi" action={<ButtonLink className={styles.buttonCentered} to={`${base}/missions/new`}><Icon name="plus" size={16} />Buat misi pertama</ButtonLink>}>
       Mulai dari basis pengetahuan dengan konsep yang sudah disetujui, lalu susun misi pertama Anda.
     </NalaEmpty></section>}
     {data && data.length > 0 && <>
