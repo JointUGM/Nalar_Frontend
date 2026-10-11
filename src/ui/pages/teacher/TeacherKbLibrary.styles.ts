@@ -6,6 +6,8 @@ const press = 'transition-[background-color,color,scale] duration-150 ease-[cubi
 const styles = {
   page: 'mx-auto grid max-w-340 gap-4',
   button: 'ms-auto min-h-9 gap-2 rounded-[8px] border-0 bg-surface px-3.5 text-[14px] font-bold text-ink hover:not-disabled:bg-info-bg [&>svg]:text-primary max-md:min-h-11',
+  // Same button inside the empty state, where `ms-auto` would push it off the centre line.
+  buttonCentered: 'min-h-9 gap-2 rounded-[8px] border-0 bg-surface px-3.5 text-[14px] font-bold text-ink hover:not-disabled:bg-info-bg [&>svg]:text-primary max-md:min-h-11',
   panel: 'min-w-0 overflow-clip rounded-2xl bg-surface',
   state: 'px-4 py-5',
   reset: `m-0 min-h-10 cursor-pointer rounded-button border-0 bg-transparent px-3 text-[13px] font-semibold text-primary hover:bg-nav-hover ${focus} max-md:min-h-11`,

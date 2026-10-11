@@ -11,6 +11,7 @@ import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import { attentionKind, attentionRank, describeAttention, isKnownAttention, waitedFor } from '@/ui/pages/teacher/app/attentionText'
+import { dayLabel } from '@/ui/pages/teacher/app/homeInsights'
 import styles from '@/ui/pages/teacher/TeacherHome.styles'
 
 // Layout follows the home screen of "NALAR Guru.dc.html": sessions and changed minds on top, then attention, class
@@ -44,19 +45,27 @@ function Schedule({ resource, base }: { resource: { data: TeacherPublication[] |
     {!data && !error && <Loading label="Memuat sesi…" />}
     {data && data.length === 0 && <p className={styles.empty}>Belum ada sesi kelas. <Link to={`${base}/missions`}>Terbitkan misi yang sudah ditinjau</Link> untuk memulai.</p>}
     {rows.length > 0 && <ol className={styles.schedule}>{rows.map((publication) => {
-      const { run, counts } = publication
+      const { run, counts, class_name: className, subject_name: subject } = publication
       const at = when(publication)
       const tone = isActive(publication) ? 'live' : run.status === 'scheduled' ? 'planned' : 'done'
-      return <li key={publication.id}>
-        <span className={styles.slot}>{at ? clock.format(new Date(at)) : run.mode === 'live' ? 'Live' : '—'}</span>
-        <div className={styles.block} data-tone={tone}>
-          <Link to={sessionPath(publication, base)} state={{ publication }} className={styles.blockTitle}><strong>{publication.class_name}</strong><span>{publication.mission_title}</span></Link>
-          <div className={styles.blockFoot}>
-            <span>{tone === 'live' ? (run.status === 'lobby' ? 'Lobi terbuka' : `Berlangsung · ${number.format(counts.started)} siswa`) : tone === 'planned' ? (run.opens_at && run.closes_at ? `Jendela ${clock.format(new Date(run.opens_at))}–${clock.format(new Date(run.closes_at))}` : 'Belum dimulai') : `${number.format(counts.completed)} dari ${number.format(counts.started)} sesi selesai`}</span>
-            {tone === 'live' ? <Link className={styles.blockAction} to={`${base}/publications/${publication.id}/${run.status === 'lobby' ? 'projector' : 'monitor'}`} state={{ publication }}><Icon name="play" size={12} />{run.status === 'lobby' ? 'Buka lobi' : 'Pantau'}</Link>
-              : tone === 'planned' ? <b>Terjadwal</b> : <b data-done><Icon name="check" size={14} />Selesai</b>}
-          </div>
+      const released = publication.released_to_parents_at !== null
+      const day = at ? dayLabel(at) : null
+      const window = run.opens_at && run.closes_at ? `${clock.format(new Date(run.opens_at))}–${clock.format(new Date(run.closes_at))}` : at ? clock.format(new Date(at)) : null
+      const state = tone === 'live'
+        ? (run.status === 'lobby' ? <>Lobi terbuka{run.join_code && <> · kode <span className={styles.code}>{run.join_code}</span></>}</> : `Berlangsung · ${number.format(counts.started)} mulai, ${number.format(counts.completed)} selesai`)
+        : tone === 'planned' ? 'Menunggu jadwal dibuka'
+        : counts.started === 0 ? 'Belum ada siswa yang memulai'
+        : `${number.format(counts.completed)} dari ${number.format(counts.started)} selesai · ${number.format(counts.evaluated)} dinilai${counts.timed_out > 0 ? ` · ${number.format(counts.timed_out)} habis waktu` : ''}`
+      return <li key={publication.id} className={styles.row} data-tone={tone}>
+        <span className={styles.rowClass} title={`Kelas ${className}`}><span>{className}</span></span>
+        <div className={styles.rowBody}>
+          <Link to={sessionPath(publication, base)} state={{ publication }}>{publication.mission_title}</Link>
+          <p>{[day && window ? `${day} · ${window}` : day ?? window ?? 'Sesi langsung', subject].filter(Boolean).join(' · ')}</p>
+          <p>{state}</p>
         </div>
+        {tone === 'live' ? <Link className={styles.blockAction} to={`${base}/publications/${publication.id}/${run.status === 'lobby' ? 'projector' : 'monitor'}`} state={{ publication }}><Icon name="play" size={12} />{run.status === 'lobby' ? 'Buka lobi' : 'Pantau'}</Link>
+          : tone === 'planned' ? <b className={styles.badge} data-tone="planned">Belum dimulai</b>
+          : <b className={styles.badge} data-tone="done"><Icon name={released ? 'send' : 'check'} size={14} />{released ? 'Dirilis' : 'Selesai'}</b>}
       </li>
     })}</ol>}
   </section>
