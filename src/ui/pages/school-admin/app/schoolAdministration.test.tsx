@@ -155,6 +155,52 @@ describe('school administration', () => {
     expect(await screen.findByText('1 siswa ditempatkan di 8A.')).toBeInTheDocument()
     expect(JSON.parse(String(sent(request, 'POST')[0][1]?.body))).toEqual({ user_ids: [classB] })
   })
+  it('opens class detail with students when card is clicked, and moves student to another class', async () => {
+    const studentA = { ...person, user_id: '00000000-0000-4000-8000-000000000051', full_name: 'Budi Santoso', class_name: '8A' }
+    const studentB = { ...person, user_id: '00000000-0000-4000-8000-000000000052', full_name: 'Siti Rahma', class_name: '8A' }
+    const otherStudent = { ...person, user_id: '00000000-0000-4000-8000-000000000053', full_name: 'Citra Dewi', class_name: '8B' }
+    let placedTarget: string | null = null
+    let placedBody: unknown = null
+    const request = open(`/school/${school}/classes`, (key, init) => {
+      if (key === `GET /schools/${school}/academic-years`) return Response.json(years)
+      if (key === `GET /schools/${school}/classes?academic_year_id=${year}`) return Response.json([klass(classA, '8A'), klass(classB, '8B')])
+      if (key === `GET /schools/${school}/people?role=teacher&limit=50`) return Response.json({ items: [], next_cursor: null, total: 0 })
+      if (key === `GET /schools/${school}/people?role=student&limit=50`) return Response.json({ items: [studentA, studentB, otherStudent], next_cursor: null, total: 3 })
+      if (key === `POST /schools/${school}/classes/${classB}/students`) {
+        placedTarget = classB
+        placedBody = JSON.parse(String(init?.body))
+        return new Response(null, { status: 204 })
+      }
+    })
+
+    // 1. Click card to open detail dialog
+    fireEvent.click(await screen.findByRole('button', { name: 'Detail kelas 8A' }))
+    const detailDialog = within(screen.getByRole('dialog'))
+    expect(await detailDialog.findByText('Budi Santoso')).toBeInTheDocument()
+    expect(detailDialog.getByText('Siti Rahma')).toBeInTheDocument()
+    expect(detailDialog.queryByText('Citra Dewi')).not.toBeInTheDocument()
+
+    // 2. Move Budi Santoso to class 8B
+    fireEvent.click(detailDialog.getByRole('button', { name: 'Pindahkan Budi Santoso ke kelas lain' }))
+    const dialogs = await screen.findAllByRole('dialog')
+    const moveDialog = within(dialogs[dialogs.length - 1])
+    expect(moveDialog.getByText('Pindah Kelas Siswa')).toBeInTheDocument()
+    await choose(moveDialog.findByRole('combobox', { name: /Pilih kelas tujuan/ }), /8B/)
+    fireEvent.click(moveDialog.getByRole('button', { name: 'Pindahkan siswa' }))
+
+    expect(await detailDialog.findByText('Budi Santoso berhasil dipindahkan ke kelas 8B.')).toBeInTheDocument()
+    expect(placedTarget).toBe(classB)
+    expect(placedBody).toEqual({ user_ids: ['00000000-0000-4000-8000-000000000051'] })
+
+    // Close detail dialog
+    fireEvent.click(detailDialog.getByRole('button', { name: 'Tutup' }))
+
+    // 3. Click edit icon on card to open edit dialog directly
+    fireEvent.click(screen.getByRole('button', { name: 'Ubah kelas 8A' }))
+    const editDialog = within(screen.getByRole('dialog'))
+    expect(editDialog.getByText('Ubah kelas 8A')).toBeInTheDocument()
+    expect(editDialog.getByLabelText(/^Nama kelas/)).toHaveValue('8A')
+  })
   it('retries a new academic year with the same key, and a changed form gets a new one', async () => {
     let posts = 0
     const request = open(`/school/${school}/year`, (key) => {
@@ -164,6 +210,7 @@ describe('school administration', () => {
     fireEvent.change(await screen.findByLabelText(/^Nama/), { target: { value: '2027/2028' } })
     fireEvent.change(screen.getByLabelText(/^Tanggal mulai/), { target: { value: '2027-07-12' } })
     fireEvent.change(screen.getByLabelText(/^Tanggal selesai/), { target: { value: '2028-06-30' } })
+    fireEvent.click(screen.getByLabelText(/Langsung timpa/))
     fireEvent.click(screen.getByRole('button', { name: 'Tinjau' }))
     expect(screen.getByText(/Kelas dari 2026\/2027 disalin tanpa siswa/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Mulai tahun ajaran' }))
@@ -177,10 +224,27 @@ describe('school administration', () => {
     fireEvent.change(screen.getByLabelText(/^Nama/), { target: { value: '2028/2029' } })
     fireEvent.change(screen.getByLabelText(/^Tanggal mulai/), { target: { value: '2028-07-10' } })
     fireEvent.change(screen.getByLabelText(/^Tanggal selesai/), { target: { value: '2029-06-30' } })
+    fireEvent.click(screen.getByLabelText(/Langsung timpa/))
     fireEvent.click(screen.getByRole('button', { name: 'Tinjau' }))
     fireEvent.click(screen.getByRole('button', { name: 'Mulai tahun ajaran' }))
     await waitFor(() => expect(sent(request, 'POST')).toHaveLength(3))
     expect(new Headers(sent(request, 'POST')[2][1]?.headers).get('Idempotency-Key')).not.toBe(first)
+  })
+  it('schedules a future academic year without overwriting the current year', async () => {
+    const scheduledYear = '00000000-0000-4000-8000-000000000099'
+    const request = open(`/school/${school}/year`, (key) => {
+      if (key === `GET /schools/${school}/academic-years`) return Response.json(years)
+      if (key === `POST /schools/${school}/academic-years`) return Response.json({ academic_year_id: scheduledYear }, { status: 201 })
+    })
+    fireEvent.change(await screen.findByLabelText(/^Nama/), { target: { value: '2027/2028' } })
+    fireEvent.change(screen.getByLabelText(/^Tanggal mulai/), { target: { value: '2027-07-12' } })
+    fireEvent.change(screen.getByLabelText(/^Tanggal selesai/), { target: { value: '2028-06-30' } })
+    fireEvent.click(screen.getByLabelText(/Mulai setelah waktu yang ditentukan/))
+    fireEvent.click(screen.getByRole('button', { name: 'Tinjau' }))
+    expect(screen.getByText(/Tahun ajaran saat ini \(2026\/2027\) TIDAK akan ditimpa/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Jadwalkan tahun ajaran' }))
+    expect(await screen.findByText(/Tahun ajaran 2027\/2028 berhasil dijadwalkan/)).toBeInTheDocument()
+    expect(JSON.parse(String(sent(request, 'POST')[0][1]?.body))).toEqual({ name: '2027/2028', starts_on: '2027-07-12', ends_on: '2028-06-30', copy_classes_from: year })
   })
   it('maps a subject to a chosen CP subject and transfers a knowledge base to a teacher of that subject', async () => {
     const [subject, oldVersion, newVersion, oldIpa, newIpa, newIpaF, kb, owner, teacher, other] = ['31', '32', '33', '34', '35', '36', '37', '38', '39', '40'].map((end) => `00000000-0000-4000-8000-0000000000${end}`)

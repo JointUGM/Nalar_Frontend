@@ -4,10 +4,10 @@ import { Nala, type NalaMood } from './Nala'
 /** A page header's companion: Nala reacting to what the page has loaded, with one short line about it. */
 export function NalaNote({ mood, text }: { mood: NalaMood; text: string }) {
   // Keys replay the one-shot entrance when the state changes (loading → loaded), never on a poll with the same result.
-  // On a phone the note takes its own first row in the header and its siblings follow; md–xl hides the bubble.
-  return <div className="ml-auto flex min-w-0 items-center gap-2 max-md:order-1 max-md:ml-0 max-md:flex-[1_0_100%] max-md:flex-row-reverse max-md:[justify-content:start] max-md:[&~*]:order-2">
-    <p key={text} className="relative m-0 max-w-[32ch] origin-right animate-note-in rounded-[16px] border border-role-border/90 bg-surface/95 backdrop-blur-md px-4 py-2.5 text-[13px] leading-[19px] font-semibold text-pretty text-ink shadow-[0_4px_18px_rgb(21_33_59/8%),0_1px_3px_rgb(21_33_59/4%)] after:absolute after:top-[calc(50%-5px)] after:-right-[5px] after:size-2.5 after:rotate-45 after:rounded-[1px] after:border-t after:border-r after:border-role-border/90 after:bg-surface after:content-[''] motion-reduce:animate-none md:max-xl:hidden max-md:max-w-none max-md:origin-left max-md:after:right-auto max-md:after:-left-[5px] max-md:after:border-t-0 max-md:after:border-r-0 max-md:after:border-b max-md:after:border-l">{text}</p>
-    <span className="relative grid h-24 w-26 shrink-0 place-items-center after:content-[''] after:absolute after:bottom-0 after:w-16 after:h-2 after:rounded-full after:bg-black/6 after:blur-2xs [&>svg]:relative"><Nala key={mood} mood={mood} size={102} animate /></span>
+  // On a phone the note takes its own first row in the header and its siblings follow.
+  return <div className="ml-auto flex min-w-0 items-center gap-2.5 max-md:order-1 max-md:ml-0 max-md:flex-[1_0_100%] max-md:flex-row-reverse max-md:justify-start max-md:[&~*]:order-2">
+    <p key={text} className="relative m-0 max-w-[28ch] origin-right animate-note-in rounded-[16px] border border-role-border/90 bg-surface/95 backdrop-blur-md px-3.5 py-2 text-[12.5px] leading-[18px] font-semibold text-pretty text-ink shadow-[0_4px_18px_rgb(21_33_59/8%),0_1px_3px_rgb(21_33_59/4%)] after:absolute after:top-[calc(50%-5px)] after:-right-[5px] after:size-2.5 after:rotate-45 after:rounded-[1px] after:border-t after:border-r after:border-role-border/90 after:bg-surface after:content-[''] motion-reduce:animate-none max-sm:hidden max-md:max-w-none max-md:origin-left max-md:after:right-auto max-md:after:-left-[5px] max-md:after:border-t-0 max-md:after:border-r-0 max-md:after:border-b max-md:after:border-l">{text}</p>
+    <span className="relative grid h-20 w-22 shrink-0 place-items-center after:content-[''] after:absolute after:bottom-0 after:w-14 after:h-2 after:rounded-full after:bg-black/6 after:blur-2xs [&>svg]:relative"><Nala key={mood} mood={mood} size={88} animate /></span>
   </div>
 }
 

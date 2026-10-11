@@ -14,6 +14,13 @@ import styles from '@/ui/pages/school-admin/SchoolInvitations.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 import { NalaAvatar, NalaIcon } from '@/ui/components/nala/NalaIcon'
 import { NalaNote } from '@/ui/components/nala/NalaState'
+import type { NalaMood } from '@/ui/components/nala/Nala'
+
+const companion = (total: number, waiting: number): readonly [NalaMood, string] => {
+  if (total === 0) return ['ask', 'Belum ada akun terdaftar. Impor data siswa dan guru terlebih dahulu.']
+  if (waiting === 0) return ['proud', 'Semua akun sudah dikirimi undangan aktivasi!']
+  return ['hello', `${waiting} akun siap dikirimi tautan aktivasi.`]
+}
 
 const stateWord: readonly [string, string][] = [
   ['not_requested', 'Belum diundang'], ['pending', 'Dalam antrean'], ['sent', 'Terkirim, belum diaktivasi'], ['activated', 'Sudah diaktivasi'],
@@ -56,7 +63,7 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
   const [search, setSearch] = useState('')
   const [tab, setTab] = useState<FilterTab>('all')
 
-  if (!data) return <div className={styles.content}><div className={styles.heading}><div><h1 className="m-0 text-[32px] leading-[40px] font-bold tracking-[-0.04em] text-ink">Undangan akun</h1></div></div><LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat status undangan…" />}</div>
+  if (!data) return <div className={styles.content}><div className={styles.head}><div className={styles.headText}><h1 className={styles.title}>Undangan akun</h1><p className={styles.lead}>Kirim tautan aktivasi akun untuk siswa, guru, orang tua, dan admin sekolah.</p></div></div><LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat status undangan…" />}</div>
   const counts = data.counts
   const waiting = { new: counts.not_requested ?? 0, retry: (counts.failed ?? 0) + (counts.expired ?? 0) }
 
@@ -89,12 +96,6 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
   }
   const skipped = result ? Object.entries(result.skipped) : []
 
-  const note = waiting.new > 0
-    ? (['ask', `${waiting.new} akun baru belum diundang. Kirim undangan agar mereka dapat mulai login.`] as const)
-    : waiting.retry > 0
-      ? (['oops', `${waiting.retry} undangan perlu dikirim ulang karena kedaluwarsa atau gagal.`] as const)
-      : (['proud', `Luar biasa! Seluruh ${data.total} akun di sekolah ini sudah dikirimkan undangannya.`] as const)
-
   const filteredItems = data.items.filter((item) => {
     if (search.trim()) {
       const q = search.toLowerCase().trim()
@@ -108,13 +109,15 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
     return true
   })
 
+  const note = companion(totalAccounts, notRequestedCount)
+
   return <div className={styles.content}>
-    <div className={styles.heading}>
-      <div>
-        <h1 className="m-0 text-[32px] leading-[40px] font-bold tracking-[-0.04em] text-ink">Akun</h1>
-        <p className={styles.subtitle}>{data.total} dari {data.total} akun</p>
+    <div className={styles.head}>
+      <div className={styles.headText}>
+        <h1 className={styles.title}>Undangan akun</h1>
+        <p className={styles.lead}>Kirim tautan aktivasi akun untuk siswa, guru, orang tua, dan admin sekolah.</p>
       </div>
-      <NalaNote mood={note[0]} text={note[1]} />
+      {note && <NalaNote mood={note[0]} text={note[1]} />}
     </div>
 
     <LiveFeedback error={error} online={online} refresh={refresh} />
@@ -126,12 +129,12 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
     {/* Compact KPI Summary Card */}
     <section className={styles.summary} aria-labelledby="invitations-summary">
       <div className={styles.sectionHead}>
-        <h2 id="invitations-summary">Status undangan akun</h2>
-        <span>{invitationPct}% sudah diundang</span>
+        <h2 id="invitations-summary" className={styles.sectionTitle}>Status undangan akun</h2>
+        <span className={styles.sectionBadge}>{invitationPct}% sudah diundang</span>
       </div>
 
       <ul className={styles.kpis} aria-label="Ringkasan status undangan">
-        <li>
+        <li className={styles.kpiItem}>
           <span className={styles.label}>
             <NalaIcon name="send" />
             Belum diundang
@@ -142,7 +145,7 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
           </span>
           <span className={styles.caption}>Dari {totalAccounts} akun di sekolah</span>
         </li>
-        <li>
+        <li className={styles.kpiItem}>
           <span className={styles.label}>
             <NalaIcon name="time" />
             Dalam proses
@@ -153,7 +156,7 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
           </span>
           <span className={styles.caption}>Tautan dikirim ke email</span>
         </li>
-        <li>
+        <li className={styles.kpiItem}>
           <span className={styles.label}>
             <NalaIcon name="done" />
             Sudah diaktivasi
@@ -164,7 +167,7 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
           </span>
           <span className={styles.caption}>Akun aktif & siap login</span>
         </li>
-        <li>
+        <li className={styles.kpiItem}>
           <span className={styles.label}>
             <NalaIcon name="alert" />
             Perlu bantuan
@@ -179,7 +182,7 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
 
       {/* Inset Action Banner */}
       <div className={styles.empty}>
-        <div>
+        <div className={styles.emptyText}>
           <strong>
             {waiting.new > 0
               ? `${waiting.new} akun baru belum diundang.`
@@ -195,7 +198,7 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
                 : 'Semua akun di sekolah ini telah menerima tautan aktivasi.'}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
+        <div className={styles.emptyActions}>
           <Button
             disabled={pending || waiting.new === 0}
             onClick={() => setConfirming('new')}
@@ -220,8 +223,8 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
       <section className={styles.tableSection} aria-labelledby="invite-people">
         <div className={styles.tableSectionHeader}>
           <div className="flex items-center gap-3">
-            <h2 id="invite-people" className={styles.sectionTitle}>
-              Akun
+            <h2 id="invite-people" className={styles.tableHeading}>
+              Daftar akun
               <span className={styles.itemCount}>{filteredItems.length} dari {data.total} akun</span>
             </h2>
           </div>
@@ -288,6 +291,7 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
             </div>
           ) : (
             <table className={styles.table}>
+              <caption className={styles.hidden}>Daftar undangan akun</caption>
               <thead>
                 <tr>
                   <th scope="col" className={styles.th}>Nama</th>
