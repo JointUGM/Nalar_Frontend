@@ -3114,6 +3114,8 @@ export interface components {
         };
         /** KbDetailOut */
         KbDetailOut: {
+            /** Archived At */
+            archived_at: string | null;
             /** Can Edit */
             can_edit: boolean;
             /** Concepts */
@@ -3185,6 +3187,8 @@ export interface components {
         KbSummaryOut: {
             /** Approved Concept Count */
             approved_concept_count: number;
+            /** Archived At */
+            archived_at: string | null;
             /** Built Section Count */
             built_section_count: number;
             /** Can Edit */
@@ -3589,6 +3593,8 @@ export interface components {
         };
         /** MissionSummaryOut */
         MissionSummaryOut: {
+            /** Archived At */
+            archived_at: string | null;
             /** Can Edit */
             can_edit: boolean;
             /**
@@ -5477,6 +5483,8 @@ export interface components {
             anchor_problem: string;
             /** Answer Terms */
             answer_terms: string[];
+            /** Archived At */
+            archived_at: string | null;
             /** Base Version Id */
             base_version_id: string | null;
             /** Base Version Number */

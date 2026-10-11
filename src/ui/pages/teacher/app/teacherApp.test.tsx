@@ -595,17 +595,69 @@ describe('signed-in teacher pages', () => {
     await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'DELETE')).toHaveLength(1))
   })
 
-  it('deletes a topic from the library only after confirming, and only for its owner', async () => {
+  it('archives a topic from the library only after confirming, and only for its owner', async () => {
     const request = backend({
-      [`DELETE /knowledge-bases/${kbId}`]: () => new Response(null, { status: 204 }),
+      [`POST /knowledge-bases/${kbId}/archive`]: () => new Response(null, { status: 204 }),
       [`GET /schools/${school}/knowledge-bases?limit=100`]: () => Response.json({ ...kbList, items: [kbList.items[0], { ...kbList.items[0], id: draft, topic_title: 'Rekan', can_edit: false }] }),
     })
     open(`${base}/knowledge-base`, request)
-    expect(await screen.findAllByRole('button', { name: 'Hapus' })).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: 'Hapus' }))
-    expect(request.mock.calls.some(([, init]) => init?.method === 'DELETE')).toBe(false)
-    fireEvent.click(await screen.findByRole('button', { name: 'Hapus topik' }))
-    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'DELETE')).toHaveLength(1))
+    expect(await screen.findAllByRole('button', { name: 'Arsipkan' })).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Arsipkan' }))
+    expect(request.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
+    fireEvent.click(await screen.findByRole('button', { name: 'Arsipkan topik' }))
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1))
+  })
+
+  it('opens archived topic material read-only even when stale edit capability is returned', async () => {
+    const archivedAt = '2026-10-11T08:00:00Z'
+    const request = backend({
+      [`GET /schools/${school}/knowledge-bases?limit=100&status=archived`]: () => Response.json({ items: [{ ...kbList.items[0], archived_at: archivedAt }], next_cursor: null }),
+      [`GET /knowledge-bases/${kbId}`]: () => Response.json({ ...kbDetail(), archived_at: archivedAt }),
+    })
+    open(`${base}/knowledge-base?status=archived`, request)
+    fireEvent.click(await screen.findByRole('link', { name: 'Tekanan Zat' }))
+    expect(await screen.findByText('Topik diarsipkan')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^(Tambah|Setujui|Tolak|Edit|Arsipkan)/ })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Basis pengetahuan' }).some((link) => link.getAttribute('href') === `${base}/knowledge-base?status=archived`)).toBe(true)
+    fireEvent.click(screen.getByRole('tab', { name: /Materi & bab/ }))
+    expect(screen.getByRole('button', { name: 'Buka PDF IPA Kelas 8.pdf' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Susun|Hapus/ })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/Tambah materi/)).not.toBeInTheDocument()
+    expect(request.mock.calls.every(([, init]) => init?.method === 'GET')).toBe(true)
+  })
+
+  it('clears active results immediately while an archived library read is pending', async () => {
+    let resolveArchive!: (value: Response) => void
+    const pendingArchive = new Promise<Response>((resolve) => { resolveArchive = resolve })
+    const active = backend()
+    const request = vi.fn<typeof fetch>((input, init) => String(input).includes('status=archived') ? pendingArchive : active(input, init))
+    open(`${base}/knowledge-base`, request)
+    await screen.findByRole('link', { name: 'Tekanan Zat' })
+    fireEvent.click(screen.getByRole('button', { name: 'Diarsipkan' }))
+    expect(screen.queryByRole('link', { name: 'Tekanan Zat' })).not.toBeInTheDocument()
+    await act(async () => resolveArchive(Response.json({ items: [], next_cursor: null })))
+    expect(await screen.findByText('Belum ada topik diarsipkan')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Aktif' }))
+    expect(await screen.findByRole('link', { name: 'Tekanan Zat' })).toBeInTheDocument()
+  })
+
+  it('resolves an old mission link through archives and keeps versions read-only', async () => {
+    const archivedAt = '2026-10-11T08:00:00Z'
+    const request = backend({
+      [`GET /schools/${school}/missions?limit=100`]: () => Response.json({ items: [], next_cursor: null }),
+      [`GET /schools/${school}/missions?limit=100&status=archived`]: () => Response.json({ items: [{ ...missions.items[1], knowledge_base_id: kbId, archived_at: archivedAt }], next_cursor: null }),
+      [`GET /missions/${draft}/versions/1`]: () => Response.json(versionOut({ archived_at: archivedAt, can_revise_with_ai: true })),
+      [`GET /knowledge-bases/${kbId}`]: () => Response.json({ ...kbDetail(), archived_at: archivedAt }),
+    })
+    open(`${base}/missions/${draft}?v=1`, request)
+    expect(await screen.findByText('Misi diarsipkan')).toBeInTheDocument()
+    expect(screen.getByText('Kenapa kelereng melambat?')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /AI|Revisi|Tandai sudah ditinjau|Edit soal|Arsipkan/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Terbitkan ke kelas' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: /Riwayat versi/ }))
+    expect(screen.getByText('v1', { selector: 'strong' })).toBeInTheDocument()
+    expect(request.mock.calls.some(([path]) => String(path).includes('status=archived'))).toBe(true)
+    expect(request.mock.calls.every(([, init]) => init?.method === 'GET')).toBe(true)
   })
 
   it('creates a mission once, asks for its draft and opens the generated version', async () => {

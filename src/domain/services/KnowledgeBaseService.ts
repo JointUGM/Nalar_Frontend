@@ -1,7 +1,7 @@
 import type { Job, KbCreateInput, KbDetail, NewConcept, NewMisconception, KbItemKind, KbItemPatch, KbQueued, KbReviewQueue, KbSection, KbSummary, ReviewStatus } from '@/domain/model/KnowledgeBase'
 
 export interface KnowledgeBaseService {
-  list(schoolId: string, signal?: AbortSignal): Promise<KbSummary[]>
+  list(schoolId: string, signal?: AbortSignal, status?: 'active' | 'archived'): Promise<KbSummary[]>
   create(schoolId: string, input: KbCreateInput, signal?: AbortSignal): Promise<KbQueued>
   detail(kbId: string, signal?: AbortSignal): Promise<KbDetail>
   addMaterial(kbId: string, file: File, signal?: AbortSignal): Promise<KbQueued>

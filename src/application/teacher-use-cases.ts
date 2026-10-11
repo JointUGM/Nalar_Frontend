@@ -23,7 +23,7 @@ export class TeacherUseCases implements TeacherService {
   constructor(private readonly service: TeacherService) {}
   publications(signal?: AbortSignal) { return this.service.publications(signal) }
   assignments(signal?: AbortSignal) { return this.service.assignments(signal) }
-  missions(schoolId: string, signal?: AbortSignal) { return this.service.missions(resourceId(schoolId), signal) }
+  missions(schoolId: string, signal?: AbortSignal, status?: 'active' | 'archived') { return this.service.missions(resourceId(schoolId), signal, status) }
   createMission(input: MissionInput, signal?: AbortSignal) {
     return this.service.createMission({ knowledge_base_id: resourceId(input.knowledge_base_id), title: required(input.title, 200), learning_objective: required(input.learning_objective, 1000) }, signal)
   }

@@ -23,6 +23,7 @@ const modes = [
 const wib = (local: string) => `${local}:00+07:00`
 
 function refusal(error: ApiError): string | null {
+  if (error.code === 'MISSION_ARCHIVED' || error.code === 'KNOWLEDGE_BASE_ARCHIVED') return 'Misi atau topiknya sudah diarsipkan dan tidak dapat diterbitkan. Baca riwayatnya dari Diarsipkan.'
   if (error.code === 'VERSION_NOT_REVIEWED') return 'Versi misi ini belum ditinjau. Tinjau dulu, lalu terbitkan.'
   if (error.code === 'INVALID_WINDOW') return 'Isi jam buka dan jam tutup; jam tutup harus setelah jam buka.'
   if (error.status === 403 || error.status === 404) return 'Anda tidak ditugaskan mengajar mata pelajaran misi ini di kelas tersebut.'
@@ -76,7 +77,7 @@ export function TeacherPublishPage({ service, base, schoolId }: { service: Teach
       // A live session continues on the projector; a window just appears in the session list.
       if (!signal?.aborted) navigate(mode === 'live' ? `${base}/publications/${published.publication_id}/projector` : `${base}/sessions`)
     } catch (cause) {
-      if (!signal?.aborted) { setFailure(cause instanceof ApiError ? cause : new ApiError(0, 'UNAVAILABLE')); setConfirming(false); setPending(false) }
+      if (!signal?.aborted) { setFailure(cause instanceof ApiError ? cause : new ApiError(0, 'UNAVAILABLE')); setConfirming(false); setPending(false); refresh() }
     } finally { busy.current = false }
   }
   const said = failure && refusal(failure)
