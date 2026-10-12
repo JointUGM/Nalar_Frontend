@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router'
 import { publishable, type MissionSummary } from '@/domain/model/Teacher'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
+import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
 import { NalaEmpty } from '@/ui/components/nala/NalaState'
@@ -12,7 +13,8 @@ import { formatDay } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherMissions.styles'
-import { versionWord } from './missionText'
+import { missionRestoreRefusal, versionWord } from './missionText'
+import { RestoreAction } from './RestoreAction'
 import { LibraryStatusFilter } from './LibraryStatusFilter'
 
 type MissionFilter = 'all' | 'ready' | 'draft'
@@ -21,7 +23,7 @@ const owners: readonly { value: string; label: string }[] = [{ value: 'all', lab
 const titleOrder = new Intl.Collator('id-ID', { numeric: true, sensitivity: 'base' })
 const number = new Intl.NumberFormat('id-ID')
 
-function MissionCard({ mission, base }: { mission: MissionSummary; base: string }) {
+function MissionCard({ mission, base, service, onRestored }: { mission: MissionSummary; base: string; service: TeacherService; onRestored: (mission: MissionSummary) => void }) {
   const version = mission.latest_version, ready = publishable(mission), path = `${base}/missions/${mission.id}${mission.archived_at ? '?status=archived' : ''}`
   const nextAction = mission.can_edit && (!version || version.status === 'draft') ? (version ? 'Tinjau misi' : 'Susun draf') : 'Lihat misi'
   return <li className={styles.card} aria-label={mission.title}>
@@ -32,7 +34,7 @@ function MissionCard({ mission, base }: { mission: MissionSummary; base: string 
     <p className={styles.state}>{mission.archived_at ? `Diarsipkan ${formatDay(mission.archived_at)} · hanya dapat dibaca.` : ready ? (version?.status === 'locked' ? 'Dapat diterbitkan lagi ke kelas lain.' : 'Siap digunakan di kelas.') : version?.status === 'draft' ? 'Tinjau draf sebelum diterbitkan.' : !version ? 'Draf belum disusun.' : 'Belum siap diterbitkan.'}</p>
     <div className={styles.foot}>
       <span className={styles.meta}>{version ? `v${version.version_number} · ${nextAction}` : nextAction}</span>
-      {ready ? <Link className={styles.publish} to={`${path}/publish`}><Icon name="send" size={14} />Terbitkan ke kelas</Link> : <span className={styles.meta}>{mission.can_edit ? 'Anda' : mission.created_by_name ?? 'Rekan guru'}</span>}
+      {ready ? <Link className={styles.publish} to={`${path}/publish`}><Icon name="send" size={14} />Terbitkan ke kelas</Link> : mission.archived_at && mission.can_restore ? <RestoreAction action={(signal) => service.restoreMission(mission.id, signal)} onDone={() => onRestored(mission)} refusal={missionRestoreRefusal} /> : <span className={styles.meta}>{mission.can_edit ? 'Anda' : mission.created_by_name ?? 'Rekan guru'}</span>}
     </div>
   </li>
 }
@@ -43,6 +45,7 @@ export function TeacherMissionsPage({ service, base, schoolId }: { service: Teac
   const read = useCallback(async (signal: AbortSignal) => ({ status, items: await service.missions(schoolId, signal, status) }), [service, schoolId, status])
   const { data: loaded, error, online, refresh } = useLiveResource(read, noPollMs)
   const data = loaded?.status === status ? loaded.items : null
+  const [restored, setRestored] = useState('')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<MissionFilter>('all')
   const [ownership, setOwnership] = useState('all')
@@ -59,6 +62,7 @@ export function TeacherMissionsPage({ service, base, schoolId }: { service: Teac
     <TeacherPageHead title="Misi" subtitle={status === 'archived' ? 'Baca kembali versi dan riwayat misi yang diarsipkan. Arsip tidak dapat diubah atau diterbitkan.' : data && data.length > 0 ? `${number.format(data.length)} misi${drafts > 0 ? `, ${number.format(drafts)} masih dalam persiapan` : ''}. Hanya versi yang sudah ditinjau yang bisa diterbitkan.` : 'Siapkan bahan belajar, tinjau draf, lalu terbitkan ke kelas.'} />
     <LibraryStatusFilter value={status} onChange={(value) => { const next = new URLSearchParams(params); if (value === 'archived') next.set('status', value); else next.delete('status'); setParams(next) }} />
     <LiveFeedback error={error} online={online} refresh={refresh} />
+    {restored && <div className="transition-[opacity,transform] duration-200 ease-out starting:translate-y-1 starting:opacity-0 motion-reduce:transition-none"><Feedback tone="success" title={`Misi “${restored}” dipulihkan`} announce>Misi bisa diubah dan diterbitkan lagi. <Link to={`${base}/missions`}>Buka di daftar Aktif</Link>.</Feedback></div>}
     {!data && !error && <><div className={styles.panel}><div className={styles.panelState}><Loading label="Memuat misi…" /></div></div><div className={styles.skeleton} aria-hidden="true">{[0, 1, 2].map(key => <div key={key} />)}</div></>}
     {!data && error && <section className={styles.panel}><NalaEmpty mood="oops" title="Pustaka misi belum dapat ditampilkan">Gunakan pilihan pemulihan di atas untuk memuatnya lagi.</NalaEmpty></section>}
     {data && data.length === 0 && <section className={styles.panel}><NalaEmpty mood={status === 'archived' ? 'read' : 'ask'} title={status === 'archived' ? 'Belum ada misi diarsipkan' : 'Belum ada misi'} action={status === 'active' ? <ButtonLink className={styles.buttonCentered} to={`${base}/missions/new`}><Icon name="plus" size={16} />Buat misi pertama</ButtonLink> : undefined}>
@@ -76,7 +80,7 @@ export function TeacherMissionsPage({ service, base, schoolId }: { service: Teac
           {filtered && <button className={styles.reset} type="button" onClick={reset}>Hapus filter</button>}
         </div>
         {visible.length === 0 ? <div className={styles.panel}><NalaEmpty mood="search" title="Tidak ada misi yang cocok" action={<button className={styles.reset} type="button" onClick={reset}>Tampilkan semua misi</button>}>Coba judul lain atau hapus filter untuk melihat seluruh misi.</NalaEmpty></div>
-          : <ul className={styles.grid} aria-label="Misi">{visible.map(mission => <MissionCard key={mission.id} mission={mission} base={base} />)}</ul>}
+          : <ul className={styles.grid} aria-label="Misi">{visible.map(mission => <MissionCard key={mission.id} mission={mission} base={base} service={service} onRestored={(item) => { setRestored(item.title); refresh() }} />)}</ul>}
       </section>
     </>}
   </div>

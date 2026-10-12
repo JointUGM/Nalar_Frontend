@@ -7,6 +7,8 @@ export interface KnowledgeBaseService {
   addMaterial(kbId: string, file: File, signal?: AbortSignal): Promise<KbQueued>
   // Archiving and deleting keep history: cited material and locked mission versions stay readable.
   archive(kbId: string, signal?: AbortSignal): Promise<void>
+  /** Owner only. Refused with TOPIC_ALREADY_EXISTS when a new active topic took the name. Materials archived on their own stay archived. */
+  restore(kbId: string, signal?: AbortSignal): Promise<void>
   /** Same effect as archive: the topic leaves the library, its name is free again, history stays. */
   deleteTopic(kbId: string, signal?: AbortSignal): Promise<void>
   archiveConcept(kbId: string, conceptId: string, signal?: AbortSignal): Promise<void>

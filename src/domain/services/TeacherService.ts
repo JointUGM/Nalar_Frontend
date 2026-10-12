@@ -10,6 +10,8 @@ export interface TeacherService {
   createMission(input: MissionInput, signal?: AbortSignal): Promise<{ mission_id: string }>
   generateMission(missionId: string, signal?: AbortSignal): Promise<{ job_id: string }>
   archiveMission(missionId: string, signal?: AbortSignal): Promise<void>
+  /** Owner only. Refused with KNOWLEDGE_BASE_ARCHIVED while the topic is still archived. */
+  restoreMission(missionId: string, signal?: AbortSignal): Promise<void>
   missionVersion(missionId: string, number: number, signal?: AbortSignal): Promise<MissionVersion>
   saveMissionVersion(missionId: string, draft: MissionVersionDraft, signal?: AbortSignal): Promise<{ version_number: number }>
   reviewMissionVersion(missionId: string, number: number, signal?: AbortSignal): Promise<void>

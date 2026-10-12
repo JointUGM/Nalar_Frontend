@@ -31,7 +31,7 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
       const archivedAt = nullable(value.archived_at, instant)
       if (status === 'archived' && archivedAt === null) throw new ApiError(502, 'INVALID_RESPONSE')
       return {
-        id: text(value.id), topic_title: text(value.topic_title), owner_name: nullable(value.owner_name, text), school_subject_id: text(value.school_subject_id), can_edit: flag(value.can_edit) && archivedAt === null, archived_at: archivedAt,
+        id: text(value.id), topic_title: text(value.topic_title), owner_name: nullable(value.owner_name, text), school_subject_id: text(value.school_subject_id), can_edit: flag(value.can_edit) && archivedAt === null, can_restore: flag(value.can_edit) && archivedAt !== null, archived_at: archivedAt,
         material_count: count(value.material_count), built_section_count: count(value.built_section_count), pending_count: count(value.pending_count), approved_concept_count: count(value.approved_concept_count),
       }
     })
@@ -46,7 +46,7 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
     const value = record((await this.api.request(kb(kbId), { signal })).data)
     const archivedAt = nullable(value.archived_at, instant)
     return {
-      id: text(value.id), topic_title: text(value.topic_title), can_edit: flag(value.can_edit) && archivedAt === null, archived_at: archivedAt,
+      id: text(value.id), topic_title: text(value.topic_title), can_edit: flag(value.can_edit) && archivedAt === null, can_restore: flag(value.can_edit) && archivedAt !== null, archived_at: archivedAt,
       materials: list(value.materials).map((entry) => {
         const material = record(entry)
         return { id: text(material.id), title: text(material.title), page_count: nullable(material.page_count, count), pages_without_text: list(material.pages_without_text).map((page) => count(page)), archived_at: nullable(material.archived_at, instant) }
@@ -71,6 +71,10 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
 
   async addMaterial(kbId: string, file: File, signal?: AbortSignal): Promise<KbQueued> {
     return queued((await this.api.request(`${kb(kbId)}/materials`, { method: 'POST', form: upload(file), idempotent: true, signal })).data)
+  }
+
+  async restore(kbId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${kb(kbId)}/restore`, { method: 'POST', signal })
   }
 
   async archive(kbId: string, signal?: AbortSignal): Promise<void> {
