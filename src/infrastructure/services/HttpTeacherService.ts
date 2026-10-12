@@ -11,7 +11,12 @@ type Schemas = components['schemas']
 const publication = (id: string) => `/publications/${encodeURIComponent(id)}`
 const mission = (id: string) => `/missions/${encodeURIComponent(id)}`
 const texts = (value: unknown) => list(value).map((entry) => text(entry))
-const csv = (data: unknown) => { if (!(data instanceof Blob)) throw new ApiError(502, 'INVALID_RESPONSE'); return data }
+const csv = (data: unknown): Blob => {
+  if (data instanceof Blob || (typeof data === 'object' && data !== null && typeof (data as Blob).arrayBuffer === 'function')) {
+    return data as Blob
+  }
+  throw new ApiError(502, 'INVALID_RESPONSE')
+}
 const seconds = (value: unknown) => { if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new ApiError(502, 'INVALID_RESPONSE'); return value }
 
 export class HttpTeacherService implements TeacherService {

@@ -4,6 +4,7 @@ import type { LinkedPerson, SchoolClass, SchoolSubject } from '@/domain/model/Sc
 import { Button } from '@/ui/components/button/Button'
 import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
+import { Icon } from '@/ui/components/icon/Icon'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.styles'
@@ -13,6 +14,7 @@ import { YearSelect } from './YearSelect'
 import { Select } from '@/ui/components/select/Select'
 import { Loading } from '@/ui/components/loading/Loading'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
+import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
 
 interface Cell { item: SchoolClass; subject: SchoolSubject; teachers: { id: string; name: string }[] }
 
@@ -30,18 +32,23 @@ export function SchoolAssignmentsPage({ service, schoolId }: { service: SchoolAd
   const cells = data ? data.classes.flatMap((item) => data.subjects.map((subject) => cell(item, subject))) : []
   const filled = cells.filter((entry) => entry.teachers.length).length
   const note = data && cells.length > 0
-    ? ([filled === cells.length ? 'proud' : 'think', `${filled} dari ${cells.length} penugasan guru telah terisi.`] as const)
+    ? (filled === cells.length
+      ? (['proud', 'Semua penugasan guru sudah terisi lengkap!'] as const)
+      : (['think', `${cells.length - filled} penugasan guru belum ditentukan.`] as const))
     : null
 
   return <div className={styles.content}>
-    <div className={styles.heading}>
-      <div>
-        <h1>Penugasan guru</h1>
+    <div className={styles.head}>
+      <div className={styles.headText}>
+        <h1 className={styles.title}>Penugasan guru</h1>
         <p className={styles.lead}>Guru melihat siswa dari kelas dan mata pelajaran yang ditugaskan.</p>
       </div>
       {note && <NalaNote mood={note[0]} text={note[1]} />}
     </div>
-    <YearSelect years={years} />
+    <div className={styles.context}>
+      <YearSelect years={years} />
+      {data && cells.length > 0 && <p className={styles.summary} role="status">{filled} dari {cells.length} penugasan terisi</p>}
+    </div>
     <LiveFeedback error={years.error ?? error} online={online} refresh={() => { years.refresh(); refresh() }} />
     {((!years.loaded && !years.error) || (years.yearId && !data && !error)) && <Loading label="Memuat penugasan…" />}
     {message && <Feedback tone="success" title={message} announce />}
@@ -52,18 +59,57 @@ export function SchoolAssignmentsPage({ service, schoolId }: { service: SchoolAd
         </NalaEmpty>
       </div>
     ) : <>
-      <p className={styles.summary} role="status">{filled} dari {cells.length} penugasan terisi</p>
-      <div className={styles.card} role="region" aria-label="Tabel penugasan guru, dapat digulir mendatar" tabIndex={0}><table className={styles.table}>
-        <caption className={styles.hidden}>Guru per kelas dan mata pelajaran</caption>
-        <thead><tr><th scope="col">Kelas</th>{data.subjects.map((subject) => <th key={subject.school_subject_id} scope="col">{subject.name}</th>)}</tr></thead>
-        <tbody>{data.classes.map((item) => <tr key={item.class_id}>
-          <th scope="row" className={styles.classroom}>{item.name}</th>
-          {data.subjects.map((subject) => {
-            const entry = cell(item, subject), names = entry.teachers.map((teacher) => teacher.name).join(', ')
-            return <td key={subject.school_subject_id}><button type="button" className={[styles.cell, names ? '' : styles.empty].join(' ')} aria-label={`${subject.name} kelas ${item.name}: ${names || 'belum ditugaskan'}. Ubah penugasan`} onClick={() => { setMessage(''); setEditing(entry) }}>{names || 'Belum ditugaskan'}</button></td>
-          })}
-        </tr>)}</tbody>
-      </table></div>
+      <div className={styles.card} role="region" aria-label="Tabel penugasan guru, dapat digulir mendatar" tabIndex={0}>
+        <div className={styles.tableScroll}>
+          <table className={styles.table}>
+            <caption className={styles.hidden}>Guru per kelas dan mata pelajaran</caption>
+            <thead className={styles.thead}>
+              <tr>
+                <th scope="col" className={styles.thKelas}>Kelas</th>
+                {data.subjects.map((subject) => (
+                  <th key={subject.school_subject_id} scope="col" className={styles.thSubject}>
+                    {subject.name}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.classes.map((item) => (
+                <tr key={item.class_id} className={styles.tr}>
+                  <th scope="row" className={styles.classroom}>{item.name}</th>
+                  {data.subjects.map((subject) => {
+                    const entry = cell(item, subject)
+                    const names = entry.teachers.map((teacher) => teacher.name).join(', ')
+                    return (
+                      <td key={subject.school_subject_id} className={styles.td}>
+                        <button
+                          type="button"
+                          className={[styles.cell, names ? styles.assigned : styles.empty].join(' ')}
+                          aria-label={`${subject.name} kelas ${item.name}: ${names || 'belum ditugaskan'}. Ubah penugasan`}
+                          onClick={() => { setMessage(''); setEditing(entry) }}
+                        >
+                          {names ? (
+                            <span className="flex items-center gap-2.5 min-w-0">
+                              <span className={styles.cellAvatar}><NalaAvatar seed={names} size={22} /></span>
+                              <span className={styles.cellName}>{names}</span>
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-2 text-text-muted">
+                              <Icon name="plus" size={14} />
+                              <span>Belum ditugaskan</span>
+                            </span>
+                          )}
+                          <Icon name="chevronRight" size={14} className={names ? 'text-text-muted shrink-0 opacity-40 group-hover:opacity-100 group-hover:text-primary' : 'opacity-0 shrink-0'} />
+                        </button>
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </>)}
     {editing && data && <AssignmentDialog service={service} schoolId={schoolId} cell={editing} teachers={data.teachers} onClose={(done) => { setEditing(null); if (done) { setMessage(done); refresh() } }} />}
   </div>

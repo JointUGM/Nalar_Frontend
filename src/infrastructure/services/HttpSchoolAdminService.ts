@@ -76,8 +76,8 @@ export class HttpSchoolAdminService implements SchoolAdminService {
 
   async rosterImportErrors(importId: string, signal?: AbortSignal): Promise<Blob> {
     const { data } = await this.api.request(`/roster-imports/${encodeURIComponent(importId)}/errors.csv`, { raw: true, signal })
-    if (!(data instanceof Blob)) throw new ApiError(502, 'INVALID_RESPONSE')
-    return data
+    if (!(data instanceof Blob || (typeof data === 'object' && data !== null && typeof (data as Blob).arrayBuffer === 'function'))) throw new ApiError(502, 'INVALID_RESPONSE')
+    return data as Blob
   }
 
   async invite(schoolId: string, userIds: string[], resend: boolean, signal?: AbortSignal): Promise<InvitationAdmission[]> {

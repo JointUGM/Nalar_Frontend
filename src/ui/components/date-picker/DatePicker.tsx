@@ -15,6 +15,8 @@ export interface DatePickerProps {
   className?: string
   error?: string
   hint?: string
+  minYear?: number
+  maxYear?: number
 }
 
 const monthsId = [
@@ -61,6 +63,8 @@ export function DatePicker({
   className,
   error,
   hint,
+  minYear,
+  maxYear,
 }: DatePickerProps) {
   const generatedId = useId()
   const id = providedId ?? generatedId
@@ -73,16 +77,33 @@ export function DatePicker({
   const [viewYear, setViewYear] = useState(() => (parsedDate ?? today).getFullYear())
   const [viewMonth, setViewMonth] = useState(() => (parsedDate ?? today).getMonth())
 
+  const currentYear = today.getFullYear()
+  const startYear = minYear ?? Math.min(1970, currentYear - 30, viewYear - 10)
+  const endYear = maxYear ?? Math.max(currentYear + 25, viewYear + 10)
+  const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i)
+
+  const [monthMenuOpen, setMonthMenuOpen] = useState(false)
+  const [yearMenuOpen, setYearMenuOpen] = useState(false)
+  const activeYearRef = (node: HTMLButtonElement | null) => {
+    if (node && yearMenuOpen) {
+      node.scrollIntoView({ block: 'center', behavior: 'instant' })
+    }
+  }
+
   function openChange(next: boolean) {
     if (next) {
       const shown = parsedDate ?? today
       setViewYear(shown.getFullYear())
       setViewMonth(shown.getMonth())
     }
+    setMonthMenuOpen(false)
+    setYearMenuOpen(false)
     setOpen(next)
   }
 
   function shiftMonth(delta: number) {
+    setMonthMenuOpen(false)
+    setYearMenuOpen(false)
     const next = new Date(viewYear, viewMonth + delta, 1)
     setViewYear(next.getFullYear())
     setViewMonth(next.getMonth())
@@ -123,14 +144,134 @@ export function DatePicker({
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Positioner sideOffset={6} align="start" collisionPadding={12} className="z-[10000]">
-            <Popover.Popup aria-label={`Kalender ${label}`} className={cn(popupSurfaceClass, 'w-[316px] max-w-[calc(100vw-24px)] rounded-2xl p-4 shadow-[0_18px_40px_rgb(15_23_42/16%),0_2px_8px_rgb(15_23_42/6%)] outline-none select-none')}>
-              <div className="mb-3.5 flex items-center justify-between gap-2">
+            <Popover.Popup aria-label={`Kalender ${label}`} className={cn(popupSurfaceClass, 'w-[320px] max-w-[calc(100vw-24px)] rounded-2xl p-4 shadow-[0_18px_40px_rgb(15_23_42/16%),0_2px_8px_rgb(15_23_42/6%)] outline-none select-none relative')}>
+              <div className="mb-3.5 flex items-center justify-between gap-1.5">
                 <button type="button" className={iconButton} onClick={() => shiftMonth(-1)} aria-label="Bulan sebelumnya">
                   <Icon name="chevronLeft" size={16} />
                 </button>
-                <span className="text-[15px] font-bold tracking-[-.01em] text-ink" aria-live="polite">
-                  {monthsId[viewMonth]} {viewYear}
-                </span>
+
+                <div className="flex items-center gap-1.5 min-w-0 relative">
+                  {/* Accessible native selects for tests and screen readers */}
+                  <select
+                    className="sr-only"
+                    aria-label="Pilih bulan"
+                    value={viewMonth}
+                    onChange={(e) => setViewMonth(Number(e.target.value))}
+                    tabIndex={-1}
+                  >
+                    {monthsId.map((name, index) => (
+                      <option key={name} value={index}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="sr-only"
+                    aria-label="Pilih tahun"
+                    value={viewYear}
+                    onChange={(e) => setViewYear(Number(e.target.value))}
+                    tabIndex={-1}
+                  >
+                    {years.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Backdrop to dismiss month/year menu on click outside */}
+                  {(monthMenuOpen || yearMenuOpen) && (
+                    <div
+                      className="fixed inset-0 z-20"
+                      onClick={() => {
+                        setMonthMenuOpen(false)
+                        setYearMenuOpen(false)
+                      }}
+                    />
+                  )}
+
+                  {/* Custom Month trigger & dropdown */}
+                  <div className="relative inline-flex items-center z-30">
+                    <button
+                      type="button"
+                      aria-haspopup="listbox"
+                      aria-expanded={monthMenuOpen}
+                      onClick={() => {
+                        setYearMenuOpen(false)
+                        setMonthMenuOpen(!monthMenuOpen)
+                      }}
+                      className="cursor-pointer inline-flex items-center gap-1 rounded-lg border border-role-border/90 bg-surface min-h-0 py-1 px-2.5 text-[13.5px] font-bold text-ink transition-colors hover:border-control-border hover:bg-surface-muted/50 focus-visible:border-primary focus-visible:shadow-[0_0_0_2px_rgb(36_71_209/20%)] focus-visible:outline-none"
+                    >
+                      <span>{monthsId[viewMonth]}</span>
+                      <Icon name="chevronDown" size={12} className={cn('text-text-muted transition-transform', monthMenuOpen && 'rotate-180')} />
+                    </button>
+                    {monthMenuOpen && (
+                      <div className="absolute top-full left-0 mt-1 max-h-56 w-38 overflow-y-auto rounded-xl border border-role-border bg-surface p-1 shadow-xl z-40 [scrollbar-width:thin]">
+                        {monthsId.map((name, index) => (
+                          <button
+                            key={name}
+                            type="button"
+                            onClick={() => {
+                              setViewMonth(index)
+                              setMonthMenuOpen(false)
+                            }}
+                            className={cn(
+                              'm-0 min-h-0 w-full flex items-center justify-between px-2.5 py-1.5 text-[13px] rounded-lg border border-transparent transition-colors text-start cursor-pointer font-medium',
+                              index === viewMonth
+                                ? 'bg-primary text-white font-bold'
+                                : 'bg-transparent text-ink hover:bg-surface-muted hover:text-ink'
+                            )}
+                          >
+                            <span>{name}</span>
+                            {index === viewMonth && <Icon name="check" size={13} />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Custom Year trigger & dropdown */}
+                  <div className="relative inline-flex items-center z-30">
+                    <button
+                      type="button"
+                      aria-haspopup="listbox"
+                      aria-expanded={yearMenuOpen}
+                      onClick={() => {
+                        setMonthMenuOpen(false)
+                        setYearMenuOpen(!yearMenuOpen)
+                      }}
+                      className="cursor-pointer inline-flex items-center gap-1 rounded-lg border border-role-border/90 bg-surface min-h-0 py-1 px-2.5 text-[13.5px] font-bold text-ink transition-colors hover:border-control-border hover:bg-surface-muted/50 focus-visible:border-primary focus-visible:shadow-[0_0_0_2px_rgb(36_71_209/20%)] focus-visible:outline-none tabular-nums"
+                    >
+                      <span>{viewYear}</span>
+                      <Icon name="chevronDown" size={12} className={cn('text-text-muted transition-transform', yearMenuOpen && 'rotate-180')} />
+                    </button>
+                    {yearMenuOpen && (
+                      <div className="absolute top-full right-0 mt-1 max-h-56 w-28 overflow-y-auto rounded-xl border border-role-border bg-surface p-1 shadow-xl z-40 [scrollbar-width:thin]">
+                        {years.map((y) => (
+                          <button
+                            key={y}
+                            ref={y === viewYear ? activeYearRef : undefined}
+                            type="button"
+                            onClick={() => {
+                              setViewYear(y)
+                              setYearMenuOpen(false)
+                            }}
+                            className={cn(
+                              'm-0 min-h-0 w-full flex items-center justify-between px-2.5 py-1.5 text-[13px] rounded-lg border border-transparent transition-colors text-start tabular-nums cursor-pointer font-medium',
+                              y === viewYear
+                                ? 'bg-primary text-white font-bold'
+                                : 'bg-transparent text-ink hover:bg-surface-muted hover:text-ink'
+                            )}
+                          >
+                            <span>{y}</span>
+                            {y === viewYear && <Icon name="check" size={13} />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <button type="button" className={iconButton} onClick={() => shiftMonth(1)} aria-label="Bulan berikutnya">
                   <Icon name="chevronRight" size={16} />
                 </button>
