@@ -660,6 +660,29 @@ describe('signed-in teacher pages', () => {
     expect(request.mock.calls.every(([, init]) => init?.method === 'GET')).toBe(true)
   })
 
+  it('restores an archived mission from the library and says so', async () => {
+    const archivedAt = '2026-10-11T08:00:00Z'
+    let restored = false
+    const request = backend({
+      [`GET /schools/${school}/missions?limit=100&status=archived`]: () => Response.json({ items: restored ? [] : [{ ...missions.items[1], knowledge_base_id: kbId, archived_at: archivedAt }], next_cursor: null }),
+      [`POST /missions/${draft}/restore`]: () => { restored = true; return new Response(null, { status: 204 }) },
+    })
+    open(`${base}/missions?status=archived`, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Pulihkan' }))
+    expect(await screen.findByText('Misi “Tekanan Zat” dipulihkan')).toBeInTheDocument()
+    expect(request.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1)
+  })
+  it('tells the teacher to restore the topic first when the archived topic blocks restoring a mission', async () => {
+    const archivedAt = '2026-10-11T08:00:00Z'
+    const request = backend({
+      [`GET /schools/${school}/missions?limit=100&status=archived`]: () => Response.json({ items: [{ ...missions.items[1], knowledge_base_id: kbId, archived_at: archivedAt }], next_cursor: null }),
+      [`POST /missions/${draft}/restore`]: () => Response.json({ error: { code: 'KNOWLEDGE_BASE_ARCHIVED' } }, { status: 409 }),
+    })
+    open(`${base}/missions?status=archived`, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Pulihkan' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Topik misi ini masih diarsipkan')
+  })
+
   it('creates a mission once, asks for its draft and opens the generated version', async () => {
     const request = backend({
       'POST /missions': () => Response.json({ mission_id: draft }, { status: 201 }),
