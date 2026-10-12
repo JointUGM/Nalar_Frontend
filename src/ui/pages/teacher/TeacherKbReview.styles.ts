@@ -25,7 +25,7 @@ const styles = {
   railColumn: 'grid min-w-0 gap-4 xl:col-span-4',
   progress: 'flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-text-secondary',
   bar: 'block h-1.5 w-44 max-w-full overflow-hidden rounded-pill bg-paper [&>span]:block [&>span]:h-full [&>span]:bg-success-text',
-  map: 'mt-3 flex min-h-[420px] flex-1 flex-col',
+  map: 'mt-3 flex min-h-[420px] short:min-h-[min(420px,70dvh)] flex-1 flex-col',
   pager: 'flex items-center justify-between gap-2 text-[13px] text-text-muted [&_button]:min-h-9 [&_button]:gap-1 [&_button]:rounded-[8px] [&_button]:px-3 [&_button]:text-[13px] [&_button]:font-bold',
   legend: "m-0 mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-text-secondary [&>span]:inline-flex [&>span]:items-center [&>span]:gap-2 [&>span]:before:size-3.5 [&>span]:before:rounded-[4px] [&>span]:before:border [&>span]:before:border-role-border [&>span]:before:bg-surface [&>span]:before:content-[''] [&>[data-status=approved]]:before:border-transparent [&>[data-status=approved]]:before:bg-success-bg [&>[data-status=rejected]]:before:border-dashed [&>[data-status=count]]:before:rounded-pill [&>[data-status=count]]:before:border-0 [&>[data-status=count]]:before:bg-accent",
   card: `${card} [&_h2]:m-0 [&_h2]:text-[16px] [&_h2]:leading-6 [&_h2]:font-bold`,

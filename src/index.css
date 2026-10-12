@@ -3,6 +3,12 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "./ui/page-keyframes.css";
 
+/* Viewport tiers for laptops (docs/design.md, "Laptop and short screens"). Both start at 768px: phones have their own layouts.
+   `laptop:` is 768-1599px wide or under 900px tall (the rule the student live pages hard-code). `short:` is under 701px tall,
+   such as a 1280x720 screen at 150% scaling with browser chrome (1280x585 viewport). */
+@custom-variant laptop (@media (min-width: 768px) and (max-width: 1599px), (min-width: 768px) and (max-height: 899px));
+@custom-variant short (@media (min-width: 768px) and (max-height: 700px));
+
 @font-face {
   font-family: "Plus Jakarta Sans";
   font-style: normal;
