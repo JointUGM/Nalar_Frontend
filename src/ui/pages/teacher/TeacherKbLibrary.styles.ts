@@ -25,7 +25,7 @@ const styles = {
   coverage: 'grid min-w-40 gap-1.5 text-[13px] tabular-nums text-text-secondary [&_b]:font-bold [&_b]:text-primary',
   bar: 'flex h-1.5 w-full max-w-44 overflow-hidden rounded-pill bg-[#F3F1EC] [&>span]:min-w-0 [&>span:first-child]:bg-[#3C9A6E] [&>span:last-child]:bg-[#9FB2F0]',
   owner: 'text-text-secondary',
-  actions: 'ms-auto grid w-max grid-cols-[4.5rem_6rem_4.5rem] items-center justify-items-start gap-2 [&_a]:text-[14px] [&_a]:font-bold [&_a]:whitespace-nowrap [&_a]:text-primary [&_a]:no-underline [&_a:hover]:text-primary-hover',
+  actions: 'ms-auto grid w-max grid-cols-[4.5rem_6rem_5.5rem] items-center justify-items-start gap-2 [&_a]:text-[14px] [&_a]:font-bold [&_a]:whitespace-nowrap [&_a]:text-primary [&_a]:no-underline [&_a:hover]:text-primary-hover',
   remove: 'whitespace-nowrap [&_button]:min-h-9 [&_button]:gap-1 [&_button]:px-2 [&_button]:py-1 [&_button]:text-[13px] [&_button]:font-semibold [&_button]:whitespace-nowrap [&_button]:text-text-secondary [&_button:hover]:text-danger-text',
 
   foot: 'flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-paper px-4 py-3 text-[13px] text-text-secondary [&>div]:flex [&>div]:items-center [&>div]:gap-2',
