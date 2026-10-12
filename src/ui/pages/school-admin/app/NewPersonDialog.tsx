@@ -8,6 +8,7 @@ import { Field } from '@/ui/components/field/Field'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.styles'
 import { StudentPicker } from './StudentPicker'
+import { resolveActiveYear } from './academicYearState'
 import { Select } from '@/ui/components/select/Select'
 import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
 
@@ -37,7 +38,8 @@ export function NewPersonDialog({ service, schoolId, initialRole, onClose }: { s
 
   // A student joins a class of the current year.
   const readClasses = useCallback(async (signal: AbortSignal) => {
-    const year = (await service.academicYears(schoolId, signal)).find((item) => item.is_current)
+    const years = await service.academicYears(schoolId, signal)
+    const year = resolveActiveYear(schoolId, years)
     return year ? service.classes(schoolId, year.id, signal) : []
   }, [service, schoolId])
   const classes = useLiveResource(readClasses, noPollMs).data ?? []
