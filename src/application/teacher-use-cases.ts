@@ -37,6 +37,7 @@ export class TeacherUseCases implements TeacherService {
   }
   generateMission(missionId: string, signal?: AbortSignal) { return this.service.generateMission(resourceId(missionId), signal) }
   archiveMission(missionId: string, signal?: AbortSignal) { return this.service.archiveMission(resourceId(missionId), signal) }
+  restoreMission(missionId: string, signal?: AbortSignal) { return this.service.restoreMission(resourceId(missionId), signal) }
   missionVersion(missionId: string, number: number, signal?: AbortSignal) { return this.service.missionVersion(resourceId(missionId), versionNumber(number), signal) }
   saveMissionVersion(missionId: string, draft: MissionVersionDraft, signal?: AbortSignal) {
     return this.service.saveMissionVersion(resourceId(missionId), { ...draft, base_version_id: resourceId(draft.base_version_id), anchor_problem: required(draft.anchor_problem, 4000), reference_reasoning: required(draft.reference_reasoning, 8000) }, signal)

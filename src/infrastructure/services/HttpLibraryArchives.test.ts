@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { publishable } from '@/domain/model/Teacher'
+import { publishable, type MissionSummary } from '@/domain/model/Teacher'
 import { HttpApi } from './HttpApi'
 import { HttpKnowledgeBaseService } from './HttpKnowledgeBaseService'
 import { HttpTeacherService } from './HttpTeacherService'
@@ -23,8 +23,8 @@ describe('teacher library archive projections', () => {
       : await new HttpTeacherService(api).missions('school', controller.signal, 'archived')
     expect(request.mock.calls.map(([path]) => path)).toEqual([`/api/v1/schools/school/${library}?limit=100&status=archived`, `/api/v1/schools/school/${library}?limit=100&status=archived&cursor=next%2Fpage`])
     expect(request.mock.calls.every(([, init]) => init?.signal instanceof AbortSignal)).toBe(true)
-    expect(rows.map((row) => [row.archived_at, row.can_edit])).toEqual([[archivedAt, false], [archivedAt, false]])
-    if (library === 'missions') expect(publishable(rows[0] as typeof mission)).toBe(false)
+    expect(rows.map((row) => [row.archived_at, row.can_edit, row.can_restore])).toEqual([[archivedAt, false, true], [archivedAt, false, true]])
+    if (library === 'missions') expect(publishable(rows[0] as MissionSummary)).toBe(false)
   })
 
   it('keeps archived topic and version reads but suppresses stale write capabilities', async () => {
@@ -38,5 +38,13 @@ describe('teacher library archive projections', () => {
   it('rejects an archive list without archive metadata instead of presenting it as editable', async () => {
     const request = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ items: [{ ...topic, archived_at: null }], next_cursor: null }))
     await expect(new HttpKnowledgeBaseService(new HttpApi({ apiBaseUrl: '/api/v1', fetch: request })).list('school', undefined, 'archived')).rejects.toMatchObject({ code: 'INVALID_RESPONSE' })
+  })
+
+  it('restores a topic and a mission with a POST to their restore path', async () => {
+    const request = vi.fn<typeof fetch>().mockImplementation(async () => new Response(null, { status: 204 }))
+    const api = new HttpApi({ apiBaseUrl: '/api/v1', fetch: request })
+    await new HttpKnowledgeBaseService(api).restore('topic')
+    await new HttpTeacherService(api).restoreMission('mission')
+    expect(request.mock.calls.map(([path, init]) => [path, init?.method])).toEqual([['/api/v1/knowledge-bases/topic/restore', 'POST'], ['/api/v1/missions/mission/restore', 'POST']])
   })
 })

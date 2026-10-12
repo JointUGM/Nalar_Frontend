@@ -45,7 +45,7 @@ export class HttpTeacherService implements TeacherService {
       const archivedAt = nullable(value.archived_at, instant)
       if (status === 'archived' && archivedAt === null) throw new ApiError(502, 'INVALID_RESPONSE')
       return {
-        id: text(value.id), title: text(value.title), knowledge_base_id: text(value.knowledge_base_id), can_edit: flag(value.can_edit) && archivedAt === null, archived_at: archivedAt, created_by_name: nullable(value.created_by_name, text),
+        id: text(value.id), title: text(value.title), knowledge_base_id: text(value.knowledge_base_id), can_edit: flag(value.can_edit) && archivedAt === null, can_restore: flag(value.can_edit) && archivedAt !== null, archived_at: archivedAt, created_by_name: nullable(value.created_by_name, text),
         latest_version: nullable(value.latest_version, (raw) => { const version = record(raw); return { id: text(version.id), version_number: count(version.version_number), status: text(version.status) } }),
       }
     })
@@ -100,6 +100,10 @@ export class HttpTeacherService implements TeacherService {
 
   async exportReport(sessionId: string, signal?: AbortSignal): Promise<Blob> {
     return csv((await this.api.request(`/sessions/${encodeURIComponent(sessionId)}/report/export?format=csv`, { raw: true, signal })).data)
+  }
+
+  async restoreMission(missionId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${mission(missionId)}/restore`, { method: 'POST', signal })
   }
 
   async archiveMission(missionId: string, signal?: AbortSignal): Promise<void> {

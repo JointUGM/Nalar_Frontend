@@ -14,10 +14,11 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherKbReview.styles'
 import { ConfirmAction } from './ConfirmAction'
+import { RestoreAction } from './RestoreAction'
 import { JobNotice } from './JobNotice'
 import { KbConceptMap } from './KbConceptMap'
 import { KbNewItem } from './KbNewItem'
-import { buildWord, kbRefusal, reviewWord } from './kbText'
+import { buildWord, kbRefusal, kbRestoreRefusal, reviewWord } from './kbText'
 import { Loading } from '@/ui/components/loading/Loading'
 import { formatDayTime } from '@/ui/formatInstant'
 
@@ -191,10 +192,11 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
     <div className={styles.header}>
       {detail.concepts.length > 0 && !loading && <div className={styles.progress}><span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span><span className={styles.bar} role="progressbar" aria-label="Item disetujui" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done}><span style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></span><span>{done} dari {total} item disetujui{rejected > 0 && ` · ${rejected} ditolak`}</span></div>}
       <div className={styles.jumpLinks}>
+        {detail.archived_at && detail.can_restore && <RestoreAction action={(signal) => kb.restore(detail.id, signal)} onDone={() => navigate(`${base}/knowledge-base/${detail.id}`, { replace: true })} refusal={kbRestoreRefusal} />}
         {canEdit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan topik</>} title="Arsipkan topik ini?" description={`${detail.topic_title}. Topik tidak dipakai untuk misi baru. Materi, misi, dan sesi sebelumnya tetap tersimpan dan dapat dibaca dari Diarsipkan.`} confirm="Arsipkan topik" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archive(detail.id, signal)} onDone={() => navigate(`${base}/knowledge-base?status=archived`)} refusal={kbRefusal} />}
       </div>
     </div>
-    {detail.archived_at ? <Feedback title="Topik diarsipkan">Diarsipkan {formatDayTime(detail.archived_at)}. Materi, bab, dan konsep tetap dapat dibaca. Arsip tidak dapat diubah atau dipakai untuk misi baru.</Feedback> : !canEdit && <p className={styles.note}>Basis pengetahuan ini milik rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
+    {detail.archived_at ? <Feedback title="Topik diarsipkan">Diarsipkan {formatDayTime(detail.archived_at)}. Materi, bab, dan konsep tetap dapat dibaca. Arsip tidak dapat diubah atau dipakai untuk misi baru.{detail.can_restore && ' Pulihkan topik ini agar bisa dipakai lagi. Misi yang ikut diarsipkan dipulihkan terpisah dari halaman Misi.'}</Feedback> : !canEdit && <p className={styles.note}>Basis pengetahuan ini milik rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {jobId && <JobNotice key={jobId} kb={kb} jobId={jobId} onDone={refresh} />}
     {said && <Feedback tone="warning" title={said} announce />}
