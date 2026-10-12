@@ -34,7 +34,7 @@ function MissionCard({ mission, base, service, onRestored }: { mission: MissionS
     <p className={styles.state}>{mission.archived_at ? `Diarsipkan ${formatDay(mission.archived_at)} · hanya dapat dibaca.` : ready ? (version?.status === 'locked' ? 'Dapat diterbitkan lagi ke kelas lain.' : 'Siap digunakan di kelas.') : version?.status === 'draft' ? 'Tinjau draf sebelum diterbitkan.' : !version ? 'Draf belum disusun.' : 'Belum siap diterbitkan.'}</p>
     <div className={styles.foot}>
       <span className={styles.meta}>{version ? `v${version.version_number} · ${nextAction}` : nextAction}</span>
-      {ready ? <Link className={styles.publish} to={`${path}/publish`}><Icon name="send" size={14} />Terbitkan ke kelas</Link> : mission.archived_at && mission.can_restore ? <RestoreAction action={(signal) => service.restoreMission(mission.id, signal)} onDone={() => onRestored(mission)} refusal={missionRestoreRefusal} /> : <span className={styles.meta}>{mission.can_edit ? 'Anda' : mission.created_by_name ?? 'Rekan guru'}</span>}
+      {ready ? <Link className={styles.publish} to={`${path}/publish`}><Icon name="send" size={14} />Terbitkan ke kelas</Link> : mission.archived_at ? <RestoreAction action={(signal) => service.restoreMission(mission.id, signal)} onDone={() => onRestored(mission)} refusal={missionRestoreRefusal} /> : <span className={styles.meta}>{mission.can_edit ? 'Anda' : mission.created_by_name ?? 'Rekan guru'}</span>}
     </div>
   </li>
 }

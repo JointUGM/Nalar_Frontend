@@ -45,7 +45,7 @@ export class HttpTeacherService implements TeacherService {
       const archivedAt = nullable(value.archived_at, instant)
       if (status === 'archived' && archivedAt === null) throw new ApiError(502, 'INVALID_RESPONSE')
       return {
-        id: text(value.id), title: text(value.title), knowledge_base_id: text(value.knowledge_base_id), can_edit: flag(value.can_edit) && archivedAt === null, can_restore: flag(value.can_edit) && archivedAt !== null, archived_at: archivedAt, created_by_name: nullable(value.created_by_name, text),
+        id: text(value.id), title: text(value.title), knowledge_base_id: text(value.knowledge_base_id), can_edit: flag(value.can_edit) && archivedAt === null, archived_at: archivedAt, created_by_name: nullable(value.created_by_name, text),
         latest_version: nullable(value.latest_version, (raw) => { const version = record(raw); return { id: text(version.id), version_number: count(version.version_number), status: text(version.status) } }),
       }
     })

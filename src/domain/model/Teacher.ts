@@ -29,7 +29,7 @@ export interface ReleasePreview {
 export interface Released { released_to_parents_at: string; summary_count: number }
 
 export interface TeacherAssignment { school_id: string; class_id: string; class_name: string; grade_level: number; school_subject_id: string; subject_name: string }
-export interface MissionSummary { id: string; title: string; knowledge_base_id: string; can_edit: boolean; can_restore: boolean; archived_at: string | null; created_by_name: string | null; latest_version: { id: string; version_number: number; status: string } | null }
+export interface MissionSummary { id: string; title: string; knowledge_base_id: string; can_edit: boolean; archived_at: string | null; created_by_name: string | null; latest_version: { id: string; version_number: number; status: string } | null }
 export interface PublicationWindow { opens_at: string; closes_at: string }
 export interface PublishInput { class_id: string; mission_version_id: string; mode: 'live' | 'window'; opens_at?: string; closes_at?: string }
 export interface Published { publication_id: string; run_id: string; run_status: string }

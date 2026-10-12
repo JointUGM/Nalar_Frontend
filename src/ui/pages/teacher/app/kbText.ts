@@ -23,7 +23,7 @@ const refusals: Readonly<Record<string, string>> = {
 // A refusal the teacher can act on; anything else falls back to the status message.
 export const kbRefusal = (error: ApiError) => refusals[error.code] ?? (error.status === 404 ? 'Berkas PDF materi tidak ditemukan di penyimpanan.' : null)
 // A new active topic may have taken the name while this one was archived.
-export const kbRestoreRefusal = (error: ApiError) => error.code === 'TOPIC_ALREADY_EXISTS' ? 'Sudah ada topik aktif dengan nama ini. Arsipkan atau hapus topik itu dulu, lalu pulihkan lagi.' : kbRefusal(error)
+export const kbRestoreRefusal = (error: ApiError) => error.code === 'TOPIC_ALREADY_EXISTS' ? 'Sudah ada topik aktif dengan nama ini. Arsipkan atau hapus topik itu dulu, lalu pulihkan lagi.' : error.status === 403 || error.status === 404 ? 'Hanya pemilik topik yang bisa memulihkannya.' : kbRefusal(error)
 
 export const jobFailure: Readonly<Record<string, string>> = {
   MISSION_VERSION_CHANGED: 'Ada versi baru ketika revisi berjalan. Buka versi terbaru dan kirim revisi lagi.',
