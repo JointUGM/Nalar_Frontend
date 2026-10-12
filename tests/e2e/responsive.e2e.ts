@@ -34,3 +34,15 @@ for (const laptop of laptops) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 'no sideways page scroll').toBeLessThanOrEqual(0)
   })
 }
+
+for (const laptop of laptops) {
+  test(`login keeps its submit button on screen on ${laptop.name}`, async ({ page }) => {
+    await page.setViewportSize({ width: laptop.width, height: laptop.height })
+    await page.route('**/api/v1/**', (route) => route.fulfill({ status: 401, contentType: 'application/json', body: '{}' }))
+    await page.goto('/login')
+    const submit = page.locator('button[type=submit]')
+    await expect(submit).toBeVisible()
+    const box = await submit.boundingBox()
+    expect(box!.y + box!.height, 'sign-in button sits above the fold').toBeLessThanOrEqual(laptop.height)
+  })
+}
