@@ -11,7 +11,7 @@ export function YearSelect({ years }: { years: ReturnType<typeof useAcademicYear
       <div className="inline-flex items-center gap-2 rounded-button border border-role-border bg-surface px-3 py-1.5 text-[13px] font-semibold text-ink shadow-2xs">
         <Icon name="calendar" size={14} />
         <span>Tahun ajaran <strong>{years.list[0].name}</strong></span>
-        {years.list[0].is_current && <span className="rounded-pill bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">Berjalan</span>}
+        {years.list[0].id === years.activeYearId && <span className="rounded-pill bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">Berjalan</span>}
       </div>
     )
   }
@@ -24,7 +24,7 @@ export function YearSelect({ years }: { years: ReturnType<typeof useAcademicYear
         onChange={(value) => years.choose(value)}
         options={years.list.map((year) => ({
           value: year.id,
-          label: `${year.name}${year.is_current ? ' (berjalan)' : ''}`,
+          label: `${year.name}${year.id === years.activeYearId ? ' (berjalan)' : ''}`,
         }))}
       />
     </div>

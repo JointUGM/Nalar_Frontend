@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import type { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
 import { ApiError } from '@/domain/model/ApiError'
@@ -8,31 +8,31 @@ import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
-import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
+import { useCommandSignal } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/school-admin/ImportFlow.styles'
 import { AfterUpload, ImportColumnGuide } from './ImportColumnGuide'
 import { ImportHistory } from './ImportHistory'
 import { ImportResult } from './ImportResult'
 import { ImportSteps } from './ImportSteps'
 import { RosterFileDrop } from './RosterFileDrop'
+import { useAcademicYears } from './useAcademicYears'
 
 const template = `${rosterColumns.join(',')}\nstudent,Adinda Putri,,0098123401,8B,8,ibu.adinda@example.test,Rina Putri,ibu\nteacher,Sari Wulandari,sari@example.test,,,,,,\n`
 const refusals: Readonly<Record<string, string>> = { FILE_TOO_LARGE: 'Berkas lebih dari 5 MB.', FILE_NOT_CSV: 'Pilih berkas CSV (.csv).' }
 
 export function SchoolImportPage({ service, schoolId, base }: { service: SchoolAdminUseCases; schoolId: string; base: string }) {
-  const read = useCallback((signal: AbortSignal) => service.academicYears(schoolId, signal), [service, schoolId])
-  const { data, error, online, refresh } = useLiveResource(read, noPollMs)
+  const years = useAcademicYears(service, schoolId)
   const commandSignal = useCommandSignal()
   const busy = useRef(false)
-  const [year, setYear] = useState('')
+  const [chosenYear, setChosenYear] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [fileProblem, setFileProblem] = useState('')
   const [pending, setPending] = useState(false)
   const [failure, setFailure] = useState<ApiError | null>(null)
   const [params, setParams] = useSearchParams()
   const importId = params.get('import')
-  const chosen = year || data?.find((item) => item.is_current)?.id || ''
-  const yearName = data?.find((item) => item.id === chosen)?.name
+  const chosen = chosenYear || (years.list.some((item) => item.id === chosenYear) ? chosenYear : years.yearId)
+  const yearName = years.list.find((item) => item.id === chosen)?.name
 
   async function upload() {
     if (busy.current || !file || !chosen) return
@@ -57,8 +57,8 @@ export function SchoolImportPage({ service, schoolId, base }: { service: SchoolA
       </div>
       {!importId && <a className={styles.template} href={`data:text/csv;charset=utf-8,${encodeURIComponent(template)}`} download="nalar-impor.csv"><Icon name="file" size={16} />Unduh templat CSV</a>}
     </div>
-    <LiveFeedback error={error} online={online} refresh={refresh} />
-    {data && data.length === 0 && <Feedback tone="warning" title="Belum ada tahun ajaran">Hubungi admin platform untuk membuat tahun ajaran sekolah ini.</Feedback>}
+    <LiveFeedback error={years.error} online={true} refresh={years.refresh} />
+    {years.loaded && years.list.length === 0 && <Feedback tone="warning" title="Belum ada tahun ajaran">Hubungi admin platform untuk membuat tahun ajaran sekolah ini.</Feedback>}
     {importId ? <ImportResult key={importId} service={service} importId={importId} base={base} /> : <>
       <ImportSteps at={0} />
       <div className={styles.layout}>
@@ -70,8 +70,8 @@ export function SchoolImportPage({ service, schoolId, base }: { service: SchoolA
             value={chosen}
             disabled={pending}
             placeholder="Pilih tahun ajaran"
-            onChange={setYear}
-            options={(data ?? []).map((item) => ({ value: item.id, label: `${item.name}${item.is_current ? ' (berjalan)' : ''}` }))}
+            onChange={(val) => { setChosenYear(val); years.choose(val) }}
+            options={years.list.map((item) => ({ value: item.id, label: `${item.name}${item.id === years.activeYearId ? ' (berjalan)' : ''}` }))}
           />
           <RosterFileDrop file={file} pending={pending} error={fileProblem} failed={Boolean(failure)} onPick={pick} onReject={setFileProblem} onRemove={remove} />
           {failure && <Feedback tone="warning" title={refusals[failure.code] ?? failure.message} announce>{failure.requestId && <small>Referensi: {failure.requestId}</small>}</Feedback>}
@@ -84,7 +84,7 @@ export function SchoolImportPage({ service, schoolId, base }: { service: SchoolA
         </div>
         <ImportColumnGuide />
       </div>
-      {data && <ImportHistory service={service} schoolId={schoolId} years={data} base={base} />}
+      {years.list.length > 0 && <ImportHistory service={service} schoolId={schoolId} years={years.list} base={base} />}
     </>}
   </div>
 }

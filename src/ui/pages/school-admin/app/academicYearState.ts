@@ -59,8 +59,12 @@ export function resolveActiveYearId(schoolId: string, list: AcademicYear[], toda
     return [...pastOrStarted].sort((a, b) => b.starts_on.localeCompare(a.starts_on))[0].id
   }
 
-  // 4. Fallback if all years are scheduled in the future
-  return list.find((y) => y.is_current)?.id ?? list[0].id
+  // 4. Fallback if all years are scheduled in the future:
+  // Prefer the nearest upcoming period rather than distant future scheduled years
+  const marked = list.find((y) => y.is_current && y.starts_on <= today)
+  if (marked) return marked.id
+  const upcoming = [...list].sort((a, b) => a.starts_on.localeCompare(b.starts_on))
+  return upcoming[0].id
 }
 
 export function resolveActiveYear(schoolId: string, list: AcademicYear[], today: string = getTodayDateString()): AcademicYear | undefined {

@@ -17,7 +17,6 @@ import { Select } from '@/ui/components/select/Select'
 import { Loading } from '@/ui/components/loading/Loading'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
-import { cn } from '@/ui/cn'
 
 const refusals: Readonly<Record<string, string>> = {
   CLASS_NAME_EXISTS: 'Nama kelas itu sudah dipakai di tahun ajaran ini.',
@@ -302,7 +301,7 @@ function MoveStudentDialog({
             pending={command.pending}
             pendingLabel="Memindahkan…"
           >
-            <Icon name="shuffle" size={14} />
+            <Icon name="swap" size={14} />
             Pindahkan siswa
           </Button>
         </div>

@@ -161,7 +161,7 @@ describe('school administration', () => {
     const otherStudent = { ...person, user_id: '00000000-0000-4000-8000-000000000053', full_name: 'Citra Dewi', class_name: '8B' }
     let placedTarget: string | null = null
     let placedBody: unknown = null
-    const request = open(`/school/${school}/classes`, (key, init) => {
+    open(`/school/${school}/classes`, (key, init) => {
       if (key === `GET /schools/${school}/academic-years`) return Response.json(years)
       if (key === `GET /schools/${school}/classes?academic_year_id=${year}`) return Response.json([klass(classA, '8A'), klass(classB, '8B')])
       if (key === `GET /schools/${school}/people?role=teacher&limit=50`) return Response.json({ items: [], next_cursor: null, total: 0 })
@@ -207,6 +207,7 @@ describe('school administration', () => {
       if (key === `GET /schools/${school}/academic-years`) return Response.json(posts < 2 ? years : [{ ...years[0], is_current: false }, { id: nextYear, name: '2027/2028', starts_on: '2027-07-12', ends_on: '2028-06-30', is_current: true }])
       if (key === `POST /schools/${school}/academic-years`) return (posts += 1) === 1 ? new Response(null, { status: 503 }) : Response.json({ academic_year_id: nextYear }, { status: 201 })
     })
+    fireEvent.click(await screen.findByRole('button', { name: 'Tambah tahun ajaran' }))
     fireEvent.change(await screen.findByLabelText(/^Nama/), { target: { value: '2027/2028' } })
     fireEvent.change(screen.getByLabelText(/^Tanggal mulai/), { target: { value: '2027-07-12' } })
     fireEvent.change(screen.getByLabelText(/^Tanggal selesai/), { target: { value: '2028-06-30' } })
@@ -221,7 +222,8 @@ describe('school administration', () => {
     expect(retry).toBe(first)
     expect(JSON.parse(String(sent(request, 'POST')[1][1]?.body))).toEqual({ name: '2027/2028', starts_on: '2027-07-12', ends_on: '2028-06-30', copy_classes_from: year })
 
-    fireEvent.change(screen.getByLabelText(/^Nama/), { target: { value: '2028/2029' } })
+    fireEvent.click(await screen.findByRole('button', { name: 'Tambah tahun ajaran' }))
+    fireEvent.change(await screen.findByLabelText(/^Nama/), { target: { value: '2028/2029' } })
     fireEvent.change(screen.getByLabelText(/^Tanggal mulai/), { target: { value: '2028-07-10' } })
     fireEvent.change(screen.getByLabelText(/^Tanggal selesai/), { target: { value: '2029-06-30' } })
     fireEvent.click(screen.getByLabelText(/Langsung timpa/))
@@ -236,6 +238,7 @@ describe('school administration', () => {
       if (key === `GET /schools/${school}/academic-years`) return Response.json(years)
       if (key === `POST /schools/${school}/academic-years`) return Response.json({ academic_year_id: scheduledYear }, { status: 201 })
     })
+    fireEvent.click(await screen.findByRole('button', { name: 'Tambah tahun ajaran' }))
     fireEvent.change(await screen.findByLabelText(/^Nama/), { target: { value: '2027/2028' } })
     fireEvent.change(screen.getByLabelText(/^Tanggal mulai/), { target: { value: '2027-07-12' } })
     fireEvent.change(screen.getByLabelText(/^Tanggal selesai/), { target: { value: '2028-06-30' } })
@@ -245,6 +248,43 @@ describe('school administration', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Jadwalkan tahun ajaran' }))
     expect(await screen.findByText(/Tahun ajaran 2027\/2028 berhasil dijadwalkan/)).toBeInTheDocument()
     expect(JSON.parse(String(sent(request, 'POST')[0][1]?.body))).toEqual({ name: '2027/2028', starts_on: '2027-07-12', ends_on: '2028-06-30', copy_classes_from: year })
+  })
+  it('does not copy classes when "Jangan salin kelas" is chosen', async () => {
+    const nextYearId = '00000000-0000-4000-8000-000000000098'
+    const request = open(`/school/${school}/year`, (key) => {
+      if (key === `GET /schools/${school}/academic-years`) return Response.json(years)
+      if (key === `POST /schools/${school}/academic-years`) return Response.json({ academic_year_id: nextYearId }, { status: 201 })
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Tambah tahun ajaran' }))
+    fireEvent.change(await screen.findByLabelText(/^Nama/), { target: { value: '2027/2028' } })
+    fireEvent.change(screen.getByLabelText(/^Tanggal mulai/), { target: { value: '2027-07-12' } })
+    fireEvent.change(screen.getByLabelText(/^Tanggal selesai/), { target: { value: '2028-06-30' } })
+    await choose(screen.getByRole('combobox', { name: /Salin kelas dari/ }), /Jangan salin kelas/)
+    fireEvent.click(screen.getByRole('button', { name: 'Tinjau' }))
+    expect(screen.getByText(/Tidak ada kelas yang disalin/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Jadwalkan tahun ajaran' }))
+    await waitFor(() => expect(sent(request, 'POST')).toHaveLength(1))
+    expect(JSON.parse(String(sent(request, 'POST')[0][1]?.body))).toEqual({
+      name: '2027/2028',
+      starts_on: '2027-07-12',
+      ends_on: '2028-06-30',
+      copy_classes_from: null,
+    })
+  })
+  it('confirms before activating an academic year as the current running year', async () => {
+    const list = [
+      { id: year, name: '2026/2027', starts_on: '2026-07-13', ends_on: '2027-06-30', is_current: true },
+      { id: nextYear, name: '2027/2028', starts_on: '2027-07-12', ends_on: '2028-06-30', is_current: false },
+    ]
+    open(`/school/${school}/year`, (key) => {
+      if (key === `GET /schools/${school}/academic-years`) return Response.json(list)
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Jadikan tahun berjalan' }))
+    const dialog = within(screen.getByRole('dialog'))
+    expect(dialog.getByText('Jadikan tahun berjalan?')).toBeInTheDocument()
+    expect(dialog.getByText(/Periode saat ini/)).toBeInTheDocument()
+    fireEvent.click(dialog.getByRole('button', { name: 'Ya, jadikan tahun berjalan' }))
+    expect(await screen.findByText(/Tahun ajaran 2027\/2028 sekarang berjalan/)).toBeInTheDocument()
   })
   it('maps a subject to a chosen CP subject and transfers a knowledge base to a teacher of that subject', async () => {
     const [subject, oldVersion, newVersion, oldIpa, newIpa, newIpaF, kb, owner, teacher, other] = ['31', '32', '33', '34', '35', '36', '37', '38', '39', '40'].map((end) => `00000000-0000-4000-8000-0000000000${end}`)

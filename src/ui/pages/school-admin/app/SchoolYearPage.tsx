@@ -1,16 +1,19 @@
 import { useRef, useState } from 'react'
 import type { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
+import type { AcademicYear } from '@/domain/model/SchoolAdmin'
 import { Button } from '@/ui/components/button/Button'
 import { DatePicker } from '@/ui/components/date-picker/DatePicker'
+import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
-import { Nala, type NalaMood } from '@/ui/components/nala/Nala'
+import type { NalaMood } from '@/ui/components/nala/Nala'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { Select } from '@/ui/components/select/Select'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommand } from '@/ui/pages/live/useLiveResource'
+import shared from '@/ui/pages/school-admin/dialogForm.styles'
 import styles from '@/ui/pages/school-admin/SchoolYear.styles'
 import { useAcademicYears } from './useAcademicYears'
 import { getTodayDateString, resolveYearStatus } from './academicYearState'
@@ -36,6 +39,8 @@ export function SchoolYearPage({ service, schoolId }: { service: SchoolAdminUseC
   const note = years.loaded ? companion(current, years.list.length) : null
   const todayStr = getTodayDateString()
 
+  const [adding, setAdding] = useState(false)
+  const [activatingYear, setActivatingYear] = useState<AcademicYear | null>(null)
   const [fields, setFields] = useState<{
     name: string
     starts_on: string
@@ -49,14 +54,15 @@ export function SchoolYearPage({ service, schoolId }: { service: SchoolAdminUseC
     copy: '',
     activation: 'scheduled',
   })
-  const copy = fields.copy === 'none' ? null : fields.copy || current?.id || null
+  const defaultCopySource = current?.id ?? 'none'
+  const effectiveCopyValue = fields.copy || defaultCopySource
+  const copySourceId = effectiveCopyValue === 'none' ? null : effectiveCopyValue
   const [confirming, setConfirming] = useState(false)
   const [done, setDone] = useState('')
   const command = useCommand()
   // One key per reviewed submission: a retry after a lost answer reuses it, so the backend never starts a second year.
   const key = useRef('')
   const said = command.failure && (refusals[command.failure.code] ?? command.failure.message)
-  const isFuture = Boolean(fields.starts_on && fields.starts_on > todayStr)
 
   const update = (next: Partial<typeof fields>) => {
     command.reset()
@@ -65,7 +71,7 @@ export function SchoolYearPage({ service, schoolId }: { service: SchoolAdminUseC
   }
 
   async function create() {
-    const year = { name: fields.name, starts_on: fields.starts_on, ends_on: fields.ends_on, copy_classes_from: copy }
+    const year = { name: fields.name.trim(), starts_on: fields.starts_on, ends_on: fields.ends_on, copy_classes_from: copySourceId }
     const previousActiveId = years.activeYearId
     if (await command.run((signal) => service.createAcademicYear(schoolId, year, key.current, signal))) {
       const refreshedList = await service.academicYears(schoolId)
@@ -88,6 +94,7 @@ export function SchoolYearPage({ service, schoolId }: { service: SchoolAdminUseC
 
       setFields({ name: '', starts_on: '', ends_on: '', copy: '', activation: 'scheduled' })
       setConfirming(false)
+      setAdding(false)
       years.refresh()
     }
   }
@@ -98,12 +105,7 @@ export function SchoolYearPage({ service, schoolId }: { service: SchoolAdminUseC
       type: resolved.type,
       label: resolved.label,
       icon: resolved.icon,
-      iconClass: resolved.type === 'current' ? styles.stepIconCurrent : resolved.type === 'upcoming' ? styles.stepIconUpcoming : styles.stepIconDone,
       badgeClass: resolved.type === 'current' ? styles.stateCurrent : resolved.type === 'upcoming' ? styles.stateUpcoming : styles.stateDone,
-      itemClass: resolved.type === 'current' ? styles.current : resolved.type === 'upcoming' ? styles.upcoming : styles.done,
-      hintClass: resolved.type === 'current' ? styles.currentHint : resolved.type === 'upcoming' ? styles.upcomingHint : styles.doneHint,
-      hintIcon: (resolved.type === 'current' ? 'check' : resolved.type === 'upcoming' ? 'clock' : 'archive') as 'check' | 'clock' | 'archive',
-      hint: resolved.hint,
       isCurrent: resolved.isCurrent,
     }
   }
@@ -113,11 +115,36 @@ export function SchoolYearPage({ service, schoolId }: { service: SchoolAdminUseC
       <div className={styles.head}>
         <div className={styles.headText}>
           <h1 className={styles.title}>Tahun ajaran</h1>
-          <p className={styles.lead}>
-            Kelola periode tahun ajaran sekolah. Anda dapat menyiapkan tahun ajaran mendatang atau mengaktifkan periode baru dengan fleksibel tanpa kehilangan riwayat sebelumnya.
-          </p>
+          <p className={styles.lead}>Kelola kalender akademik dan periode aktif sekolah.</p>
         </div>
         {note && <NalaNote mood={note[0]} text={note[1]} />}
+        <Button
+          type="button"
+          className={styles.addButton}
+          onClick={() => {
+            command.reset()
+            setConfirming(false)
+            setAdding(true)
+          }}
+        >
+          <Icon name="plus" size={16} />
+          <span>Tambah tahun ajaran</span>
+        </Button>
+      </div>
+
+      <div className={styles.context}>
+        {current ? (
+          <div className="flex items-center gap-2 text-[13.5px] font-semibold text-text-secondary">
+            <span className="size-2 rounded-full bg-success-text animate-pulse" />
+            <span>Tahun ajaran berjalan: <strong className="text-ink">{current.name}</strong></span>
+            <span className="text-text-muted font-normal text-[12.5px] tabular-nums hidden sm:inline">
+              ({fmt(current.starts_on)} – {fmt(current.ends_on)})
+            </span>
+          </div>
+        ) : <div />}
+        {years.list.length > 0 && (
+          <p className={styles.summary} role="status">{years.list.length} periode kalender akademik</p>
+        )}
       </div>
 
       <LiveFeedback error={years.error} online refresh={years.refresh} />
@@ -128,305 +155,439 @@ export function SchoolYearPage({ service, schoolId }: { service: SchoolAdminUseC
         </Feedback>
       )}
 
-      <div className={styles.layout}>
-        <div className={styles.main}>
-          {years.list.length > 0 ? (
-            <section className={styles.history} aria-labelledby="years-heading">
-              <div className={styles.historyHead}>
-                <h2 id="years-heading" className={styles.historyTitle}>
-                  <Icon name="calendar" size={17} />
-                  Daftar tahun ajaran
-                </h2>
-                <span className={styles.total}>{years.list.length} periode</span>
-              </div>
-
-              <ol className={styles.steps}>
+      {years.list.length === 0 ? (
+        years.loaded && !years.error && (
+          <div className={styles.emptyCard}>
+            <NalaEmpty mood="ask" title="Belum ada tahun ajaran">
+              <p>Mulai tahun ajaran baru agar data kelas, guru, dan siswa dapat dikelola.</p>
+            </NalaEmpty>
+            <div className="p-6 pt-0 flex justify-center">
+              <Button
+                type="button"
+                className={styles.addButton}
+                onClick={() => {
+                  command.reset()
+                  setConfirming(false)
+                  setAdding(true)
+                }}
+              >
+                <Icon name="plus" size={16} />
+                <span>Tambah tahun ajaran</span>
+              </Button>
+            </div>
+          </div>
+        )
+      ) : (
+        <div className={styles.card} role="region" aria-label="Tabel daftar tahun ajaran, dapat digulir mendatar" tabIndex={0}>
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <caption className={styles.hidden}>Daftar tahun ajaran sekolah</caption>
+              <thead className={styles.thead}>
+                <tr>
+                  <th scope="col" className={styles.thYear}>Tahun ajaran</th>
+                  <th scope="col" className={styles.thDates}>Rentang kalender</th>
+                  <th scope="col" className={styles.thStatus}>Status</th>
+                  <th scope="col" className={styles.thAction}><span className={styles.hidden}>Tindakan</span></th>
+                </tr>
+              </thead>
+              <tbody>
                 {years.list.map((year) => {
                   const status = getYearStatus(year)
                   return (
-                    <li
-                      key={year.id}
-                      className={[styles.step, status.itemClass].join(' ')}
-                      aria-current={status.isCurrent ? 'step' : undefined}
-                    >
-                      <div className={[styles.stepIcon, status.iconClass].join(' ')}>
-                        <Icon name={status.icon} size={18} />
-                      </div>
-                      <div className={styles.stepBody}>
-                        <div className={styles.stepTop}>
-                          <h2>{year.name}</h2>
-                          <span className={[styles.state, status.badgeClass].join(' ')}>
-                            {status.label}
+                    <tr key={year.id} className={styles.tr}>
+                      <th scope="row" className={status.isCurrent ? styles.yearCurrent : styles.classroom}>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className={status.isCurrent ? styles.yearIconCurrent : styles.yearIcon}>
+                            <Icon name={status.icon} size={15} />
                           </span>
+                          <span className="truncate">{year.name}</span>
                         </div>
-                        <p className={styles.dates}>
-                          <Icon name="calendar" size={13} />
-                          <span>
-                            {fmt(year.starts_on)} – {fmt(year.ends_on)}
-                          </span>
-                        </p>
-                        <p className={status.hintClass}>
-                          <Icon name={status.hintIcon} size={12} />
-                          <span>{status.hint}</span>
-                        </p>
-                        {!status.isCurrent && (
-                          <div className="mt-2 pt-2 border-t border-role-border/60 flex items-center justify-between">
-                            <span className="text-[11px] text-text-muted">
-                              {status.type === 'upcoming' ? 'Periode terjadwal' : 'Periode riwayat'}
+                      </th>
+                      <td className={styles.td}>
+                        <span className={styles.datesText}>
+                          <span className="text-text-muted"><Icon name="calendar" size={13} /></span>
+                          <span>{fmt(year.starts_on)} – {fmt(year.ends_on)}</span>
+                        </span>
+                      </td>
+                      <td className={styles.td}>
+                        <span className={status.badgeClass}>
+                          {status.isCurrent ? (
+                            <span className="size-2 rounded-full bg-success-text shrink-0" />
+                          ) : status.type === 'upcoming' ? (
+                            <Icon name="clock" size={12} className="text-primary shrink-0" />
+                          ) : (
+                            <Icon name="archive" size={12} className="text-text-muted shrink-0" />
+                          )}
+                          <span>{status.isCurrent ? 'Tahun Berjalan' : status.label}</span>
+                        </span>
+                      </td>
+                      <td className={styles.tdEnd}>
+                        {status.isCurrent ? (
+                          <div className={styles.activeCell}>
+                            <span className={styles.activeLabel}>
+                              <Icon name="check" size={13} className="text-success-strong" />
+                              <span>Sedang aktif</span>
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                years.activateYear(year.id)
-                                setDone(`Tahun ajaran ${year.name} sekarang berjalan. Semua kelas dan data terhubung ke periode ini.`)
-                              }}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11.5px] font-semibold text-primary hover:text-primary-hover hover:bg-primary/5 rounded-button border border-primary/25 hover:border-primary/50 transition-colors cursor-pointer"
-                            >
-                              <Icon name="check" size={12} />
-                              <span>Jadikan tahun berjalan</span>
-                            </button>
                           </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setActivatingYear(year)}
+                            className={status.type === 'archived' || status.type === 'done' ? styles.cellButtonArchived : styles.cellButton}
+                          >
+                            <span>Jadikan tahun berjalan</span>
+                            <Icon name="chevronRight" size={13} className="text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+                          </button>
                         )}
-                      </div>
-                    </li>
+                      </td>
+                    </tr>
                   )
                 })}
-              </ol>
-
-              <div className={styles.helperCard}>
-                <span className={styles.helperIcon}>
-                  <Icon name="idea" size={15} />
-                </span>
-                <div className="min-w-0">
-                  <strong className="block text-[12.5px] font-bold text-ink">Pengaturan Fleksibel</strong>
-                  <p className="m-0 mt-0.5 text-[12px] leading-relaxed text-text-secondary">
-                    Tahun ajaran baru dapat dijadwalkan lebih awal tanpa memengaruhi data tahun yang sedang aktif. Riwayat kelas, nilai, dan refleksi tetap tersimpan rapi.
-                  </p>
-                </div>
-              </div>
-            </section>
-          ) : (
-            years.loaded &&
-            !years.error && (
-              <div className={styles.emptyState}>
-                <NalaEmpty mood="ask" title="Belum ada tahun ajaran">
-                  Mulai tahun ajaran baru di formulir agar data kelas, guru, dan siswa dapat dikelola.
-                </NalaEmpty>
-              </div>
-            )
-          )}
+              </tbody>
+            </table>
+          </div>
         </div>
+      )}
 
-        {years.loaded && (
-          <section className={styles.workspace} aria-labelledby="new-year">
-            <div>
-              <h2 id="new-year" className={styles.workspaceTitle}>
-                Tambah tahun ajaran
-              </h2>
-              <p className={styles.workspaceLead}>
-                Tentukan periode kalender akademik dan pilih cara aktivasi periode baru.
-              </p>
+      <Dialog
+        open={Boolean(activatingYear)}
+        onClose={() => setActivatingYear(null)}
+        title="Jadikan tahun berjalan?"
+        description="Konfirmasi peralihan periode kalender akademik aktif sekolah."
+        icon="calendar"
+      >
+        {activatingYear && (
+          <div className={shared.form}>
+            <div className={styles.targetCard}>
+              <div className={styles.targetIconWrap}>
+                <Icon name="calendar" size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <strong className={styles.targetTitle}>{activatingYear.name}</strong>
+                  <span className={styles.targetBadge}>
+                    Akan diaktifkan
+                  </span>
+                </div>
+                <p className={styles.targetDates}>
+                  <Icon name="calendar" size={13} />
+                  <span>{fmt(activatingYear.starts_on)} – {fmt(activatingYear.ends_on)}</span>
+                </p>
+              </div>
             </div>
 
-            <form
-              className={styles.form}
-              noValidate
-              onSubmit={(event) => {
-                event.preventDefault()
-                if (!confirming) {
-                  key.current = crypto.randomUUID()
-                  setConfirming(true)
-                } else {
-                  void create()
-                }
-              }}
-            >
-              <div className="grid gap-3.5">
-                <Field
-                  label="Nama"
-                  required
-                  placeholder="Contoh: 2027/2028"
-                  maxLength={200}
-                  value={fields.name}
-                  disabled={command.pending}
-                  onChange={(event) => update({ name: event.target.value })}
-                />
-                <div className="grid grid-cols-2 gap-3 max-[460px]:grid-cols-1">
-                  <DatePicker
-                    label="Tanggal mulai"
-                    required
-                    value={fields.starts_on}
-                    disabled={command.pending}
-                    onChange={(val) => update({ starts_on: val })}
-                  />
-                  <DatePicker
-                    label="Tanggal selesai"
-                    required
-                    value={fields.ends_on}
-                    disabled={command.pending}
-                    onChange={(val) => update({ ends_on: val })}
-                  />
+            <div className={styles.cautionCard}>
+              <div className={styles.cautionHead}>
+                <div className={styles.cautionIcon}>
+                  <Icon name="info" size={12} />
                 </div>
-
-                <div className="grid gap-1.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[13px] font-bold text-ink">Pilihan aktivasi</span>
-                    <span className="text-[11.5px] font-semibold text-text-secondary px-2 py-0.5 rounded-md bg-surface-muted border border-role-border">
-                      {isFuture ? 'Periode mendatang' : 'Periode aktif'}
-                    </span>
-                  </div>
-                  <div className="grid gap-2">
-                    <label
-                      className={[
-                        styles.activationOption,
-                        fields.activation === 'scheduled' ? styles.activationActive : styles.activationInactive,
-                      ].join(' ')}
-                    >
-                      <input
-                        type="radio"
-                        name="activation"
-                        value="scheduled"
-                        checked={fields.activation === 'scheduled'}
-                        disabled={command.pending}
-                        onChange={() => update({ activation: 'scheduled' })}
-                        className="mt-0.5 accent-primary cursor-pointer shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap justify-between">
-                          <span className="text-[13px] font-bold text-ink">
-                            Mulai setelah waktu yang ditentukan
-                          </span>
-                          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-pill bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20">
-                            Terjadwal
-                          </span>
-                        </div>
-                        <p className="m-0 mt-0.5 text-[12px] leading-4 text-text-secondary">
-                          {fields.starts_on
-                            ? `Otomatis mulai pada ${fmt(fields.starts_on)}. `
-                            : 'Disiapkan untuk masa mendatang. '}
-                          {current
-                            ? `Tahun berjalan (${current.name}) TIDAK akan ditimpa dan tetap aktif.`
-                            : 'Disiapkan tanpa menimpa data yang ada.'}
-                        </p>
-                      </div>
-                    </label>
-
-                    <label
-                      className={[
-                        styles.activationOption,
-                        fields.activation === 'immediate' ? styles.activationActive : styles.activationInactive,
-                      ].join(' ')}
-                    >
-                      <input
-                        type="radio"
-                        name="activation"
-                        value="immediate"
-                        checked={fields.activation === 'immediate'}
-                        disabled={command.pending}
-                        onChange={() => update({ activation: 'immediate' })}
-                        className="mt-0.5 accent-primary cursor-pointer shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap justify-between">
-                          <span className="text-[13px] font-bold text-ink">
-                            Langsung timpa & jadikan tahun berjalan sekarang
-                          </span>
-                          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-pill bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-                            Timpa sekarang
-                          </span>
-                        </div>
-                        <p className="m-0 mt-0.5 text-[12px] leading-4 text-text-secondary">
-                          {current
-                            ? `Langsung menggantikan ${current.name} sebagai tahun berjalan hari ini tanpa menunggu tanggal mulai.`
-                            : 'Langsung aktif sebagai tahun berjalan pertama.'}
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-
-                {years.list.length > 0 && (
-                  <div className="grid gap-1">
-                    <Select
-                      label="Salin kelas dari"
-                      value={copy ?? 'none'}
-                      disabled={command.pending}
-                      onChange={(val) => update({ copy: val === 'none' ? null : val })}
-                      options={[
-                        { value: 'none', label: 'Jangan salin kelas' },
-                        ...years.list.map((year) => ({ value: year.id, label: year.name })),
-                      ]}
-                    />
-                    <small className="text-[12px] leading-[17px] text-text-secondary">
-                      Hanya nama dan tingkat kelas yang disalin. Siswa, wali kelas, dan penugasan guru diatur lagi.
-                    </small>
-                  </div>
-                )}
-                {confirming && (
-                  <Feedback
-                    tone={fields.activation === 'scheduled' ? 'info' : 'warning'}
-                    title={
-                      fields.activation === 'scheduled'
-                        ? `Jadwalkan ${fields.name.trim() || 'tahun ajaran baru'} untuk ${fields.starts_on ? fmt(fields.starts_on) : 'masa mendatang'}?`
-                        : `Mulai & timpa dengan ${fields.name.trim() || 'tahun ajaran baru'} sekarang?`
-                    }
-                    announce
-                  >
-                    {fields.activation === 'scheduled'
-                      ? (current
-                          ? `Tahun ajaran saat ini (${current.name}) TIDAK akan ditimpa dan tetap berjalan normal. `
-                          : 'Tahun ajaran disiapkan untuk periode mendatang. ')
-                      : (current
-                          ? `${current.name} berhenti menjadi tahun berjalan dan langsung digantikan hari ini. `
-                          : '')}
-                    {copy
-                      ? `Kelas dari ${years.list.find((year) => year.id === copy)?.name ?? ''} disalin tanpa siswa.`
-                      : 'Tidak ada kelas yang disalin.'}
-                  </Feedback>
-                )}
-                {said && (
-                  <Feedback tone="warning" title={said} announce>
-                    {command.failure?.requestId && <small>Referensi: {command.failure.requestId}</small>}
-                  </Feedback>
-                )}
+                <span>Hal yang perlu diperhatikan:</span>
               </div>
-              <div className={styles.bar}>
-                {confirming ? (
-                  <div className="flex items-center gap-3 w-full">
-                    <Button
-                      tone="secondary"
-                      className="flex-1 justify-center min-h-10 text-[13.5px] rounded-[12px]"
-                      disabled={command.pending}
-                      onClick={() => {
-                        command.reset()
-                        setConfirming(false)
-                      }}
-                    >
-                      Ubah isian
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="flex-[2] justify-center min-h-10 text-[13.5px] font-bold rounded-[12px]"
-                      pending={command.pending}
-                      pendingLabel="Membuat…"
-                    >
-                      {fields.activation === 'scheduled' ? 'Jadwalkan tahun ajaran' : 'Mulai tahun ajaran'}
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    type="submit"
-                    className="w-full justify-center min-h-10 text-[13.5px] font-bold rounded-[12px] gap-2 shadow-2xs hover:shadow-xs"
-                  >
-                    <span>Tinjau</span>
-                    <Icon name="arrow" size={15} />
-                  </Button>
+              <ul className={styles.cautionList}>
+                {current && current.id !== activatingYear.id && (
+                  <li>
+                    Periode saat ini (<strong>{current.name}</strong>) tidak lagi menjadi tahun berjalan dan beralih status ke arsip.
+                  </li>
                 )}
-              </div>
-            </form>
-          </section>
+                <li>
+                  Seluruh kelas, jadwal pelajaran guru, dan data siswa di dashboard akan terhubung ke periode <strong>{activatingYear.name}</strong>.
+                </li>
+                <li>
+                  Riwayat akademik dan nilai periode sebelumnya tetap tersimpan aman.
+                </li>
+              </ul>
+            </div>
+
+            <div className={shared.actions}>
+              <Button
+                type="button"
+                tone="secondary"
+                onClick={() => setActivatingYear(null)}
+              >
+                Batal
+              </Button>
+              <Button
+                type="button"
+                className="gap-1.5"
+                onClick={() => {
+                  const target = activatingYear
+                  setActivatingYear(null)
+                  years.activateYear(target.id)
+                  setDone(`Tahun ajaran ${target.name} sekarang berjalan. Semua kelas dan data terhubung ke periode ini.`)
+                }}
+              >
+                <Icon name="check" size={15} />
+                <span>Ya, jadikan tahun berjalan</span>
+              </Button>
+            </div>
+          </div>
         )}
-      </div>
+      </Dialog>
+
+      <Dialog
+        open={adding}
+        onClose={() => {
+          if (!command.pending) {
+            setAdding(false)
+            setConfirming(false)
+            command.reset()
+          }
+        }}
+        dismissible={!command.pending}
+        title="Tambah tahun ajaran"
+        description="Tentukan kalender akademik dan periode aktivasi sekolah."
+        icon="calendar"
+      >
+        <form
+          className={shared.form}
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (!confirming) {
+              key.current = crypto.randomUUID()
+              setConfirming(true)
+            } else {
+              void create()
+            }
+          }}
+        >
+          <div className="grid gap-3 sm:gap-3.5">
+            <Field
+              label="Nama"
+              required
+              placeholder="Contoh: 2027/2028"
+              maxLength={200}
+              value={fields.name}
+              disabled={command.pending}
+              onChange={(event) => update({ name: event.target.value })}
+            />
+            <div className="grid grid-cols-2 gap-3 max-[460px]:grid-cols-1">
+              <DatePicker
+                label="Tanggal mulai"
+                required
+                value={fields.starts_on}
+                disabled={command.pending}
+                onChange={(val) => update({ starts_on: val })}
+              />
+              <DatePicker
+                label="Tanggal selesai"
+                required
+                value={fields.ends_on}
+                disabled={command.pending}
+                onChange={(val) => update({ ends_on: val })}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <span className="text-[13px] font-bold text-ink">Pilihan aktivasi</span>
+              <div className="grid gap-2">
+                <label
+                  className={[
+                    styles.activationOption,
+                    fields.activation === 'scheduled' ? styles.activationActive : styles.activationInactive,
+                  ].join(' ')}
+                >
+                  <input
+                    type="radio"
+                    name="activation"
+                    value="scheduled"
+                    checked={fields.activation === 'scheduled'}
+                    disabled={command.pending}
+                    onChange={() => update({ activation: 'scheduled' })}
+                    className="sr-only"
+                  />
+                  <span
+                    className={[
+                      styles.radioIndicator,
+                      fields.activation === 'scheduled'
+                        ? 'border-primary bg-primary ring-2 ring-primary/20 shadow-2xs'
+                        : 'border-control-border/70 bg-surface group-hover:border-control-border',
+                    ].join(' ')}
+                  >
+                    {fields.activation === 'scheduled' && (
+                      <span className="size-1.5 rounded-full bg-white" />
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 justify-between flex-wrap">
+                      <span className="text-[13.5px] font-bold text-ink leading-snug">
+                        Mulai setelah waktu yang ditentukan
+                      </span>
+                      <span className="shrink-0 whitespace-nowrap text-[11px] font-bold px-2.5 py-0.5 rounded-pill bg-info-bg text-primary border border-primary/25">
+                        Terjadwal
+                      </span>
+                    </div>
+                    <p className="m-0 mt-0.5 text-[12px] text-text-secondary leading-normal">
+                      Aktif otomatis saat tanggal tiba. Tahun berjalan tetap aktif.
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  className={[
+                    styles.activationOption,
+                    fields.activation === 'immediate'
+                      ? 'border-warning-text/80 bg-warning-bg/40 ring-1 ring-warning-text/25 shadow-xs'
+                      : styles.activationInactive,
+                  ].join(' ')}
+                >
+                  <input
+                    type="radio"
+                    name="activation"
+                    value="immediate"
+                    checked={fields.activation === 'immediate'}
+                    disabled={command.pending}
+                    onChange={() => update({ activation: 'immediate' })}
+                    className="sr-only"
+                  />
+                  <span
+                    className={[
+                      styles.radioIndicator,
+                      fields.activation === 'immediate'
+                        ? 'border-warning-text bg-warning-text ring-2 ring-warning-text/20 shadow-2xs'
+                        : 'border-control-border/70 bg-surface group-hover:border-control-border',
+                    ].join(' ')}
+                  >
+                    {fields.activation === 'immediate' && (
+                      <span className="size-1.5 rounded-full bg-white" />
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 justify-between flex-wrap">
+                      <span className="text-[13.5px] font-bold text-ink leading-snug">
+                        Langsung timpa & jadikan tahun berjalan sekarang
+                      </span>
+                      <span className="shrink-0 whitespace-nowrap text-[11px] font-bold px-2.5 py-0.5 rounded-pill bg-warning-bg text-warning-text border border-warning-text/30">
+                        Langsung aktif
+                      </span>
+                    </div>
+                    <p className="m-0 mt-0.5 text-[12px] text-text-secondary leading-normal">
+                      Langsung aktif hari ini menggantikan tahun berjalan.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {fields.name.trim() && (
+              <div className={styles.previewBox}>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-text-muted text-[11.5px] font-semibold">Pratinjau:</span>
+                  <span className="font-bold text-ink truncate">{fields.name.trim()}</span>
+                  {fields.starts_on && fields.ends_on && (
+                    <span className="text-text-muted truncate text-[11.5px]">
+                      ({fmt(fields.starts_on)} – {fmt(fields.ends_on)})
+                    </span>
+                  )}
+                </div>
+                <span
+                  className={[
+                    'shrink-0 whitespace-nowrap px-2.5 py-0.5 rounded-pill text-[11px] font-bold border',
+                    fields.activation === 'scheduled'
+                      ? 'bg-info-bg text-primary border-primary/25'
+                      : 'bg-warning-bg text-warning-text border-warning-text/30',
+                  ].join(' ')}
+                >
+                  {fields.activation === 'scheduled' ? 'Terjadwal' : 'Langsung Aktif'}
+                </span>
+              </div>
+            )}
+
+            {years.list.length > 0 && (
+              <div className="grid gap-1">
+                <Select
+                  label="Salin kelas dari"
+                  value={effectiveCopyValue}
+                  disabled={command.pending}
+                  onChange={(val) => update({ copy: val })}
+                  options={[
+                    { value: 'none', label: 'Jangan salin kelas' },
+                    ...years.list.map((year) => ({ value: year.id, label: year.name })),
+                  ]}
+                />
+                <small className="text-[11.5px] text-text-muted">
+                  Hanya nama dan tingkat kelas yang disalin.
+                </small>
+              </div>
+            )}
+            {confirming && (
+              <Feedback
+                tone={fields.activation === 'scheduled' ? 'info' : 'warning'}
+                title={
+                  fields.activation === 'scheduled'
+                    ? `Jadwalkan ${fields.name.trim() || 'tahun ajaran baru'} untuk ${fields.starts_on ? fmt(fields.starts_on) : 'masa mendatang'}?`
+                    : `Mulai & timpa dengan ${fields.name.trim() || 'tahun ajaran baru'} sekarang?`
+                }
+                announce
+              >
+                {fields.activation === 'scheduled'
+                  ? (current
+                      ? `Tahun ajaran saat ini (${current.name}) TIDAK akan ditimpa dan tetap berjalan normal. `
+                      : 'Tahun ajaran disiapkan untuk periode mendatang. ')
+                  : (current
+                      ? `${current.name} berhenti menjadi tahun berjalan dan langsung digantikan hari ini. `
+                      : '')}
+                {copySourceId
+                  ? `Kelas dari ${years.list.find((year) => year.id === copySourceId)?.name ?? ''} disalin tanpa siswa.`
+                  : 'Tidak ada kelas yang disalin.'}
+              </Feedback>
+            )}
+            {said && (
+              <Feedback tone="warning" title={said} announce>
+                {command.failure?.requestId && <small>Referensi: {command.failure.requestId}</small>}
+              </Feedback>
+            )}
+          </div>
+          <div className={shared.actions}>
+            {confirming ? (
+              <>
+                <Button
+                  type="button"
+                  tone="secondary"
+                  disabled={command.pending}
+                  onClick={() => {
+                    command.reset()
+                    setConfirming(false)
+                  }}
+                >
+                  Ubah isian
+                </Button>
+                <Button
+                  type="submit"
+                  pending={command.pending}
+                  pendingLabel="Membuat…"
+                >
+                  {fields.activation === 'scheduled' ? 'Jadwalkan tahun ajaran' : 'Mulai tahun ajaran'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  tone="secondary"
+                  disabled={command.pending}
+                  onClick={() => {
+                    if (!command.pending) {
+                      setAdding(false)
+                      setConfirming(false)
+                      command.reset()
+                    }
+                  }}
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  className="gap-1.5"
+                >
+                  <span>Tinjau</span>
+                  <Icon name="arrow" size={15} />
+                </Button>
+              </>
+            )}
+          </div>
+        </form>
+      </Dialog>
     </div>
   )
 }

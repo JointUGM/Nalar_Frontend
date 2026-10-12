@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SchoolAdminUseCases } from '@/application/school-admin-use-cases'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
-import { getStoredActiveYearId, resolveActiveYearId, setStoredActiveYearId } from './academicYearState'
+import { resolveActiveYearId, setStoredActiveYearId } from './academicYearState'
 
 // The school's years, with the current active one chosen until the admin picks another.
 export function useAcademicYears(service: SchoolAdminUseCases, schoolId: string) {
