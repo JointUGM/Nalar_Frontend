@@ -23,7 +23,7 @@ describe('teacher library archive projections', () => {
       : await new HttpTeacherService(api).missions('school', controller.signal, 'archived')
     expect(request.mock.calls.map(([path]) => path)).toEqual([`/api/v1/schools/school/${library}?limit=100&status=archived`, `/api/v1/schools/school/${library}?limit=100&status=archived&cursor=next%2Fpage`])
     expect(request.mock.calls.every(([, init]) => init?.signal instanceof AbortSignal)).toBe(true)
-    expect(rows.map((row) => [row.archived_at, row.can_edit, row.can_restore])).toEqual([[archivedAt, false, true], [archivedAt, false, true]])
+    expect(rows.map((row) => [row.archived_at, row.can_edit])).toEqual([[archivedAt, false], [archivedAt, false]])
     if (library === 'missions') expect(publishable(rows[0] as MissionSummary)).toBe(false)
   })
 

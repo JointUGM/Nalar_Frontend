@@ -86,7 +86,7 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
               <td data-extra className={styles.owner}>{topic.can_edit ? 'Milik Anda' : topic.owner_name ?? (status === 'archived' ? 'Pemilik tidak tersedia' : 'Rekan guru')}</td>
               <td><div className={topic.archived_at ? styles.archiveActions : styles.actions}>
                 <Link to={path}>{topic.can_edit && topic.pending_count > 0 ? 'Tinjau' : 'Lihat isi'}</Link>
-                {topic.archived_at && topic.can_restore && <RestoreAction action={(signal) => kb.restore(topic.id, signal)} onDone={() => { setRestored(topic.topic_title); refresh() }} refusal={kbRestoreRefusal} />}
+                {topic.archived_at && <RestoreAction action={(signal) => kb.restore(topic.id, signal)} onDone={() => { setRestored(topic.topic_title); refresh() }} refusal={kbRestoreRefusal} />}
                 {topic.can_edit && <Link to={`${path}?tab=materials`}>Tambah bab</Link>}
                 {topic.can_edit && <span className={styles.remove}><ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan</>} title="Arsipkan topik ini?" description={`${topic.topic_title}. Topik tidak dipakai untuk misi baru. Materi, misi, dan laporan sebelumnya tetap tersimpan dan dapat dibaca dari Diarsipkan.`} confirm="Arsipkan topik" pendingLabel="Mengarsipkan…" action={(signal) => kb.archive(topic.id, signal)} onDone={refresh} refusal={kbRefusal} /></span>}
               </div></td>
