@@ -62,7 +62,7 @@ export function StudentShell({ title, user, detail, nav = items, home = '/review
         {review && <span className="text-[11px] whitespace-nowrap text-text-secondary max-md:text-[10px]">Pratinjau · data contoh</span>}
         <Link className="inline-flex h-11 items-center gap-2 rounded-pill border border-control-border bg-surface pr-3.5 pl-2 text-[13px] font-semibold whitespace-nowrap text-ink no-underline" to={join}><span className="grid size-6 place-items-center rounded-full bg-ink text-accent" aria-hidden="true"><Icon name="monitor" size={12} /></span>Gabung sesi kelas</Link>
       </header>
-      <main ref={contentRef} className={cn(shell.main, 'px-[clamp(24px,3vw,48px)] pt-8 pb-16 max-md:px-4 max-md:pt-6 max-md:pb-12')} id="student-content" tabIndex={-1}>{children}</main>
+      <main ref={contentRef} className={cn(shell.main, 'px-[clamp(24px,3vw,48px)] pt-8 pb-16 short:pt-6 short:pb-10 max-md:px-4 max-md:pt-6 max-md:pb-12')} id="student-content" tabIndex={-1}>{children}</main>
     </div>
     <Dialog open={drawerOpen} onClose={close} title="Menu siswa" description={`${user} · ${detail}`} presentation="drawer"><div className={shell.drawerNav}>{navigation}{signOut}</div></Dialog>
   </div>
