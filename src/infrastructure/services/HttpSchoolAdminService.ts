@@ -3,7 +3,7 @@ import type { AcademicYear, Assignment, ClassDraft, CpSubjectDetail, CurriculumC
 import type { AuditPage } from '@/domain/model/Audit'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 import { auditPage } from './audit'
-import { count, flag, instant, list, nullable, record, text } from './HttpApi'
+import { count, flag, instant, isBlob, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
 
@@ -76,8 +76,8 @@ export class HttpSchoolAdminService implements SchoolAdminService {
 
   async rosterImportErrors(importId: string, signal?: AbortSignal): Promise<Blob> {
     const { data } = await this.api.request(`/roster-imports/${encodeURIComponent(importId)}/errors.csv`, { raw: true, signal })
-    if (!(data instanceof Blob || (typeof data === 'object' && data !== null && typeof (data as Blob).arrayBuffer === 'function'))) throw new ApiError(502, 'INVALID_RESPONSE')
-    return data as Blob
+    if (!isBlob(data)) throw new ApiError(502, 'INVALID_RESPONSE')
+    return data
   }
 
   async invite(schoolId: string, userIds: string[], resend: boolean, signal?: AbortSignal): Promise<InvitationAdmission[]> {
