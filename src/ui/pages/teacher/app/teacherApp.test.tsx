@@ -371,6 +371,81 @@ describe('signed-in teacher pages', () => {
     expect(bodies).toEqual([{ decision: 'cleared', note: null }, { action: 'resume', note: null }])
   })
 
+  it('displays probe reason for subsequent turns, uses fallback for fallback_error, hides for turn 0, and handles missing fields without error', async () => {
+    const turn1Id = '00000000-0000-4000-8000-000000000022'
+    const turn2Id = '00000000-0000-4000-8000-000000000023'
+    const turn3Id = '00000000-0000-4000-8000-000000000024'
+    const reportData = reportOut({
+      turns: [
+        {
+          turn_id: turnId,
+          turn_index: 0,
+          kind: 'opening',
+          prompt: 'Kenapa kelereng berhenti?',
+          answer: 'Karena gaya gesek.',
+          answer_state: 'accepted',
+          guard_result: null,
+          move: null,
+          move_source: null,
+          reason: null,
+          reason_code: null,
+          safety_paused: false,
+          activity: { paste_chars: 120, away_seconds: 4.5, typing_ms: 30000 },
+        },
+        {
+          turn_id: turn1Id,
+          turn_index: 1,
+          kind: 'probe',
+          prompt: 'Bagaimana jika lantainya licin sekali?',
+          answer: 'Tetap berhenti tapi lama.',
+          answer_state: 'accepted',
+          guard_result: null,
+          move: 'counter_example',
+          move_source: 'ai',
+          reason: 'Contoh pembanding, karena jawaban memuat ide keliru.',
+          reason_code: 'second_wrong_idea',
+          safety_paused: false,
+          activity: { paste_chars: 0, away_seconds: 0, typing_ms: 15000 },
+        },
+        {
+          turn_id: turn2Id,
+          turn_index: 2,
+          kind: 'probe',
+          prompt: 'Mengapa lantainya mempengaruhi laju kelereng?',
+          answer: 'Ada gesekan.',
+          answer_state: 'accepted',
+          guard_result: null,
+          move: 'request_justification',
+          move_source: 'fallback_error',
+          reason: null,
+          reason_code: 'default',
+          safety_paused: false,
+          activity: { paste_chars: 0, away_seconds: 0, typing_ms: 10000 },
+        },
+        {
+          turn_id: turn3Id,
+          turn_index: 3,
+          kind: 'probe',
+          prompt: 'Pertanyaan lama tanpa field baru',
+          answer: 'Jawaban',
+          answer_state: 'accepted',
+          guard_result: null,
+          move: 'request_justification',
+          safety_paused: false,
+          activity: { paste_chars: 0, away_seconds: 0, typing_ms: 5000 },
+        },
+      ],
+    })
+    const request = backend({
+      [`GET /sessions/${sessionId}/report`]: () => Response.json(reportData),
+    })
+    open(reportPath, request)
+    expect(await screen.findByText('Contoh pembanding, karena jawaban memuat ide keliru.')).toBeInTheDocument()
+    expect(screen.getByText('Pertanyaan cadangan karena AI tidak tersedia.')).toBeInTheDocument()
+    const reasons = screen.getAllByText('Alasan pertanyaan ini:')
+    expect(reasons).toHaveLength(2)
+  })
+
   it('opens on the weekly dashboard and badges what needs attention, each item linking to where it is handled', async () => {
     open(base, backend())
     expect(await screen.findByText('12 sesi selesai dari 30 siswa')).toBeInTheDocument()
