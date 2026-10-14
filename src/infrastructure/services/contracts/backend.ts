@@ -1164,6 +1164,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/publications/{publication_id}/mgmp-package": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mgmp Package
+         * @description Own-class counts only; no student names or ids (design rule 1).
+         */
+        get: operations["mgmp_package_api_v1_publications__publication_id__mgmp_package_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/publications/{publication_id}/misconception-trail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Misconception Trail */
+        get: operations["misconception_trail_api_v1_publications__publication_id__misconception_trail_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/publications/{publication_id}/monitor": {
         parameters: {
             query?: never;
@@ -3396,8 +3433,16 @@ export interface components {
         };
         /** MisconceptionCountOut */
         MisconceptionCountOut: {
+            /** Citations */
+            citations: string[];
+            /** Correct Understanding */
+            correct_understanding: string;
             /** Count */
             count: number;
+            /** Counter Examples */
+            counter_examples: string[];
+            /** Detection Cues */
+            detection_cues: string[];
             /**
              * Misconception Id
              * Format: uuid
@@ -3405,6 +3450,11 @@ export interface components {
             misconception_id: string;
             /** Resolved Count */
             resolved_count: number;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "library" | "kb";
             /** Statement */
             statement: string;
             /**
@@ -3479,6 +3529,15 @@ export interface components {
              */
             student_id: string;
         };
+        /** MisconceptionTrailOut */
+        MisconceptionTrailOut: {
+            from: components["schemas"]["TrailEarlierOut"] | null;
+            /** Items */
+            items: components["schemas"]["TrailItemOut"][];
+            /** Not Retested */
+            not_retested: components["schemas"]["TrailNotRetestedOut"][];
+            to: components["schemas"]["TrailLaterOut"];
+        };
         /** MissionCardOut */
         MissionCardOut: {
             /** Attempt Number */
@@ -3526,6 +3585,11 @@ export interface components {
              * Format: uuid
              */
             mission_id: string;
+        };
+        /** MissionGenerateIn */
+        MissionGenerateIn: {
+            /** Follow Up Of Publication Id */
+            follow_up_of_publication_id?: string | null;
         };
         /** MissionGenerationQueuedOut */
         MissionGenerationQueuedOut: {
@@ -4653,6 +4717,15 @@ export interface components {
             /** Turn Index */
             turn_index: number;
         };
+        /** ResolvedBreakdownOut */
+        ResolvedBreakdownOut: {
+            /** Developing */
+            developing: number;
+            /** Mastered */
+            mastered: number;
+            /** Other Misconception */
+            other_misconception: number;
+        };
         /** ReviewIn */
         ReviewIn: {
             /**
@@ -5416,6 +5489,81 @@ export interface components {
             turn_index?: number | null;
         };
         Text: string;
+        /** TrailEarlierOut */
+        TrailEarlierOut: {
+            /** Denominator */
+            denominator: number;
+            /** Mission Title */
+            mission_title: string;
+            /** Mission Version */
+            mission_version: number;
+            /**
+             * Publication Id
+             * Format: uuid
+             */
+            publication_id: string;
+        };
+        /** TrailItemOut */
+        TrailItemOut: {
+            /**
+             * Concept Id
+             * Format: uuid
+             */
+            concept_id: string;
+            /** Concept Name */
+            concept_name: string;
+            /** Held Count */
+            held_count: number;
+            /**
+             * Misconception Id
+             * Format: uuid
+             */
+            misconception_id: string;
+            /** Not Observed Count */
+            not_observed_count: number;
+            resolved_breakdown: components["schemas"]["ResolvedBreakdownOut"];
+            /** Resolved Count */
+            resolved_count: number;
+            /** Statement */
+            statement: string;
+            /** Still Held Count */
+            still_held_count: number;
+            /** Students Still Holding */
+            students_still_holding: components["schemas"]["MisconceptionStudentOut"][];
+        };
+        /** TrailLaterOut */
+        TrailLaterOut: {
+            /** Class Name */
+            class_name: string;
+            /** Denominator */
+            denominator: number;
+            /** Mission Title */
+            mission_title: string;
+            /** Mission Version */
+            mission_version: number;
+            /**
+             * Publication Id
+             * Format: uuid
+             */
+            publication_id: string;
+        };
+        /** TrailNotRetestedOut */
+        TrailNotRetestedOut: {
+            /**
+             * Concept Id
+             * Format: uuid
+             */
+            concept_id: string;
+            /** Held Count */
+            held_count: number;
+            /**
+             * Misconception Id
+             * Format: uuid
+             */
+            misconception_id: string;
+            /** Statement */
+            statement: string;
+        };
         /** TypingEvent */
         TypingEvent: {
             /**
@@ -6728,7 +6876,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MissionGenerateIn"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             202: {
@@ -8045,6 +8197,72 @@ export interface operations {
                 };
                 content: {
                     "text/csv": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mgmp_package_api_v1_publications__publication_id__mgmp_package_get: {
+        parameters: {
+            query?: {
+                format?: "csv";
+            };
+            header?: never;
+            path: {
+                publication_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    misconception_trail_api_v1_publications__publication_id__misconception_trail_get: {
+        parameters: {
+            query?: {
+                from_publication_id?: string | null;
+            };
+            header?: never;
+            path: {
+                publication_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MisconceptionTrailOut"];
                 };
             };
             /** @description Validation Error */
