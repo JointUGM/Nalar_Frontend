@@ -9,6 +9,38 @@ export const moveWord: Readonly<Record<string, string>> = {
   refuse_and_redirect: 'Tolak dan arahkan kembali', deeper_reason: 'Alasan lebih dalam', explain_mechanism: 'Jelaskan mekanisme', simpler_reason: 'Alasan lebih sederhana',
 }
 
+// Why the dialog took this step. The AI's own sentence wins; these cover a turn without one.
+export const reasonCodeWord: Readonly<Record<string, string>> = {
+  default: 'Pertanyaan standar untuk melanjutkan dialog.',
+  mixed_answer: 'Jawaban siswa memuat ide yang benar dan yang keliru.',
+  second_wrong_idea: 'Muncul ide keliru yang kedua.',
+  no_change_after_example: 'Jawaban belum berubah setelah contoh pembanding.',
+  frustration: 'Siswa tampak kesulitan, jadi pertanyaan dibuat lebih sederhana.',
+  already_covered: 'Bagian ini sudah tercakup, jadi dialog beralih.',
+  check_deeper: 'Jawaban sudah benar, jadi alasannya digali lebih dalam.',
+}
+export const moveSourceNote: Readonly<Record<string, string>> = {
+  fallback_error: 'Pertanyaan cadangan karena AI tidak tersedia.',
+  fallback_invalid: 'Pertanyaan cadangan karena balasan AI tidak dapat dipakai.',
+  fixed_rule: 'Pertanyaan tetap setelah sesi dilanjutkan guru.',
+}
+export function turnReason(turn: { turn_index: number; move_source: string | null; reason: string | null; reason_code: string | null }): string | null {
+  if (turn.turn_index === 0) return null
+  if (turn.move_source && moveSourceNote[turn.move_source]) return moveSourceNote[turn.move_source]
+  return turn.reason?.trim() || (turn.reason_code ? reasonCodeWord[turn.reason_code] ?? null : null)
+}
+
+export const moveHint: Readonly<Record<string, string>> = {
+  request_justification: 'Meminta siswa menjelaskan alasan jawabannya.',
+  counter_example: 'Memberi contoh yang menantang ide yang keliru.',
+  transfer: 'Meminta siswa memakai idenya pada situasi baru.',
+  decompose: 'Memecah masalah menjadi langkah-langkah kecil.',
+  refuse_and_redirect: 'Menolak memberi jawaban dan mengarahkan siswa kembali ke soal.',
+  deeper_reason: 'Menggali alasan yang lebih dalam dari jawaban yang sudah benar.',
+  explain_mechanism: 'Meminta siswa menjelaskan cara kerjanya.',
+  simpler_reason: 'Menyederhanakan pertanyaan untuk siswa yang kesulitan.',
+}
+
 const refusals: Readonly<Record<string, string>> = {
   REVISION_IN_PROGRESS: 'Misi ini sedang disusun atau direvisi. Tunggu sampai proses selesai.',
   MISSION_VERSION_CHANGED: 'Ada versi baru sejak halaman dibuka. Periksa versi terbaru, lalu kirim revisi lagi.',
@@ -22,6 +54,7 @@ const refusals: Readonly<Record<string, string>> = {
   MISSION_BUSY: 'Draf misi ini sedang disusun. Tunggu sampai selesai, lalu arsipkan.',
   MISSION_ARCHIVED: 'Misi ini sudah diarsipkan. Buka Diarsipkan untuk membaca riwayatnya.',
   KNOWLEDGE_BASE_ARCHIVED: 'Topik misi ini sudah diarsipkan. Misi tetap dapat dibaca, tetapi tidak dapat diubah atau diterbitkan.',
+  FOLLOW_UP_KB_MISMATCH: 'Misi sebelumnya memakai basis pengetahuan lain, jadi konsep yang masih keliru tidak bisa dibawa. Buat draf biasa atau pilih basis pengetahuan yang sama.',
   MISSION_VERSION_INVALID: 'Versi ini belum bisa dipakai.',
   VERSION_LOCKED: 'Versi ini sudah diterbitkan dan terkunci. Simpan perubahan sebagai versi baru.',
   MISSION_TARGETS_UNAVAILABLE: 'Basis pengetahuan misi ini perlu sedikitnya dua konsep yang disetujui sebelum draf bisa disusun.',

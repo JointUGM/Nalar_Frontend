@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { Fragment, useCallback, useState } from 'react'
 import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { Link, useLocation, useParams } from 'react-router'
 import { orderByPrerequisites } from '@/domain/model/Teacher'
@@ -12,6 +12,11 @@ import { useLiveResource } from '@/ui/pages/live/useLiveResource'
 import { CsvDownload } from '@/ui/components/csv-download/CsvDownload'
 import styles from '@/ui/pages/teacher/TeacherClassMap.styles'
 import { Loading } from '@/ui/components/loading/Loading'
+import strategyStyles from '@/ui/pages/teacher/StrategyCard.styles'
+import { MgmpPackage } from './MgmpPackage'
+import { MisconceptionTrailCard } from './MisconceptionTrailCard'
+import { StrategyCard } from './StrategyCard'
+import { NextLessonPlan } from './NextLessonPlan'
 
 // Evaluations and the saved insight arrive after the sessions end, so the map refreshes on its own.
 const mapPollMs = () => 15_000
@@ -24,6 +29,9 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
   const subtitle = known?.id === publicationId ? `${known.class_name} · ${known.mission_title}` : 'Hasil kelas'
   const read = useCallback((signal: AbortSignal) => service.classMap(publicationId, signal), [service, publicationId])
   const { data, error, online, refresh } = useLiveResource(read, mapPollMs)
+  const readTrail = useCallback((signal: AbortSignal) => service.misconceptionTrail(publicationId, signal), [service, publicationId])
+  const trail = useLiveResource(readTrail, mapPollMs)
+  const [openCard, setOpenCard] = useState<string | null>(null)
   const rows = data?.concepts.flatMap((concept) => concept.misconceptions.map((item) => ({ ...item, concept: concept.name }))).filter((item) => item.count > 0) ?? []
   const lines = Math.ceil((data?.concepts.length ?? 0) / perRow)
   // Prerequisites come first, then each concept gets a grid slot (as percentages of the map) and the edges join the slots.
@@ -37,11 +45,12 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
   return <div className={styles.content}>
     <TeacherPageHead crumb={<><Link to={`${base}/sessions`}>Sesi dan hasil</Link><Icon name="chevronRight" size={14} /></>} title="Peta kelas" subtitle={<>{subtitle}{data ? ` · ${data.denominator} siswa dihitung` : ''}</>} />
     <div className={styles.header}>
-      <div className={styles.actions}><CsvDownload label="Unduh nilai (CSV)" filename="nalar-nilai-kelas.csv" read={(signal) => service.exportPublication(publicationId, signal)} /><Link className={styles.release} to={`${base}/publications/${publicationId}/release`} state={location.state}><Icon name="send" size={14} />Rilis ke orang tua</Link></div>
+      <div className={styles.actions}><CsvDownload label="Unduh nilai (CSV)" filename="nalar-nilai-kelas.csv" read={(signal) => service.exportPublication(publicationId, signal)} /><MgmpPackage service={service} publicationId={publicationId} /><Link className={styles.release} to={`${base}/publications/${publicationId}/release`} state={location.state}><Icon name="send" size={14} />Rilis ke orang tua</Link></div>
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <Loading label="Memuat peta kelas…" />}
     {data && data.denominator === 0 && <Feedback title="Belum ada hasil untuk dipetakan" announce>Peta muncul setelah ada sesi yang selesai dan dinilai.{data.incomplete_count > 0 ? ` ${data.incomplete_count} siswa belum selesai atau belum dinilai.` : ''}</Feedback>}
+    {data && <NextLessonPlan key={publicationId} data={data} trail={trail.error ? null : trail.data} publicationId={publicationId} base={base} offline={!online || !!error} openStrategy={setOpenCard} />}
     {data && data.denominator > 0 && <div className={styles.grid}>
       <section className={styles.main} aria-labelledby="map-title">
         <div className={styles.cardHead}>
@@ -69,12 +78,15 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
             <table>
               <caption>Miskonsepsi di kelas, jumlah siswa, dan yang berubah selama sesi</caption>
               <thead><tr><th scope="col">Miskonsepsi</th><th scope="col">Siswa</th><th scope="col">Berubah pikiran</th><th scope="col">Konsep</th></tr></thead>
-              <tbody>{rows.map((row) => <tr key={row.misconception_id}>
-                <th scope="row">“{row.statement}”</th>
-                <td><strong>{row.count}</strong>{row.students.length > 0 && <ul className={styles.chips}>{row.students.map((holder) => <li key={holder.session_id}><Link to={`${base}/publications/${publicationId}/sessions/${holder.session_id}`}>{holder.name}</Link></li>)}</ul>}</td>
-                <td><span className={styles.progress}><span aria-hidden="true"><i style={{ inlineSize: `${row.resolved_count / row.count * 100}%` }} /></span>{row.resolved_count} dari {row.count}</span></td>
-                <td>{row.concept}</td>
-              </tr>)}</tbody>
+              <tbody>{rows.map((row) => <Fragment key={row.misconception_id}>
+                <tr>
+                  <th scope="row">“{row.statement}”<br /><button type="button" className={strategyStyles.toggle} aria-expanded={openCard === row.misconception_id} aria-controls={`strategy-${row.misconception_id}`} onClick={() => setOpenCard(openCard === row.misconception_id ? null : row.misconception_id)}>{openCard === row.misconception_id ? 'Tutup kartu strategi' : 'Lihat kartu strategi'}</button></th>
+                  <td><strong>{row.count}</strong>{row.students.length > 0 && <ul className={styles.chips}>{row.students.map((holder) => <li key={holder.session_id}><Link to={`${base}/publications/${publicationId}/sessions/${holder.session_id}`}>{holder.name}</Link></li>)}</ul>}</td>
+                  <td><span className={styles.progress}><span aria-hidden="true"><i style={{ inlineSize: `${row.resolved_count / row.count * 100}%` }} /></span>{row.resolved_count} dari {row.count}</span></td>
+                  <td>{row.concept}</td>
+                </tr>
+                {openCard === row.misconception_id && <tr><td colSpan={4}><StrategyCard id={`strategy-${row.misconception_id}`} item={row} suggestions={data?.insight?.suggestions ?? []} /></td></tr>}
+              </Fragment>)}</tbody>
             </table>
           </div>}
         </div>
@@ -91,11 +103,12 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
           <p className={styles.story}>{data.insight ? data.insight.narrative : 'Penjelasan ditulis setelah semua sesi selesai dan dinilai.'}</p>
           <p className={styles.footnote}>Angka dihitung langsung dari data sesi. Nala hanya menjelaskan polanya.</p>
         </section>
-        {data.insight && data.insight.suggestions.length > 0 && <section className={styles.card} aria-labelledby="suggest-title">
+        {data.insight && data.insight.suggestions.length > 0 && !rows.some(row => row.students.length > 0) && <section className={styles.card} aria-labelledby="suggest-title">
           <h2 id="suggest-title">Saran pelajaran berikutnya</h2>
           <ul className={styles.suggestions}>{data.insight.suggestions.map((suggestion, index) => <li key={index}>{suggestion}</li>)}</ul>
         </section>}
       </div>
     </div>}
+    {data && data.denominator > 0 && <MisconceptionTrailCard data={trail.data} error={trail.error} base={base} />}
   </div>
 }

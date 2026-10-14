@@ -35,7 +35,7 @@ export class TeacherUseCases implements TeacherService {
       ...(input.title === undefined ? {} : { title: required(input.title, 200) }),
     }, signal)
   }
-  generateMission(missionId: string, signal?: AbortSignal) { return this.service.generateMission(resourceId(missionId), signal) }
+  generateMission(missionId: string, signal?: AbortSignal, followUpOfPublicationId?: string) { return this.service.generateMission(resourceId(missionId), signal, followUpOfPublicationId === undefined ? undefined : resourceId(followUpOfPublicationId)) }
   archiveMission(missionId: string, signal?: AbortSignal) { return this.service.archiveMission(resourceId(missionId), signal) }
   restoreMission(missionId: string, signal?: AbortSignal) { return this.service.restoreMission(resourceId(missionId), signal) }
   missionVersion(missionId: string, number: number, signal?: AbortSignal) { return this.service.missionVersion(resourceId(missionId), versionNumber(number), signal) }
@@ -80,6 +80,8 @@ export class TeacherUseCases implements TeacherService {
   reviewFlag(flagId: string, decision: FlagDecision, value: string | null, signal?: AbortSignal) { return this.service.reviewFlag(resourceId(flagId), decision, note(value), signal) }
   safetyAction(sessionId: string, action: SafetyAction, value: string | null, signal?: AbortSignal) { return this.service.safetyAction(resourceId(sessionId), action, note(value), signal) }
   classMap(publicationId: string, signal?: AbortSignal) { return this.service.classMap(resourceId(publicationId), signal) }
+  misconceptionTrail(publicationId: string, signal?: AbortSignal) { return this.service.misconceptionTrail(resourceId(publicationId), signal) }
+  exportMgmpPackage(publicationId: string, signal?: AbortSignal) { return this.service.exportMgmpPackage(resourceId(publicationId), signal) }
   releasePreview(publicationId: string, signal?: AbortSignal) { return this.service.releasePreview(resourceId(publicationId), signal) }
   release(publicationId: string, expectedEligibleCount: number, signal?: AbortSignal) {
     // Releasing nothing is never valid; the backend rechecks the count inside its transaction.

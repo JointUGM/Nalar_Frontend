@@ -2,7 +2,7 @@ import { useCallback, useId, useRef, useState } from 'react'
 import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import type { FormEvent } from 'react'
 import { flushSync } from 'react-dom'
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
 import type { TeacherService } from '@/domain/services/TeacherService'
@@ -29,6 +29,9 @@ const goalMax = 1000
 
 export function TeacherMissionNewPage({ service, kb, base, schoolId }: { service: TeacherService; kb: KnowledgeBaseService; base: string; schoolId: string }) {
   const navigate = useNavigate()
+  // Set by the trail card and the home cycle strip: the draft then favours what the class still gets wrong.
+  const location = useLocation()
+  const followUpOf = typeof location.state?.followUpOf === 'string' ? location.state.followUpOf as string : undefined
   const read = useCallback((signal: AbortSignal) => kb.list(schoolId, signal), [kb, schoolId])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   const commandSignal = useCommandSignal()
@@ -57,9 +60,13 @@ export function TeacherMissionNewPage({ service, kb, base, schoolId }: { service
     try {
       const { mission_id } = await service.createMission({ knowledge_base_id: chosen, title, learning_objective: goal }, signal)
       let job = ''
-      // The mission exists from here on; if the draft request fails, its page offers the draft again and says why.
-      try { job = (await service.generateMission(mission_id, signal)).job_id } catch { /* handled on the mission page */ }
-      if (!signal?.aborted) navigate(`${base}/missions/${mission_id}${job ? `?job=${job}` : ''}`)
+      let generationFailure: { status: number; code: string; requestId?: string } | null = null
+      try { job = (await service.generateMission(mission_id, signal, followUpOf)).job_id }
+      catch (cause) {
+        const failure = cause instanceof ApiError ? cause : new ApiError(0, 'UNAVAILABLE')
+        generationFailure = { status: failure.status, code: failure.code, requestId: failure.requestId }
+      }
+      if (!signal?.aborted) navigate(`${base}/missions/${mission_id}${job ? `?job=${job}` : ''}`, { state: { followUpOf, generationFailure } })
     } catch (cause) {
       if (!signal?.aborted) { setFailure(cause instanceof ApiError ? cause : new ApiError(0, 'UNAVAILABLE')); setPending(false) }
     } finally { busy.current = false }
@@ -74,6 +81,7 @@ export function TeacherMissionNewPage({ service, kb, base, schoolId }: { service
     <TeacherPageHead crumb={<><Link to={`${base}/missions`}>Misi</Link><Icon name="chevronRight" size={14} /></>} title="Misi baru" subtitle="Tulis tujuan pembelajaran, lalu AI menyusun draf dari konsep yang sudah Anda setujui. Anda memeriksanya sebelum dipakai." />
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {data && ready.length === 0 && <Feedback tone="warning" title="Belum ada basis pengetahuan yang siap" announce>Misi memerlukan sedikitnya dua konsep yang disetujui. <Link to={`${base}/knowledge-base`}>Buka basis pengetahuan</Link></Feedback>}
+    {followUpOf && <Feedback title="Misi lanjutan">AI akan mengutamakan konsep yang masih keliru di kelas pada misi sebelumnya. Pilih basis pengetahuan yang sama dengan misi itu.</Feedback>}
     {failure && <Feedback tone="warning" title={missionRefusal(failure) ?? failure.message} announce>{failure.requestId && <small>Referensi: {failure.requestId}</small>}</Feedback>}
     {problem && <Feedback tone="danger" title={problem} announce />}
     <form className={styles.grid} noValidate onSubmit={(event) => { void submit(event) }}>

@@ -6,7 +6,7 @@ import { RestoreAction } from './RestoreAction'
 import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { useCallback, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ApiError } from '@/domain/model/ApiError'
 import type { Job, KbDetail } from '@/domain/model/KnowledgeBase'
 import { publishable } from '@/domain/model/Teacher'
@@ -21,7 +21,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherMissionReview.styles'
 import { JobNotice } from './JobNotice'
-import { missionRefusal, missionRestoreRefusal, moveWord, problemWord, rubricWord, versionWord } from './missionText'
+import { missionRefusal, missionRestoreRefusal, moveHint, moveWord, problemWord, rubricWord, versionWord } from './missionText'
 import { Loading } from '@/ui/components/loading/Loading'
 
 interface Loaded { mission: MissionSummary; version: MissionVersion | null; detail: KbDetail | null; history: VersionHistory[]; comparisonBase: MissionVersion | null; revisionRequest: MissionRevisionRequest | null }
@@ -33,6 +33,8 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
   const { missionId = '' } = useParams()
   const [params] = useSearchParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const followUpOf = typeof location.state?.followUpOf === 'string' ? location.state.followUpOf as string : undefined
   const wanted = Number(params.get('v'))
   const requestedJob = params.get('job')
   const requested = Number.isInteger(wanted) && wanted > 0 ? wanted : null
@@ -57,7 +59,10 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
   const [jobId, setJobId] = useState(params.get('job'))
   const [draft, setDraft] = useState<{ anchor: string; reference: string } | null>(null)
   const [pending, setPending] = useState<Command>('')
-  const [failure, setFailure] = useState<ApiError | null>(null)
+  const [failure, setFailure] = useState<ApiError | null>(() => {
+    const failure = location.state?.generationFailure as { status: number; code: string; requestId?: string } | null | undefined
+    return failure ? new ApiError(failure.status, failure.code, failure.requestId) : null
+  })
   const [revision, setRevision] = useState<{ component: MissionRevisionFeedback['component'] | null } | null>(null)
   const [jobBusy, setJobBusy] = useState(Boolean(params.get('job')))
   const [tab, setTab] = useState<Tab>('anchor')
@@ -129,7 +134,7 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
       <div className={styles.actions}>
         {canEditMission && (version?.can_revise_with_ai
           ? <Button tone="secondary" disabled={pending !== '' || draft !== null || jobBusy} onClick={() => { setFailure(null); setRevision({ component: null }) }}><Icon name="sparkle" size={14} />Revisi dengan AI</Button>
-          : <Button tone="secondary" pending={pending === 'generate'} pendingLabel="Meminta draf…" disabled={pending !== '' || draft !== null || jobBusy} onClick={() => { void run('generate', (signal) => service.generateMission(mission.id, signal), (queued) => { setJobId(queued.job_id); setJobBusy(true); navigate(`${path}?job=${queued.job_id}`, { replace: true }) }) }}><Icon name="sparkle" size={14} />{version ? 'Buat ulang dengan AI' : 'Buat draf dengan AI'}</Button>)}
+          : <Button tone="secondary" pending={pending === 'generate'} pendingLabel="Meminta draf…" disabled={pending !== '' || draft !== null || jobBusy} onClick={() => { void run('generate', (signal) => service.generateMission(mission.id, signal, followUpOf), (queued) => { setJobId(queued.job_id); setJobBusy(true); navigate(`${path}?job=${queued.job_id}`, { replace: true, state: { followUpOf } }) }) }}><Icon name="sparkle" size={14} />{version ? 'Buat ulang dengan AI' : 'Buat draf dengan AI'}</Button>)}
         {canEditVersion && version.status === 'draft' && <Button pending={pending === 'review'} pendingLabel="Memeriksa…" disabled={pending !== '' || draft !== null} onClick={() => { void run('review', (signal) => service.reviewMissionVersion(mission.id, version.version_number, signal)) }}><Icon name="check" size={14} />Tandai sudah ditinjau</Button>}
         {isLatest && archivedAt === null && publishable(mission) && <Link className={styles.publish} to={`${path}/publish`}><Icon name="send" size={14} />Terbitkan ke kelas</Link>}
         {mission.archived_at && <RestoreAction blocked={detail?.archived_at != null} action={(signal) => service.restoreMission(mission.id, signal)} onDone={() => navigate(path, { replace: true })} refusal={missionRestoreRefusal} />}
@@ -181,7 +186,7 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
         {current === 'bank' && version && <ul className={styles.bank}>{[...new Set(version.question_bank.map((question) => question.move))].map((move) => {
           const questions = version.question_bank.filter((question) => question.move === move)
           return <li key={move}>
-            <div className={styles.bankHead}><h3>{moveWord[move] ?? move}</h3><span>{questions.length} pertanyaan</span></div>
+            <div className={styles.bankHead}><h3>{moveWord[move] ?? move}</h3><span>{questions.length} pertanyaan</span>{moveHint[move] && <small className={styles.bankHint}>{moveHint[move]}</small>}</div>
             {questions.map((question) => <p key={question.id}>{question.text}</p>)}
           </li>
         })}</ul>}

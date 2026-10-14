@@ -1,5 +1,5 @@
 import type { MissionRevisionInput, MissionRevisionRequest, MissionRevisionFeedback, RevisionQueued } from '@/domain/model/Teacher'
-import type { StudentHistoryPage, AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import type { MisconceptionTrail, StudentHistoryPage, AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 import { ApiError } from '@/domain/model/ApiError'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { allItems, count, flag, instant, isBlob, list, nullable, record, text } from './HttpApi'
@@ -12,6 +12,9 @@ const publication = (id: string) => `/publications/${encodeURIComponent(id)}`
 const mission = (id: string) => `/missions/${encodeURIComponent(id)}`
 const texts = (value: unknown) => list(value).map((entry) => text(entry))
 const csv = (data: unknown) => { if (!isBlob(data)) throw new ApiError(502, 'INVALID_RESPONSE'); return data }
+const invalidResponse = () => new ApiError(502, 'INVALID_RESPONSE')
+const trailMission = (raw: unknown) => { const value = record(raw); return { publication_id: text(value.publication_id), mission_title: text(value.mission_title), mission_version: count(value.mission_version), denominator: count(value.denominator) } }
+const holders = (raw: unknown) => list(raw).map((entry) => { const holder = record(entry); return { student_id: text(holder.student_id), name: text(holder.name), session_id: text(holder.session_id) } })
 const seconds = (value: unknown) => { if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new ApiError(502, 'INVALID_RESPONSE'); return value }
 
 export class HttpTeacherService implements TeacherService {
@@ -74,8 +77,9 @@ export class HttpTeacherService implements TeacherService {
     return { job_id: text(value.job_id), status: text(value.status), base_version_id: text(value.base_version_id), effective_scope: texts(value.effective_scope) }
   }
 
-  async generateMission(missionId: string, signal?: AbortSignal): Promise<{ job_id: string }> {
-    return { job_id: text(record((await this.api.request(`${mission(missionId)}/generate`, { method: 'POST', signal })).data).job_id) }
+  async generateMission(missionId: string, signal?: AbortSignal, followUpOfPublicationId?: string): Promise<{ job_id: string }> {
+    const body: Schemas['MissionGenerateIn'] | undefined = followUpOfPublicationId ? { follow_up_of_publication_id: followUpOfPublicationId } : undefined
+    return { job_id: text(record((await this.api.request(`${mission(missionId)}/generate`, { method: 'POST', body, signal })).data).job_id) }
   }
 
   async studentHistory(studentId: string, cursor: string | null, signal?: AbortSignal): Promise<StudentHistoryPage> {
@@ -96,6 +100,10 @@ export class HttpTeacherService implements TeacherService {
 
   async exportPublication(publicationId: string, signal?: AbortSignal): Promise<Blob> {
     return csv((await this.api.request(`${publication(publicationId)}/export?format=csv`, { raw: true, signal })).data)
+  }
+
+  async exportMgmpPackage(publicationId: string, signal?: AbortSignal): Promise<Blob> {
+    return csv((await this.api.request(`${publication(publicationId)}/mgmp-package?format=csv`, { raw: true, signal })).data)
   }
 
   async exportReport(sessionId: string, signal?: AbortSignal): Promise<Blob> {
@@ -176,14 +184,39 @@ export class HttpTeacherService implements TeacherService {
           mastered_count: count(concept.mastered_count), developing_count: count(concept.developing_count), not_observed_count: count(concept.not_observed_count),
           misconceptions: list(concept.misconceptions).map((entry) => {
             const misconception = record(entry)
+            // The strategy fields are absent from an older backend; the card then shows only what exists. "Riset" needs a citation.
+            const citations = misconception.citations === undefined ? [] : texts(misconception.citations)
             return { misconception_id: text(misconception.misconception_id), statement: text(misconception.statement), count: count(misconception.count), resolved_count: count(misconception.resolved_count), student_ids: list(misconception.student_ids).map((id) => text(id)),
-              students: list(misconception.students).map((entry) => { const holder = record(entry); return { student_id: text(holder.student_id), name: text(holder.name), session_id: text(holder.session_id) } }) }
+              students: holders(misconception.students),
+              correct_understanding: misconception.correct_understanding === undefined ? '' : text(misconception.correct_understanding),
+              counter_examples: misconception.counter_examples === undefined ? [] : texts(misconception.counter_examples),
+              detection_cues: misconception.detection_cues === undefined ? [] : texts(misconception.detection_cues),
+              source: misconception.source === 'library' && citations.length > 0 ? 'library' as const : 'kb' as const, citations }
           }),
         }
       }),
       prerequisites: list(value.prerequisites).map((entry) => { const edge = record(entry); return { concept_id: text(edge.concept_id), prerequisite_id: text(edge.prerequisite_id) } }),
       insight: nullable(value.insight, (raw) => { const insight = record(raw); return { narrative: text(insight.narrative), generated_at: instant(insight.generated_at), suggestions: insight.suggestions === undefined ? [] : texts(insight.suggestions) } }),
     } satisfies Schemas['ClassMapOut']
+  }
+
+  async misconceptionTrail(publicationId: string, signal?: AbortSignal): Promise<MisconceptionTrail> {
+    const value = record((await this.api.request(`${publication(publicationId)}/misconception-trail`, { signal })).data)
+    const to = record(value.to)
+    return {
+      to: { ...trailMission(to), class_name: text(to.class_name) },
+      from: nullable(value.from, trailMission),
+      items: list(value.items).map((entry) => {
+        const item = record(entry), breakdown = record(item.resolved_breakdown)
+        const held = count(item.held_count), resolved = count(item.resolved_count), still = count(item.still_held_count), unseen = count(item.not_observed_count)
+        const split = { mastered: count(breakdown.mastered), developing: count(breakdown.developing), other_misconception: count(breakdown.other_misconception) }
+        const students = holders(item.students_still_holding)
+        // A trail whose parts do not add up would overstate progress, so it is refused rather than drawn.
+        if (held !== resolved + still + unseen || resolved !== split.mastered + split.developing + split.other_misconception || students.length !== still) throw invalidResponse()
+        return { concept_id: text(item.concept_id), concept_name: text(item.concept_name), misconception_id: text(item.misconception_id), statement: text(item.statement), held_count: held, resolved_count: resolved, resolved_breakdown: split, still_held_count: still, not_observed_count: unseen, students_still_holding: students }
+      }),
+      not_retested: list(value.not_retested).map((entry) => { const item = record(entry); return { concept_id: text(item.concept_id), misconception_id: text(item.misconception_id), statement: text(item.statement), held_count: count(item.held_count) } }),
+    } satisfies Schemas['MisconceptionTrailOut']
   }
 
   async report(sessionId: string, signal?: AbortSignal): Promise<SessionReport> {
