@@ -33,10 +33,22 @@ const shells: readonly (readonly [string, ReactNode])[] = [
 ]
 
 describe.each(shells)('%s shell', (_name, element) => {
-  it('can sign out from the menu drawer, where the sidebar is hidden on a phone', () => {
+  it('can sign out from the menu drawer with confirmation, where the sidebar is hidden on a phone', () => {
     render(<MemoryRouter initialEntries={['/x']}><Routes><Route path="/login" element={<Login />} /><Route path="*" element={element} /></Routes></MemoryRouter>)
     fireEvent.click(screen.getByRole('button', { name: 'Buka navigasi' }))
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('link', { name: /^Keluar/ }))
+    expect(screen.getByRole('dialog', { name: /Konfirmasi keluar/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('link', { name: 'Ya, keluar' }))
     expect(screen.getByText('Masuk · keluar diminta: true')).toBeInTheDocument()
   })
+
+  it('can cancel signing out from the confirmation dialog', () => {
+    render(<MemoryRouter initialEntries={['/x']}><Routes><Route path="/login" element={<Login />} /><Route path="*" element={element} /></Routes></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: 'Buka navigasi' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('link', { name: /^Keluar/ }))
+    expect(screen.getByRole('dialog', { name: /Konfirmasi keluar/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Batal' }))
+    expect(screen.queryByText('Masuk · keluar diminta: true')).not.toBeInTheDocument()
+  })
 })
+
