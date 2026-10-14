@@ -51,8 +51,8 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const busy = useRef(false)
   const [jobId, setJobId] = useState(params.get('job'))
   const [selectedId, setSelectedId] = useState('')
-  // The detail panel opens on arrival; closing it gives the map the full width.
-  const [panelOpen, setPanelOpen] = useState(true)
+  // The map comes first; clicking a concept opens its topic and misconceptions over it.
+  const [panelOpen, setPanelOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(params.get('tab') === 'materials' ? 'materials' : 'review')
   const [page, setPage] = useState(0)
   const [draft, setDraft] = useState<Draft | null>(null)
@@ -231,9 +231,9 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
                 {canEdit && adding !== 'concept' && <Button tone="secondary" className={styles.add} disabled={pending} onClick={() => { setDraft(null); setAdding('concept') }}><Icon name="plus" size={14} />Tambah konsep</Button>}</div>
               {canEdit && adding === 'concept' && <KbNewItem kind="concept" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addConcept(detail.id, value, key, signal), (created) => { setAdding(null); setSelectedId(created.id) }) }} />}
               {!selected ? <p className={styles.note}>Belum ada konsep. Susun satu bab untuk membuat drafnya.</p> : <>
-                {/* Esc closes the panel, but not from a dialog it opened (those portal out of the stage) or over an unsaved edit. */}
+                {/* Esc or a click on empty map closes the panel, but not from a dialog it opened (those portal out of the stage) or over an unsaved edit. */}
                 <div className={styles.stage} onKeyDown={(event) => { if (event.key === 'Escape' && panelOpen && !draft && !adding && event.currentTarget.contains(event.target as Node)) closePanel() }}>
-                  <div className={styles.map}>{activeTab === 'review' && <KbConceptMap concepts={detail.concepts} prerequisites={detail.prerequisites} selectedId={panelOpen ? selected.id : ''} count={(id) => detail.misconceptions.filter((item) => item.concept_id === id).length} onSelect={chooseConcept} />}</div>
+                  <div className={styles.map} onClick={(event) => { if (panelOpen && !draft && !adding && !(event.target as Element).closest('button')) closePanel() }}>{activeTab === 'review' && <KbConceptMap concepts={detail.concepts} prerequisites={detail.prerequisites} selectedId={panelOpen ? selected.id : ''} count={(id) => detail.misconceptions.filter((item) => item.concept_id === id).length} onSelect={chooseConcept} />}</div>
                   {panelOpen && <aside className={styles.inspector} aria-label="Rincian konsep">
                     <div className={styles.inspectorBar}>
                       {nextPending && <Button tone="ghost" disabled={pending} onClick={() => chooseConcept(nextPending.id)}>Tinjau berikutnya<Icon name="chevronRight" size={14} /></Button>}
