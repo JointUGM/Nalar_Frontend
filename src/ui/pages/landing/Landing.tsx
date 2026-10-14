@@ -99,6 +99,7 @@ export function Landing() {
         <div className={`${styles.wrap} ${styles.closingGrid}`} data-reveal>
           <div className={styles.closingCopy}>
             <h2 id="penutup-title" className={styles.closingTitle}>Sudah punya akun dari sekolah?</h2>
+            <p className={styles.lead}>Pelatihan yang datang ke kelas, bukan guru yang pergi ke pelatihan.</p>
             <p className={styles.lead}>Masuk untuk membuka misi, sesi kelas, laporan, atau ringkasan anak, sesuai peran akunmu.</p>
             {/* Nala reacts while the way in is hovered or focused. */}
             <Link to="/login" className={styles.primary} onPointerEnter={() => setClosingWow(true)} onPointerLeave={() => setClosingWow(false)} onFocus={() => setClosingWow(true)} onBlur={() => setClosingWow(false)}>Masuk ke NALAR<Icon name="arrow" size={18} /></Link>

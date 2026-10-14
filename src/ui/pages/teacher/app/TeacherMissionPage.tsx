@@ -21,7 +21,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherMissionReview.styles'
 import { JobNotice } from './JobNotice'
-import { missionRefusal, missionRestoreRefusal, moveWord, problemWord, rubricWord, versionWord } from './missionText'
+import { missionRefusal, missionRestoreRefusal, moveHint, moveWord, problemWord, rubricWord, versionWord } from './missionText'
 import { Loading } from '@/ui/components/loading/Loading'
 
 interface Loaded { mission: MissionSummary; version: MissionVersion | null; detail: KbDetail | null; history: VersionHistory[]; comparisonBase: MissionVersion | null; revisionRequest: MissionRevisionRequest | null }
@@ -181,7 +181,7 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
         {current === 'bank' && version && <ul className={styles.bank}>{[...new Set(version.question_bank.map((question) => question.move))].map((move) => {
           const questions = version.question_bank.filter((question) => question.move === move)
           return <li key={move}>
-            <div className={styles.bankHead}><h3>{moveWord[move] ?? move}</h3><span>{questions.length} pertanyaan</span></div>
+            <div className={styles.bankHead}><h3>{moveWord[move] ?? move}</h3><span>{questions.length} pertanyaan</span>{moveHint[move] && <small className={styles.bankHint}>{moveHint[move]}</small>}</div>
             {questions.map((question) => <p key={question.id}>{question.text}</p>)}
           </li>
         })}</ul>}

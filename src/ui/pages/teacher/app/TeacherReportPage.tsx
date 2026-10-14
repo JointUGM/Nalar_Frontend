@@ -13,7 +13,7 @@ import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResour
 import { CsvDownload } from '@/ui/components/csv-download/CsvDownload'
 import styles from '@/ui/pages/teacher/TeacherReport.styles'
 import dialogStyles from '@/ui/pages/teacher/ReportDialogs.styles'
-import { moveWord, rubricWord } from './missionText'
+import { moveWord, rubricWord, turnReason } from './missionText'
 import { FlagEvidence } from './FlagEvidence'
 import { Loading } from '@/ui/components/loading/Loading'
 
@@ -168,6 +168,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
           <span className={styles.turnNumber} aria-hidden="true">{turn.turn_index}</span>
           <div>
             <div className={styles.turnHead}><b>{turn.turn_index === 0 ? 'Soal pembuka' : `Giliran ${turn.turn_index}`}</b>{turn.move && <span>{moveWord[turn.move] ?? turn.move}</span>}{turn.safety_paused && <small>Sesi dijeda di sini</small>}</div>
+            {turnReason(turn) && <p className={styles.reason}><b>Alasan pertanyaan ini:</b> {turnReason(turn)}</p>}
             <p className={styles.question}>{turn.prompt}</p>
             <p className={styles.answer}><span className={styles.hidden}>Jawaban siswa: </span>{turn.answer === null ? <i>Belum dijawab</i> : marked(turn.answer, quote?.turn === turn.turn_id ? quote.text : null)}</p>
             {activityLine(turn.activity) && <p className={styles.meta}>{activityLine(turn.activity)}</p>}

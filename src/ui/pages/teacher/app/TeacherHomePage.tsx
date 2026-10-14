@@ -34,6 +34,20 @@ const rank = (publication: TeacherPublication) => isActive(publication) ? 0 : pu
 const when = (publication: TeacherPublication) => publication.run.opens_at ?? publication.run.closes_at
 const sessionPath = (publication: TeacherPublication, base: string) => `${base}/publications/${publication.id}/${publication.run.mode === 'live' && isActive(publication) ? 'monitor' : 'class-map'}`
 
+// The five steps of the teacher learning cycle, each a link to the screen where it happens. No counters, no progress.
+const cycle = [
+  ['Siapkan', 'Susun dan tinjau misi', 'missions'],
+  ['Amati', 'Lihat dialog tiap siswa', 'classes'],
+  ['Diagnosis', 'Baca peta kelas', 'sessions'],
+  ['Tindak lanjut', 'Buat misi lanjutan', 'missions/new'],
+  ['Bukti dampak', 'Lihat jejak perbaikan di peta kelas', 'sessions'],
+] as const
+function Cycle({ base }: { base: string }) {
+  return <nav className={styles.cycle} aria-label="Siklus belajar guru">
+    <ol>{cycle.map(([step, hint, path]) => <li key={step}><Link to={`${base}/${path}`}><b>{step}</b><span>{hint}</span></Link></li>)}</ol>
+  </nav>
+}
+
 function Schedule({ resource, base }: { resource: { data: TeacherPublication[] | null; error: ApiError | null; online: boolean; refresh: () => void }; base: string }) {
   const { data, error, online, refresh } = resource
   // Running sessions first, then what is coming, then the most recent results.
@@ -159,6 +173,7 @@ export function TeacherHomePage({ service, kb, base, schoolId, user, attention }
   const queue = attention.online && !attention.error ? attention.data : null
   return <div className={styles.page}>
     <TeacherPageHead title={`${greeting()}, ${user.trim().split(/\s+/)[0]}`} subtitle={today.format(new Date())} />
+    <Cycle base={base} />
     <div className={styles.top}>
       <Schedule resource={sessions} base={base} />
       <Changed data={data} failed={Boolean(error)} base={base} />
