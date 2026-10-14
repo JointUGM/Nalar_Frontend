@@ -13,6 +13,7 @@ import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { ConfirmAction } from '@/ui/pages/teacher/app/ConfirmAction'
 import { LiveFeedback } from './LiveFrame'
 import { TeacherIntegrityAlerts } from './TeacherIntegrityAlerts'
+import { TeacherMentoringSignals } from './TeacherMentoringSignals'
 import { useCommandSignal, useLiveResource, useServerTime } from './useLiveResource'
 import projectorStyles from '@/ui/pages/teacher/TeacherProjector.styles'
 import monitorStyles from '@/ui/pages/teacher/TeacherMonitor.styles'
@@ -160,6 +161,8 @@ export function LiveTeacherMonitor({ service, publicationId, base }: { service: 
       </div>
       <div className={monitorStyles.connection} data-connection={offline ? 'offline' : 'ok'}><span role="status">{offline ? 'Terputus · menampilkan data terakhir. Tindakan yang mengubah sesi dinonaktifkan.' : 'Terhubung · data diperbarui otomatis'}</span></div>
       <TeacherIntegrityAlerts key={publicationId} students={data.students} reportHref={report} />
+      {paused.length > 0 && <div className={monitorStyles.safety} role="alert"><strong>Keselamatan</strong><span>{paused.map((student, index) => <span key={student.student_id}>{index > 0 && ', '}{student.session_id ? <Link to={report(student.session_id)}>{student.name}</Link> : <b>{student.name}</b>}</span>)} mungkin butuh bantuan Anda. Sesinya dijeda; buka laporannya untuk melanjutkan atau mengakhiri sesi.</span></div>}
+      <TeacherMentoringSignals data={data} base={base} publicationId={publicationId} offline={offline} />
       <div className={monitorStyles.tallies} role="group" aria-label="Filter status siswa">{groups.map(([group, label]) => <button key={group} type="button" aria-pressed={filter === group} onClick={() => setFilter(filter === group ? null : group)}>
         <span><i data-group={group} aria-hidden="true" />{label}</span><strong>{data.students.filter((student) => inGroup(student, group)).length}</strong>
       </button>)}</div>
@@ -179,7 +182,6 @@ export function LiveTeacherMonitor({ service, publicationId, base }: { service: 
       </section>
       <aside className={monitorStyles.events} aria-labelledby="events-title">
         <h2 id="events-title">Peristiwa</h2>
-        {paused.length > 0 && <div className={monitorStyles.safety} role="alert"><strong>Keselamatan</strong><span>{paused.map((student, index) => <span key={student.student_id}>{index > 0 && ', '}{student.session_id ? <Link to={report(student.session_id)}>{student.name}</Link> : <b>{student.name}</b>}</span>)} mungkin butuh bantuan Anda. Sesinya dijeda; buka laporannya untuk melanjutkan atau mengakhiri sesi.</span></div>}
         <ul>
           {done.map((student) => <li key={`done-${student.student_id}`}><Icon name="check" size={14} /><span><b>{student.name}</b> menyelesaikan sesi</span></li>)}
         </ul>

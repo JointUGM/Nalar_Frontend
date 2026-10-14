@@ -44,6 +44,13 @@ export interface LiveState extends LiveClock {
   reflection_ready: boolean
   activity_notices: StudentActivityNotice[]
 }
+export interface HelpSignal {
+  reason: 'frustration' | 'repeated_evasive' | 'persistent_misconception'
+  misconception_statement: string | null
+  suggestion: string
+  turn_index: number
+  rank: number
+}
 export interface LiveStudent {
   student_id: string
   name: string
@@ -54,6 +61,7 @@ export interface LiveStudent {
   open_flag_count: number
   open_flags: LiveFlag[]
   safety_paused: boolean
+  help_signal?: HelpSignal | null
   // The student's latest session in this run; it opens the teacher report.
   session_id: string | null
   // Set once the student has joined; it removes a waiting student from the lobby.

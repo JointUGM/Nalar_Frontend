@@ -2996,6 +2996,22 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** HelpSignalOut */
+        HelpSignalOut: {
+            /** Misconception Statement */
+            misconception_statement: string | null;
+            /** Rank */
+            rank: number;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "frustration" | "repeated_evasive" | "persistent_misconception";
+            /** Suggestion */
+            suggestion: string;
+            /** Turn Index */
+            turn_index: number;
+        };
         /** HiddenEvent */
         HiddenEvent: {
             /**
@@ -3770,6 +3786,7 @@ export interface components {
             current_turn_index: number | null;
             /** Deadline At */
             deadline_at: string | null;
+            help_signal?: components["schemas"]["HelpSignalOut"] | null;
             /** Max Turns */
             max_turns: number;
             /** Name */

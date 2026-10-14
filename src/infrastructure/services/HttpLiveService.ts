@@ -122,7 +122,14 @@ export class HttpLiveService implements LiveService {
       if (student.current_turn_index !== null && (!Number.isInteger(student.current_turn_index) || student.current_turn_index < 0)) throw new LiveError(502, 'INVALID_RESPONSE')
       if (student.session_id != null && typeof student.session_id !== 'string') throw new LiveError(502, 'INVALID_RESPONSE')
       if (student.participant_id != null && typeof student.participant_id !== 'string') throw new LiveError(502, 'INVALID_RESPONSE')
-      return { student_id: student.student_id, name: student.name, status: student.status, current_turn_index: student.current_turn_index, max_turns: student.max_turns, deadline_at: student.deadline_at, open_flag_count: student.open_flag_count, open_flags: liveFlags(record(student).open_flags), safety_paused: student.safety_paused, session_id: student.session_id ?? null, participant_id: student.participant_id ?? null }
+      const help = student.help_signal
+      const validHelp = help != null && ['frustration', 'repeated_evasive', 'persistent_misconception'].includes(help.reason)
+        && typeof help.suggestion === 'string' && help.suggestion.trim().length > 0
+        && (help.misconception_statement === null || typeof help.misconception_statement === 'string')
+        && Number.isInteger(help.rank) && help.rank >= 1 && help.rank <= 5
+        && Number.isInteger(help.turn_index) && help.turn_index >= 0
+      return { student_id: student.student_id, name: student.name, status: student.status, current_turn_index: student.current_turn_index, max_turns: student.max_turns, deadline_at: student.deadline_at, open_flag_count: student.open_flag_count, open_flags: liveFlags(record(student).open_flags), safety_paused: student.safety_paused, session_id: student.session_id ?? null, participant_id: student.participant_id ?? null,
+        help_signal: validHelp ? { reason: help.reason, misconception_statement: help.misconception_statement, suggestion: help.suggestion, turn_index: help.turn_index, rank: help.rank } : null }
     }) }
   }
   async control(runId: string, action: 'open-lobby' | 'start' | 'close', signal?: AbortSignal) { await this.request(`/runs/${encodeURIComponent(runId)}/${action}`, signal, 'POST') }

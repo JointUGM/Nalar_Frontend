@@ -16,6 +16,7 @@ import strategyStyles from '@/ui/pages/teacher/StrategyCard.styles'
 import { MgmpPackage } from './MgmpPackage'
 import { MisconceptionTrailCard } from './MisconceptionTrailCard'
 import { StrategyCard } from './StrategyCard'
+import { NextLessonPlan } from './NextLessonPlan'
 
 // Evaluations and the saved insight arrive after the sessions end, so the map refreshes on its own.
 const mapPollMs = () => 15_000
@@ -28,6 +29,8 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
   const subtitle = known?.id === publicationId ? `${known.class_name} · ${known.mission_title}` : 'Hasil kelas'
   const read = useCallback((signal: AbortSignal) => service.classMap(publicationId, signal), [service, publicationId])
   const { data, error, online, refresh } = useLiveResource(read, mapPollMs)
+  const readTrail = useCallback((signal: AbortSignal) => service.misconceptionTrail(publicationId, signal), [service, publicationId])
+  const trail = useLiveResource(readTrail, mapPollMs)
   const [openCard, setOpenCard] = useState<string | null>(null)
   const rows = data?.concepts.flatMap((concept) => concept.misconceptions.map((item) => ({ ...item, concept: concept.name }))).filter((item) => item.count > 0) ?? []
   const lines = Math.ceil((data?.concepts.length ?? 0) / perRow)
@@ -47,6 +50,7 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <Loading label="Memuat peta kelas…" />}
     {data && data.denominator === 0 && <Feedback title="Belum ada hasil untuk dipetakan" announce>Peta muncul setelah ada sesi yang selesai dan dinilai.{data.incomplete_count > 0 ? ` ${data.incomplete_count} siswa belum selesai atau belum dinilai.` : ''}</Feedback>}
+    {data && <NextLessonPlan key={publicationId} data={data} trail={trail.error ? null : trail.data} publicationId={publicationId} base={base} offline={!online || !!error} openStrategy={setOpenCard} />}
     {data && data.denominator > 0 && <div className={styles.grid}>
       <section className={styles.main} aria-labelledby="map-title">
         <div className={styles.cardHead}>
@@ -99,12 +103,12 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
           <p className={styles.story}>{data.insight ? data.insight.narrative : 'Penjelasan ditulis setelah semua sesi selesai dan dinilai.'}</p>
           <p className={styles.footnote}>Angka dihitung langsung dari data sesi. Nala hanya menjelaskan polanya.</p>
         </section>
-        {data.insight && data.insight.suggestions.length > 0 && <section className={styles.card} aria-labelledby="suggest-title">
+        {data.insight && data.insight.suggestions.length > 0 && !rows.some(row => row.students.length > 0) && <section className={styles.card} aria-labelledby="suggest-title">
           <h2 id="suggest-title">Saran pelajaran berikutnya</h2>
           <ul className={styles.suggestions}>{data.insight.suggestions.map((suggestion, index) => <li key={index}>{suggestion}</li>)}</ul>
         </section>}
       </div>
     </div>}
-    {data && data.denominator > 0 && <MisconceptionTrailCard service={service} publicationId={publicationId} base={base} />}
+    {data && data.denominator > 0 && <MisconceptionTrailCard data={trail.data} error={trail.error} base={base} />}
   </div>
 }

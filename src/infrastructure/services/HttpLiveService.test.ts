@@ -4,6 +4,15 @@ import { HttpLiveService } from './HttpLiveService'
 const state = { status: 'awaiting_answer', turn_index: 0, probe_number: 0, probe_total: 3, started_at: '2026-10-02T00:00:00Z', deadline_at: '2026-10-02T00:15:00Z', server_now: '2026-10-02T00:01:00Z', prompt: { kind: 'opening', text: 'Jelaskan alasanmu.', turn_index: 0 }, safety_message: null, reflection_ready: false }
 
 describe('live HTTP adapter', () => {
+  it('maps only valid optional mentoring fields and strips extra metadata', async () => {
+    const help = { reason: 'frustration', misconception_statement: null, suggestion: 'Bagian mana yang sulit?', turn_index: 1, rank: 1 }
+    const student = { student_id: 's', name: 'Ayu', status: 'in_progress', current_turn_index: 2, max_turns: 3, deadline_at: null, open_flag_count: 0, safety_paused: false }
+    const body = { server_now: state.server_now, waiting_count: 0, run: { id: 'r', mode: 'live', status: 'open', join_code: null, started_at: null }, students: [{ ...student, help_signal: { ...help, analysis: 'hidden' } }] }
+    const request = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json(body)).mockResolvedValueOnce(Response.json({ ...body, students: [{ ...student, help_signal: { ...help, rank: 99 } }] }))
+    const service = new HttpLiveService({ apiBaseUrl: '/api/v1', fetch: request })
+    expect((await service.monitor('p')).students[0].help_signal).toEqual(help)
+    expect((await service.monitor('p')).students[0].help_signal).toBeNull()
+  })
   it('sends cookie and CSRF credentials, preserves retry ids and strips hidden fields', async () => {
     const request = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json({ ...state, score: 99, answer_state: 'correct', prompt: { ...state.prompt, reason: 'hidden' } })).mockResolvedValueOnce(Response.json({ status: 'processing' }, { status: 202 }))
     const service = new HttpLiveService({ apiBaseUrl: '/api/v1', fetch: request })
@@ -81,7 +90,7 @@ describe('live HTTP adapter', () => {
       .mockResolvedValueOnce(Response.json(body))
       .mockResolvedValueOnce(Response.json({ ...body, students: [{ ...student, open_flags: [{ ...flag, evidence: { paste_chars: 90 } }, flag, { ...flag, id: 'bad', turn_index: -1 }] }] }))
     const service = new HttpLiveService({ apiBaseUrl: '/api/v1', fetch: request })
-    expect((await service.monitor('publication-a')).students[0]).toEqual({ ...student, open_flags: [] })
-    expect((await service.monitor('publication-a')).students[0]).toEqual({ ...student, open_flags: [flag] })
+    expect((await service.monitor('publication-a')).students[0]).toEqual({ ...student, open_flags: [], help_signal: null })
+    expect((await service.monitor('publication-a')).students[0]).toEqual({ ...student, open_flags: [flag], help_signal: null })
   })
 })

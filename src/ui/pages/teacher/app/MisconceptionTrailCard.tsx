@@ -1,15 +1,11 @@
-import { useCallback } from 'react'
 import { Link } from 'react-router'
-import type { TeacherService } from '@/domain/services/TeacherService'
+import type { MisconceptionTrail } from '@/domain/model/Teacher'
 import { Loading } from '@/ui/components/loading/Loading'
-import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/MisconceptionTrail.styles'
 
 // Jejak Perbaikan (step 5): who stopped showing a misconception between two missions. Counted by the database; separate from
 // the "Berubah pikiran" column, which only covers one session. A card that cannot load never disturbs the map.
-export function MisconceptionTrailCard({ service, publicationId, base }: { service: TeacherService; publicationId: string; base: string }) {
-  const read = useCallback((signal: AbortSignal) => service.misconceptionTrail(publicationId, signal), [service, publicationId])
-  const { data, error } = useLiveResource(read, noPollMs)
+export function MisconceptionTrailCard({ data, error, base }: { data: MisconceptionTrail | null; error: unknown; base: string }) {
   if (error) return null
   if (!data) return <section className={styles.card} aria-busy="true"><Loading label="Memuat jejak perbaikan…" /></section>
   const { to, from } = data

@@ -716,11 +716,14 @@ describe('signed-in teacher pages', () => {
     expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ knowledge_base_id: kbId, title: 'Tekanan Zat', learning_objective: 'Siswa menjelaskan tekanan hidrostatis.' })
   })
 
-  it('asks for a follow-up draft from the trail card and sends the earlier publication', async () => {
+  it('retries a failed follow-up draft without losing its earlier publication', async () => {
+    let attempts = 0
     const request = backend({
       [`GET /publications/${publication}/misconception-trail`]: () => Response.json(trailOut()),
       'POST /missions': () => Response.json({ mission_id: draft }, { status: 201 }),
-      [`POST /missions/${draft}/generate`]: () => Response.json({ job_id: job, status: 'queued' }, { status: 202 }),
+      [`POST /missions/${draft}/generate`]: () => ++attempts === 1
+        ? Response.json({ error: { code: 'AI_UNAVAILABLE' } }, { status: 503 })
+        : Response.json({ job_id: job, status: 'queued' }, { status: 202 }),
       [`GET /jobs/${job}`]: () => Response.json(jobOut({ kind: 'mission_generate', generation_result: { version_id: draft, version_number: 1, ungrounded_concept_ids: [] } })),
     })
     open(`${base}/publications/${publication}/class-map`, request)
@@ -730,9 +733,14 @@ describe('signed-in teacher pages', () => {
     fireEvent.change(screen.getByLabelText(/Judul misi/), { target: { value: 'Tekanan lanjutan' } })
     fireEvent.change(screen.getByLabelText(/Tujuan pembelajaran/), { target: { value: 'Siswa menjelaskan tekanan hidrostatis.' } })
     fireEvent.click(screen.getByRole('button', { name: 'Buat misi' }))
+    expect(await screen.findByText('Layanan sedang sibuk. Coba lagi sebentar.')).toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('button', { name: /Buat (draf|ulang) dengan AI/ }))
     expect(await screen.findByText('Draf misi selesai disusun')).toBeInTheDocument()
-    const generate = request.mock.calls.find(([url]) => String(url).endsWith('/generate'))!
-    expect(JSON.parse(String(generate[1]?.body))).toEqual({ follow_up_of_publication_id: publication })
+    const generate = request.mock.calls.filter(([url]) => String(url).endsWith('/generate'))
+    expect(generate).toHaveLength(2)
+    expect(generate.map(([, init]) => JSON.parse(String(init?.body)))).toEqual([
+      { follow_up_of_publication_id: publication }, { follow_up_of_publication_id: publication },
+    ])
   })
 
   it('starts the learning objective from a sentence opening that disappears once used', async () => {
@@ -880,7 +888,7 @@ describe('teacher-guided mission revision', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Lihat kartu strategi' }))
     expect(screen.getByText('Riset: Buku IPA Kelas VIII, hlm. 12')).toBeInTheDocument()
     expect(screen.getByText('Gaya hanya berubah arah atau besarnya.')).toBeInTheDocument()
-    expect(screen.getByText('Bola menggelinding di lantai licin')).toBeInTheDocument()
+    expect(within(document.getElementById(`strategy-${misconception}`)!).getByText('Bola menggelinding di lantai licin')).toBeInTheDocument()
     expect(screen.getByText('Saran untuk kelas (tidak khusus miskonsepsi ini)')).toBeInTheDocument()
     sourced.unmount()
     open(`${base}/publications/${publication}/class-map`, backend({ [`GET /publications/${publication}/class-map`]: () => Response.json(map(card({ source: 'library', citations: [] }))) }))

@@ -60,9 +60,13 @@ export function TeacherMissionNewPage({ service, kb, base, schoolId }: { service
     try {
       const { mission_id } = await service.createMission({ knowledge_base_id: chosen, title, learning_objective: goal }, signal)
       let job = ''
-      // The mission exists from here on; if the draft request fails, its page offers the draft again and says why.
-      try { job = (await service.generateMission(mission_id, signal, followUpOf)).job_id } catch { /* handled on the mission page */ }
-      if (!signal?.aborted) navigate(`${base}/missions/${mission_id}${job ? `?job=${job}` : ''}`)
+      let generationFailure: { status: number; code: string; requestId?: string } | null = null
+      try { job = (await service.generateMission(mission_id, signal, followUpOf)).job_id }
+      catch (cause) {
+        const failure = cause instanceof ApiError ? cause : new ApiError(0, 'UNAVAILABLE')
+        generationFailure = { status: failure.status, code: failure.code, requestId: failure.requestId }
+      }
+      if (!signal?.aborted) navigate(`${base}/missions/${mission_id}${job ? `?job=${job}` : ''}`, { state: { followUpOf, generationFailure } })
     } catch (cause) {
       if (!signal?.aborted) { setFailure(cause instanceof ApiError ? cause : new ApiError(0, 'UNAVAILABLE')); setPending(false) }
     } finally { busy.current = false }
