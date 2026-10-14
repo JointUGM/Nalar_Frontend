@@ -350,13 +350,17 @@ describe('signed-in teacher pages', () => {
     expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ student_id: student, reason: 'Sakit saat sesi' })
   })
 
-  it('reviews a flag and resumes a paused session only after confirming', async () => {
+  it('jumps from a flag in the dialog to its note, reviews it, and resumes a paused session only after confirming', async () => {
     const request = backend({
+      [`GET /sessions/${sessionId}/report`]: () => Response.json(reportOut({ flags: [{ ...reportOut().flags[0], turn_index: 0 }] })),
       [`POST /flags/${flagId}/review`]: () => Response.json({ status: 'cleared', reviewed_at: '2026-10-02T04:00:00Z' }),
       [`POST /sessions/${sessionId}/safety-actions`]: () => Response.json({ session_id: sessionId, status: 'in_progress', acted_at: '2026-10-02T04:00:00Z' }),
     })
     open(reportPath, request)
-    fireEvent.click(await screen.findByRole('button', { name: 'Tidak ada masalah' }))
+    fireEvent.click(await screen.findByRole('button', { name: /Lihat catatan verifikasi/ }))
+    await waitFor(() => expect(document.activeElement).toHaveAttribute('id', `flag-${flagId}`))
+    expect(screen.getByRole('tab', { name: /Perlu verifikasi/ })).toHaveAttribute('aria-selected', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Tidak ada masalah' }))
     await waitFor(() => expect(request.mock.calls.some(([url]) => String(url).endsWith('/review'))).toBe(true))
     fireEvent.click(screen.getByRole('button', { name: 'Lanjutkan sesi' }))
     expect(request.mock.calls.some(([url]) => String(url).endsWith('/safety-actions'))).toBe(false)
