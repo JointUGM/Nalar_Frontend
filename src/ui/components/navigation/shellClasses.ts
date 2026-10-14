@@ -1,5 +1,5 @@
 /**
- * The chrome shared by the role shells (Adult, Teacher, Student, Parent): a 232px sidebar that becomes a 64px rail
+ * The chrome shared by the role shells (Adult, Teacher, Student): a 232px sidebar that becomes a 64px rail
  * between md and lg (or when collapsed), a phone drawer below md, and a sticky top bar.
  *
  * Rail rules use `in-[aside]` and `in-data-[collapsed=true]` so the same navigation markup stays full width in the drawer.

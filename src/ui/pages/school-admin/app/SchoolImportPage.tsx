@@ -53,7 +53,7 @@ export function SchoolImportPage({ service, schoolId, base }: { service: SchoolA
     <div className={styles.head}>
       <div className={styles.headText}>
         <h1 className={styles.title}>Impor data siswa dan guru</h1>
-        <p className={styles.lead}>Tambahkan siswa, guru, dan orang tua sekaligus dari satu berkas CSV. Siswa perlu NISN dan tingkat kelas, guru perlu email.</p>
+        <p className={styles.lead}>Tambahkan siswa dan guru sekaligus dari satu berkas CSV. Siswa perlu NISN dan tingkat kelas, guru perlu email.</p>
       </div>
       {!importId && <a className={styles.template} href={`data:text/csv;charset=utf-8,${encodeURIComponent(template)}`} download="nalar-impor.csv"><Icon name="file" size={16} />Unduh templat CSV</a>}
     </div>

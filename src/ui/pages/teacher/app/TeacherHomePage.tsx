@@ -15,7 +15,7 @@ import { dayLabel } from '@/ui/pages/teacher/app/homeInsights'
 import styles from '@/ui/pages/teacher/TeacherHome.styles'
 
 // Layout follows the home screen of "NALAR Guru.dc.html": sessions and changed minds on top, then attention, class
-// patterns and a rail with release and the knowledge base. Every number comes from the API; nothing is invented.
+// patterns and a rail with the knowledge base. Every number comes from the API; nothing is invented.
 interface AttentionResource { data: AttentionPage | null; error: ApiError | null; online: boolean; refresh: () => void }
 const number = new Intl.NumberFormat('id-ID')
 const clock = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })
@@ -62,7 +62,6 @@ function Schedule({ resource, base }: { resource: { data: TeacherPublication[] |
       const { run, counts, class_name: className, subject_name: subject } = publication
       const at = when(publication)
       const tone = isActive(publication) ? 'live' : run.status === 'scheduled' ? 'planned' : 'done'
-      const released = publication.released_to_parents_at !== null
       const day = at ? dayLabel(at) : null
       const window = run.opens_at && run.closes_at ? `${clock.format(new Date(run.opens_at))}–${clock.format(new Date(run.closes_at))}` : at ? clock.format(new Date(at)) : null
       const state = tone === 'live'
@@ -79,7 +78,7 @@ function Schedule({ resource, base }: { resource: { data: TeacherPublication[] |
         </div>
         {tone === 'live' ? <Link className={styles.blockAction} to={`${base}/publications/${publication.id}/${run.status === 'lobby' ? 'projector' : 'monitor'}`} state={{ publication }}><Icon name="play" size={12} />{run.status === 'lobby' ? 'Buka lobi' : 'Pantau'}</Link>
           : tone === 'planned' ? <b className={styles.badge} data-tone="planned">Belum dimulai</b>
-          : <b className={styles.badge} data-tone="done"><Icon name={released ? 'send' : 'check'} size={14} />{released ? 'Dirilis' : 'Selesai'}</b>}
+          : <b className={styles.badge} data-tone="done"><Icon name="check" size={14} />Selesai</b>}
       </li>
     })}</ol>}
   </section>
@@ -141,18 +140,9 @@ function Patterns({ data, base }: { data: TeacherDashboard | null; base: string 
   </section>
 }
 
-function Rail({ attention, kb, base }: { attention: AttentionPage | null; kb: Awaited<ReturnType<KnowledgeBaseService['list']>> | null; base: string }) {
-  const release = attention?.items.find((item): item is Extract<AttentionItem, { kind: 'release_ready' }> => item.kind === 'release_ready')
+function Rail({ kb, base }: { kb: Awaited<ReturnType<KnowledgeBaseService['list']>> | null; base: string }) {
   const topics = (kb ?? []).slice(0, 3)
   return <div className={styles.rail}>
-    <section className={styles.release} aria-label="Siap dirilis ke orang tua">
-      <p>Siap dirilis ke orang tua</p>
-      {release ? <>
-        <p><strong>{number.format(release.eligible_count)}</strong>ringkasan · {release.class_name}</p>
-        <p>{release.mission_title} · skor dan catatan verifikasi tidak ikut terkirim.</p>
-        <Link to={`${base}/publications/${release.publication_id}/release`}>Pratinjau dan rilis</Link>
-      </> : <p>Belum ada ringkasan yang menunggu rilis.</p>}
-    </section>
     <section className={styles.card} aria-labelledby="home-kb">
       <h2 id="home-kb"><Link to={`${base}/knowledge-base`}>Basis pengetahuan</Link></h2>
       {topics.length === 0 ? <p className={styles.empty}>Belum ada topik.</p> : <ul className={styles.topics}>{topics.map((topic) => <li key={topic.id}>
@@ -170,7 +160,6 @@ export function TeacherHomePage({ service, kb, base, schoolId, user, attention }
   const sessions = useLiveResource(readSessions, noPollMs)
   const readTopics = useCallback((signal: AbortSignal) => kb.list(schoolId, signal), [kb, schoolId])
   const topics = useLiveResource(readTopics, noPollMs)
-  const queue = attention.online && !attention.error ? attention.data : null
   return <div className={styles.page}>
     <TeacherPageHead title={`${greeting()}, ${user.trim().split(/\s+/)[0]}`} subtitle={today.format(new Date())} />
     <Cycle base={base} />
@@ -181,7 +170,7 @@ export function TeacherHomePage({ service, kb, base, schoolId, user, attention }
     <div className={styles.bottom}>
       <Attention resource={attention} base={base} />
       <Patterns data={data} base={base} />
-      <Rail attention={queue} kb={topics.data} base={base} />
+      <Rail kb={topics.data} base={base} />
     </div>
   </div>
 }

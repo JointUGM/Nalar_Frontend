@@ -23,10 +23,15 @@ describe('Account route boundary', () => {
     render(<MemoryRouter initialEntries={['/login']}><AppRoutes accountEntry={<h1>Supplied account entry</h1>} /></MemoryRouter>)
     expect(await screen.findByRole('heading', { name: 'Supplied account entry' })).toBeInTheDocument()
   })
-  it.each(['platform', 'school', 'teacher', 'student', 'parent'])('does not grant %s access from the account entry', (role) => {
+  it.each(['platform', 'school', 'teacher', 'student'])('does not grant %s access from the account entry', (role) => {
     render(<MemoryRouter initialEntries={[`/${role}/private`]}><AppRoutes accountEntry={<h1>Signed-in account</h1>} /></MemoryRouter>)
     expect(screen.getByRole('heading', { name: 'Akses belum tersedia' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Signed-in account' })).not.toBeInTheDocument()
+  })
+  it.each(['/parent', '/parent/children', '/review/parent/home'])('shows unavailable for removed parent URL %s', (url) => {
+    render(<MemoryRouter initialEntries={[url]}><AppRoutes accountEntry={<h1>Account entry</h1>} privateEntry={<h1>Private entry</h1>} /></MemoryRouter>)
+    expect(screen.getByRole('heading', { name: 'Halaman tidak tersedia' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Private entry' })).not.toBeInTheDocument()
   })
   it('denies a direct platform link without rendering review school metadata', () => {
     render(<MemoryRouter initialEntries={['/platform/schools']}><AppRoutes accountEntry={<h1>Account entry</h1>} /></MemoryRouter>)

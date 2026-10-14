@@ -26,7 +26,6 @@ function facts(item: AttentionItem, at: string): [string, string][] {
     case 'safety': return [['Dijeda', formatDayTime(at)], ['Menunggu', waitedFor(at)]]
     case 'flag': return [['Jenis', flagWord[item.flag_type] ?? item.flag_type], ['Tingkat', severityWord[item.severity] ?? item.severity], ['Dicatat', formatDayTime(at)]]
     case 'kb_review': return [['Konsep', `${number.format(item.pending_concepts)} menunggu`], ['Miskonsepsi', `${number.format(item.pending_misconceptions)} menunggu`], ['Masuk', formatDayTime(at)]]
-    case 'release_ready': return [['Ringkasan', `${number.format(item.eligible_count)} siap`], ['Kelas', item.class_name], ['Siap sejak', formatDayTime(at)]]
   }
 }
 

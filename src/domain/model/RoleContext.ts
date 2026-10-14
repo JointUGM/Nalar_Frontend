@@ -17,7 +17,6 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export function getRoleChoices(identity: Identity): RoleChoice[] {
   const choices: RoleChoice[] = []
   if (identity.isPlatformAdmin) choices.push({ label: 'Admin Platform', detail: 'NALAR', path: '/platform' })
-  if (identity.isParent) choices.push({ label: 'Orang Tua', detail: 'Akun orang tua', path: '/parent' })
   for (const membership of identity.memberships) {
     const role = schoolRoles[membership.role]
     choices.push({ label: role.label, detail: membership.schoolName, path: `/${role.route}/${membership.schoolId}` })
@@ -32,7 +31,6 @@ export function resolveRoleDestination(identity: Identity, path: unknown): strin
   const segments = path.split('/').slice(1)
   const role = segments[0]
   if (role === 'platform' && identity.isPlatformAdmin) return path
-  if (role === 'parent' && identity.isParent) return path
   if (role !== 'school' && role !== 'teacher' && role !== 'student') return null
   const schoolId = segments[1]
   if (!schoolId || !uuid.test(schoolId)) return null

@@ -27,7 +27,7 @@ describe('Backend account composition', () => {
       }
       expect(url).toBe('/api/v1/me')
       expect(new Headers(init.headers).has('Authorization')).toBe(false)
-      return Response.json({ user_id: userId, full_name: 'Ayu', roles: [], is_parent: false, is_platform_admin: true })
+      return Response.json({ user_id: userId, full_name: 'Ayu', roles: [], is_platform_admin: true })
     })
     const composition = await createDependencies({ apiBaseUrl: 'https://api.nalar.test/api/v1' })
     try {

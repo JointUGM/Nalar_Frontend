@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 const userId = '00000000-0000-4000-8000-000000000001'
 const schoolId = '00000000-0000-4000-8000-000000000002'
 const identity = {
-  user_id: userId, full_name: 'Ayu Lestari', is_parent: false, is_platform_admin: false,
+  user_id: userId, full_name: 'Ayu Lestari', is_platform_admin: false,
   roles: [{ role: 'teacher', school_id: schoolId, school_name: 'Sekolah A' }],
 }
 

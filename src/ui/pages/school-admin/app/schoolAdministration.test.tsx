@@ -10,7 +10,7 @@ import { SchoolRoutes } from './SchoolRoutes'
 
 const school = '00000000-0000-4000-8000-000000000002'
 const [student, year, nextYear, classA, classB] = ['21', '22', '23', '24', '25'].map((end) => `00000000-0000-4000-8000-0000000000${end}`)
-const identity: Identity = { userId: '00000000-0000-4000-8000-000000000001', fullName: 'Hendra Santoso', isParent: false, isPlatformAdmin: false, memberships: [{ role: 'school_admin', schoolId: school, schoolName: 'SMPN 5 Yogyakarta' }] }
+const identity: Identity = { userId: '00000000-0000-4000-8000-000000000001', fullName: 'Hendra Santoso', isPlatformAdmin: false, memberships: [{ role: 'school_admin', schoolId: school, schoolName: 'SMPN 5 Yogyakarta' }] }
 const originalShowModal = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
 const originalClose = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close')
 beforeAll(() => Object.defineProperties(HTMLDialogElement.prototype, {
@@ -26,7 +26,7 @@ afterAll(() => {
 })
 
 const years = [{ id: year, name: '2026/2027', starts_on: '2026-07-13', ends_on: '2027-06-30', is_current: true }]
-const person = { user_id: student, full_name: 'Adinda Putri', role: 'student', roles: ['student'], nisn: '0098123401', email: null, class_name: '8A', account_state: 'active', linked_parents: [{ user_id: classB, full_name: 'Siti Aminah' }], linked_children: [] }
+const person = { user_id: student, full_name: 'Adinda Putri', role: 'student', roles: ['student'], nisn: '0098123401', email: null, class_name: '8A', account_state: 'active' }
 const klass = (class_id: string, name: string) => ({ class_id, name, grade_level: 8, academic_year_id: year, homeroom_teacher_id: null, student_count: 30, archived_at: null })
 
 function open(path: string, answer: (key: string, init?: RequestInit) => Response | undefined) {
@@ -59,7 +59,8 @@ describe('school administration', () => {
     })
     fireEvent.click(await screen.findByRole('button', { name: 'Kelola Adinda Putri' }))
     const drawer = screen.getByRole('dialog')
-    expect(within(drawer).getByText('Siti Aminah')).toBeInTheDocument()
+    expect(within(drawer).queryByText('Siti Aminah')).not.toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: 'Orang tua' })).not.toBeInTheDocument()
     await choose(within(drawer).findByRole('combobox', { name: /Pindah kelas/ }), /8B/)
     fireEvent.click(within(drawer).getByRole('button', { name: 'Simpan' }))
     expect(await screen.findByText('Data Adinda Putri tersimpan.')).toBeInTheDocument()
@@ -91,7 +92,7 @@ describe('school administration', () => {
     expect(await screen.findByText('Budi Santoso ditambahkan. Kirim undangan dari halaman Undangan.')).toBeInTheDocument()
     const [first, second] = sent(request, 'POST')
     expect(new Headers(first[1]?.headers).get('Idempotency-Key')).toBe(new Headers(second[1]?.headers).get('Idempotency-Key'))
-    expect(JSON.parse(String(second[1]?.body))).toEqual({ full_name: 'Budi Santoso', role: 'student', nisn: '0098123402', class_id: classA, child_ids: [], invite: false })
+    expect(JSON.parse(String(second[1]?.body))).toEqual({ full_name: 'Budi Santoso', role: 'student', nisn: '0098123402', class_id: classA, invite: false })
   })
   it('turns an inactive person back on and explains a refusal', async () => {
     const answers = [Response.json({ error: { code: 'REACTIVATION_HISTORY_MISSING' } }, { status: 409 }), new Response(null, { status: 204 })]
@@ -107,34 +108,6 @@ describe('school administration', () => {
     fireEvent.click(drawer.getByRole('button', { name: 'Aktifkan kembali' }))
     expect(await screen.findByText('Adinda Putri aktif lagi.')).toBeInTheDocument()
     expect(sent(request, 'POST')).toHaveLength(2)
-  })
-  it('removes a parent link only after confirming, and links another child to a parent with the chosen relationship', async () => {
-    const mother = { ...person, user_id: classB, full_name: 'Siti Aminah', role: 'parent', roles: ['parent'], nisn: null, email: 'siti@example.test', class_name: null, linked_parents: [], linked_children: [{ user_id: student, full_name: 'Adinda Putri' }] }
-    const brother = { ...person, user_id: classA, full_name: 'Bima Putra' }
-    const request = open(`/school/${school}/people`, (key) => {
-      if (key === `GET /schools/${school}/people?role=student&limit=50`) return Response.json({ items: [person], next_cursor: null, total: 1 })
-      if (key === `GET /schools/${school}/people?role=parent&limit=50`) return Response.json({ items: [mother], next_cursor: null, total: 1 })
-      if (key === `GET /schools/${school}/people?role=student&limit=50&q=Bima`) return Response.json({ items: [brother], next_cursor: null, total: 1 })
-      if (key === `GET /schools/${school}/academic-years`) return Response.json(years)
-      if (key === `GET /schools/${school}/classes?academic_year_id=${year}`) return Response.json([klass(classA, '8A')])
-      if (key === `DELETE /schools/${school}/people/${classB}/children/${student}`) return new Response(null, { status: 204 })
-      if (key === `PUT /schools/${school}/people/${classB}/children/${classA}`) return new Response(null, { status: 204 })
-    })
-    fireEvent.click(await screen.findByRole('button', { name: 'Kelola Adinda Putri' }))
-    const drawer = within(screen.getByRole('dialog'))
-    fireEvent.click(drawer.getByRole('button', { name: 'Lepas Siti Aminah' }))
-    expect(sent(request, 'DELETE')).toHaveLength(0)
-    fireEvent.click(drawer.getByRole('button', { name: 'Ya, lepas Siti Aminah' }))
-    expect(await screen.findByText('Siti Aminah tidak lagi tertaut ke Adinda Putri.')).toBeInTheDocument()
-    expect(sent(request, 'DELETE')).toHaveLength(1)
-    fireEvent.click(screen.getByRole('tab', { name: 'Orang tua' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Kelola Siti Aminah' }))
-    const parent = within(screen.getByRole('dialog'))
-    await choose(parent.getByRole('combobox', { name: /Hubungan untuk anak baru/ }), 'Wali')
-    fireEvent.change(parent.getByLabelText(/Cari siswa/), { target: { value: 'Bima' } })
-    fireEvent.click(await parent.findByRole('button', { name: 'Bima Putra · 8A' }))
-    expect(await screen.findByText('Bima Putra ditautkan ke Siti Aminah.')).toBeInTheDocument()
-    expect(JSON.parse(String(sent(request, 'PUT')[0][1]?.body))).toEqual({ relationship: 'wali' })
   })
   it('places the chosen students in a class with one request', async () => {
     const other = { ...person, user_id: classB, full_name: 'Citra Dewi', class_name: null }

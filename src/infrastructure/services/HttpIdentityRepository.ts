@@ -24,7 +24,7 @@ function requestReference(value: unknown): string | undefined {
 function mapIdentity(value: unknown): Identity | null {
   if (!isRecord(value) || typeof value.user_id !== 'string' || !uuid.test(value.user_id)
     || typeof value.full_name !== 'string' || !Array.isArray(value.roles)
-    || typeof value.is_parent !== 'boolean' || typeof value.is_platform_admin !== 'boolean') return null
+    || typeof value.is_platform_admin !== 'boolean') return null
 
   const memberships: SchoolMembership[] = []
   for (const membership of value.roles) {
@@ -36,9 +36,9 @@ function mapIdentity(value: unknown): Identity | null {
   const checked: MeResponse = {
     user_id: value.user_id, full_name: value.full_name,
     roles: memberships.map(({ role, schoolId, schoolName }) => ({ role, school_id: schoolId, school_name: schoolName })),
-    is_parent: value.is_parent, is_platform_admin: value.is_platform_admin, email: typeof value.email === 'string' ? value.email : null,
+    is_platform_admin: value.is_platform_admin, email: typeof value.email === 'string' ? value.email : null,
   }
-  return { userId: checked.user_id, fullName: checked.full_name, email: checked.email ?? null, memberships, isParent: checked.is_parent, isPlatformAdmin: checked.is_platform_admin }
+  return { userId: checked.user_id, fullName: checked.full_name, email: checked.email ?? null, memberships, isPlatformAdmin: checked.is_platform_admin }
 }
 
 const statusCodes: Partial<Record<number, OperationErrorCode>> = {

@@ -5,7 +5,6 @@ const styles = {
   back: 'min-h-8 inline-flex items-center gap-1 text-[13px] font-semibold text-text-muted no-underline hover:text-ink',
   header: 'gap-4 flex flex-wrap items-end justify-between [&_h1]:m-0 [&_h1]:text-[24px] [&_h1]:leading-[30px] [&_h1]:font-extrabold [&_h1]:tracking-[-.02em] [&_p]:mx-0 [&_p]:mt-0.5 [&_p]:mb-0 [&_p]:text-[14px] [&_p]:text-text-secondary',
   actions: 'gap-2 flex flex-wrap [&_button]:min-h-10 [&_button]:px-3.5 [&_button]:gap-1.5 [&_button]:whitespace-nowrap [&_button]:text-[14px] [&_button]:font-bold [&_button]:rounded-[8px] [&_button]:border-0 [&_button]:bg-surface',
-  release: 'px-4 gap-2 min-h-10 bg-ink inline-flex items-center justify-center whitespace-nowrap no-underline rounded-[8px] text-white text-[14px] font-bold hover:bg-account-bubble',
   grid: 'gap-4 grid items-start grid-cols-12 max-lg:grid-cols-1',
   main: 'col-span-8 p-5 min-w-0 bg-surface rounded-2xl grid gap-4 max-lg:col-span-1',
   rail: 'col-span-4 grid gap-4 min-w-0 max-lg:col-span-1',

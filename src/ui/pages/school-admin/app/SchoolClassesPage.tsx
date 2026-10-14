@@ -476,14 +476,6 @@ function ClassDetailDialog({
                           </strong>
                           <div className="flex items-center gap-2 text-[12px] text-text-secondary mt-0.5 flex-wrap">
                             <span>NISN: {student.nisn || '-'}</span>
-                            {student.linked_parents.length > 0 && (
-                              <>
-                                <span>•</span>
-                                <span className="truncate">
-                                  Wali: {student.linked_parents.map((p) => p.full_name).join(', ')}
-                                </span>
-                              </>
-                            )}
                           </div>
                         </div>
                       </div>

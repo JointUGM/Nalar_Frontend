@@ -23,7 +23,7 @@ const styles = {
   list: 'm-0 min-w-0 list-none rounded-2xl bg-surface p-2 grid gap-0.5 lg:col-span-5',
   row: `group m-0 grid w-full min-w-0 cursor-pointer gap-2 rounded-xl border-0 bg-transparent px-3 py-3 text-start text-ink no-underline ${press} ${focus} hover:not-aria-pressed:bg-paper aria-pressed:bg-paper`,
   rowTop: 'flex min-w-0 items-center justify-between gap-3',
-  sev: 'inline-flex w-fit min-w-0 items-center gap-1 truncate rounded-pill bg-surface-muted px-2.5 py-[3px] text-[12px] leading-4 font-bold whitespace-nowrap text-text-secondary data-[kind=flag]:bg-surface-muted data-[kind=kb_review]:bg-info-bg data-[kind=kb_review]:text-primary data-[kind=release_ready]:bg-success-bg data-[kind=release_ready]:text-success-strong data-[kind=safety]:bg-danger-bg data-[kind=safety]:text-danger-text',
+  sev: 'inline-flex w-fit min-w-0 items-center gap-1 truncate rounded-pill bg-surface-muted px-2.5 py-[3px] text-[12px] leading-4 font-bold whitespace-nowrap text-text-secondary data-[kind=flag]:bg-surface-muted data-[kind=kb_review]:bg-info-bg data-[kind=kb_review]:text-primary data-[kind=safety]:bg-danger-bg data-[kind=safety]:text-danger-text',
   when: 'shrink-0 text-[11px] leading-4 tabular-nums text-text-muted',
   rowMain: 'grid grid-cols-[34px_minmax(0,1fr)] items-center gap-2.5',
   lead: 'grid size-[34px] place-items-center',

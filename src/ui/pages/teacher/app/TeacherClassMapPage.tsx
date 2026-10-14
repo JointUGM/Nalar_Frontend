@@ -45,12 +45,12 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
   return <div className={styles.content}>
     <TeacherPageHead crumb={<><Link to={`${base}/sessions`}>Sesi dan hasil</Link><Icon name="chevronRight" size={14} /></>} title="Peta kelas" subtitle={<>{subtitle}{data ? ` · ${data.denominator} siswa dihitung` : ''}</>} />
     <div className={styles.header}>
-      <div className={styles.actions}><CsvDownload label="Unduh nilai (CSV)" filename="nalar-nilai-kelas.csv" read={(signal) => service.exportPublication(publicationId, signal)} /><MgmpPackage service={service} publicationId={publicationId} /><Link className={styles.release} to={`${base}/publications/${publicationId}/release`} state={location.state}><Icon name="send" size={14} />Rilis ke orang tua</Link></div>
+      <div className={styles.actions}><CsvDownload label="Unduh nilai (CSV)" filename="nalar-nilai-kelas.csv" read={(signal) => service.exportPublication(publicationId, signal)} /><MgmpPackage service={service} publicationId={publicationId} /></div>
     </div>
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {!data && !error && <Loading label="Memuat peta kelas…" />}
     {data && data.denominator === 0 && <Feedback title="Belum ada hasil untuk dipetakan" announce>Peta muncul setelah ada sesi yang selesai dan dinilai.{data.incomplete_count > 0 ? ` ${data.incomplete_count} siswa belum selesai atau belum dinilai.` : ''}</Feedback>}
-    {data && <NextLessonPlan key={publicationId} data={data} trail={trail.error ? null : trail.data} publicationId={publicationId} base={base} offline={!online || !!error} openStrategy={setOpenCard} />}
+    {data && data.denominator > 0 && <NextLessonPlan key={publicationId} data={data} trail={trail.error ? null : trail.data} publicationId={publicationId} base={base} offline={!online || !!error} service={service} refresh={refresh} openStrategy={setOpenCard} />}
     {data && data.denominator > 0 && <div className={styles.grid}>
       <section className={styles.main} aria-labelledby="map-title">
         <div className={styles.cardHead}>
@@ -103,7 +103,7 @@ export function TeacherClassMapPage({ service, base }: { service: TeacherService
           <p className={styles.story}>{data.insight ? data.insight.narrative : 'Penjelasan ditulis setelah semua sesi selesai dan dinilai.'}</p>
           <p className={styles.footnote}>Angka dihitung langsung dari data sesi. Nala hanya menjelaskan polanya.</p>
         </section>
-        {data.insight && data.insight.suggestions.length > 0 && !rows.some(row => row.students.length > 0) && <section className={styles.card} aria-labelledby="suggest-title">
+        {data.insight && data.insight.suggestions.length > 0 && <section className={styles.card} aria-labelledby="suggest-title">
           <h2 id="suggest-title">Saran pelajaran berikutnya</h2>
           <ul className={styles.suggestions}>{data.insight.suggestions.map((suggestion, index) => <li key={index}>{suggestion}</li>)}</ul>
         </section>}

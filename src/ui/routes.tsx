@@ -32,7 +32,7 @@ export function AppRoutes({ accountEntry, activationEntry, resetEntry, privateEn
     <Route path="/login" element={<Suspense fallback={<Loading variant="screen" label="Membuka halaman masuk…" />}>{accountEntry}</Suspense>} />
     <Route path="/activate" element={<Suspense fallback={<Loading variant="screen" label="Membuka aktivasi…" />}>{activationEntry ?? <AccountLoadFailure />}</Suspense>} />
     <Route path="/reset-password" element={<Suspense fallback={<Loading variant="screen" label="Membuka pemulihan kata sandi…" />}>{resetEntry ?? <AccountLoadFailure />}</Suspense>} />
-    {['platform', 'school', 'parent', 'teacher', 'student'].map((role) => <Route key={role} path={`/${role}/*`} element={privateEntry ? <PrivateEntryBoundary entry={privateEntry} /> : <AccessBoundary />} />)}
+    {['platform', 'school', 'teacher', 'student'].map((role) => <Route key={role} path={`/${role}/*`} element={privateEntry ? <PrivateEntryBoundary entry={privateEntry} /> : <AccessBoundary />} />)}
     <Route path="*" element={<main className={styles.page}><h1>Halaman tidak tersedia</h1><Link to="/">Kembali ke NALAR</Link></main>} />
   </Routes>
 }

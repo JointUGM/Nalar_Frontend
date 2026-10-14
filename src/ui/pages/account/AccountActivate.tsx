@@ -17,7 +17,7 @@ export function AccountActivate() {
   const pending = view.preview.status === 'pending'
   return <AccountLayout>
     <h1>Aktifkan akun</h1>
-    <p>Buat kata sandi untuk <strong>Bambang Wicaksono</strong>, orang tua Raka.</p>
+    <p>Buat kata sandi untuk <strong>Sari Wulandari</strong>, guru.</p>
     <AccountPreviewNote />
     {view.done ? <div className={styles.result}>
       <Feedback tone="success" title="Akun belum benar-benar diaktifkan (pratinjau)">Tidak ada akun yang dibuat dan tidak ada kata sandi yang disimpan.</Feedback>

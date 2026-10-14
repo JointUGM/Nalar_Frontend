@@ -37,7 +37,7 @@ function marked(answer: string, quote: string | null) {
   return at < 0 || !quote ? answer : <>{answer.slice(0, at)}<mark>{quote}</mark>{answer.slice(at + quote.length)}</>
 }
 const grantRefusals: Readonly<Record<string, string>> = {
-  PUBLICATION_NOT_GRANTABLE: 'Misi ini tidak bisa diberi kesempatan lagi: bukan misi jendela waktu, atau hasilnya sudah dirilis ke orang tua.',
+  PUBLICATION_NOT_GRANTABLE: 'Misi ini tidak bisa diberi kesempatan lagi: periksa jenis misi dan status sesinya.',
   ATTEMPT_NOT_GRANTABLE: 'Siswa ini masih punya percobaan yang belum selesai.',
 }
 // Counted, never recorded: what the student pasted, how long they were away, how long they typed.
@@ -103,7 +103,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
     </div>
     {data && reportPollMs(data) === null && <Button tone="secondary" onClick={refresh}><Icon name="refresh" size={14} />Perbarui laporan</Button>}
     {granted && <Feedback tone="success" title="Kesempatan lagi diberikan" announce>Siswa melihatnya sebagai misi baru di Misi saya. Hasil percobaan ini tetap tersimpan.</Feedback>}
-    <p className={styles.note}>Hanya untuk guru · tidak ditampilkan kepada siswa atau orang tua.</p>
+    <p className={styles.note}>Hanya untuk guru · tidak ditampilkan kepada siswa.</p>
     {said && !dialog && <Feedback tone="warning" title={said} announce />}
     {report.session.status === 'paused_safety' && <Feedback tone="warning" title="Sesi siswa ini dijeda karena keselamatan" announce>
       Temui siswa lebih dulu. Lanjutkan sesi bila siswa siap, atau akhiri sesi.

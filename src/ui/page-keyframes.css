@@ -60,10 +60,6 @@
 @keyframes projectorsection-rise { from { transform: translateY(14px); } }
 @keyframes projectorsection-drop { from { opacity: 0; transform: translateY(-8px); } }
 @keyframes projectorsection-seatIn { from { transform: scale(0.86); background: #2447D1; } }
-@keyframes parentconversation-bubble-in { from { opacity: 0; transform: translateY(6px) scale(.97); } }
-@keyframes parenthome-rise { from { opacity: 0; transform: translateY(10px); } }
-@keyframes parentreflection-page-in { from { opacity: 0; transform: translateY(8px); } }
-@keyframes parentsettings-rise { from { opacity: 0; transform: translateY(10px); } }
 @keyframes platformreferences-rise { from { opacity: 0; transform: translateY(8px); } }
 @keyframes schoolsubjects-rise { from { opacity: 0; transform: translateY(6px); } }
 @keyframes studentjoin-pop { 0% { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.18); opacity: 1; } 100% { transform: scale(1); } }

@@ -34,7 +34,6 @@ const styles = {
   note: 'mt-auto mb-0 flex items-start gap-3 border-t border-paper pt-4 text-[13px] leading-[1.5] text-text-secondary [&_a]:font-bold [&_a]:text-primary',
 
   rail: 'flex min-w-0 flex-col gap-4',
-  release: 'flex flex-1 flex-col justify-between gap-3 rounded-2xl bg-ink p-5 text-white [&_p]:m-0 [&>p:first-child]:text-[13px] [&>p:first-child]:font-bold [&>p:first-child]:text-account-caption [&_strong]:me-2 [&_strong]:text-[32px] [&_strong]:font-extrabold [&_strong]:tracking-[-.02em] [&_p:nth-child(2)]:text-[14px] [&_p:nth-child(2)]:text-info-bg [&_p:nth-child(3)]:text-[13px] [&_p:nth-child(3)]:leading-[1.5] [&_p:nth-child(3)]:text-account-caption [&_a]:mt-1 [&_a]:flex [&_a]:h-10 [&_a]:items-center [&_a]:justify-center [&_a]:rounded-[8px] [&_a]:bg-accent [&_a]:text-[14px] [&_a]:font-bold [&_a]:text-ink [&_a]:no-underline [&_a:hover]:bg-[#E5A42C]',
   topics: 'm-0 grid list-none gap-4 p-0 [&_li]:grid [&_li]:gap-1.5 [&_a]:flex [&_a]:gap-2 [&_a]:text-[14px] [&_a]:text-ink [&_a]:no-underline [&_a>span]:flex-1 [&_a>span]:truncate [&_a>span]:font-semibold [&_a:hover>span]:text-primary [&_b]:text-[13px] [&_b]:font-bold [&_b]:text-success-strong [&_b[data-waiting=true]]:text-primary [&_li>i]:flex [&_li>i]:h-1.5 [&_li>i]:overflow-hidden [&_li>i]:rounded-pill [&_li>i]:bg-[#F3F1EC] [&_li>i>i:first-child]:bg-[#3C9A6E] [&_li>i>i:last-child]:bg-[#9FB2F0]',
 } satisfies Record<string, string>
 

@@ -6,7 +6,7 @@ const student = (id: string) => ({ student_id: id, name: id, session_id: `s-${id
 const item = (id: string, ids: string[]): ClassMapMisconception => ({
   misconception_id: id, statement: id, count: ids.length, resolved_count: 0,
   student_ids: ids, students: ids.map(student), correct_understanding: '',
-  counter_examples: [], detection_cues: [], source: 'kb', citations: [],
+  counter_examples: [], detection_cues: [], source: 'kb', citations: [], teaching_plan: null,
 })
 const map = (items: ClassMapMisconception[]): ClassMap => ({
   denominator: 3, incomplete_count: 0, prerequisites: [], insight: null,

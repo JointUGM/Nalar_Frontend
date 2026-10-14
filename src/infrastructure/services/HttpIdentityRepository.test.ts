@@ -8,7 +8,7 @@ const me = {
     { role: 'teacher', school_id: '00000000-0000-4000-8000-000000000002', school_name: 'Sekolah A' },
     { role: 'school_admin', school_id: '00000000-0000-4000-8000-000000000003', school_name: 'Sekolah B' },
   ],
-  is_parent: true, is_platform_admin: false,
+  is_platform_admin: false,
 }
 
 function reader(fetch: typeof globalThis.fetch) {
@@ -32,7 +32,7 @@ describe('Current identity HTTP boundary', () => {
       memberships: [
         { role: 'teacher', schoolId: '00000000-0000-4000-8000-000000000002', schoolName: 'Sekolah A' },
         { role: 'school_admin', schoolId: '00000000-0000-4000-8000-000000000003', schoolName: 'Sekolah B' },
-      ], isParent: true, isPlatformAdmin: false,
+      ], isPlatformAdmin: false,
     })
   })
 
@@ -44,10 +44,9 @@ describe('Current identity HTTP boundary', () => {
     }).execute(controller.signal)
   })
 
-  it('supports parent/platform capabilities without inventing school membership', async () => {
+  it('supports platform capabilities without inventing school membership', async () => {
     const identity = await reader(async () => Response.json({ ...me, roles: [], is_platform_admin: true })).execute()
     expect(identity.memberships).toEqual([])
-    expect(identity.isParent).toBe(true)
     expect(identity.isPlatformAdmin).toBe(true)
   })
 
@@ -84,7 +83,6 @@ describe('Current identity HTTP boundary', () => {
   it.each([
     { ...me, user_id: 'invalid' },
     { ...me, is_platform_admin: 'true' },
-    { ...me, is_parent: undefined },
     { ...me, roles: null },
     { ...me, roles: [{ ...me.roles[0], role: 'platform_admin' }] },
     { ...me, roles: [{ ...me.roles[0], school_id: 'invalid' }] },
