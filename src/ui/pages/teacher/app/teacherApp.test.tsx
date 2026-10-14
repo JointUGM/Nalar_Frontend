@@ -201,11 +201,11 @@ describe('signed-in teacher pages', () => {
     expect(screen.queryByRole('menuitem', { name: 'Batalkan sesi' })).not.toBeInTheDocument()
   })
   it('shows the class map with the exact counts and the saved explanation', async () => {
-    open(`${base}/publications/${publication}/class-map`, backend())
+    open(`${base}/publications/${publication}/class-map?tab=misconceptions`, backend())
     const row = within((await screen.findByRole('rowheader', { name: /^“Gaya bisa habis”/ })).closest('tr')!)
     expect(row.getByText('18')).toBeInTheDocument()
     expect(row.getByText('11 dari 18')).toBeInTheDocument()
-    expect(screen.getByText('Sebanyak 18 siswa mengira gaya bisa habis.')).toBeInTheDocument()
+    expect(screen.getByText((_, node) => node?.tagName === 'P' && node.textContent === 'Sebanyak 18 siswa mengira gaya bisa habis.')).toBeInTheDocument()
     expect(screen.getByText('10 paham · 6 berkembang · 0 belum teramati')).toBeInTheDocument()
     expect(screen.getByText('Mulai dengan dua bola di karpet dan di lantai.')).toBeInTheDocument()
   })
@@ -229,7 +229,7 @@ describe('signed-in teacher pages', () => {
     const two = { ...classMap, prerequisites: [{ concept_id: other, prerequisite_id: concept }], concepts: [{ ...classMap.concepts[0], concept_id: other, name: 'Tekanan udara', misconceptions: [] }, classMap.concepts[0]] }
     open(`${base}/publications/${publication}/class-map`, backend({ [`GET /publications/${publication}/class-map`]: () => Response.json(two) }))
     const map = await screen.findByTestId('map-edges')
-    expect(map.querySelectorAll('path')).toHaveLength(1)
+    expect(map.querySelectorAll('line')).toHaveLength(1)
     const names = screen.getAllByText(/^(Gaya gesek|Tekanan udara)$/).map((node) => node.textContent)
     expect(names.indexOf('Gaya gesek')).toBeLessThan(names.indexOf('Tekanan udara'))
   })
@@ -712,7 +712,7 @@ describe('signed-in teacher pages', () => {
         : Response.json({ job_id: job, status: 'queued' }, { status: 202 }),
       [`GET /jobs/${job}`]: () => Response.json(jobOut({ kind: 'mission_generate', generation_result: { version_id: draft, version_number: 1, ungrounded_concept_ids: [] } })),
     })
-    open(`${base}/publications/${publication}/class-map`, request)
+    open(`${base}/publications/${publication}/class-map?tab=misconceptions`, request)
     const card = within(await screen.findByRole('region', { name: 'Jejak perbaikan sejak misi sebelumnya' }))
     fireEvent.click(card.getAllByRole('link', { name: 'Buat misi lanjutan' })[0])
     await waitFor(() => expect(screen.getByRole('combobox', { name: /Basis pengetahuan/ })).toHaveTextContent('Tekanan Zat'))
@@ -842,7 +842,7 @@ describe('teacher-guided mission revision', () => {
   })
 
   it('compares two missions in the trail card without counting unobserved students as improved', async () => {
-    open(`${base}/publications/${publication}/class-map`, backend({ [`GET /publications/${publication}/misconception-trail`]: () => Response.json(trailOut()) }))
+    open(`${base}/publications/${publication}/class-map?tab=misconceptions`, backend({ [`GET /publications/${publication}/misconception-trail`]: () => Response.json(trailOut()) }))
     const card = within(await screen.findByRole('region', { name: 'Jejak perbaikan sejak misi sebelumnya' }))
     expect(card.getByText(/Dari 14 siswa yang memegangnya di “Gaya gesek”, 9 tidak lagi menunjukkannya di “Gaya gesek lanjutan”/)).toBeInTheDocument()
     expect(card.getByText(/9 tidak lagi menunjukkannya \(5 paham, 3 berkembang, 1 miskonsepsi lain\) · 4 masih menunjukkannya · 1 belum teramati/)).toBeInTheDocument()
@@ -852,7 +852,7 @@ describe('teacher-guided mission revision', () => {
   })
 
   it('offers a follow-up mission when there is no earlier one', async () => {
-    open(`${base}/publications/${publication}/class-map`, backend())
+    open(`${base}/publications/${publication}/class-map?tab=misconceptions`, backend())
     const card = within(await screen.findByRole('region', { name: 'Jejak perbaikan sejak misi sebelumnya' }))
     expect(card.getByRole('link', { name: 'Buat misi lanjutan' })).toHaveAttribute('href', `${base}/missions/new`)
   })
@@ -860,8 +860,8 @@ describe('teacher-guided mission revision', () => {
   it('hides the trail card, not the map, when the trail is missing or does not add up', async () => {
     const broken = trailOut({ items: [{ ...trailOut().items[0], resolved_count: 12 }] })
     for (const reply of [() => new Response('{}', { status: 404 }), () => Response.json(broken)]) {
-      const view = open(`${base}/publications/${publication}/class-map`, backend({ [`GET /publications/${publication}/misconception-trail`]: reply }))
-      expect(await screen.findByText('Sebanyak 18 siswa mengira gaya bisa habis.')).toBeInTheDocument()
+      const view = open(`${base}/publications/${publication}/class-map?tab=misconceptions`, backend({ [`GET /publications/${publication}/misconception-trail`]: reply }))
+      expect(await screen.findByText((_, node) => node?.tagName === 'P' && node.textContent === 'Sebanyak 18 siswa mengira gaya bisa habis.')).toBeInTheDocument()
       await waitFor(() => expect(screen.queryByRole('region', { name: 'Jejak perbaikan sejak misi sebelumnya' })).not.toBeInTheDocument())
       view.unmount()
     }

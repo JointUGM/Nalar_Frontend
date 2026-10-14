@@ -7,6 +7,14 @@ import type { NextLessonGroup } from '@/domain/model/NextLesson'
 import { Button } from '@/ui/components/button/Button'
 
 const jobPollMs = 4_000
+const card = 'grid min-w-0 gap-5 rounded-2xl bg-surface p-5 max-sm:p-4'
+const title = 'm-0 text-[16px] font-bold text-ink'
+const body = 'm-0 max-w-[75ch] text-[14px] leading-[1.55] text-text-secondary'
+const panel = 'grid gap-3 rounded-xl bg-paper p-4'
+const box = 'grid gap-1.5 rounded-xl bg-paper p-4'
+const label = 'm-0 text-[12px] font-bold text-text-muted'
+const term = 'text-[12px] font-bold text-text-muted'
+const detail = 'm-0 text-[14px] leading-[1.55] text-ink'
 const phaseLabel = { elicit: 'Gali gagasan siswa', contrast: 'Hadapkan dengan contoh', explain: 'Luruskan bersama' } as const
 
 type PlanJob = { jobId: string; failed: boolean }
@@ -52,73 +60,89 @@ export function NextLessonPlan({ data, trail, publicationId, base, offline, serv
     catch { setStatus('Belum bisa menyalin. Pilih teks pada kartu untuk menyalin secara manual.') }
   }
 
-  if (!focus) return <section className="mb-5 rounded-card border border-role-border bg-surface p-4 sm:p-5" aria-labelledby="next-lesson-title">
-    <h2 id="next-lesson-title" className="font-semibold text-ink">Rencana pertemuan berikutnya</h2>
-    <p className="mt-2">Belum ada miskonsepsi yang perlu dikuatkan dari hasil yang sudah dinilai.{data.incomplete_count > 0 ? ` ${data.incomplete_count} siswa belum selesai atau belum dinilai.` : ''}</p>
+  if (!focus) return <section className={card} aria-labelledby="next-lesson-title">
+    <h2 id="next-lesson-title" className={title}>Rencana pertemuan berikutnya</h2>
+    <p className={body}>Belum ada miskonsepsi yang perlu dikuatkan dari hasil yang sudah dinilai.{data.incomplete_count > 0 ? ` ${data.incomplete_count} siswa belum selesai atau belum dinilai.` : ''}</p>
   </section>
 
   const { item } = focus
+  const plan = item.teaching_plan
   const whole = suggestedMode(item.count, data.denominator) === 'whole_class'
   const repeated = focus.students.filter(student => student.stillHolding).length
-  return <section className="mb-5 rounded-card border border-role-border bg-surface p-4 sm:p-5" aria-labelledby="next-lesson-title">
-    <h2 id="next-lesson-title" className="font-semibold text-ink">Rencana pertemuan berikutnya</h2>
-    {offline && <p className="mt-1 text-meta">Menampilkan hasil terakhir. Sambungkan kembali untuk hasil terbaru.</p>}
-    {groups.length > 1 && <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Pilih fokus penguatan">
+  const suggestions = data.insight?.suggestions ?? []
+  return <section className={card} aria-labelledby="next-lesson-title">
+    <div className="grid gap-1">
+      <h2 id="next-lesson-title" className={title}>Rencana pertemuan berikutnya</h2>
+      {offline && <p className="m-0 text-[13px] text-text-secondary">Menampilkan hasil terakhir. Sambungkan kembali untuk hasil terbaru.</p>}
+    </div>
+    {groups.length > 1 && <div className="flex flex-wrap gap-2" role="group" aria-label="Pilih fokus penguatan">
       {groups.map(group => <button key={group.item.misconception_id} type="button" aria-pressed={group === focus} onClick={() => { setFocusId(group.item.misconception_id); setStatus('') }}
-        className={`rounded-full border px-3 py-1 text-meta ${group === focus ? 'border-ink bg-ink text-surface' : 'border-role-border'}`}>
+        className="min-h-9 max-w-full cursor-pointer rounded-pill border-0 bg-paper px-3.5 text-left text-[13px] font-semibold text-ink transition-[background-color,color] duration-150 hover:not-aria-pressed:bg-info-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[.97] aria-pressed:bg-ink aria-pressed:text-white motion-reduce:transition-none">
         {group.item.statement.length > 48 ? `${group.item.statement.slice(0, 47)}…` : group.item.statement} · {group.item.count}
       </button>)}
     </div>}
 
-    <div className="mt-4">
-      <p className="text-meta text-text-secondary">Fokus · {focus.concept}</p>
-      <h3 className="mt-1 font-semibold">“{item.statement}”</h3>
-      <p className="mt-1 text-sm">{item.count} dari {data.denominator} siswa masih memegang gagasan ini{repeated > 0 ? `, ${repeated} di antaranya sejak misi sebelumnya` : ''}. {whole ? 'Saran: bahas bersama seluruh kelas.' : 'Saran: ajak kelompok kecil ini berdiskusi sementara siswa lain berlatih.'}</p>
-      <details className="mt-2">
-        <summary className="cursor-pointer text-sm font-semibold underline">Lihat {focus.students.length} nama</summary>
-        <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">{focus.students.map(student => <li key={student.student_id}>
-          <Link className="underline" to={`${base}/publications/${publicationId}/sessions/${student.session_id}`}>{student.name}</Link>{student.stillHolding && <span className="text-text-secondary" title="Masih memegang gagasan ini sejak misi sebelumnya"> ↻</span>}
-        </li>)}</ul>
-        {focus.students.length < item.count && <p className="mt-1 text-meta text-text-secondary">Siswa lain yang memegang gagasan ini sudah masuk fokus yang lebih besar.</p>}
-      </details>
-    </div>
+    {/* A lesson plan reads top to bottom on the left; what to aim for, how to check and what to do next stay beside it. */}
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,320px)]">
+      <div className="grid min-w-0 gap-6">
+        <div className="grid gap-1.5">
+          <p className="m-0 text-[13px] font-semibold text-text-muted">Fokus · {focus.concept}</p>
+          <h3 className="m-0 text-[20px] leading-7 font-extrabold tracking-[-.01em] text-ink [text-wrap:balance]">“{item.statement}”</h3>
+          <p className={body}>{item.count} dari {data.denominator} siswa masih memegang gagasan ini{repeated > 0 ? `, ${repeated} di antaranya sejak misi sebelumnya` : ''}. {whole ? 'Saran: bahas bersama seluruh kelas.' : 'Saran: ajak kelompok kecil ini berdiskusi sementara siswa lain berlatih.'}</p>
+          <details className="mt-1">
+            <summary className="w-fit cursor-pointer text-[13px] font-bold text-primary">Lihat {focus.students.length} nama</summary>
+            <ul className="mt-2 mb-0 flex list-none flex-wrap gap-1.5 p-0">{focus.students.map(student => <li key={student.student_id}>
+              <Link className="inline-flex h-7 items-center gap-1 rounded-pill bg-paper px-2.5 text-[13px] font-semibold text-ink no-underline hover:bg-info-bg" to={`${base}/publications/${publicationId}/sessions/${student.session_id}`}>{student.name}</Link>{student.stillHolding && <span className="text-text-secondary" title="Masih memegang gagasan ini sejak misi sebelumnya"> ↻</span>}
+            </li>)}</ul>
+            {focus.students.length < item.count && <p className="mt-2 mb-0 text-[13px] text-text-secondary">Siswa lain yang memegang gagasan ini sudah masuk fokus yang lebih besar.</p>}
+          </details>
+        </div>
 
-    {item.teaching_plan ? <PlanView plan={item.teaching_plan} /> : <div className="mt-4 rounded-card border border-role-border p-3">
-      <h4 className="font-semibold">Bahan dari materi yang sudah ditinjau</h4>
-      <dl className="mt-2 space-y-2 text-sm">
-        <div><dt className="font-medium">Yang perlu diluruskan</dt><dd>{item.correct_understanding || 'Belum ada pemahaman yang benar yang ditinjau.'}</dd></div>
-        <div><dt className="font-medium">Contoh pembanding</dt><dd>{item.counter_examples[0] ?? 'Belum ada contoh pembanding yang ditinjau. Tambahkan pada peninjauan bahan ajar.'}</dd></div>
-      </dl>
-      {job?.failed ? <p className="mt-3 text-sm" role="alert">Nala belum bisa menyusun kegiatan. Bahan di atas tetap bisa Anda pakai.</p>
-        : waiting ? <p className="mt-3 text-sm" role="status">Nala sedang menyusun kegiatan dari bahan ini…</p> : null}
-      {!offline && !waiting && <Button className="mt-3" tone="secondary" onClick={() => { void requestPlan(focus) }}>{job?.failed ? 'Coba susun lagi' : 'Susun kegiatan dengan Nala'}</Button>}
-    </div>}
+        {plan ? <Steps plan={plan} /> : <div className={panel}>
+          <h4 className="m-0 text-[14px] font-bold">Bahan dari materi yang sudah ditinjau</h4>
+          <dl className="m-0 grid gap-3">
+            <div><dt className={term}>Yang perlu diluruskan</dt><dd className={detail}>{item.correct_understanding || 'Belum ada pemahaman yang benar yang ditinjau.'}</dd></div>
+            <div><dt className={term}>Contoh pembanding</dt><dd className={detail}>{item.counter_examples[0] ?? 'Belum ada contoh pembanding yang ditinjau. Tambahkan pada peninjauan bahan ajar.'}</dd></div>
+          </dl>
+          {job?.failed ? <p className="m-0 text-[14px]" role="alert">Nala belum bisa menyusun kegiatan. Bahan di atas tetap bisa Anda pakai.</p>
+            : waiting ? <p className="m-0 text-[14px]" role="status">Nala sedang menyusun kegiatan dari bahan ini…</p> : null}
+          {!offline && !waiting && <Button className="w-fit" tone="secondary" onClick={() => { void requestPlan(focus) }}>{job?.failed ? 'Coba susun lagi' : 'Susun kegiatan dengan Nala'}</Button>}
+        </div>}
+      </div>
 
-    <div className="mt-4 flex flex-wrap items-center gap-3">
-      <Button tone="secondary" onClick={() => { void copy(focus) }}>Salin rencana</Button>
-      <button type="button" className="text-sm font-semibold underline" onClick={() => openStrategy(item.misconception_id)}>Buka kartu strategi</button>
-      {!offline && <Link className="text-sm font-semibold underline" to={`${base}/missions/new`} state={{ followUpOf: publicationId }}>Buat misi lanjutan untuk mengecek lagi</Link>}
+      <aside className="grid min-w-0 gap-3 lg:sticky lg:top-4" aria-label="Ringkasan rencana">
+        {plan && <>
+          <div className={box}><h4 className={label}>Tujuan</h4><p className={detail}>{plan.objective}</p></div>
+          <div className={box}>
+            <h4 className={label}>Cek pemahaman</h4>
+            <p className={`${detail} font-semibold`}>“{plan.check_question}”</p>
+            <p className="m-0 text-[13px] leading-[1.55] text-text-secondary">Dengarkan: {plan.look_for}</p>
+          </div>
+        </>}
+        <div className="grid gap-2">
+          <Button className="w-full" onClick={() => { void copy(focus) }}>Salin rencana</Button>
+          <Button className="w-full" tone="secondary" onClick={() => openStrategy(item.misconception_id)}>Buka kartu strategi</Button>
+          {!offline && <Link className="inline-flex min-h-10 items-center justify-center px-2 text-center text-[14px] font-bold text-primary no-underline hover:underline" to={`${base}/missions/new`} state={{ followUpOf: publicationId }}>Buat misi lanjutan untuk mengecek lagi</Link>}
+          <p role="status" className="m-0 min-h-5 text-center text-[13px] text-text-secondary">{status}</p>
+        </div>
+        {suggestions.length > 0 && <div className={box}>
+          <h4 className={label}>Saran pelajaran berikutnya</h4>
+          <ul className="m-0 grid list-none gap-2 p-0">{suggestions.map((suggestion, index) => <li key={index} className="text-[14px] leading-[1.55] text-text-secondary">{suggestion}</li>)}</ul>
+        </div>}
+        {plan && <p className="m-0 text-[12px] leading-[1.5] text-text-muted">Draf Nala dari materi yang sudah Anda tinjau. Periksa dan sesuaikan sebelum dipakai.</p>}
+      </aside>
     </div>
-    <p role="status" className="mt-2 text-meta">{status}</p>
   </section>
 }
 
-function PlanView({ plan }: { plan: TeachingPlan }) {
-  return <div className="mt-4 rounded-card border border-role-border p-3">
-    <p className="text-sm"><span className="font-semibold">Tujuan:</span> {plan.objective}</p>
-    <ol className="mt-3 space-y-3">{plan.steps.map((step, index) => <li key={step.phase} className="text-sm">
-      <p className="font-semibold">{index + 1}. {phaseLabel[step.phase]}</p>
-      <p className="mt-1">{step.teacher_action}</p>
-      {step.phase === 'contrast' && plan.counter_example && <p className="mt-1 text-text-secondary">Contoh yang sudah ditinjau: {plan.counter_example}</p>}
-      <p className="mt-1">Tanyakan: “{step.ask}”</p>
-    </li>)}</ol>
-    <div className="mt-3 text-sm">
-      <p className="font-semibold">Cek pemahaman</p>
-      <p className="mt-1">“{plan.check_question}”</p>
-      <p className="mt-1 text-text-secondary">Dengarkan: {plan.look_for}</p>
-    </div>
-    <p className="mt-3 text-meta text-text-secondary">Draf Nala dari materi yang sudah Anda tinjau. Periksa dan sesuaikan sebelum dipakai.</p>
-  </div>
+// The three moves run down a thin rail; the question stands out because it is what the teacher says aloud.
+function Steps({ plan }: { plan: TeachingPlan }) {
+  return <ol className="m-0 grid list-none gap-5 p-0">{plan.steps.map((step, index) => <li key={step.phase} className="relative grid gap-1.5 pl-7 text-[14px] leading-[1.55] before:absolute before:top-1.5 before:left-0.5 before:size-3 before:rounded-pill before:border-2 before:border-primary before:bg-surface before:content-[''] after:absolute after:top-6 after:-bottom-4 after:left-[7px] after:w-px after:bg-role-border after:content-[''] last:after:hidden">
+    <p className="m-0 font-bold text-ink">{index + 1}. {phaseLabel[step.phase]}</p>
+    <p className="m-0 text-text-secondary">{step.teacher_action}</p>
+    {step.phase === 'contrast' && plan.counter_example && <p className="m-0 text-text-secondary">Contoh yang sudah ditinjau: {plan.counter_example}</p>}
+    <p className="m-0 rounded-xl bg-info-bg px-3.5 py-2.5 text-ink">Tanyakan: “{step.ask}”</p>
+  </li>)}</ol>
 }
 
 function planText(group: NextLessonGroup): string {
