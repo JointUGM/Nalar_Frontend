@@ -5,7 +5,6 @@ const groups: readonly { title: string; note?: string; columns: readonly (readon
   { title: 'Semua baris', columns: [['role', 'student atau teacher'], ['full_name', 'Nama lengkap']] },
   { title: 'Siswa', columns: [['nisn', 'Wajib, 10 angka'], ['grade_level', 'Wajib, tingkat 1 sampai 12'], ['class_name', 'Nama kelas, misalnya 8B']] },
   { title: 'Guru', columns: [['email', 'Wajib']] },
-  { title: 'Orang tua siswa', note: 'Dibuat dari kolom email orang tua pada baris siswa.', columns: [['parent_email', 'Email orang tua'], ['parent_name', 'Nama orang tua'], ['relationship', 'ayah, ibu, atau wali']] },
 ]
 const after = ['Nalar memeriksa setiap baris.', 'Baris yang benar langsung tersimpan.', 'Undangan masuk dikirim terpisah dari halaman Undangan akun.']
 

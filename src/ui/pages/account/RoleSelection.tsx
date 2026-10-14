@@ -33,7 +33,7 @@ export function RoleSelection({ dependencies }: { dependencies: AccountDependenc
   const choices = getRoleChoices(access.identity)
   // The role comes from the verified /me result, never from the user. A page they asked for before signing
   // in, or the only role they have, needs no choice; only several roles (e.g. a teacher who is also a
-  // parent) still ask where to go.
+  // school administrator) still ask where to go.
   const target = resolveRoleDestination(access.identity, requested) ?? (choices.length === 1 ? choices[0].path : null)
   if (target) return <Navigate to={target} replace />
   return <section className={styles.selection} aria-label="Pilih peran">

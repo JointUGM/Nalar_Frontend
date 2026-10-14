@@ -13,7 +13,7 @@ export function Checkpoints() {
     <div className={shared.wrap}>
       <div className={shared.head} data-reveal>
         <h2 id="cara-title" className={shared.h2}>AI menyiapkan. Guru memegang setiap gerbang.</h2>
-        <p className={shared.lead}>Tidak ada keluaran AI yang sampai ke siswa atau orang tua tanpa persetujuan guru lebih dulu.</p>
+        <p className={shared.lead}>Tidak ada keluaran AI yang sampai ke siswa tanpa persetujuan guru lebih dulu.</p>
       </div>
 
       <div className={styles.lanes} aria-hidden="true">

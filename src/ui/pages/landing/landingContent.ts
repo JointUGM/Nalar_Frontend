@@ -200,28 +200,22 @@ export const STAGES: readonly Stage[] = [
     body: 'Skor dengan kutipan bukti untuk tiap siswa, jumlah persis per miskonsepsi untuk seluruh kelas.',
     gate: { title: 'Guru bisa mengubah skor', body: 'Alasan wajib diisi. Skor asli dari AI tetap tersimpan.' },
   },
-  {
-    title: 'Ringkasan orang tua',
-    body: 'Ringkasan perkembangan tanpa angka, ditulis sekali dan bisa dipratinjau guru.',
-    gate: { title: 'Guru merilis', body: 'Sebelum dirilis, orang tua tidak melihat apa pun dari misi itu.' },
-  },
 ]
 
-export type Access = 'ya' | 'tidak' | 'setelah-rilis'
+export type Access = 'ya' | 'tidak'
 
-export const VISIBILITY: readonly { item: string; siswa: Access; guru: Access; orangTua: Access }[] = [
-  { item: 'Pertanyaan dari Nala', siswa: 'ya', guru: 'ya', orangTua: 'tidak' },
-  { item: 'Skor penalaran', siswa: 'tidak', guru: 'ya', orangTua: 'tidak' },
-  { item: 'Kutipan bukti dan alasan tiap pertanyaan', siswa: 'tidak', guru: 'ya', orangTua: 'tidak' },
-  { item: 'Catatan perlu verifikasi', siswa: 'tidak', guru: 'ya', orangTua: 'tidak' },
-  { item: 'Peta kelas', siswa: 'tidak', guru: 'ya', orangTua: 'tidak' },
-  { item: 'Ringkasan perkembangan', siswa: 'tidak', guru: 'ya', orangTua: 'setelah-rilis' },
+export const VISIBILITY: readonly { item: string; siswa: Access; guru: Access }[] = [
+  { item: 'Pertanyaan dari Nala', siswa: 'ya', guru: 'ya' },
+  { item: 'Skor penalaran', siswa: 'tidak', guru: 'ya' },
+  { item: 'Kutipan bukti dan alasan tiap pertanyaan', siswa: 'tidak', guru: 'ya' },
+  { item: 'Catatan perlu verifikasi', siswa: 'tidak', guru: 'ya' },
+  { item: 'Peta kelas', siswa: 'tidak', guru: 'ya' },
 ]
 
 export const FAQ: readonly { question: string; answer: string }[] = [
   {
     question: 'Apakah NALAR menggantikan guru?',
-    answer: 'Tidak. Guru menyetujui basis pengetahuan dan misi, bisa mengubah setiap skor dengan alasan, dan memutuskan kapan hasil dirilis ke orang tua.',
+    answer: 'Tidak. Guru menyetujui basis pengetahuan dan misi, bisa mengubah setiap skor dengan alasan, dan menentukan tindak lanjut pembelajaran.',
   },
   {
     question: 'Apakah siswa melihat nilainya?',
@@ -241,6 +235,6 @@ export const FAQ: readonly { question: string; answer: string }[] = [
   },
   {
     question: 'Bagaimana cara mendapatkan akun?',
-    answer: 'Akun dibuat oleh admin sekolah, bukan oleh pengguna sendiri. Guru, siswa, dan orang tua masuk dengan akun yang diberikan sekolah.',
+    answer: 'Akun dibuat oleh admin sekolah, bukan oleh pengguna sendiri. Guru dan siswa masuk dengan akun yang diberikan sekolah.',
   },
 ]

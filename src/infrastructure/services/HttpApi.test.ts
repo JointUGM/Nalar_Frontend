@@ -5,15 +5,15 @@ describe('shared HTTP client', () => {
   it('sends the session cookie on every request and the CSRF header only on unsafe ones', async () => {
     const request = vi.fn<typeof fetch>().mockImplementation(async () => Response.json({ ok: true }))
     const api = new HttpApi({ apiBaseUrl: '/api/v1', fetch: request })
-    await api.request('/parent/children')
-    await api.request('/parent/preferences', { method: 'PUT', body: { weekly_digest_enabled: false } })
+    await api.request('/teacher/assignments')
+    await api.request('/schools/example/people', { method: 'PUT', body: { full_name: 'Ayu' } })
     const [[readUrl, read], [, write]] = request.mock.calls
-    expect(readUrl).toBe('/api/v1/parent/children')
+    expect(readUrl).toBe('/api/v1/teacher/assignments')
     expect(read?.credentials).toBe('include')
     expect(new Headers(read?.headers).has('X-Nalar-CSRF')).toBe(false)
     expect(new Headers(write?.headers).get('X-Nalar-CSRF')).toBe('1')
     expect(new Headers(write?.headers).has('Authorization')).toBe(false)
-    expect(JSON.parse(String(write?.body))).toEqual({ weekly_digest_enabled: false })
+    expect(JSON.parse(String(write?.body))).toEqual({ full_name: 'Ayu' })
   })
 
   it('sends an upload as multipart, leaving the Content-Type and its boundary to the browser', async () => {

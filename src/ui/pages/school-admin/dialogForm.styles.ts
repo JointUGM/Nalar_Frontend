@@ -1,4 +1,4 @@
-// Tailwind classes for DeleteSubjectDialog.tsx, NewPersonDialog.tsx, NewSubjectDialog.tsx, PersonLinks.tsx, PlaceStudentsDialog.tsx, SchoolAssignmentsPage.tsx, SchoolClassesPage.tsx, SchoolPeoplePage.tsx, SchoolSubjectsPage.tsx, SchoolYearPage.tsx, StudentPicker.tsx.
+// Tailwind classes for DeleteSubjectDialog.tsx, NewPersonDialog.tsx, NewSubjectDialog.tsx, PlaceStudentsDialog.tsx, SchoolAssignmentsPage.tsx, SchoolClassesPage.tsx, SchoolPeoplePage.tsx, SchoolSubjectsPage.tsx, SchoolYearPage.tsx.
 // `dialogform-*` names carry no styles: they are hooks for the nested selectors in other entries.
 const styles = {
   form: 'gap-4 grid',

@@ -6,6 +6,7 @@ import { ApiError } from '@/domain/model/ApiError'
 import type { KbDetail, KbItemKind, KbItemPatch, KbReviewQueue, KbSection } from '@/domain/model/KnowledgeBase'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
 import { Button } from '@/ui/components/button/Button'
+import { Dialog } from '@/ui/components/dialog/Dialog'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Field } from '@/ui/components/field/Field'
 import { Icon } from '@/ui/components/icon/Icon'
@@ -51,7 +52,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const busy = useRef(false)
   const [jobId, setJobId] = useState(params.get('job'))
   const [selectedId, setSelectedId] = useState('')
-  // The map comes first; clicking a concept opens its topic and misconceptions over it.
+  // The map comes first; clicking a concept opens its topic and misconceptions in a large dialog.
   const [panelOpen, setPanelOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(params.get('tab') === 'materials' ? 'materials' : 'review')
   const [page, setPage] = useState(0)
@@ -95,12 +96,8 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const pageCount = Math.max(1, Math.ceil(related.length / misPerPage)), misPage = Math.min(page, pageCount - 1)
   const shown = related.slice(misPage * misPerPage, (misPage + 1) * misPerPage)
   function chooseConcept(id: string) { setPage(0); setSelectedId(id); setDraft(null); setAdding(null); setPanelOpen(true) }
-  // Focus goes back to the concept the panel described, so the keyboard keeps its place on the map.
-  function closePanel() {
-    if (!selected) return
-    setPanelOpen(false); setDraft(null); setAdding(null)
-    requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-concept-id="${selected.id}"]`)?.focus())
-  }
+  // The dialog hands focus back to the concept that opened it.
+  function closePanel() { setPanelOpen(false); setDraft(null); setAdding(null) }
 
   // One command at a time. The page is reread after a refusal too, because a refusal usually means it was stale.
   async function run<T>(action: (signal?: AbortSignal) => Promise<T>, done?: (result: T) => void) {
@@ -160,6 +157,11 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
     <Button tone="secondary" disabled={pending} onClick={() => setDraft(null)}>Batal</Button>
   </div>
   const said = failure && kbRefusal(failure)
+  // While the dialog is open the page behind it is inert, so a refusal shows inside the dialog instead.
+  const refusal = <>
+    {said && <Feedback tone="warning" title={said} announce />}
+    {failure && !said && <Feedback tone="warning" title={failure.message} announce>{failure.requestId && <small>Referensi: {failure.requestId}</small>}</Feedback>}
+  </>
   // Nothing to review yet: one panel stands in for both the concept and the misconception areas.
   const generatingPanel = loading && !selected && <section id="kb-review" className={styles.card} aria-labelledby="kb-generating">
     <h2 id="kb-generating">Konsep dan miskonsepsi</h2>
@@ -213,8 +215,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
     {detail.archived_at ? <Feedback title="Topik diarsipkan">Diarsipkan {formatDayTime(detail.archived_at)}. Materi, bab, dan konsep tetap dapat dibaca. Arsip tidak dapat diubah atau dipakai untuk misi baru. Pulihkan topik ini agar bisa dipakai lagi. Misi yang ikut diarsipkan dipulihkan terpisah dari halaman Misi.</Feedback> : !canEdit && <p className={styles.note}>Basis pengetahuan ini milik rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {jobId && <JobNotice key={jobId} kb={kb} jobId={jobId} onDone={refresh} />}
-    {said && <Feedback tone="warning" title={said} announce />}
-    {failure && !said && <Feedback tone="warning" title={failure.message} announce>{failure.requestId && <small>Referensi: {failure.requestId}</small>}</Feedback>}
+    {!panelOpen && refusal}
     {sections.filter(retryable).map((section) => <Feedback key={section.id} tone={section.build_status === 'failed' ? 'danger' : 'warning'} title={section.build_status === 'failed' ? `Bab “${section.title}” gagal disusun` : `Bab “${section.title}” belum selesai disusun`} announce>
       {section.build_status === 'failed' ? 'Konsep dan miskonsepsi dari bab ini belum ada. Coba susun lagi.' : 'Sudah lebih dari satu jam, mungkin prosesnya terhenti. Coba susun lagi.'}
       {canEdit && <div className={styles.actions}><Button tone="secondary" disabled={pending} aria-label={`Susun ulang ${section.title}`} onClick={() => build(section.id)}>Susun ulang</Button></div>}
@@ -231,44 +232,41 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
                 {canEdit && adding !== 'concept' && <Button tone="secondary" className={styles.add} disabled={pending} onClick={() => { setDraft(null); setAdding('concept') }}><Icon name="plus" size={14} />Tambah konsep</Button>}</div>
               {canEdit && adding === 'concept' && <KbNewItem kind="concept" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addConcept(detail.id, value, key, signal), (created) => { setAdding(null); setSelectedId(created.id) }) }} />}
               {!selected ? <p className={styles.note}>Belum ada konsep. Susun satu bab untuk membuat drafnya.</p> : <>
-                {/* Esc or a click on empty map closes the panel, but not from a dialog it opened (those portal out of the stage) or over an unsaved edit. */}
-                <div className={styles.stage} onKeyDown={(event) => { if (event.key === 'Escape' && panelOpen && !draft && !adding && event.currentTarget.contains(event.target as Node)) closePanel() }}>
-                  <div className={styles.map} onClick={(event) => { if (panelOpen && !draft && !adding && !(event.target as Element).closest('button')) closePanel() }}>{activeTab === 'review' && <KbConceptMap concepts={detail.concepts} prerequisites={detail.prerequisites} selectedId={panelOpen ? selected.id : ''} count={(id) => detail.misconceptions.filter((item) => item.concept_id === id).length} onSelect={chooseConcept} />}</div>
-                  {panelOpen && <aside className={styles.inspector} aria-label="Rincian konsep">
-                    <div className={styles.inspectorBar}>
-                      {nextPending && <Button tone="ghost" disabled={pending} onClick={() => chooseConcept(nextPending.id)}>Tinjau berikutnya<Icon name="chevronRight" size={14} /></Button>}
-                      <Button tone="ghost" aria-label="Tutup rincian konsep" onClick={closePanel}><Icon name="x" size={16} /></Button>
-                    </div>
-            <section className={styles.card} aria-label={`Konsep: ${selected.name}`}>
-              <div className={styles.misHead}><span className={styles.contentType}><NalaIcon name="idea" />Konsep</span>{tag(selected.review_status)}</div>
+                <div className={styles.map}>{activeTab === 'review' && <KbConceptMap concepts={detail.concepts} prerequisites={detail.prerequisites} selectedId={panelOpen ? selected.id : ''} count={(id) => detail.misconceptions.filter((item) => item.concept_id === id).length} onSelect={chooseConcept} />}</div>
+                {/* An open edit or new-item form keeps the dialog from closing by Esc or a backdrop click, so a draft is not lost. */}
+                <Dialog open={panelOpen} onClose={closePanel} dismissible={!draft && !adding} title={selected.name} description={`Konsep ini dan ${related.length} miskonsepsi terkaitnya.`} className={styles.detailDialog}>
+                  {refusal}
+                  <div className={styles.detailBody}>
+            {/* Both columns open with a head of the same height, so the concept card and the first misconception line up. */}
+            <div className={styles.detailColumn}>
+            <div className={styles.columnHead}><h3>Konsep</h3>{tag(selected.review_status)}</div>
+            <section className={styles.conceptCard} aria-label={`Konsep: ${selected.name}`}>
               {editableDraft?.kind === 'concept' && editableDraft.id === selected.id ? <>
                 <Field label="Nama konsep" required maxLength={300} value={editableDraft.name} onChange={(event) => setDraft({ ...editableDraft, name: event.target.value })} />
                 <label className={styles.area}>Deskripsi<textarea rows={3} maxLength={2000} value={editableDraft.description} onChange={(event) => setDraft({ ...editableDraft, description: event.target.value })} /></label>
               </> : <>
-                <h2 className={styles.conceptTitle}>{selected.name}</h2>
                 {selected.description && <p className={styles.description}>{selected.description}</p>}
                 {pages(selected.sources)}
               </>}
-              {canEdit && <div className={styles.inspectorActions}>
-                {draft?.kind === 'concept' && draft.id === selected.id ? saveBar : selected.review_status === 'pending'
-                  ? <div className={styles.actions}>
+              {canEdit && (selected.review_status === 'pending' || (draft?.kind === 'concept' && draft.id === selected.id)) && <div className={styles.inspectorActions}>
+                {draft?.kind === 'concept' && draft.id === selected.id ? saveBar : <div className={styles.actions}>
                     <Button disabled={pending} onClick={() => { void run((signal) => kb.review('concept', selected.id, 'approved', signal)) }}><Icon name="check" size={14} />Setujui konsep</Button>
                     <Button tone="secondary" disabled={pending} onClick={() => { void run((signal) => kb.review('concept', selected.id, 'rejected', signal)) }}>Tolak</Button>
                     <Button tone="ghost" disabled={pending} onClick={() => { setAdding(null); setDraft({ id: selected.id, kind: 'concept', name: selected.name, description: selected.description ?? '' }) }}><Icon name="pencil" size={14} />Edit</Button>
-                  </div>
-                  : <span role="status" className={[styles.tag, selected.review_status === 'approved' ? styles.approved : ''].join(' ')}>{selected.review_status === 'approved' ? 'Konsep disetujui' : selected.review_status === 'rejected' ? 'Konsep ditolak' : reviewWord[selected.review_status] ?? selected.review_status}</span>}
+                  </div>}
               </div>}
               {!(editableDraft?.kind === 'concept' && editableDraft.id === selected.id) && <>
                 <dl className={styles.relations}>
                   <div><dt>Dipelajari lebih dulu</dt><dd>{detail.prerequisites.filter((link) => link.concept_id === selected.id).map((link) => nameOf(link.prerequisite_concept_id)).join(', ') || 'Tidak ada prasyarat tercatat'}</dd></div>
                   <div><dt>Dilanjutkan ke</dt><dd>{detail.prerequisites.filter((link) => link.prerequisite_concept_id === selected.id).map((link) => nameOf(link.concept_id)).join(', ') || 'Tidak ada lanjutan tercatat'}</dd></div>
                 </dl>
-                {canEdit && <div className={styles.compact}><ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan konsep</>} title="Arsipkan konsep ini?" description={`${selected.name}. Konsep dan miskonsepsinya tidak dipakai lagi untuk misi baru. Misi yang sudah memakainya tidak berubah.`} confirm="Arsipkan konsep" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archiveConcept(detail.id, selected.id, signal)} onDone={() => { setSelectedId(''); refresh() }} refusal={kbRefusal} /></div>}
+                {canEdit && <div className={styles.archiveConcept}><ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan konsep</>} title="Arsipkan konsep ini?" description={`${selected.name}. Konsep dan miskonsepsinya tidak dipakai lagi untuk misi baru. Misi yang sudah memakainya tidak berubah.`} confirm="Arsipkan konsep" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archiveConcept(detail.id, selected.id, signal)} onDone={() => { setPanelOpen(false); setSelectedId(''); refresh() }} refusal={kbRefusal} /></div>}
               </>}
             </section>
+            </div>
             <div className={styles.misconceptions}>
-              <div className={styles.sectionHead}><h2>Miskonsepsi terkait</h2><span>{loading ? 'Sedang disusun' : `${related.length} miskonsepsi`}</span></div>
-              {canEdit && adding !== 'misconception' && <Button tone="secondary" className={styles.add} disabled={pending} onClick={() => { setDraft(null); setAdding('misconception') }}><Icon name="plus" size={14} />Tambah miskonsepsi</Button>}
+              <div className={styles.columnHead}><h3>Miskonsepsi terkait</h3><span>{loading ? 'Sedang disusun' : `${related.length} miskonsepsi`}</span>
+                {canEdit && adding !== 'misconception' && <Button tone="secondary" className={styles.columnAction} disabled={pending} onClick={() => { setDraft(null); setAdding('misconception') }}><Icon name="plus" size={14} />Tambah miskonsepsi</Button>}</div>
               {canEdit && adding === 'misconception' && <KbNewItem kind="misconception" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addMisconception(detail.id, selected.id, value, key, signal), () => setAdding(null)) }} />}
               {shown.map((item) => <section key={item.id} className={styles.misconception} aria-label={`Miskonsepsi: ${item.statement}`}>
                 <div className={styles.misHead}><span className={styles.misTag}><NalaIcon name="alert" />Miskonsepsi</span>{tag(item.review_status)}</div>
@@ -294,8 +292,9 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
               </nav>}
               {related.length === 0 && !loading && <p className={styles.note}>Tidak ada miskonsepsi untuk konsep ini.</p>}
             </div>
-                  </aside>}
-                </div>
+                  </div>
+                  {nextPending && <div className={styles.detailFooter}><Button tone="secondary" disabled={pending} onClick={() => chooseConcept(nextPending.id)}>Tinjau konsep berikutnya<Icon name="chevronRight" size={14} /></Button></div>}
+                </Dialog>
                 <p className={styles.legend}><span data-status="approved">Disetujui</span><span>Menunggu</span><span data-status="rejected">Ditolak</span><span data-status="count">Jumlah miskonsepsi</span></p>
               </>}
         </section>}

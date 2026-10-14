@@ -25,11 +25,11 @@ function refusal(code: string): string | null {
 // One main action per row (the page a teacher needs next) and a menu for the rest. Before any student has started, the menu
 // also lets a teacher move a window or take the publication back.
 export function SessionActions({ publication, base, service, onChanged }: { publication: TeacherPublication; base: string; service: TeacherService; onChanged: () => void }) {
-  const { id, run, counts, released_to_parents_at, mission_title, class_name } = publication
+  const { id, run, counts, mission_title, class_name } = publication
   const path = `${base}/publications/${id}`
   const live = run.mode === 'live'
   const monitorFirst = live && isActive(publication)
-  const editable = counts.started === 0 && !released_to_parents_at
+  const editable = counts.started === 0
   const movable = editable && run.mode === 'window' && run.status === 'scheduled'
   const [dialog, setDialog] = useState<'window' | 'cancel' | null>(null)
   const [opens, setOpens] = useState('')
@@ -55,7 +55,6 @@ export function SessionActions({ publication, base, service, onChanged }: { publ
       {monitorFirst && <MenuLink render={<Link to={`${path}/class-map`} state={state} />}><Icon name="graph" size={16} />Peta kelas</MenuLink>}
       {live && !monitorFirst && <MenuLink render={<Link to={`${path}/monitor`} state={state} />}><Icon name="monitor" size={16} />Pantau</MenuLink>}
       {live && <MenuLink render={<Link to={`${path}/projector`} state={state} />}><Icon name="play" size={16} />Proyektor</MenuLink>}
-      <MenuLink data-tone={released_to_parents_at ? 'success' : undefined} render={<Link to={`${path}/release`} state={state} />}><Icon name={released_to_parents_at ? 'check' : 'send'} size={16} />{released_to_parents_at ? 'Sudah dirilis' : 'Rilis ke orang tua'}</MenuLink>
       {editable && <MenuSeparator />}
       {movable && <MenuItem onClick={() => { setOpens(local(run.opens_at)); setCloses(local(run.closes_at)); setDialog('window') }}><Icon name="clock" size={16} />Ubah jadwal</MenuItem>}
       {editable && <MenuItem data-tone="danger" onClick={() => setDialog('cancel')}><Icon name="x" size={16} />Batalkan sesi</MenuItem>}

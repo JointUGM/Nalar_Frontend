@@ -19,3 +19,9 @@ export function nextLessonGroups(map: ClassMap, trail: MisconceptionTrail | null
       return [{ ...student, stillHolding: repeated.get(item.misconception_id)?.has(student.student_id) ?? false }]
     }) })).filter(group => group.students.length > 0)
 }
+
+// ponytail: one pilot threshold, not a research cut-off; the teacher still chooses. Tune after the pilot.
+export const WHOLE_CLASS_SHARE = 0.5
+export function suggestedMode(holders: number, denominator: number): 'whole_class' | 'small_group' {
+  return denominator > 0 && holders / denominator >= WHOLE_CLASS_SHARE ? 'whole_class' : 'small_group'
+}

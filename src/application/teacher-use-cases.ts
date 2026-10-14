@@ -80,12 +80,8 @@ export class TeacherUseCases implements TeacherService {
   reviewFlag(flagId: string, decision: FlagDecision, value: string | null, signal?: AbortSignal) { return this.service.reviewFlag(resourceId(flagId), decision, note(value), signal) }
   safetyAction(sessionId: string, action: SafetyAction, value: string | null, signal?: AbortSignal) { return this.service.safetyAction(resourceId(sessionId), action, note(value), signal) }
   classMap(publicationId: string, signal?: AbortSignal) { return this.service.classMap(resourceId(publicationId), signal) }
+  requestTeachingPlan(publicationId: string, misconceptionId: string, signal?: AbortSignal) { return this.service.requestTeachingPlan(resourceId(publicationId), resourceId(misconceptionId), signal) }
+  jobStatus(jobId: string, signal?: AbortSignal) { return this.service.jobStatus(resourceId(jobId), signal) }
   misconceptionTrail(publicationId: string, signal?: AbortSignal) { return this.service.misconceptionTrail(resourceId(publicationId), signal) }
   exportMgmpPackage(publicationId: string, signal?: AbortSignal) { return this.service.exportMgmpPackage(resourceId(publicationId), signal) }
-  releasePreview(publicationId: string, signal?: AbortSignal) { return this.service.releasePreview(resourceId(publicationId), signal) }
-  release(publicationId: string, expectedEligibleCount: number, signal?: AbortSignal) {
-    // Releasing nothing is never valid; the backend rechecks the count inside its transaction.
-    if (!Number.isInteger(expectedEligibleCount) || expectedEligibleCount < 1) throw new ApiError(422, 'INVALID_INPUT')
-    return this.service.release(resourceId(publicationId), expectedEligibleCount, signal)
-  }
 }

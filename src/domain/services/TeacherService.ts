@@ -1,5 +1,5 @@
 import type { MissionRevisionInput, MissionRevisionRequest, RevisionQueued } from '@/domain/model/Teacher'
-import type { MisconceptionTrail, StudentHistoryPage, AttemptGrantInput, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import type { MisconceptionTrail, StudentHistoryPage, AttemptGrantInput, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 
 export interface TeacherService {
   revisionRequest(missionId: string, jobId: string, signal?: AbortSignal): Promise<MissionRevisionRequest>
@@ -17,10 +17,13 @@ export interface TeacherService {
   saveMissionVersion(missionId: string, draft: MissionVersionDraft, signal?: AbortSignal): Promise<{ version_number: number }>
   reviewMissionVersion(missionId: string, number: number, signal?: AbortSignal): Promise<void>
   publish(input: PublishInput, signal?: AbortSignal): Promise<Published>
-  // Both only while no student has started and nothing is released; the backend refuses otherwise.
+  // Both only while no student has started; the backend refuses otherwise.
   editWindow(publicationId: string, window: PublicationWindow, signal?: AbortSignal): Promise<void>
   cancelPublication(publicationId: string, signal?: AbortSignal): Promise<void>
   classMap(publicationId: string, signal?: AbortSignal): Promise<ClassMap>
+  // TC-23: queue Nala's next-lesson activity for one misconception; job_id is null when it already exists.
+  requestTeachingPlan(publicationId: string, misconceptionId: string, signal?: AbortSignal): Promise<{ job_id: string | null }>
+  jobStatus(jobId: string, signal?: AbortSignal): Promise<{ status: string; error_code: string | null }>
   // Compares this publication with the latest earlier one of the same class and subject; `from` is null when there is none.
   misconceptionTrail(publicationId: string, signal?: AbortSignal): Promise<MisconceptionTrail>
   report(sessionId: string, signal?: AbortSignal): Promise<SessionReport>
@@ -38,6 +41,4 @@ export interface TeacherService {
   overrideScore(scoreId: string, level: number, reason: string, signal?: AbortSignal): Promise<void>
   reviewFlag(flagId: string, decision: FlagDecision, note: string | null, signal?: AbortSignal): Promise<void>
   safetyAction(sessionId: string, action: SafetyAction, note: string | null, signal?: AbortSignal): Promise<void>
-  releasePreview(publicationId: string, signal?: AbortSignal): Promise<ReleasePreview>
-  release(publicationId: string, expectedEligibleCount: number, signal?: AbortSignal): Promise<Released>
 }

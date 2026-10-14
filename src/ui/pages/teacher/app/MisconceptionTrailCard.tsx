@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import type { MisconceptionTrail } from '@/domain/model/Teacher'
+import { Icon } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
 import styles from '@/ui/pages/teacher/MisconceptionTrail.styles'
 
@@ -15,13 +16,20 @@ export function MisconceptionTrailCard({ data, error, base }: { data: Misconcept
       <p className={styles.lead}>Dibandingkan dengan “{from.mission_title}” (versi {from.mission_version}, {from.denominator} siswa dihitung). Ini membandingkan dua misi, berbeda dari kolom “Berubah pikiran” yang hanya melihat satu sesi.</p>
       {data.items.length === 0 && data.not_retested.length === 0 && <p className={styles.lead}>Tidak ada siswa yang memegang miskonsepsi pada misi sebelumnya.</p>}
       <ul className={styles.items}>{data.items.map((item) => <li key={item.misconception_id} className={styles.item}>
-        <strong>“{item.statement}” · {item.concept_name}</strong>
+        <div className={styles.itemHead}>
+          <strong>“{item.statement}” · {item.concept_name}</strong>
+          {/* Before and after at a glance: how many held it then, how many still show it now. */}
+          <p className={styles.shift}><span className="sr-only">{item.held_count} siswa sebelumnya, {item.still_held_count} masih menunjukkannya</span><b aria-hidden="true">{item.held_count}</b><span aria-hidden="true"><Icon name="chevronRight" size={16} /></span><b aria-hidden="true">{item.still_held_count}</b><small aria-hidden="true">masih</small></p>
+        </div>
         <p className={styles.sentence}>Dari {item.held_count} siswa yang memegangnya di “{from.mission_title}”, {item.resolved_count} tidak lagi menunjukkannya di “{to.mission_title}”.</p>
         <span className={styles.bar} aria-hidden="true"><span style={{ flexGrow: item.resolved_count }} /><span style={{ flexGrow: item.still_held_count }} /><span style={{ flexGrow: item.not_observed_count }} /></span>
         <p className={styles.detail}>
           {item.resolved_count} tidak lagi menunjukkannya{item.resolved_count > 0 && ` (${item.resolved_breakdown.mastered} paham, ${item.resolved_breakdown.developing} berkembang, ${item.resolved_breakdown.other_misconception} miskonsepsi lain)`} · {item.still_held_count} masih menunjukkannya · {item.not_observed_count} belum teramati
         </p>
-        {item.students_still_holding.length > 0 && <ul className={styles.chips} aria-label="Siswa yang masih menunjukkannya">{item.students_still_holding.map((holder) => <li key={holder.session_id}><Link to={`${base}/publications/${to.publication_id}/sessions/${holder.session_id}`}>{holder.name}</Link></li>)}</ul>}
+        {item.students_still_holding.length > 0 && <div className="grid gap-1.5">
+          <p className={styles.chipsLabel} aria-hidden="true">Masih menunjukkannya</p>
+          <ul className={styles.chips} aria-label="Siswa yang masih menunjukkannya">{item.students_still_holding.map((holder) => <li key={holder.session_id}><Link to={`${base}/publications/${to.publication_id}/sessions/${holder.session_id}`}>{holder.name}</Link></li>)}</ul>
+        </div>}
       </li>)}</ul>
       {data.not_retested.length > 0 && <div className={styles.invite}>
         <b>Tidak diuji ulang di misi ini</b>

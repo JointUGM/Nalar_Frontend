@@ -1,6 +1,6 @@
 import { ApiError, resourceId } from '@/domain/model/ApiError'
 import { invitationBatchSize, placementMax, invitationTargetStates, rosterMaxBytes, subjectNameMax } from '@/domain/model/SchoolAdmin'
-import type { ClassDraft, InvitationSummary, InvitationTarget, LinkedPerson, NewAcademicYear, NewPerson, NewSchoolSubject, PersonEdit, Relationship, PeopleRole } from '@/domain/model/SchoolAdmin'
+import type { ClassDraft, InvitationSummary, InvitationTarget, LinkedPerson, NewAcademicYear, NewPerson, NewSchoolSubject, PersonEdit, PeopleRole } from '@/domain/model/SchoolAdmin'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 
 export class SchoolAdminUseCases {
@@ -71,18 +71,12 @@ export class SchoolAdminUseCases {
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ApiError(422, 'EMAIL_INVALID')
     if (person.role !== 'student' && !email) throw new ApiError(422, 'EMAIL_REQUIRED')
     if (person.role === 'student' && (!/^\d{10}$/.test(person.nisn ?? '') || !person.class_id)) throw new ApiError(422, 'STUDENT_FIELDS_REQUIRED')
-    if (person.role === 'parent' && person.child_ids.length === 0) throw new ApiError(422, 'CHILD_REQUIRED')
     return this.service.createPerson(resourceId(schoolId), {
       full_name: name, role: person.role, ...(email ? { email } : {}),
       ...(person.role === 'student' ? { nisn: person.nisn, class_id: resourceId(person.class_id ?? '') } : {}),
-      child_ids: person.role === 'parent' ? person.child_ids.map(resourceId) : [], ...(person.role === 'parent' && person.relationship ? { relationship: person.relationship } : {}),
     }, resourceId(idempotencyKey), signal)
   }
   reactivatePerson(schoolId: string, userId: string, signal?: AbortSignal) { return this.service.reactivatePerson(resourceId(schoolId), resourceId(userId), signal) }
-  linkParent(schoolId: string, parentId: string, studentId: string, relationship: Relationship | null, signal?: AbortSignal) {
-    return this.service.linkParent(resourceId(schoolId), resourceId(parentId), resourceId(studentId), relationship, signal)
-  }
-  unlinkParent(schoolId: string, parentId: string, studentId: string, signal?: AbortSignal) { return this.service.unlinkParent(resourceId(schoolId), resourceId(parentId), resourceId(studentId), signal) }
   // One request places up to 500 students atomically; asking again with the same students changes nothing.
   placeStudents(schoolId: string, classId: string, userIds: string[], signal?: AbortSignal) {
     const ids = [...new Set(userIds.map(resourceId))]

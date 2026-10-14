@@ -60,8 +60,6 @@ const privateEntry = createElement(lazy(async () => {
     const [created, { ProtectedRole }, { LiveRoutes }] = await Promise.all([getDependencies(), import('./ui/pages/account/ProtectedRole'), import('./ui/pages/live/LiveRoutes')])
     // Live pages own the projector, join, lobby and session paths.
     const livePath = /^\/(teacher\/[^/]+\/publications\/[^/]+\/projector\/?$|student\/[^/]+\/(join|runs\/|sessions\/))/
-    // Its own chunk, so only a parent downloads the parent pages.
-    const ParentRoutes = lazy(() => import('./ui/pages/parent/app/ParentRoutes').then((module) => ({ default: module.ParentRoutes })))
     const StudentRoutes = lazy(() => import('./ui/pages/student/app/StudentRoutes').then((module) => ({ default: module.StudentRoutes })))
     const PlatformRoutes = lazy(() => import('./ui/pages/platform-admin/app/PlatformRoutes').then((module) => ({ default: module.PlatformRoutes })))
     const SchoolRoutes = lazy(() => import('./ui/pages/school-admin/app/SchoolRoutes').then((module) => ({ default: module.SchoolRoutes })))
@@ -71,7 +69,6 @@ const privateEntry = createElement(lazy(async () => {
     const telemetry = student ? (sessionId: string, batch: TelemetryBatch) => student.telemetry(sessionId, batch) : undefined
     return { default: () => <ProtectedRole dependencies={created.account} renderRole={(identity, path) => {
       // Every role has real pages; a path none of them serves gets the placeholder.
-      if (created.parent && /^\/parent(\/|$)/.test(path)) return <ParentRoutes service={created.parent} identity={identity} />
       if (created.live && livePath.test(path)) return <LiveRoutes service={created.live} identity={identity} telemetry={telemetry} />
       // Every other student path is the real home or a mission start page.
       if (created.platform && /^\/platform(\/|$)/.test(path)) return <PlatformRoutes service={created.platform} />
