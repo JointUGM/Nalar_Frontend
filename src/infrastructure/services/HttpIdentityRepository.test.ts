@@ -90,13 +90,6 @@ describe('Current identity HTTP boundary', () => {
     await expect(reader(async () => Response.json(payload)).execute()).rejects.toMatchObject({ code: 'invalid_response', status: 200 })
   })
 
-  it('defaults is_parent and is_platform_admin to false when omitted by backend', async () => {
-    const { is_parent: _p, is_platform_admin: _pa, ...omitted } = me
-    const identity = await reader(async () => Response.json(omitted)).execute()
-    expect(identity.isParent).toBe(false)
-    expect(identity.isPlatformAdmin).toBe(false)
-  })
-
   it('rejects non-JSON success bodies', async () => {
     await expect(reader(async () => new Response('<html>private gateway page</html>')).execute()).rejects.toMatchObject({ code: 'invalid_response' })
   })

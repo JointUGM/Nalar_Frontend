@@ -30,12 +30,13 @@ function mapIdentity(value: unknown): Identity | null {
       || typeof membership.school_name !== 'string') return null
     memberships.push({ role: membership.role, schoolId: membership.school_id, schoolName: membership.school_name })
   }
-  const checked: MeResponse = {
-    user_id: value.user_id, full_name: value.full_name,
-    roles: memberships.map(({ role, schoolId, schoolName }) => ({ role, school_id: schoolId, school_name: schoolName })),
-    is_platform_admin: value.is_platform_admin, email: typeof value.email === 'string' ? value.email : null,
+  return {
+    userId: value.user_id,
+    fullName: value.full_name,
+    email: typeof value.email === 'string' ? value.email : null,
+    memberships,
+    isPlatformAdmin: value.is_platform_admin,
   }
-  return { userId: checked.user_id, fullName: checked.full_name, email: checked.email ?? null, memberships, isPlatformAdmin: checked.is_platform_admin }
 }
 
 const statusCodes: Partial<Record<number, OperationErrorCode>> = {
