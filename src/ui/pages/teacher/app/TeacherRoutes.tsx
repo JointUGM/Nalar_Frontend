@@ -21,7 +21,6 @@ import { TeacherMissionNewPage } from './TeacherMissionNewPage'
 import { TeacherMissionPage } from './TeacherMissionPage'
 import { TeacherMissionsPage } from './TeacherMissionsPage'
 import { TeacherPublishPage } from './TeacherPublishPage'
-import { TeacherReleasePage } from './TeacherReleasePage'
 import { TeacherReportPage } from './TeacherReportPage'
 import { TeacherStudentHistoryPage } from './TeacherStudentHistoryPage'
 import { TeacherSessionsPage } from './TeacherSessionsPage'
@@ -46,7 +45,7 @@ export function TeacherRoutes({ service, kb, live, identity, changePassword }: {
     { label: 'Basis pengetahuan', icon: 'layers', to: `${base}/knowledge-base` },
     { label: 'Perlu perhatian', icon: 'alert', to: `${base}/attention`, ...(waiting > 0 ? { badge: String(waiting) } : {}) },
   ] as const
-  const title = pathname.includes('/sessions/') ? 'Hasil kelas / Laporan siswa' : pathname.endsWith('/monitor') ? 'Sesi langsung' : pathname.endsWith('/class-map') ? 'Hasil kelas / Peta miskonsepsi' : pathname.endsWith('/release') ? 'Hasil kelas / Rilis ke orang tua' : pathname.includes('/missions') ? 'Misi' : pathname.includes('/knowledge-base') ? 'Basis pengetahuan' : pathname.endsWith('/classes') || pathname.includes('/students/') ? 'Kelas dan siswa' : pathname.endsWith('/attention') ? 'Perlu perhatian' : pathname.endsWith('/sessions') ? 'Sesi dan hasil' : 'Beranda'
+  const title = pathname.includes('/sessions/') ? 'Hasil kelas / Laporan siswa' : pathname.endsWith('/monitor') ? 'Sesi langsung' : pathname.endsWith('/class-map') ? 'Hasil kelas / Peta miskonsepsi' : pathname.includes('/missions') ? 'Misi' : pathname.includes('/knowledge-base') ? 'Basis pengetahuan' : pathname.endsWith('/classes') || pathname.includes('/students/') ? 'Kelas dan siswa' : pathname.endsWith('/attention') ? 'Perlu perhatian' : pathname.endsWith('/sessions') ? 'Sesi dan hasil' : 'Beranda'
   return <TeacherContextProvider schools={schools.map((item) => item.schoolName)} current={school} onChange={(name) => { const next = schools.find((item) => item.schoolName === name); if (next) navigate(`/teacher/${next.schoolId}`) }}>
     <TeacherShell title={title} user={identity.fullName} nav={nav} home={base} actions={<>
       <Link to={`${base}/attention`} className="relative flex size-10 shrink-0 items-center justify-center rounded-[8px] bg-surface text-ink hover:bg-info-bg" aria-label={waiting > 0 ? `Perlu perhatian, ${waiting} catatan` : 'Perlu perhatian'}><Icon name="bell" size={18} />{waiting > 0 && <span className="absolute top-2.25 right-2.5 size-2 rounded-pill bg-[#D9485F]" aria-hidden="true" />}</Link>
@@ -61,7 +60,6 @@ export function TeacherRoutes({ service, kb, live, identity, changePassword }: {
         <Route path=":schoolId/publications/:publicationId/monitor" element={<MonitorRoute live={live} base={base} />} />
         <Route path=":schoolId/publications/:publicationId/sessions/:sessionId" element={<TeacherReportPage service={service} base={base} />} />
         <Route path=":schoolId/publications/:publicationId/class-map" element={<TeacherClassMapPage service={service} base={base} />} />
-        <Route path=":schoolId/publications/:publicationId/release" element={<TeacherReleasePage service={service} base={base} />} />
         <Route path=":schoolId/missions" element={<TeacherMissionsPage service={service} base={base} schoolId={schoolId} />} />
         <Route path=":schoolId/missions/new" element={<TeacherMissionNewPage service={service} kb={kb} base={base} schoolId={schoolId} />} />
         <Route path=":schoolId/missions/:missionId" element={<TeacherMissionPage service={service} kb={kb} base={base} schoolId={schoolId} />} />

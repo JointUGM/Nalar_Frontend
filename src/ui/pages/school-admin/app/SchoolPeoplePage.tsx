@@ -9,7 +9,6 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { StatusBadge } from '@/ui/components/status-badge/StatusBadge'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { NewPersonDialog } from './NewPersonDialog'
-import { PersonLinks } from './PersonLinks'
 import { noPollMs, useCommand, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import shared from '@/ui/pages/school-admin/dialogForm.styles'
 import styles from '@/ui/pages/school-admin/SchoolPeople.styles'
@@ -20,7 +19,7 @@ import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { cn } from '@/ui/cn'
 import { resolveActiveYear } from './academicYearState'
 
-const roles: readonly [PeopleRole, string][] = [['student', 'Siswa'], ['teacher', 'Guru'], ['parent', 'Orang tua'], ['school_admin', 'Admin sekolah']]
+const roles: readonly [PeopleRole, string][] = [['student', 'Siswa'], ['teacher', 'Guru'], ['school_admin', 'Admin sekolah']]
 const stateWord: Readonly<Record<string, string>> = { active: 'Aktif', inactive: 'Nonaktif', pending_activation: 'Menunggu aktivasi' }
 const refusals: Readonly<Record<string, string>> = {
   LAST_SCHOOL_ADMIN: 'Ini admin sekolah terakhir yang aktif. Minta admin platform menunjuk admin baru lebih dulu.',
@@ -54,7 +53,7 @@ export function SchoolPeoplePage({ service, schoolId }: { service: SchoolAdminUs
     <div className={styles.head}>
       <div className={styles.headText}>
         <h1 className={styles.title}>Orang</h1>
-        <p className={styles.lead}>Kelola akun guru, siswa, orang tua, dan admin sekolah.</p>
+        <p className={styles.lead}>Kelola akun guru, siswa, dan admin sekolah.</p>
       </div>
       {note && <NalaNote mood={note[0]} text={note[1]} />}
       <Button className={styles.addButton} onClick={() => { setMessage(''); setAdding(true) }}><Icon name="plus" size={16} />Tambah orang</Button>
@@ -175,7 +174,6 @@ function PersonDrawer({ service, schoolId, person, onClose }: { service: SchoolA
         />
         <small style={{ color: 'var(--color-text-secondary)', fontSize: '12px' }}>Hasil misi lama tetap tercatat di kelas sebelumnya.</small>
       </div>}
-      <PersonLinks service={service} schoolId={schoolId} person={person} editable={person.account_state !== 'inactive' && (person.role === 'parent' || person.role === 'student')} onDone={(done) => onClose(done)} />
       {said && <Feedback tone="warning" title={said} announce>{command.failure?.requestId && <small>Referensi: {command.failure.requestId}</small>}</Feedback>}
       <div className={shared.actions}>
         <Button tone="secondary" disabled={command.pending} onClick={() => onClose()}>Batal</Button>

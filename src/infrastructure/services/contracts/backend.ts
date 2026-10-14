@@ -716,92 +716,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/parent/children": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Children */
-        get: operations["children_api_v1_parent_children_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/parent/children/{student_id}/progress": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Progress */
-        get: operations["progress_api_v1_parent_children__student_id__progress_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/parent/children/{student_id}/reflections": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Reflections */
-        get: operations["reflections_api_v1_parent_children__student_id__reflections_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/parent/children/{student_id}/seen": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Mark Seen */
-        post: operations["mark_seen_api_v1_parent_children__student_id__seen_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/parent/preferences": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Preferences */
-        get: operations["preferences_api_v1_parent_preferences_get"];
-        /** Set Preferences */
-        put: operations["set_preferences_api_v1_parent_preferences_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/platform/ai-usage": {
         parameters: {
             query?: never;
@@ -1218,7 +1132,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/publications/{publication_id}/release": {
+    "/api/v1/publications/{publication_id}/teaching-plans": {
         parameters: {
             query?: never;
             header?: never;
@@ -1227,25 +1141,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Release */
-        post: operations["release_api_v1_publications__publication_id__release_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/publications/{publication_id}/release-preview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Preview */
-        get: operations["preview_api_v1_publications__publication_id__release_preview_get"];
-        put?: never;
-        post?: never;
+        /**
+         * Request Teaching Plan
+         * @description TC-23: queue one S5 next-lesson activity; poll GET /jobs/{id}, then the class map.
+         */
+        post: operations["request_teaching_plan_api_v1_publications__publication_id__teaching_plans_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1576,24 +1476,6 @@ export interface paths {
         /** Create Person */
         post: operations["create_person_api_v1_schools__school_id__people_post"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/schools/{school_id}/people/{parent_id}/children/{student_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Link Child */
-        put: operations["link_child_api_v1_schools__school_id__people__parent_id__children__student_id__put"];
-        post?: never;
-        /** Unlink Child */
-        delete: operations["unlink_child_api_v1_schools__school_id__people__parent_id__children__student_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2325,8 +2207,6 @@ export interface components {
             flag: number;
             /** Kb Review */
             kb_review: number;
-            /** Release Ready */
-            release_ready: number;
             /** Safety */
             safety: number;
             /** Total */
@@ -2336,7 +2216,7 @@ export interface components {
         AttentionPageOut: {
             counts: components["schemas"]["AttentionCountsOut"];
             /** Items */
-            items: (components["schemas"]["SafetyAttentionOut"] | components["schemas"]["FlagAttentionOut"] | components["schemas"]["KbReviewAttentionOut"] | components["schemas"]["ReleaseReadyAttentionOut"])[];
+            items: (components["schemas"]["SafetyAttentionOut"] | components["schemas"]["FlagAttentionOut"] | components["schemas"]["KbReviewAttentionOut"])[];
             /** Next Cursor */
             next_cursor: string | null;
         };
@@ -2382,13 +2262,6 @@ export interface components {
             move: string;
             /** Text */
             text: string;
-        };
-        /** BlockerOut */
-        BlockerOut: {
-            /** Code */
-            code: string;
-            /** Count */
-            count: number;
         };
         /** Body_add_material_api_v1_knowledge_bases__kb_id__materials_post */
         Body_add_material_api_v1_knowledge_bases__kb_id__materials_post: {
@@ -2675,8 +2548,6 @@ export interface components {
             account_email_enabled: boolean;
             /** Password Reset Enabled */
             password_reset_enabled: boolean;
-            /** Weekly Digest Enabled */
-            weekly_digest_enabled: boolean;
         };
         /** ConnectionEvent */
         ConnectionEvent: {
@@ -3344,16 +3215,6 @@ export interface components {
             /** Ordinal */
             ordinal: number;
         };
-        /** LinkedPersonOut */
-        LinkedPersonOut: {
-            /** Full Name */
-            full_name: string;
-            /**
-             * User Id
-             * Format: uuid
-             */
-            user_id: string;
-        };
         /** LiveWarmupIn */
         LiveWarmupIn: {
             /** Choices */
@@ -3435,8 +3296,6 @@ export interface components {
             email?: string | null;
             /** Full Name */
             full_name: string;
-            /** Is Parent */
-            is_parent: boolean;
             /** Is Platform Admin */
             is_platform_admin: boolean;
             /** Roles */
@@ -3480,6 +3339,8 @@ export interface components {
             student_ids: string[];
             /** Students */
             students: components["schemas"]["MisconceptionStudentOut"][];
+            /** @description TC-23 S5 draft for this misconception; teacher reviews it */
+            teaching_plan?: components["schemas"]["TeachingPlanOut"] | null;
         };
         /** MisconceptionCreateIn */
         MisconceptionCreateIn: {
@@ -3888,103 +3749,6 @@ export interface components {
             /** Page Start */
             page_start: number;
         };
-        /** ParentChildOut */
-        ParentChildOut: {
-            /** Class Name */
-            class_name?: string | null;
-            /** Last Seen At */
-            last_seen_at?: string | null;
-            /** Name */
-            name: string;
-            /** School Id */
-            school_id?: string | null;
-            /** School Name */
-            school_name: string;
-            /**
-             * Student Id
-             * Format: uuid
-             */
-            student_id: string;
-        };
-        /** ParentChildrenOut */
-        ParentChildrenOut: {
-            /** Items */
-            items: components["schemas"]["ParentChildOut"][];
-            /** Next Cursor */
-            next_cursor: string | null;
-        };
-        /** ParentLinkIn */
-        ParentLinkIn: {
-            /** Relationship */
-            relationship?: ("ayah" | "ibu" | "wali") | null;
-        };
-        /** ParentPreferencesIn */
-        ParentPreferencesIn: {
-            /** Weekly Digest Enabled */
-            weekly_digest_enabled: boolean;
-        };
-        /** ParentPreferencesOut */
-        ParentPreferencesOut: {
-            /** Weekly Digest Enabled */
-            weekly_digest_enabled: boolean;
-        };
-        /** ParentProgressOut */
-        ParentProgressOut: {
-            /** Concepts Developing */
-            concepts_developing: string[];
-            /** Concepts Understood */
-            concepts_understood: string[];
-            /** Sessions Completed */
-            sessions_completed: number;
-            /** Summaries */
-            summaries: components["schemas"]["ParentSummaryOut"][];
-        };
-        /** ParentReflectionOut */
-        ParentReflectionOut: {
-            /**
-             * Completed At
-             * Format: date-time
-             */
-            completed_at: string;
-            /** Content */
-            content: string;
-            /** Mission Title */
-            mission_title: string;
-            /**
-             * Session Id
-             * Format: uuid
-             */
-            session_id: string;
-            /**
-             * Subject Name
-             * @default
-             */
-            subject_name: string;
-        };
-        /** ParentReflectionsOut */
-        ParentReflectionsOut: {
-            /** Items */
-            items: components["schemas"]["ParentReflectionOut"][];
-            /** Next Cursor */
-            next_cursor: string | null;
-        };
-        /** ParentSummaryOut */
-        ParentSummaryOut: {
-            /** Mission Title */
-            mission_title: string;
-            /**
-             * Publication Id
-             * Format: uuid
-             */
-            publication_id: string;
-            /**
-             * Released At
-             * Format: date-time
-             */
-            released_at: string;
-            /** Text */
-            text: string;
-        };
         /** PasswordChangeIn */
         PasswordChangeIn: {
             /**
@@ -4047,8 +3811,6 @@ export interface components {
         };
         /** PersonCreateIn */
         PersonCreateIn: {
-            /** Child Ids */
-            child_ids?: string[];
             /** Class Id */
             class_id?: string | null;
             /** Email */
@@ -4061,13 +3823,11 @@ export interface components {
             invite: boolean;
             /** Nisn */
             nisn?: string | null;
-            /** Relationship */
-            relationship?: ("ayah" | "ibu" | "wali") | null;
             /**
              * Role
              * @enum {string}
              */
-            role: "teacher" | "student" | "parent";
+            role: "teacher" | "student";
         };
         /** PersonCreatedOut */
         PersonCreatedOut: {
@@ -4096,10 +3856,6 @@ export interface components {
             email: string | null;
             /** Full Name */
             full_name: string;
-            /** Linked Children */
-            linked_children: components["schemas"]["LinkedPersonOut"][];
-            /** Linked Parents */
-            linked_parents: components["schemas"]["LinkedPersonOut"][];
             /** Nisn */
             nisn: string | null;
             role: components["schemas"]["Role"];
@@ -4176,8 +3932,6 @@ export interface components {
              * Format: uuid
              */
             published_by: string;
-            /** Released To Parents At */
-            released_to_parents_at: string | null;
             /** Runs */
             runs: components["schemas"]["PublicationRunDetailOut"][];
             /**
@@ -4209,8 +3963,6 @@ export interface components {
             mission_title: string;
             /** Mission Version */
             mission_version?: number | null;
-            /** Released To Parents At */
-            released_to_parents_at: string | null;
             run: components["schemas"]["RunSummaryOut"];
             /**
              * Subject Name
@@ -4506,65 +4258,6 @@ export interface components {
              */
             subject_name: string;
         };
-        /** ReleaseIn */
-        ReleaseIn: {
-            /** Expected Eligible Count */
-            expected_eligible_count: number;
-        };
-        /** ReleasePreviewOut */
-        ReleasePreviewOut: {
-            /** Blockers */
-            blockers: components["schemas"]["BlockerOut"][];
-            /** Eligible Count */
-            eligible_count: number;
-            /** Ineligible Count */
-            ineligible_count: number;
-            /** Ready */
-            ready: boolean;
-            /** Released At */
-            released_at: string | null;
-            /** Summaries */
-            summaries: components["schemas"]["SummaryPreviewOut"][];
-        };
-        /** ReleaseReadyAttentionOut */
-        ReleaseReadyAttentionOut: {
-            /** Class Name */
-            class_name: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Eligible Count */
-            eligible_count: number;
-            /**
-             * Item Id
-             * Format: uuid
-             */
-            item_id: string;
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            kind: "release_ready";
-            /** Mission Title */
-            mission_title: string;
-            /**
-             * Publication Id
-             * Format: uuid
-             */
-            publication_id: string;
-        };
-        /** ReleasedOut */
-        ReleasedOut: {
-            /**
-             * Released To Parents At
-             * Format: date-time
-             */
-            released_to_parents_at: string;
-            /** Summary Count */
-            summary_count: number;
-        };
         /** ReportActivityOut */
         ReportActivityOut: {
             /** Away Seconds */
@@ -4793,7 +4486,7 @@ export interface components {
             question_ids?: string[] | null;
         };
         /** @enum {string} */
-        Role: "school_admin" | "teacher" | "student" | "parent";
+        Role: "school_admin" | "teacher" | "student";
         /** RoleOut */
         RoleOut: {
             /** Role */
@@ -5440,18 +5133,6 @@ export interface components {
              */
             school_subject_id: string;
         };
-        /** SummaryPreviewOut */
-        SummaryPreviewOut: {
-            /** Name */
-            name: string;
-            /**
-             * Student Id
-             * Format: uuid
-             */
-            student_id: string;
-            /** Summary Text */
-            summary_text: string;
-        };
         /** TabAwaySecondsOut */
         TabAwaySecondsOut: {
             /** Seconds */
@@ -5488,6 +5169,56 @@ export interface components {
             top_changed: components["schemas"]["ChangedMisconceptionOut"][];
             /** Trend */
             trend: components["schemas"]["DashboardTrendOut"][];
+        };
+        /**
+         * TeachingPlanOut
+         * @description TC-23 next-lesson activity drafted by S5 from reviewed content. No names or counts.
+         */
+        TeachingPlanOut: {
+            /** Check Question */
+            check_question: string;
+            /**
+             * Counter Example
+             * @description The reviewed example the contrast uses
+             */
+            counter_example: string | null;
+            /**
+             * Look For
+             * @description Teacher-only: reasoning that shows the idea changed
+             */
+            look_for: string;
+            /** Objective */
+            objective: string;
+            /** Steps */
+            steps: components["schemas"]["TeachingPlanStepOut"][];
+        };
+        /** TeachingPlanQueuedOut */
+        TeachingPlanQueuedOut: {
+            /**
+             * Job Id
+             * @description Null when the plan already exists
+             */
+            job_id: string | null;
+        };
+        /** TeachingPlanRequestIn */
+        TeachingPlanRequestIn: {
+            /**
+             * Misconception Id
+             * Format: uuid
+             */
+            misconception_id: string;
+        };
+        /** TeachingPlanStepOut */
+        TeachingPlanStepOut: {
+            /** Ask */
+            ask: string;
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "elicit" | "contrast" | "explain";
+            /** Teacher Action */
+            teacher_action: string;
         };
         /** TelemetryAccepted */
         TelemetryAccepted: {
@@ -7208,185 +6939,6 @@ export interface operations {
             };
         };
     };
-    children_api_v1_parent_children_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-                cursor?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ParentChildrenOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    progress_api_v1_parent_children__student_id__progress_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                student_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ParentProgressOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    reflections_api_v1_parent_children__student_id__reflections_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-                cursor?: string | null;
-            };
-            header?: never;
-            path: {
-                student_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ParentReflectionsOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    mark_seen_api_v1_parent_children__student_id__seen_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                student_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    preferences_api_v1_parent_preferences_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ParentPreferencesOut"];
-                };
-            };
-        };
-    };
-    set_preferences_api_v1_parent_preferences_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ParentPreferencesIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ParentPreferencesOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     ai_usage_api_v1_platform_ai_usage_get: {
         parameters: {
             query: {
@@ -8338,7 +7890,7 @@ export interface operations {
             };
         };
     };
-    release_api_v1_publications__publication_id__release_post: {
+    request_teaching_plan_api_v1_publications__publication_id__teaching_plans_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -8349,48 +7901,17 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ReleaseIn"];
+                "application/json": components["schemas"]["TeachingPlanRequestIn"];
             };
         };
         responses: {
             /** @description Successful Response */
-            200: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReleasedOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    preview_api_v1_publications__publication_id__release_preview_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                publication_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReleasePreviewOut"];
+                    "application/json": components["schemas"]["TeachingPlanQueuedOut"];
                 };
             };
             /** @description Validation Error */
@@ -9230,72 +8751,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PersonCreatedOut"];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    link_child_api_v1_schools__school_id__people__parent_id__children__student_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                school_id: string;
-                parent_id: string;
-                student_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ParentLinkIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    unlink_child_api_v1_schools__school_id__people__parent_id__children__student_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                school_id: string;
-                parent_id: string;
-                student_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {

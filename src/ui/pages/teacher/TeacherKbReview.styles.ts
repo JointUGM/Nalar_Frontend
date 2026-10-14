@@ -20,37 +20,38 @@ const styles = {
   approved: 'teacherkbreview-approved bg-success-bg text-success-strong',
   review: 'teacherkbreview-review bg-warning-bg text-warning-text',
 
-  // The map fills the card at about a screen of height. From lg a clicked concept's detail floats over the map's right
-  // side and scrolls on its own, so the map never reflows; below lg it stacks under the map.
+  // The map fills the card at about a screen of height; a clicked concept opens in a large centred dialog.
   workspace: `${card} flex scroll-mt-20 flex-col [&_h2]:m-0 [&_h2]:text-[16px] [&_h2]:leading-6 [&_h2]:font-bold`,
-  stage: 'relative mt-3 flex flex-col gap-3 lg:block lg:h-[clamp(480px,calc(100dvh-7rem),1000px)]',
-  // Opening slides in once; picking another concept swaps the content without replaying it.
-  inspector: 'grid min-w-0 content-start gap-3 rounded-xl bg-paper p-3 transition-[opacity,translate] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-x-4 starting:opacity-0 motion-reduce:transition-opacity lg:absolute lg:inset-y-3 lg:right-3 lg:z-30 lg:w-[min(440px,calc(100%-1.5rem))] lg:overflow-y-auto lg:overscroll-contain lg:shadow-[0_16px_48px_rgb(15_23_42/0.18)] lg:ring-1 lg:ring-role-border',
-  inspectorBar: 'flex items-center justify-end gap-1 [&_button]:min-h-9 [&_button]:gap-1 [&_button]:rounded-[8px] [&_button]:px-2.5 [&_button]:text-[13px] [&_button]:font-bold max-md:[&_button]:min-h-11',
+  // Wide enough for the concept and its misconceptions side by side; the paper body lets the white cards read as cards.
+  detailDialog: 'w-[min(1040px,calc(100vw-48px))] max-h-[min(860px,calc(100dvh-48px))] bg-paper',
+  detailBody: 'grid gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]',
+  // Same-height heads over both columns; the concept card stretches to the misconception column so the two end together.
+  detailColumn: 'flex min-w-0 flex-col gap-3',
+  columnHead: 'flex min-h-10 flex-wrap items-center gap-x-2 gap-y-1 px-1 [&_h3]:m-0 [&_h3]:text-[16px] [&_h3]:leading-6 [&_h3]:font-bold [&>span:not([class])]:text-[13px] [&>span:not([class])]:leading-5 [&>span:not([class])]:tabular-nums [&>span:not([class])]:text-text-muted [&>span[class]]:ml-auto',
+  columnAction: 'ml-auto min-h-9 gap-1.5 rounded-[8px] px-3 text-[13px] font-bold max-md:min-h-11',
+  conceptCard: `${card} flex flex-1 flex-col`,
+  archiveConcept: 'mt-auto pt-4 [&_button]:min-h-9 [&_button]:gap-1.5 [&_button]:px-3 [&_button]:py-1.5 [&_button]:text-[13px] [&_button]:font-semibold max-md:[&_button]:min-h-11',
+  detailFooter: 'mt-4 flex justify-end [&_button]:min-h-10 [&_button]:gap-1 [&_button]:text-[14px] [&_button]:font-bold max-md:[&_button]:min-h-11',
   progress: 'flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-text-secondary',
   bar: 'block h-1.5 w-44 max-w-full overflow-hidden rounded-pill bg-paper [&>span]:block [&>span]:h-full [&>span]:bg-success-text',
-  map: 'flex min-h-[420px] min-w-0 flex-1 flex-col short:min-h-[min(420px,70dvh)] lg:h-full lg:min-h-0',
+  map: 'mt-3 flex h-[clamp(420px,calc(100dvh-7rem),1000px)] min-w-0 flex-col',
   pager: 'flex items-center justify-between gap-2 text-[13px] text-text-muted [&_button]:min-h-9 [&_button]:gap-1 [&_button]:rounded-[8px] [&_button]:px-3 [&_button]:text-[13px] [&_button]:font-bold',
   legend: "m-0 mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-text-secondary [&>span]:inline-flex [&>span]:items-center [&>span]:gap-2 [&>span]:before:size-3.5 [&>span]:before:rounded-[4px] [&>span]:before:border [&>span]:before:border-role-border [&>span]:before:bg-surface [&>span]:before:content-[''] [&>[data-status=approved]]:before:border-transparent [&>[data-status=approved]]:before:bg-success-bg [&>[data-status=rejected]]:before:border-dashed [&>[data-status=count]]:before:rounded-pill [&>[data-status=count]]:before:border-0 [&>[data-status=count]]:before:bg-accent",
   card: `${card} [&_h2]:m-0 [&_h2]:text-[16px] [&_h2]:leading-6 [&_h2]:font-bold`,
-  misconceptions: 'grid min-w-0 gap-3',
+  misconceptions: 'grid min-w-0 content-start gap-3',
   sectionHead: 'flex flex-wrap items-baseline gap-2 px-1 [&_h2]:m-0 [&_h2]:text-[16px] [&_h2]:leading-6 [&_h2]:font-bold [&>span]:text-[13px] [&>span]:leading-5 [&>span]:tabular-nums [&>span]:text-text-muted',
   misconception: 'grid gap-2.5 rounded-2xl bg-surface p-4 [&_blockquote]:m-0 [&_blockquote]:text-[16px] [&_blockquote]:leading-[1.4] [&_blockquote]:font-bold [&_blockquote]:text-ink [&_blockquote]:wrap-anywhere [&_h3]:m-0 [&_h3]:text-[12px] [&_h3]:leading-4 [&_h3]:font-extrabold [&_h3]:text-text-muted',
   correct: 'mx-0 mt-1 mb-0 max-w-[70ch] text-[14px] leading-[1.5] text-text-secondary wrap-anywhere',
 
   misHead: 'flex flex-wrap items-center justify-between gap-2',
-  contentType: `${micro} bg-info-bg text-primary [&>svg]:size-4`,
   misTag: `${micro} bg-warning-bg text-warning-text [&>svg]:size-4`,
-  // The concept is an h2 inside a card whose h2 rule is for section titles; important keeps it the card's lead.
-  conceptTitle: 'mt-3! mb-0 text-[20px]! leading-7! font-extrabold! tracking-[-.02em]! wrap-anywhere',
   description: 'mx-0 mt-1.5 mb-0 max-w-[70ch] text-[15px] leading-[1.55] text-account-bubble wrap-anywhere [text-wrap:pretty]',
   note: 'mx-0 mt-2 mb-0 text-[13px] leading-5 text-text-muted',
-  relations: 'mx-0 mt-4 mb-0 grid gap-2.5 border-t border-paper pt-3 [&>div]:grid [&>div]:gap-0.5 [&_dt]:text-[12px] [&_dt]:font-bold [&_dt]:text-text-muted [&_dd]:m-0 [&_dd]:text-[12px] [&_dd]:text-text-secondary [&_dd]:wrap-anywhere',
+  relations: 'mx-0 mt-4 mb-0 grid gap-2.5 border-t border-paper pt-3 [&>div]:grid [&>div]:gap-0.5 [&_dt]:text-[12px] [&_dt]:font-bold [&_dt]:text-text-muted [&_dd]:m-0 [&_dd]:text-[13px] [&_dd]:leading-5 [&_dd]:text-text-secondary [&_dd]:wrap-anywhere',
   actions: 'mt-4 flex flex-wrap items-center gap-2 [&_button]:min-h-9 [&_button]:gap-1.5 [&_button]:rounded-[8px] [&_button]:px-3.5 [&_button]:text-[13px] [&_button]:font-bold [&_button]:whitespace-nowrap max-md:[&_button]:min-h-11 [&_small]:basis-full [&_small]:text-[12px] [&_small]:leading-5 [&_small]:text-warning-text',
   area: 'mt-3 grid gap-1.5 text-[13px] font-bold [&_textarea]:w-full [&_textarea]:min-w-0 [&_textarea]:resize-y [&_textarea]:rounded-[10px] [&_textarea]:border-0 [&_textarea]:bg-paper [&_textarea]:p-3 [&_textarea]:font-[inherit] [&_textarea]:text-[15px] [&_textarea]:leading-[1.55] [&_textarea]:font-normal [&_textarea]:text-ink [&_textarea:focus-visible]:outline-2 [&_textarea:focus-visible]:outline-primary',
   evidence: '',
   add: 'min-h-8 justify-self-start gap-1.5 rounded-[8px] px-3 text-[13px] font-bold max-md:min-h-11',
-  compact: 'mt-2 [&_button]:min-h-9 [&_button]:gap-1.5 [&_button]:px-3 [&_button]:py-1.5 [&_button]:text-[13px] [&_button]:font-semibold max-md:[&_button]:min-h-11',
   // A learner's words, so the reading face, as compact chips the eye can scan.
   cues: 'mx-0 mt-1.5 mb-0 flex list-none flex-wrap gap-1.5 p-0 [&_li]:rounded-pill [&_li]:bg-paper [&_li]:px-2.5 [&_li]:py-[3px] [&_li]:text-[12px] [&_li]:font-semibold [&_li]:leading-4 [&_li]:text-account-bubble [&_li]:wrap-anywhere',
   examples: 'mx-0 mt-1.5 mb-0 grid list-none gap-1.5 p-0 [&_li]:rounded-[10px] [&_li]:bg-warning-bg [&_li]:px-3 [&_li]:py-2.5 [&_li]:text-[14px] [&_li]:leading-[1.5] [&_li]:text-[#3D2A00] [&_li]:wrap-anywhere',

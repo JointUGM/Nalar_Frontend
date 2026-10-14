@@ -1,5 +1,5 @@
 import { ApiError } from '@/domain/model/ApiError'
-import type { AcademicYear, Assignment, ClassDraft, CpSubjectDetail, CurriculumChoice, InvitationAdmission, InvitationPage, LinkedPerson, NewAcademicYear, NewPerson, NewSchoolSubject, PeoplePage, Relationship, RosterImportPage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
+import type { AcademicYear, Assignment, ClassDraft, CpSubjectDetail, CurriculumChoice, InvitationAdmission, InvitationPage, NewAcademicYear, NewPerson, NewSchoolSubject, PeoplePage, RosterImportPage, PersonEdit, RosterImport, SchoolClass, PeopleRole, SchoolSubject } from '@/domain/model/SchoolAdmin'
 import type { AuditPage } from '@/domain/model/Audit'
 import type { SchoolAdminService } from '@/domain/services/SchoolAdminService'
 import { auditPage } from './audit'
@@ -10,7 +10,6 @@ import type { components } from './contracts/backend'
 type Schemas = components['schemas']
 const school = (schoolId: string) => `/schools/${encodeURIComponent(schoolId)}`
 const invitations = (schoolId: string) => `${school(schoolId)}/account-invitations`
-const linked = (value: unknown): LinkedPerson[] => list(value).map((entry) => { const person = record(entry); return { user_id: text(person.user_id), full_name: text(person.full_name) } })
 function schoolClass(value: unknown): SchoolClass {
   const item = record(value)
   return { class_id: text(item.class_id), name: text(item.name), grade_level: count(item.grade_level), academic_year_id: text(item.academic_year_id), homeroom_teacher_id: nullable(item.homeroom_teacher_id, text), student_count: count(item.student_count) }
@@ -95,7 +94,7 @@ export class HttpSchoolAdminService implements SchoolAdminService {
     return {
       items: list(value.items).map((entry) => {
         const item = record(entry)
-        return { user_id: text(item.user_id), full_name: text(item.full_name), role: text(item.role), nisn: nullable(item.nisn, text), email: nullable(item.email, text), class_name: nullable(item.class_name, text), account_state: text(item.account_state), linked_parents: linked(item.linked_parents), linked_children: linked(item.linked_children) }
+        return { user_id: text(item.user_id), full_name: text(item.full_name), role: text(item.role), nisn: nullable(item.nisn, text), email: nullable(item.email, text), class_name: nullable(item.class_name, text), account_state: text(item.account_state) }
       }),
       next_cursor: nullable(value.next_cursor, text), total: count(value.total),
     }
@@ -116,14 +115,7 @@ export class HttpSchoolAdminService implements SchoolAdminService {
     await this.api.request(`${school(schoolId)}/people/${encodeURIComponent(userId)}/reactivate`, { method: 'POST', signal })
   }
 
-  async linkParent(schoolId: string, parentId: string, studentId: string, relationship: Relationship | null, signal?: AbortSignal): Promise<void> {
-    const body: Schemas['ParentLinkIn'] = { relationship }
-    await this.api.request(`${school(schoolId)}/people/${encodeURIComponent(parentId)}/children/${encodeURIComponent(studentId)}`, { method: 'PUT', body, signal })
-  }
 
-  async unlinkParent(schoolId: string, parentId: string, studentId: string, signal?: AbortSignal): Promise<void> {
-    await this.api.request(`${school(schoolId)}/people/${encodeURIComponent(parentId)}/children/${encodeURIComponent(studentId)}`, { method: 'DELETE', signal })
-  }
 
   async placeStudents(schoolId: string, classId: string, userIds: string[], signal?: AbortSignal): Promise<void> {
     const body: Schemas['StudentPlacementIn'] = { user_ids: userIds }

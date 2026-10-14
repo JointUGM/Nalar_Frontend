@@ -17,19 +17,18 @@ export interface RosterImportPage { items: RosterImportSummary[]; next_cursor: s
 export const rosterImportEnded = (item: RosterImport) => item.status === 'completed' || item.status === 'failed'
 export const rosterMaxBytes = 5 * 1024 * 1024
 // The columns the backend reads, in order. A student needs a 10-digit NISN and grade 1-12; a teacher needs an email.
-export const rosterColumns = ['role', 'full_name', 'email', 'nisn', 'class_name', 'grade_level', 'parent_email', 'parent_name', 'relationship'] as const
+export const rosterColumns = ['role', 'full_name', 'email', 'nisn', 'class_name', 'grade_level'] as const
 
 // Administration (P3). Ids and labels as the backend sends them; email arrives already masked.
-export type PeopleRole = 'student' | 'teacher' | 'parent' | 'school_admin'
+export type PeopleRole = 'student' | 'teacher' | 'school_admin'
 export interface LinkedPerson { user_id: string; full_name: string }
-export interface Person { user_id: string; full_name: string; role: string; nisn: string | null; email: string | null; class_name: string | null; account_state: string; linked_parents: LinkedPerson[]; linked_children: LinkedPerson[] }
+export interface Person { user_id: string; full_name: string; role: string; nisn: string | null; email: string | null; class_name: string | null; account_state: string }
 export interface PeoplePage { items: Person[]; next_cursor: string | null; total: number }
 export interface PersonEdit { full_name?: string; class_id?: string }
 // One account added by hand; the roster import stays the way to add many. Invitations are sent from the invitations page, never here.
 export const placementMax = 500
-export type NewPersonRole = 'student' | 'teacher' | 'parent'
-export type Relationship = 'ayah' | 'ibu' | 'wali'
-export interface NewPerson { full_name: string; role: NewPersonRole; email?: string; nisn?: string; class_id?: string; child_ids: string[]; relationship?: Relationship }
+export type NewPersonRole = 'student' | 'teacher'
+export interface NewPerson { full_name: string; role: NewPersonRole; email?: string; nisn?: string; class_id?: string }
 export interface SchoolClass { class_id: string; name: string; grade_level: number; academic_year_id: string; homeroom_teacher_id: string | null; student_count: number }
 export interface ClassDraft { name: string; grade_level: number; homeroom_teacher_id: string | null }
 export interface SubjectKnowledgeBase { knowledge_base_id: string; topic_title: string; owner_teacher_id: string; owner_name: string | null }

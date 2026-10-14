@@ -6,7 +6,6 @@ export interface TeacherPublication {
   // Empty until the backend that sends it is deployed.
   subject_name: string
   mission_version: number | null
-  released_to_parents_at: string | null
   run: { id: string; mode: string; status: string; join_code: string | null; opens_at: string | null; closes_at: string | null }
   counts: { started: number; completed: number; timed_out: number; evaluated: number }
 }
@@ -19,7 +18,11 @@ export interface ClassMapMisconception {
   resolved_count: number
   student_ids: string[]; students: { student_id: string; name: string; session_id: string }[]
   correct_understanding: string; counter_examples: string[]; detection_cues: string[]; source: 'library' | 'kb'; citations: string[]
+  // TC-23: Nala's draft activity from reviewed content, generated once on request; null until then.
+  teaching_plan: TeachingPlan | null
 }
+export interface TeachingPlanStep { phase: 'elicit' | 'contrast' | 'explain'; teacher_action: string; ask: string }
+export interface TeachingPlan { objective: string; steps: TeachingPlanStep[]; counter_example: string | null; check_question: string; look_for: string }
 export interface ClassMapConcept { concept_id: string; name: string; mastered_count: number; developing_count: number; not_observed_count: number; misconceptions: ClassMapMisconception[] }
 // `prerequisite_id` is learned before `concept_id`; edges only join the mission's target concepts.
 export interface ClassMapEdge { concept_id: string; prerequisite_id: string }
@@ -41,15 +44,6 @@ export interface MisconceptionTrail {
   not_retested: { concept_id: string; misconception_id: string; statement: string; held_count: number }[]
 }
 
-export interface ReleasePreview {
-  ready: boolean
-  blockers: { code: string; count: number }[]
-  eligible_count: number
-  ineligible_count: number
-  summaries: { student_id: string; name: string; summary_text: string }[]
-  released_at: string | null
-}
-export interface Released { released_to_parents_at: string; summary_count: number }
 
 export interface TeacherAssignment { school_id: string; class_id: string; class_name: string; grade_level: number; school_subject_id: string; subject_name: string }
 export interface MissionSummary { id: string; title: string; knowledge_base_id: string; can_edit: boolean; archived_at: string | null; created_by_name: string | null; latest_version: { id: string; version_number: number; status: string } | null }
@@ -130,13 +124,12 @@ export interface SessionReport {
 export type FlagDecision = 'cleared' | 'concern_confirmed'
 export type SafetyAction = 'resume' | 'end'
 
-// The teacher's to-do list: who needs help, what to verify, what to review and what can be released.
+// The teacher's to-do list: who needs help, what to verify, what to review.
 export type AttentionItem =
   | { kind: 'safety'; item_id: string; created_at: string; session_id: string; publication_id: string; student_name: string; paused_at: string | null }
   | { kind: 'flag'; item_id: string; created_at: string; flag_id: string; flag_type: string; severity: string; session_id: string; publication_id: string; student_name: string }
   | { kind: 'kb_review'; item_id: string; created_at: string; knowledge_base_id: string; topic_title: string; pending_concepts: number; pending_misconceptions: number }
-  | { kind: 'release_ready'; item_id: string; created_at: string; publication_id: string; class_name: string; mission_title: string; eligible_count: number }
-export interface AttentionPage { items: AttentionItem[]; counts: { safety: number; flag: number; kb_review: number; release_ready: number; total: number } }
+export interface AttentionPage { items: AttentionItem[]; counts: { safety: number; flag: number; kb_review: number; total: number } }
 
 // One attempt from any school year, with the final (teacher-checked) level per rubric dimension.
 export interface StudentHistoryItem { session_id: string; publication_id: string; mission_title: string; subject_name: string; class_name: string; academic_year_id: string; academic_year_name: string; attempt_number: number; status: string; evaluation_status: string | null; started_at: string; ended_at: string | null; scores: { dimension: string; final_level: number }[] }

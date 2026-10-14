@@ -1,5 +1,5 @@
 import type { MissionRevisionInput, MissionRevisionRequest, MissionRevisionFeedback, RevisionQueued } from '@/domain/model/Teacher'
-import type { MisconceptionTrail, StudentHistoryPage, AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
+import type { TeachingPlan, MisconceptionTrail, StudentHistoryPage, AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 import { ApiError } from '@/domain/model/ApiError'
 import type { TeacherService } from '@/domain/services/TeacherService'
 import { allItems, count, flag, instant, isBlob, list, nullable, record, text } from './HttpApi'
@@ -26,7 +26,6 @@ export class HttpTeacherService implements TeacherService {
       const value = record(item), run = record(value.run), counts = record(value.counts)
       return {
         id: text(value.id), class_id: text(value.class_id), class_name: text(value.class_name), mission_title: text(value.mission_title), subject_name: nullable(value.subject_name, text) ?? '', mission_version: nullable(value.mission_version, count),
-        released_to_parents_at: nullable(value.released_to_parents_at, instant),
         run: { id: text(run.id), mode: text(run.mode), status: text(run.status), join_code: nullable(run.join_code, text), opens_at: nullable(run.opens_at, instant), closes_at: nullable(run.closes_at, instant) },
         counts: { started: count(counts.started), completed: count(counts.completed), timed_out: count(counts.timed_out), evaluated: count(counts.evaluated) },
       } satisfies Schemas['PublicationOut']
@@ -173,6 +172,17 @@ export class HttpTeacherService implements TeacherService {
     await this.api.request(`${publication(publicationId)}/cancel`, { method: 'POST', signal })
   }
 
+  async requestTeachingPlan(publicationId: string, misconceptionId: string, signal?: AbortSignal): Promise<{ job_id: string | null }> {
+    const body: Schemas['TeachingPlanRequestIn'] = { misconception_id: misconceptionId }
+    const value = record((await this.api.request(`${publication(publicationId)}/teaching-plans`, { method: 'POST', body, signal })).data)
+    return { job_id: nullable(value.job_id, text) }
+  }
+
+  async jobStatus(jobId: string, signal?: AbortSignal): Promise<{ status: string; error_code: string | null }> {
+    const value = record((await this.api.request(`/jobs/${encodeURIComponent(jobId)}`, { signal })).data)
+    return { status: text(value.status), error_code: nullable(value.error_code, text) }
+  }
+
   async classMap(publicationId: string, signal?: AbortSignal): Promise<ClassMap> {
     const value = record((await this.api.request(`${publication(publicationId)}/class-map`, { signal })).data)
     return {
@@ -191,7 +201,8 @@ export class HttpTeacherService implements TeacherService {
               correct_understanding: misconception.correct_understanding === undefined ? '' : text(misconception.correct_understanding),
               counter_examples: misconception.counter_examples === undefined ? [] : texts(misconception.counter_examples),
               detection_cues: misconception.detection_cues === undefined ? [] : texts(misconception.detection_cues),
-              source: misconception.source === 'library' && citations.length > 0 ? 'library' as const : 'kb' as const, citations }
+              source: misconception.source === 'library' && citations.length > 0 ? 'library' as const : 'kb' as const, citations,
+              teaching_plan: misconception.teaching_plan === undefined ? null : nullable(misconception.teaching_plan, teachingPlan) }
           }),
         }
       }),
@@ -249,14 +260,13 @@ export class HttpTeacherService implements TeacherService {
     // ponytail: the first 50 items; the counts cover everything, follow next_cursor when a teacher has more open at once.
     const value = record((await this.api.request(`/teacher/attention?school_id=${encodeURIComponent(schoolId)}&limit=50`, { signal })).data), counts = record(value.counts)
     return {
-      counts: { safety: count(counts.safety), flag: count(counts.flag), kb_review: count(counts.kb_review), release_ready: count(counts.release_ready), total: count(counts.total) },
+      counts: { safety: count(counts.safety), flag: count(counts.flag), kb_review: count(counts.kb_review), total: count(counts.total) },
       // An item of a kind this page does not know yet is skipped rather than shown half.
       items: list(value.items).flatMap((entry): AttentionItem[] => {
         const item = record(entry), base = { item_id: text(item.item_id), created_at: instant(item.created_at) }
         if (item.kind === 'safety') return [{ ...base, kind: 'safety', session_id: text(item.session_id), publication_id: text(item.publication_id), student_name: text(item.student_name), paused_at: nullable(item.paused_at, instant) }]
         if (item.kind === 'flag') return [{ ...base, kind: 'flag', flag_id: text(item.flag_id), flag_type: text(item.flag_type), severity: text(item.severity), session_id: text(item.session_id), publication_id: text(item.publication_id), student_name: text(item.student_name) }]
         if (item.kind === 'kb_review') return [{ ...base, kind: 'kb_review', knowledge_base_id: text(item.knowledge_base_id), topic_title: text(item.topic_title), pending_concepts: count(item.pending_concepts), pending_misconceptions: count(item.pending_misconceptions) }]
-        if (item.kind === 'release_ready') return [{ ...base, kind: 'release_ready', publication_id: text(item.publication_id), class_name: text(item.class_name), mission_title: text(item.mission_title), eligible_count: count(item.eligible_count) }]
         return []
       }),
     }
@@ -321,18 +331,14 @@ export class HttpTeacherService implements TeacherService {
     await this.api.request(`/sessions/${encodeURIComponent(sessionId)}/safety-actions`, { method: 'POST', body, signal })
   }
 
-  async releasePreview(publicationId: string, signal?: AbortSignal): Promise<ReleasePreview> {
-    const value = record((await this.api.request(`${publication(publicationId)}/release-preview`, { signal })).data)
-    return {
-      ready: flag(value.ready), eligible_count: count(value.eligible_count), ineligible_count: count(value.ineligible_count), released_at: nullable(value.released_at, instant),
-      blockers: list(value.blockers).map((item) => { const blocker = record(item); return { code: text(blocker.code), count: count(blocker.count) } }),
-      summaries: list(value.summaries).map((item) => { const summary = record(item); return { student_id: text(summary.student_id), name: text(summary.name), summary_text: text(summary.summary_text) } }),
-    } satisfies Schemas['ReleasePreviewOut']
-  }
 
-  async release(publicationId: string, expectedEligibleCount: number, signal?: AbortSignal): Promise<Released> {
-    const body: Schemas['ReleaseIn'] = { expected_eligible_count: expectedEligibleCount }
-    const value = record((await this.api.request(`${publication(publicationId)}/release`, { method: 'POST', body, signal })).data)
-    return { released_to_parents_at: instant(value.released_to_parents_at), summary_count: count(value.summary_count) }
+}
+
+const phases = ['elicit', 'contrast', 'explain'] as const
+function teachingPlan(raw: unknown): TeachingPlan {
+  const plan = record(raw)
+  return {
+    objective: text(plan.objective), check_question: text(plan.check_question), look_for: text(plan.look_for), counter_example: nullable(plan.counter_example, text),
+    steps: list(plan.steps).map((entry) => { const step = record(entry); const phase = phases.find((p) => p === step.phase) ?? 'explain'; return { phase, teacher_action: text(step.teacher_action), ask: text(step.ask) } }),
   }
 }

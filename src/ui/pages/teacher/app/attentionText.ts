@@ -5,13 +5,12 @@ import type { NalaIconName } from '@/ui/components/nala/NalaIcon'
 type Kind = AttentionItem['kind']
 const number = new Intl.NumberFormat('id-ID')
 
-// Urgency order, shared by the home cards and Perlu perhatian: student support first, then verification, material review and release.
+// Urgency order, shared by the home cards and Perlu perhatian: student support first, then verification, material review.
 // Safety and verification copy stays plain: a flag is a hint to review, never an accusation.
 export const attentionKinds = [
   { kind: 'safety', label: 'Keselamatan', icon: 'heart', nala: 'care', action: 'Dampingi siswa', hint: 'sesi dijeda', note: 'Sesi dijeda untuk keselamatan siswa. Lanjutkan atau akhiri sesi setelah bertemu siswa.', next: 'Periksa kondisi siswa secara langsung. Sesi tetap dijeda sampai Anda melanjutkannya.' },
   { kind: 'flag', label: 'Perlu verifikasi', icon: 'flag', nala: 'verify', action: 'Tinjau sesi', hint: 'petunjuk, bukan tuduhan', note: 'Petunjuk untuk ditinjau, bukan tuduhan. Skor siswa tidak berubah karena catatan ini.', next: 'Buka dialognya dulu, lalu putuskan apakah perlu dibahas bersama siswa.' },
   { kind: 'kb_review', label: 'Tinjauan materi', icon: 'book', nala: 'book', action: 'Tinjau materi', hint: 'draf menunggu persetujuan', note: 'Konsep dan miskonsepsi menunggu persetujuan Anda.', next: 'Setujui atau ubah drafnya. Siswa hanya bertemu materi yang sudah Anda setujui.' },
-  { kind: 'release_ready', label: 'Siap dirilis', icon: 'send', nala: 'send', action: 'Pratinjau rilis', hint: 'ringkasan untuk orang tua', note: 'Ringkasan siap Anda tinjau sebelum dirilis.', next: 'Pratinjau dulu. Orang tua hanya melihat ringkasan yang Anda rilis.' },
 ] as const satisfies readonly { kind: Kind; label: string; icon: IconName; nala: NalaIconName; action: string; hint: string; note: string; next: string }[]
 
 export type AttentionKind = typeof attentionKinds[number]
@@ -31,7 +30,6 @@ export function describeAttention(item: AttentionItem, base: string): AttentionV
     case 'safety': return { to: `${base}/publications/${item.publication_id}/sessions/${item.session_id}`, who: item.student_name, title: `${item.student_name} membutuhkan pendampingan`, summary: 'Sesi dijeda untuk keselamatan.', student: true, at: item.paused_at ?? item.created_at }
     case 'flag': return { to: `${base}/publications/${item.publication_id}/sessions/${item.session_id}`, who: item.student_name, title: `Verifikasi sesi ${item.student_name}`, summary: flagWord[item.flag_type] ?? item.flag_type, student: true, at: item.created_at }
     case 'kb_review': return { to: `${base}/knowledge-base/${item.knowledge_base_id}`, who: item.topic_title, title: `Tinjau materi ${item.topic_title}`, summary: `${number.format(item.pending_concepts)} konsep dan ${number.format(item.pending_misconceptions)} miskonsepsi menunggu tinjauan.`, student: false, at: item.created_at }
-    case 'release_ready': return { to: `${base}/publications/${item.publication_id}/release`, who: item.mission_title, title: `Ringkasan kelas ${item.class_name} siap dirilis`, summary: `${number.format(item.eligible_count)} ringkasan untuk kelas ${item.class_name}.`, student: false, at: item.created_at }
   }
 }
 

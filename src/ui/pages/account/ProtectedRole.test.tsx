@@ -11,7 +11,7 @@ import { Login } from './Login'
 import { ProtectedRole } from './ProtectedRole'
 
 const session: AuthSession = { userId: '00000000-0000-4000-8000-000000000001', expiresAt: 2000000000 }
-const identity: Identity = { userId: session.userId, fullName: 'Ayu', isParent: false, isPlatformAdmin: false,
+const identity: Identity = { userId: session.userId, fullName: 'Ayu', isPlatformAdmin: false,
   memberships: [{ role: 'teacher', schoolId: '00000000-0000-4000-8000-000000000002', schoolName: 'Sekolah A' }] }
 
 function createAccess() {
@@ -43,7 +43,7 @@ describe('production identity and route boundary', () => {
     await user.click(screen.getByRole('button', { name: 'Masuk' }))
   }
   const teacherPath = '/teacher/00000000-0000-4000-8000-000000000002'
-  const parentToo: Identity = { ...identity, isParent: true }
+  const severalRoles: Identity = { ...identity, memberships: [...identity.memberships, { role: 'school_admin', schoolId: '00000000-0000-4000-8000-000000000002', schoolName: 'Sekolah A' }] }
 
   it('offers a real sign-out on the placeholder, and a role switch only when there are several roles', async () => {
     const single = createAccess()
@@ -53,7 +53,7 @@ describe('production identity and route boundary', () => {
     expect(screen.queryByRole('link', { name: 'Pilih peran lain' })).not.toBeInTheDocument()
     cleanup()
     const several = createAccess()
-    several.identityRead.mockResolvedValue(parentToo)
+    several.identityRead.mockResolvedValue(severalRoles)
     route(several.dependencies, teacherPath)
     expect(await screen.findByRole('link', { name: 'Pilih peran lain' })).toBeInTheDocument()
   })
@@ -98,17 +98,17 @@ describe('production identity and route boundary', () => {
 
   it('asks only when several roles are possible, and lists just the /me roles', async () => {
     const access = createAccess()
-    access.identityRead.mockResolvedValue(parentToo)
+    access.identityRead.mockResolvedValue(severalRoles)
     route(access.dependencies, '/login')
     expect(await screen.findByRole('link', { name: /Guru.*Sekolah A/ })).toHaveAttribute('href', teacherPath)
-    expect(screen.getByRole('link', { name: /Orang Tua/ })).toHaveAttribute('href', '/parent')
+    expect(screen.getByRole('link', { name: /Admin Sekolah/ })).toHaveAttribute('href', '/school/00000000-0000-4000-8000-000000000002')
     expect(screen.queryByRole('link', { name: /Admin Platform/ })).not.toBeInTheDocument()
     expect(screen.getByTestId('where')).toHaveTextContent('/login')
   })
 
   it('still honours a requested page when the account has several roles', async () => {
     const access = createAccess()
-    access.identityRead.mockResolvedValue(parentToo)
+    access.identityRead.mockResolvedValue(severalRoles)
     access.setCurrent(null)
     route(access.dependencies, `${teacherPath}/classes`)
     await signIn()

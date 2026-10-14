@@ -12,7 +12,7 @@ import { SchoolRoutes } from './SchoolRoutes'
 
 const school = '00000000-0000-4000-8000-000000000002'
 const [first, active, third, cursor] = ['21', '22', '23', '24'].map((end) => `00000000-0000-4000-8000-0000000000${end}`)
-const identity: Identity = { userId: '00000000-0000-4000-8000-000000000001', fullName: 'Hendra Santoso', isParent: false, isPlatformAdmin: false, memberships: [{ role: 'school_admin', schoolId: school, schoolName: 'SMPN 5 Yogyakarta' }] }
+const identity: Identity = { userId: '00000000-0000-4000-8000-000000000001', fullName: 'Hendra Santoso', isPlatformAdmin: false, memberships: [{ role: 'school_admin', schoolId: school, schoolName: 'SMPN 5 Yogyakarta' }] }
 const account: AccountDependencies = {
   signIn: { execute: async () => ({ userId: identity.userId, expiresAt: 2000000000 }) },
   signOut: { execute: async () => {} },

@@ -18,12 +18,12 @@ test.beforeEach(async ({ context }) => {
   })
 })
 
-// Two roles (teacher and parent) keep the role chooser on screen; a single-role account skips it.
+// Two roles (teacher and school administrator) keep the role chooser on screen; a single-role account skips it.
 const identity = {
-  user_id: userId, full_name: 'Ayu', is_parent: true, is_platform_admin: false,
-  roles: [{ role: 'teacher', school_id: schoolId, school_name: 'Sekolah A' }],
+  user_id: userId, full_name: 'Ayu', is_platform_admin: false,
+  roles: [{ role: 'teacher', school_id: schoolId, school_name: 'Sekolah A' }, { role: 'school_admin', school_id: schoolId, school_name: 'Sekolah A' }],
 }
-const singleRoleIdentity = { ...identity, is_parent: false }
+const singleRoleIdentity = { ...identity, roles: [identity.roles[0]] }
 
 test('restores safe role intent only after fresh identity checks', async ({ page }) => {
   let identityReads = 0

@@ -12,6 +12,5 @@ export interface Identity {
   /** The caller's own contact email; absent when the account has none. */
   readonly email?: string | null
   readonly memberships: readonly SchoolMembership[]
-  readonly isParent: boolean
   readonly isPlatformAdmin: boolean
 }

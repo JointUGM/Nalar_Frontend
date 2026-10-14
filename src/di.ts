@@ -9,8 +9,6 @@ import { HttpLiveService } from '@/infrastructure/services/HttpLiveService'
 import { LiveUseCases } from '@/application/live-use-cases'
 import { HttpApi } from '@/infrastructure/services/HttpApi'
 import { HttpClientEvents } from '@/infrastructure/services/HttpClientEvents'
-import { HttpParentService } from '@/infrastructure/services/HttpParentService'
-import { ParentUseCases } from '@/application/parent-use-cases'
 import { HttpStudentService } from '@/infrastructure/services/HttpStudentService'
 import { StudentUseCases } from '@/application/student-use-cases'
 import { HttpTeacherService } from '@/infrastructure/services/HttpTeacherService'
@@ -35,16 +33,15 @@ function resolveApiBaseUrl(input?: string): string | null {
   } catch { return null }
 }
 
-export async function createDependencies(config: PublicAppConfig): Promise<{ account: AccountDependencies | null; live: LiveUseCases | null; parent: ParentUseCases | null; student: StudentUseCases | null; teacher: TeacherUseCases | null; knowledgeBase: KnowledgeBaseUseCases | null; school: SchoolAdminUseCases | null; platform: PlatformAdminUseCases | null; reportError: ((code: string, pathname: string) => Promise<void>) | null; dispose: () => Promise<void> }> {
+export async function createDependencies(config: PublicAppConfig): Promise<{ account: AccountDependencies | null; live: LiveUseCases | null; student: StudentUseCases | null; teacher: TeacherUseCases | null; knowledgeBase: KnowledgeBaseUseCases | null; school: SchoolAdminUseCases | null; platform: PlatformAdminUseCases | null; reportError: ((code: string, pathname: string) => Promise<void>) | null; dispose: () => Promise<void> }> {
   const apiBaseUrl = resolveApiBaseUrl(config.apiBaseUrl)
-  if (!apiBaseUrl) return { account: null, live: null, parent: null, student: null, teacher: null, knowledgeBase: null, school: null, platform: null, reportError: null, dispose: async () => {} }
+  if (!apiBaseUrl) return { account: null, live: null, student: null, teacher: null, knowledgeBase: null, school: null, platform: null, reportError: null, dispose: async () => {} }
   const { HttpAuthService } = await import('@/infrastructure/services/HttpAuthService')
   const auth = new HttpAuthService({ apiBaseUrl })
   const api = new HttpApi({ apiBaseUrl })
   const events = new HttpClientEvents(api)
   return {
     live: new LiveUseCases(new HttpLiveService({ apiBaseUrl })),
-    parent: new ParentUseCases(new HttpParentService(api)),
     student: new StudentUseCases(new HttpStudentService(api)),
     teacher: new TeacherUseCases(new HttpTeacherService(api)),
     knowledgeBase: new KnowledgeBaseUseCases(new HttpKnowledgeBaseService(api)),

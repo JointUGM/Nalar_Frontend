@@ -26,7 +26,7 @@ const stateWord: readonly [string, string][] = [
   ['not_requested', 'Belum diundang'], ['pending', 'Dalam antrean'], ['sent', 'Terkirim, belum diaktivasi'], ['activated', 'Sudah diaktivasi'],
   ['active', 'Sudah aktif'], ['expired', 'Tautan kedaluwarsa'], ['failed', 'Gagal terkirim'], ['requires_assistance', 'Perlu dibantu sekolah'], ['superseded', 'Diganti undangan baru'],
 ]
-const roleWord: Readonly<Record<string, string>> = { student: 'Siswa', teacher: 'Guru', parent: 'Orang tua', school_admin: 'Admin sekolah' }
+const roleWord: Readonly<Record<string, string>> = { student: 'Siswa', teacher: 'Guru', school_admin: 'Admin sekolah' }
 const skipWord: Readonly<Record<string, string>> = { requires_assistance: 'tanpa email yang bisa dipakai', identity_changed: 'email akunnya berubah', already_active: 'akunnya sudah aktif' }
 
 function statusTone(state: string): 'neutral' | 'info' | 'success' | 'warning' | 'danger' {
@@ -63,7 +63,7 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
   const [search, setSearch] = useState('')
   const [tab, setTab] = useState<FilterTab>('all')
 
-  if (!data) return <div className={styles.content}><div className={styles.head}><div className={styles.headText}><h1 className={styles.title}>Undangan akun</h1><p className={styles.lead}>Kirim tautan aktivasi akun untuk siswa, guru, orang tua, dan admin sekolah.</p></div></div><LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat status undangan…" />}</div>
+  if (!data) return <div className={styles.content}><div className={styles.head}><div className={styles.headText}><h1 className={styles.title}>Undangan akun</h1><p className={styles.lead}>Kirim tautan aktivasi akun untuk siswa, guru, dan admin sekolah.</p></div></div><LiveFeedback error={error} online={online} refresh={refresh} />{!error && <Loading label="Memuat status undangan…" />}</div>
   const counts = data.counts
   const waiting = { new: counts.not_requested ?? 0, retry: (counts.failed ?? 0) + (counts.expired ?? 0) }
 
@@ -115,7 +115,7 @@ export function SchoolInvitationsPage({ service, schoolId }: { service: SchoolAd
     <div className={styles.head}>
       <div className={styles.headText}>
         <h1 className={styles.title}>Undangan akun</h1>
-        <p className={styles.lead}>Kirim tautan aktivasi akun untuk siswa, guru, orang tua, dan admin sekolah.</p>
+        <p className={styles.lead}>Kirim tautan aktivasi akun untuk siswa, guru, dan admin sekolah.</p>
       </div>
       {note && <NalaNote mood={note[0]} text={note[1]} />}
     </div>
