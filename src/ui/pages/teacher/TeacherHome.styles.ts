@@ -8,6 +8,7 @@ const styles = {
   top: 'grid items-stretch gap-4 xl:grid-cols-[400px_minmax(0,1fr)]',
   bottom: 'grid items-stretch gap-4 lg:grid-cols-12 [&>*:nth-child(1)]:lg:col-span-5 [&>*:nth-child(2)]:lg:col-span-4 [&>*:nth-child(3)]:lg:col-span-3 max-lg:[&>*]:col-span-1',
   card: 'flex min-w-0 flex-col gap-4 rounded-2xl bg-surface p-5 [&_h2]:m-0 [&_h2]:text-[16px] [&_h2]:font-bold [&_h2_a]:text-ink [&_h2_a]:no-underline [&_h2_a:hover]:text-primary',
+  cycle: 'min-w-0 [&_ol]:m-0 [&_ol]:p-0 [&_ol]:list-none [&_ol]:grid [&_ol]:gap-2 [&_ol]:grid-cols-5 max-lg:[&_ol]:grid-cols-2 max-sm:[&_ol]:grid-cols-1 [&_a]:h-full [&_a]:px-4 [&_a]:py-3 [&_a]:grid [&_a]:gap-0.5 [&_a]:rounded-xl [&_a]:bg-surface [&_a]:no-underline [&_a]:text-ink [&_a:hover]:bg-info-bg [&_b]:text-[14px] [&_b]:font-bold [&_span]:text-[12px] [&_span]:leading-[1.4] [&_span]:text-text-secondary',
   head: `flex items-baseline gap-2 [&>span]:text-[13px] [&>span]:text-text-muted [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-text-muted [&>div]:grid [&>div]:gap-0.5 ${link}`,
   big: 'text-[18px]! font-extrabold! tracking-[-.02em]',
   empty: 'm-0 flex items-center gap-2 text-[14px] text-text-secondary [&_a]:font-bold [&_a]:text-primary',

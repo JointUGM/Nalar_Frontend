@@ -12,11 +12,34 @@ export interface TeacherPublication {
 }
 
 // Every number here is counted by the database (AI-4); the narrative is the only AI-written part.
-export interface ClassMapMisconception { misconception_id: string; statement: string; count: number; resolved_count: number; student_ids: string[]; students: { student_id: string; name: string; session_id: string }[] }
+// `source` is 'library' only for a published library entry, and then `citations` is never empty.
+export interface ClassMapMisconception {
+  misconception_id: string; statement: string; count: number
+  // Students who changed their mind inside this one session; the trail below compares missions.
+  resolved_count: number
+  student_ids: string[]; students: { student_id: string; name: string; session_id: string }[]
+  correct_understanding: string; counter_examples: string[]; detection_cues: string[]; source: 'library' | 'kb'; citations: string[]
+}
 export interface ClassMapConcept { concept_id: string; name: string; mastered_count: number; developing_count: number; not_observed_count: number; misconceptions: ClassMapMisconception[] }
 // `prerequisite_id` is learned before `concept_id`; edges only join the mission's target concepts.
 export interface ClassMapEdge { concept_id: string; prerequisite_id: string }
 export interface ClassMap { denominator: number; incomplete_count: number; concepts: ClassMapConcept[]; prerequisites: ClassMapEdge[]; insight: { narrative: string; generated_at: string; suggestions: string[] } | null }
+
+// Jejak Perbaikan: of the students who held a misconception in the earlier mission, who no longer shows it in this one.
+// held = resolved + still held + not observed; a misconception the later mission could not report is never resolved.
+export interface TrailMission { publication_id: string; mission_title: string; mission_version: number; denominator: number }
+export interface TrailItem {
+  concept_id: string; concept_name: string; misconception_id: string; statement: string
+  held_count: number; resolved_count: number; resolved_breakdown: { mastered: number; developing: number; other_misconception: number }
+  still_held_count: number; not_observed_count: number
+  students_still_holding: { student_id: string; name: string; session_id: string }[]
+}
+export interface MisconceptionTrail {
+  to: TrailMission & { class_name: string }
+  from: TrailMission | null
+  items: TrailItem[]
+  not_retested: { concept_id: string; misconception_id: string; statement: string; held_count: number }[]
+}
 
 export interface ReleasePreview {
   ready: boolean
@@ -76,7 +99,7 @@ export type MissionVersionDraft = Omit<MissionVersion, 'id' | 'version_number' |
 // One student's session as the teacher sees it. Scores are AI levels 0-4 that the teacher may change, never the student's view.
 export interface ReportScore { score_id: string; dimension: string; ai_level: number; final_level: number; rationale: string | null; evidence: { turn_id: string; quote: string }[]; overrides: { previous_level: number; new_level: number; reason: string; created_at: string }[] }
 // Activity is counted, never recorded: pasted characters, seconds away from the tab and typing time.
-export interface ReportTurn { turn_id: string; turn_index: number; kind: string; prompt: string; answer: string | null; move: string | null; safety_paused: boolean; activity: { paste_chars: number; away_seconds: number; typing_ms: number } }
+export interface ReportTurn { turn_id: string; turn_index: number; kind: string; prompt: string; answer: string | null; move: string | null; move_source: string | null; reason_code: string | null; reason: string | null; safety_paused: boolean; activity: { paste_chars: number; away_seconds: number; typing_ms: number } }
 export type ReportFlagEvidence =
   | { kind: 'large_paste'; paste_chars: number; answer_chars: number }
   | { kind: 'tab_switching'; turn_indices: number[]; away_events: number; away_seconds_by_turn: { turn_index: number; seconds: number }[] }

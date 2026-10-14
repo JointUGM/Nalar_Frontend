@@ -46,6 +46,18 @@ afterAll(() => {
 
 const publications = { items: [{ id: publication, class_id: school, class_name: '8B', mission_title: 'Kenapa kelereng berhenti?', released_to_parents_at: null, run: { id: school, mode: 'live', status: 'closed', join_code: null, opens_at: null, closes_at: null }, counts: { started: 30, completed: 28, timed_out: 2, evaluated: 28 } }], next_cursor: null }
 const classMap = { denominator: 28, incomplete_count: 2, prerequisites: [], concepts: [{ concept_id: concept, name: 'Gaya gesek', mastered_count: 10, developing_count: 6, not_observed_count: 0, misconceptions: [{ misconception_id: misconception, statement: 'Gaya bisa habis', count: 18, resolved_count: 11, student_ids: [student], students: [{ student_id: student, name: 'Raka Pratama', session_id: student }] }] }], insight: { narrative: 'Sebanyak 18 siswa mengira gaya bisa habis.', generated_at: '2026-10-02T03:00:00+00:00', suggestions: ['Mulai dengan dua bola di karpet dan di lantai.'] } }
+const earlier = '00000000-0000-4000-8000-0000000000b1'
+const trailOut = (extra: Record<string, unknown> = {}) => ({
+  to: { publication_id: publication, mission_title: 'Gaya gesek lanjutan', mission_version: 2, class_name: '8B', denominator: 27 },
+  from: { publication_id: earlier, mission_title: 'Gaya gesek', mission_version: 1, denominator: 28 },
+  items: [{
+    concept_id: concept, concept_name: 'Gaya gesek', misconception_id: misconception, statement: 'Gaya bisa habis',
+    held_count: 14, resolved_count: 9, resolved_breakdown: { mastered: 5, developing: 3, other_misconception: 1 }, still_held_count: 4, not_observed_count: 1,
+    students_still_holding: [1, 2, 3, 4].map((n) => ({ student_id: `${student}-${n}`, name: `Siswa ${n}`, session_id: `${sessionId}-${n}` })),
+  }],
+  not_retested: [{ concept_id: concept, misconception_id: 'm-other', statement: 'Benda berat jatuh lebih cepat', held_count: 3 }],
+  ...extra,
+})
 const mission = '00000000-0000-4000-8000-00000000000e'
 const version = '00000000-0000-4000-8000-00000000000f'
 const draft = '00000000-0000-4000-8000-000000000010'
@@ -95,6 +107,7 @@ function backend(overrides: Record<string, Reply> = {}) {
     'GET /teacher/publications?limit=100': () => Response.json(publications),
     [`GET /publications/${publication}/class-map`]: () => Response.json(classMap),
     [`GET /publications/${publication}/release-preview`]: () => Response.json(preview()),
+    [`GET /publications/${publication}/misconception-trail`]: () => Response.json(trailOut({ from: null, items: [], not_retested: [] })),
     [`GET /schools/${school}/missions?limit=100`]: () => Response.json(missions),
     'GET /teacher/assignments': () => Response.json(assignments),
     [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail()),
@@ -188,7 +201,7 @@ describe('signed-in teacher pages', () => {
   })
   it('shows the class map with the exact counts and the saved explanation', async () => {
     open(`${base}/publications/${publication}/class-map`, backend())
-    const row = within((await screen.findByRole('rowheader', { name: '“Gaya bisa habis”' })).closest('tr')!)
+    const row = within((await screen.findByRole('rowheader', { name: /^“Gaya bisa habis”/ })).closest('tr')!)
     expect(row.getByText('18')).toBeInTheDocument()
     expect(row.getByText('11 dari 18')).toBeInTheDocument()
     expect(screen.getByText('Sebanyak 18 siswa mengira gaya bisa habis.')).toBeInTheDocument()
@@ -703,6 +716,25 @@ describe('signed-in teacher pages', () => {
     expect(JSON.parse(String(posts[0][1]?.body))).toEqual({ knowledge_base_id: kbId, title: 'Tekanan Zat', learning_objective: 'Siswa menjelaskan tekanan hidrostatis.' })
   })
 
+  it('asks for a follow-up draft from the trail card and sends the earlier publication', async () => {
+    const request = backend({
+      [`GET /publications/${publication}/misconception-trail`]: () => Response.json(trailOut()),
+      'POST /missions': () => Response.json({ mission_id: draft }, { status: 201 }),
+      [`POST /missions/${draft}/generate`]: () => Response.json({ job_id: job, status: 'queued' }, { status: 202 }),
+      [`GET /jobs/${job}`]: () => Response.json(jobOut({ kind: 'mission_generate', generation_result: { version_id: draft, version_number: 1, ungrounded_concept_ids: [] } })),
+    })
+    open(`${base}/publications/${publication}/class-map`, request)
+    const card = within(await screen.findByRole('region', { name: 'Jejak perbaikan sejak misi sebelumnya' }))
+    fireEvent.click(card.getAllByRole('link', { name: 'Buat misi lanjutan' })[0])
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Basis pengetahuan/ })).toHaveTextContent('Tekanan Zat'))
+    fireEvent.change(screen.getByLabelText(/Judul misi/), { target: { value: 'Tekanan lanjutan' } })
+    fireEvent.change(screen.getByLabelText(/Tujuan pembelajaran/), { target: { value: 'Siswa menjelaskan tekanan hidrostatis.' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Buat misi' }))
+    expect(await screen.findByText('Draf misi selesai disusun')).toBeInTheDocument()
+    const generate = request.mock.calls.find(([url]) => String(url).endsWith('/generate'))!
+    expect(JSON.parse(String(generate[1]?.body))).toEqual({ follow_up_of_publication_id: publication })
+  })
+
   it('starts the learning objective from a sentence opening that disappears once used', async () => {
     open(`${base}/missions/new`, backend({}))
     fireEvent.click(await screen.findByRole('button', { name: 'Siswa dapat menjelaskan' }))
@@ -791,5 +823,93 @@ describe('teacher-guided mission revision', () => {
     expect(screen.getByRole('button', { name: 'Tandai sudah ditinjau' })).toBeInTheDocument()
     expect(screen.getByText('Misi awal')).toBeInTheDocument()
     expect(request.mock.calls.some(([url]) => String(url).endsWith('/versions/1'))).toBe(true)
+  })
+  it('shows why each probe was chosen, with a fallback note, and nothing for the opening problem', async () => {
+    const turn = (index: number, extra: Record<string, unknown>) => ({ ...reportOut().turns[0], turn_id: `${turnId}-${index}`, turn_index: index, kind: 'probe', prompt: `Pertanyaan ${index}`, move: 'counter_example', move_source: 'planner', reason: null, reason_code: 'default', ...extra })
+    const request = backend({ [`GET /sessions/${sessionId}/report`]: () => Response.json(reportOut({ turns: [
+      reportOut().turns[0],
+      turn(1, { reason: 'Siswa menyebut dua ide keliru.' }),
+      turn(2, { reason_code: 'check_deeper' }),
+      turn(3, { move_source: 'fallback_error' }),
+    ] })) })
+    open(reportPath, request)
+    expect(await screen.findByText('Siswa menyebut dua ide keliru.')).toBeInTheDocument()
+    expect(screen.getByText('Jawaban sudah benar, jadi alasannya digali lebih dalam.')).toBeInTheDocument()
+    expect(screen.getByText('Pertanyaan cadangan karena AI tidak tersedia.')).toBeInTheDocument()
+    expect(screen.getAllByText('Alasan pertanyaan ini:')).toHaveLength(3)
+  })
+
+  it('still reads a report from a backend that sends no reason fields', async () => {
+    const old: Record<string, unknown> = { ...reportOut().turns[0] }
+    for (const key of ['move_source', 'reason', 'reason_code']) delete old[key]
+    open(reportPath, backend({ [`GET /sessions/${sessionId}/report`]: () => Response.json(reportOut({ turns: [old] })) }))
+    expect(await screen.findByText('Kenapa kelereng berhenti?', { selector: 'p' })).toBeInTheDocument()
+    expect(screen.queryByText('Alasan pertanyaan ini:')).not.toBeInTheDocument()
+  })
+
+  it('compares two missions in the trail card without counting unobserved students as improved', async () => {
+    open(`${base}/publications/${publication}/class-map`, backend({ [`GET /publications/${publication}/misconception-trail`]: () => Response.json(trailOut()) }))
+    const card = within(await screen.findByRole('region', { name: 'Jejak perbaikan sejak misi sebelumnya' }))
+    expect(card.getByText(/Dari 14 siswa yang memegangnya di “Gaya gesek”, 9 tidak lagi menunjukkannya di “Gaya gesek lanjutan”/)).toBeInTheDocument()
+    expect(card.getByText(/9 tidak lagi menunjukkannya \(5 paham, 3 berkembang, 1 miskonsepsi lain\) · 4 masih menunjukkannya · 1 belum teramati/)).toBeInTheDocument()
+    expect(card.getByRole('link', { name: 'Siswa 2' })).toHaveAttribute('href', `${base}/publications/${publication}/sessions/${sessionId}-2`)
+    expect(card.getByText(/Benda berat jatuh lebih cepat/)).toBeInTheDocument()
+    expect(card.getByText(/Sertakan di misi berikutnya/)).toBeInTheDocument()
+  })
+
+  it('offers a follow-up mission when there is no earlier one', async () => {
+    open(`${base}/publications/${publication}/class-map`, backend())
+    const card = within(await screen.findByRole('region', { name: 'Jejak perbaikan sejak misi sebelumnya' }))
+    expect(card.getByRole('link', { name: 'Buat misi lanjutan' })).toHaveAttribute('href', `${base}/missions/new`)
+  })
+
+  it('hides the trail card, not the map, when the trail is missing or does not add up', async () => {
+    const broken = trailOut({ items: [{ ...trailOut().items[0], resolved_count: 12 }] })
+    for (const reply of [() => new Response('{}', { status: 404 }), () => Response.json(broken)]) {
+      const view = open(`${base}/publications/${publication}/class-map`, backend({ [`GET /publications/${publication}/misconception-trail`]: reply }))
+      expect(await screen.findByText('Sebanyak 18 siswa mengira gaya bisa habis.')).toBeInTheDocument()
+      await waitFor(() => expect(screen.queryByRole('region', { name: 'Jejak perbaikan sejak misi sebelumnya' })).not.toBeInTheDocument())
+      view.unmount()
+    }
+  })
+
+  it('opens a strategy card and labels research only when a citation exists', async () => {
+    const card = (extra: Record<string, unknown>) => ({ ...classMap.concepts[0].misconceptions[0], correct_understanding: 'Gaya hanya berubah arah atau besarnya.', counter_examples: ['Bola menggelinding di lantai licin'], detection_cues: ['menyebut "habis"'], source: 'kb', citations: [], ...extra })
+    const map = (item: Record<string, unknown>) => ({ ...classMap, concepts: [{ ...classMap.concepts[0], misconceptions: [item] }] })
+    const sourced = open(`${base}/publications/${publication}/class-map`, backend({ [`GET /publications/${publication}/class-map`]: () => Response.json(map(card({ source: 'library', citations: ['Buku IPA Kelas VIII, hlm. 12'] }))) }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Lihat kartu strategi' }))
+    expect(screen.getByText('Riset: Buku IPA Kelas VIII, hlm. 12')).toBeInTheDocument()
+    expect(screen.getByText('Gaya hanya berubah arah atau besarnya.')).toBeInTheDocument()
+    expect(screen.getByText('Bola menggelinding di lantai licin')).toBeInTheDocument()
+    expect(screen.getByText('Saran untuk kelas (tidak khusus miskonsepsi ini)')).toBeInTheDocument()
+    sourced.unmount()
+    open(`${base}/publications/${publication}/class-map`, backend({ [`GET /publications/${publication}/class-map`]: () => Response.json(map(card({ source: 'library', citations: [] }))) }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Lihat kartu strategi' }))
+    expect(screen.getByText('Dari materi sekolah')).toBeInTheDocument()
+    expect(screen.queryByText(/Riset:/)).not.toBeInTheDocument()
+  })
+
+  it('appends the teacher note to the MGMP file locally without sending it', async () => {
+    const created: Blob[] = []
+    Object.assign(URL, { createObjectURL: (blob: Blob) => { created.push(blob); return 'blob:mgmp' }, revokeObjectURL: () => {} })
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const request = backend({ [`GET /publications/${publication}/mgmp-package?format=csv`]: () => new Response('﻿misconception,students_holding\nGaya bisa habis,18\n', { headers: { 'Content-Type': 'text/csv' } }) })
+    open(`${base}/publications/${publication}/class-map`, request)
+    fireEvent.click(await screen.findByRole('button', { name: 'Siapkan paket MGMP' }))
+    fireEvent.change(await screen.findByLabelText(/Aktivitas yang Anda coba/), { target: { value: 'Dua bola di karpet' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Unduh paket' }))
+    await waitFor(() => expect(click).toHaveBeenCalledTimes(1))
+    const body = await created[0].text()
+    expect(body).toContain('Gaya bisa habis,18')
+    expect(body).toContain('"catatan_guru","Dua bola di karpet"')
+    expect(request.mock.calls.every(([, init]) => init?.body === undefined)).toBe(true)
+    click.mockRestore()
+  })
+
+  it('links every step of the learning cycle from the teacher home', async () => {
+    open(base, backend())
+    const cycle = within(await screen.findByRole('navigation', { name: 'Siklus belajar guru' }))
+    expect(cycle.getAllByRole('link').map((link) => link.querySelector('b')?.textContent)).toEqual(['Siapkan', 'Amati', 'Diagnosis', 'Tindak lanjut', 'Bukti dampak'])
+    expect(cycle.getByRole('link', { name: /Siapkan/ })).toHaveAttribute('href', `${base}/missions`)
   })
 })

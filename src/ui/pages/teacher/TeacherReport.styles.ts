@@ -33,6 +33,7 @@ const styles = {
   turns: 'm-0 p-0 grid gap-6 list-none [&>li]:grid [&>li]:grid-cols-[40px_minmax(0,1fr)] [&>li]:gap-4 [&>li]:-mx-3 [&>li]:p-3 [&>li]:rounded-xl [&>li]:[transition:background-color_.4s] [&>li[data-selected=true]]:bg-info-bg/50 motion-reduce:[&>li]:[transition:none] [&>li>div]:grid [&>li>div]:gap-2.5 [&>li>div]:min-w-0',
   turnNumber: 'size-8 grid place-items-center rounded-pill bg-paper text-[13px] font-extrabold',
   turnHead: 'gap-2 flex flex-wrap items-center [&_b]:text-[12px] [&_b]:text-text-muted [&_span]:px-2.5 [&_span]:py-[3px] [&_span]:bg-info-bg [&_span]:rounded-pill [&_span]:text-primary [&_span]:text-[12px] [&_span]:font-bold [&_small]:text-[13px] [&_small]:text-danger-text',
+  reason: 'm-0 text-[13px] leading-[1.5] text-text-secondary [&_b]:font-bold [&_b]:text-ink',
   question: 'm-0 text-[15px] leading-[1.5] font-semibold',
   answer: 'm-0 px-4 py-3.5 bg-paper wrap-anywhere rounded-xl font-reading text-[16px] leading-[1.6] [&_mark]:px-0.5 [&_mark]:bg-warning-bg [&_mark]:rounded-[4px] [&_mark]:text-ink',
   meta: 'm-0 text-[12px] text-text-muted',
