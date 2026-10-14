@@ -36,7 +36,7 @@ export function useIdentityAccessViewModel(dependencies: AccountDependencies | n
       try {
         const identity = await dependencies.identity.execute(controller.signal)
         if (!active || current !== version) return
-        if (identity.userId !== session.userId) throw new OperationError('invalid_response')
+        if (identity.userId.toLowerCase() !== session.userId.toLowerCase()) throw new OperationError('invalid_response')
         setState({ phase: 'ready', identity, error: null })
       } catch (cause) {
         if (!active || current !== version) return

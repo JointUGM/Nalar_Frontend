@@ -459,9 +459,9 @@ describe('signed-in teacher pages', () => {
       [`GET /sessions/${sessionId}/report`]: () => Response.json(reportData),
     })
     open(reportPath, request)
-    expect(await screen.findByText('Mengapa pertanyaan ini: Contoh pembanding, karena jawaban memuat ide keliru.')).toBeInTheDocument()
-    expect(screen.getByText('Mengapa pertanyaan ini: Pertanyaan cadangan yang disetujui guru dipakai karena AI tidak menjawab tepat waktu.')).toBeInTheDocument()
-    const reasons = screen.getAllByText(/Mengapa pertanyaan ini:/)
+    expect(await screen.findByText('Contoh pembanding, karena jawaban memuat ide keliru.')).toBeInTheDocument()
+    expect(screen.getByText('Pertanyaan cadangan karena AI tidak tersedia.')).toBeInTheDocument()
+    const reasons = screen.getAllByText('Alasan pertanyaan ini:')
     expect(reasons).toHaveLength(2)
   })
 

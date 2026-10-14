@@ -84,12 +84,19 @@ describe('Current identity HTTP boundary', () => {
   it.each([
     { ...me, user_id: 'invalid' },
     { ...me, is_platform_admin: 'true' },
-    { ...me, is_parent: undefined },
+    { ...me, is_parent: 'true' },
     { ...me, roles: null },
     { ...me, roles: [{ ...me.roles[0], role: 'platform_admin' }] },
     { ...me, roles: [{ ...me.roles[0], school_id: 'invalid' }] },
   ])('rejects malformed identity data instead of granting capabilities: %j', async (payload) => {
     await expect(reader(async () => Response.json(payload)).execute()).rejects.toMatchObject({ code: 'invalid_response', status: 200 })
+  })
+
+  it('defaults is_parent and is_platform_admin to false when omitted by backend', async () => {
+    const { is_parent: _p, is_platform_admin: _pa, ...omitted } = me
+    const identity = await reader(async () => Response.json(omitted)).execute()
+    expect(identity.isParent).toBe(false)
+    expect(identity.isPlatformAdmin).toBe(false)
   })
 
   it('rejects non-JSON success bodies', async () => {

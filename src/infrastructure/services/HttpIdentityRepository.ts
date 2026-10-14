@@ -2,9 +2,6 @@ import type { Identity, SchoolMembership } from '@/domain/model/Identity'
 import { OperationError } from '@/domain/model/OperationError'
 import type { OperationErrorCode } from '@/domain/model/OperationError'
 import type { IdentityRepository } from '@/domain/services/IdentityRepository'
-import type { paths } from './contracts/backend'
-
-type MeResponse = paths['/api/v1/me']['get']['responses'][200]['content']['application/json']
 
 export interface HttpIdentityOptions {
   apiBaseUrl: string
@@ -24,7 +21,8 @@ function requestReference(value: unknown): string | undefined {
 function mapIdentity(value: unknown): Identity | null {
   if (!isRecord(value) || typeof value.user_id !== 'string' || !uuid.test(value.user_id)
     || typeof value.full_name !== 'string' || !Array.isArray(value.roles)
-    || typeof value.is_parent !== 'boolean' || typeof value.is_platform_admin !== 'boolean') return null
+    || (value.is_parent !== undefined && typeof value.is_parent !== 'boolean')
+    || (value.is_platform_admin !== undefined && typeof value.is_platform_admin !== 'boolean')) return null
 
   const memberships: SchoolMembership[] = []
   for (const membership of value.roles) {
@@ -33,12 +31,17 @@ function mapIdentity(value: unknown): Identity | null {
       || typeof membership.school_name !== 'string') return null
     memberships.push({ role: membership.role, schoolId: membership.school_id, schoolName: membership.school_name })
   }
-  const checked: MeResponse = {
-    user_id: value.user_id, full_name: value.full_name,
-    roles: memberships.map(({ role, schoolId, schoolName }) => ({ role, school_id: schoolId, school_name: schoolName })),
-    is_parent: value.is_parent, is_platform_admin: value.is_platform_admin, email: typeof value.email === 'string' ? value.email : null,
+  const isParent = typeof value.is_parent === 'boolean' ? value.is_parent : false
+  const isPlatformAdmin = typeof value.is_platform_admin === 'boolean' ? value.is_platform_admin : false
+
+  return {
+    userId: value.user_id,
+    fullName: value.full_name,
+    email: typeof value.email === 'string' ? value.email : null,
+    memberships,
+    isParent,
+    isPlatformAdmin,
   }
-  return { userId: checked.user_id, fullName: checked.full_name, email: checked.email ?? null, memberships, isParent: checked.is_parent, isPlatformAdmin: checked.is_platform_admin }
 }
 
 const statusCodes: Partial<Record<number, OperationErrorCode>> = {

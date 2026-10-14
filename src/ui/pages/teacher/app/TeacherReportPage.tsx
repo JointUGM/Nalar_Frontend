@@ -13,7 +13,7 @@ import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResour
 import { CsvDownload } from '@/ui/components/csv-download/CsvDownload'
 import styles from '@/ui/pages/teacher/TeacherReport.styles'
 import dialogStyles from '@/ui/pages/teacher/ReportDialogs.styles'
-import { fallbackReason, moveWord, rubricWord } from './missionText'
+import { moveWord, rubricWord, turnReason } from './missionText'
 import { FlagEvidence } from './FlagEvidence'
 import { Loading } from '@/ui/components/loading/Loading'
 
@@ -96,14 +96,49 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
   return <div className={styles.content}>
     <TeacherPageHead crumb={<><Link to={monitor}>Pemantauan</Link><Icon name="chevronRight" size={14} /></>} title={<Link to={`${base}/students/${report.student.id}`} state={{ studentName: report.student.name }}>{report.student.name}</Link>} subtitle={[`${report.mission.title} · versi ${report.mission.version_number}`, `Percobaan ${report.session.attempt_number}`, sessionWord[report.session.status] ?? report.session.status, minutes(report.session.started_at, report.session.ended_at)].filter(Boolean).join(' · ')} />
     <div className={styles.header}>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold ${
+          report.session.status === 'completed'
+            ? 'bg-success-bg text-success-strong border border-success-strong/20'
+            : report.session.status === 'in_progress'
+              ? 'bg-info-bg text-primary border border-primary/20'
+              : 'bg-warning-bg text-warning-text border border-warning-text/20'
+        }`}>
+          <span className={`size-2 rounded-full ${
+            report.session.status === 'completed'
+              ? 'bg-success-strong'
+              : report.session.status === 'in_progress'
+                ? 'bg-primary animate-pulse'
+                : 'bg-warning-text'
+          }`} />
+          {sessionWord[report.session.status] ?? report.session.status}
+        </span>
+        {minutes(report.session.started_at, report.session.ended_at) && (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold bg-paper text-text-secondary border border-border/60">
+            <Icon name="clock" size={13} />
+            {minutes(report.session.started_at, report.session.ended_at)}
+          </span>
+        )}
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold bg-paper text-text-secondary border border-border/60">
+          <Icon name="layers" size={13} />
+          Percobaan {report.session.attempt_number}
+        </span>
+      </div>
       <div className={styles.headerActions}>
+        {data && reportPollMs(data) === null && (
+          <Button tone="secondary" onClick={refresh}>
+            <Icon name="refresh" size={14} />Perbarui laporan
+          </Button>
+        )}
         <CsvDownload label="Unduh laporan (CSV)" filename="nalar-laporan-siswa.csv" read={(signal) => service.exportReport(sessionId, signal)} />
-        {finished && <Button tone="secondary" disabled={pending || granted} onClick={() => open({ kind: 'grant' })}><Icon name="refresh" size={14} />{granted ? 'Kesempatan lagi diberikan' : 'Beri kesempatan lagi'}</Button>}
+        {finished && (
+          <Button tone="secondary" disabled={pending || granted} onClick={() => open({ kind: 'grant' })}>
+            <Icon name="refresh" size={14} />{granted ? 'Kesempatan lagi diberikan' : 'Beri kesempatan lagi'}
+          </Button>
+        )}
       </div>
     </div>
-    {data && reportPollMs(data) === null && <Button tone="secondary" onClick={refresh}><Icon name="refresh" size={14} />Perbarui laporan</Button>}
     {granted && <Feedback tone="success" title="Kesempatan lagi diberikan" announce>Siswa melihatnya sebagai misi baru di Misi saya. Hasil percobaan ini tetap tersimpan.</Feedback>}
-    <p className={styles.note}>Hanya untuk guru · tidak ditampilkan kepada siswa atau orang tua.</p>
     {said && !dialog && <Feedback tone="warning" title={said} announce />}
     {report.session.status === 'paused_safety' && <Feedback tone="warning" title="Sesi siswa ini dijeda karena keselamatan" announce>
       Temui siswa lebih dulu. Lanjutkan sesi bila siswa siap, atau akhiri sesi.
@@ -114,24 +149,103 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
     </Feedback>}
     {report.evaluation?.status === 'failed' && <Feedback tone="danger" title="Evaluasi belum berhasil">Dialog siswa tetap tersimpan. Skor belum tersedia.</Feedback>}
     {report.evaluation?.status === 'no_answer' && <Feedback title="Tidak ada jawaban untuk dinilai">Siswa belum menjawab pertanyaan apa pun.</Feedback>}
-    {!report.evaluation && <p role="status" className={styles.thinking}>Evaluasi belum selesai. Skor muncul setelah sesi dinilai.</p>}
-    {report.evaluation?.summary && <p className={styles.note}>{report.evaluation.summary}</p>}
+    {!report.evaluation && <p role="status" className={styles.thinking}><Icon name="clock" size={16} />Evaluasi belum selesai. Skor muncul setelah sesi dinilai.</p>}
+    {report.evaluation?.summary ? (
+      <section className="rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xs flex flex-col gap-4" aria-label="Ringkasan Evaluasi">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Icon name="sparkle" size={20} />
+            </div>
+            <div>
+              <h2 className="text-[16px] font-bold text-ink m-0">Ringkasan Evaluasi</h2>
+              <p className="text-[12px] text-text-muted m-0">Sintesis penalaran siswa dari seluruh giliran dialog</p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold bg-paper text-text-secondary border border-border/60">
+            <Icon name="lock" size={12} /> Hanya untuk guru · tidak ditampilkan kepada siswa atau orang tua.
+          </span>
+        </div>
+        <p className="m-0 text-[14.5px] sm:text-[15px] leading-[1.68] font-reading text-ink bg-canvas/60 p-4.5 rounded-xl border border-border/40">
+          {report.evaluation.summary}
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+          <div className="p-3 rounded-xl bg-canvas border border-border/60 flex flex-col gap-0.5">
+            <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Status Evaluasi</span>
+            <span className="text-[14px] font-extrabold text-success-strong flex items-center gap-1.5"><Icon name="check" size={14} /> Selesai dinilai</span>
+          </div>
+          <div className="p-3 rounded-xl bg-canvas border border-border/60 flex flex-col gap-0.5">
+            <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Interaksi Dialog</span>
+            <span className="text-[14px] font-extrabold text-ink flex items-center gap-1.5"><Icon name="message" size={14} /> {report.turns.length} giliran</span>
+          </div>
+          <div className="p-3 rounded-xl bg-canvas border border-border/60 flex flex-col gap-0.5">
+            <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Durasi Pengerjaan</span>
+            <span className="text-[14px] font-extrabold text-ink flex items-center gap-1.5"><Icon name="clock" size={14} /> {minutes(report.session.started_at, report.session.ended_at) ?? '-'}</span>
+          </div>
+          <div className="p-3 rounded-xl bg-canvas border border-border/60 flex flex-col gap-0.5">
+            <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Verifikasi Integritas</span>
+            <span className={`text-[14px] font-extrabold flex items-center gap-1.5 ${report.flags.length > 0 ? 'text-danger-text' : 'text-success-strong'}`}>
+              <Icon name={report.flags.length > 0 ? 'flag' : 'check'} size={14} /> {report.flags.length > 0 ? `${report.flags.length} catatan verifikasi` : 'Aman (tanpa catatan)'}
+            </span>
+          </div>
+        </div>
+      </section>
+    ) : (
+      <p className={styles.note}>Hanya untuk guru · tidak ditampilkan kepada siswa atau orang tua.</p>
+    )}
 
     <div className={styles.grid}>
       <div className={styles.column}>
         {report.scores.length > 0 && <section className={styles.card} aria-labelledby="scores-title">
-          <div className={styles.cardHead}><h2 id="scores-title">Skor penalaran</h2><span>0–4 · hanya guru</span></div>
+          <div className={styles.cardHead}>
+            <h2 id="scores-title">Skor penalaran</h2>
+            <span>0–4 · hanya guru</span>
+          </div>
           <dl className={styles.scores}>{report.scores.map((score) => {
             const label = rubricWord.find(([key]) => key === score.dimension)?.[1] ?? score.dimension
             return <div key={score.score_id} data-status={score.overrides.length ? 'overridden' : score.evidence.length ? undefined : 'no-evidence'}>
-              <dt>{label}</dt>
+              <dt className="flex items-center justify-between">
+                <span>{label}</span>
+              </dt>
               <dd>
-                <span className={styles.value}><strong>{score.final_level}</strong>{score.final_level !== score.ai_level && <s>{score.ai_level}<span className={styles.hidden}> skor asli AI</span></s>}</span>
+                <span className={styles.value}>
+                  <strong>{score.final_level}</strong>
+                  {score.final_level !== score.ai_level && <s>{score.ai_level}<span className={styles.hidden}> skor asli AI</span></s>}
+                </span>
                 <span className={styles.bar} aria-hidden="true">{Array.from({ length: 4 }, (_, step) => <span key={step} data-on={step < score.final_level} />)}</span>
                 <span className={styles.scoreFoot}>
                   <span className={styles.level}>{[score.overrides.length ? 'Diubah guru' : !score.evidence.length && 'Tanpa kutipan pendukung', descriptor(score.dimension, score.final_level)].filter(Boolean).join(' · ') || (score.rationale ?? 'Skor AI')}</span>
-                  {evaluated && score.evidence.map((item) => <button key={`${item.turn_id}-${item.quote}`} type="button" title={item.quote} aria-pressed={quote?.turn === item.turn_id && quote.text === item.quote} onClick={() => setQuote({ turn: item.turn_id, text: item.quote })}>Kutipan {report.turns.find((turn) => turn.turn_id === item.turn_id)?.turn_index ?? ''}</button>)}
-                  <button type="button" aria-label={`Ubah skor ${label}`} onClick={() => open({ kind: 'score', score })}>Ubah</button>
+                  <span className="flex flex-wrap items-center gap-1.5 w-full pt-1">
+                    {evaluated && score.evidence.map((item) => {
+                      const turnIdx = report.turns.find((turn) => turn.turn_id === item.turn_id)?.turn_index ?? ''
+                      const isPressed = quote?.turn === item.turn_id && quote.text === item.quote
+                      return (
+                        <button
+                          key={`${item.turn_id}-${item.quote}`}
+                          type="button"
+                          title={item.quote}
+                          aria-pressed={isPressed}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[12px] font-bold bg-info-bg text-primary hover:bg-primary hover:text-white transition-all duration-150 border border-primary/20 cursor-pointer aria-pressed:bg-primary aria-pressed:text-white"
+                          onClick={() => {
+                            setQuote({ turn: item.turn_id, text: item.quote })
+                            document.getElementById(`turn-${item.turn_id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                          }}
+                        >
+                          <Icon name="file" size={12} />
+                          Kutipan {turnIdx}
+                        </button>
+                      )
+                    })}
+                    <button
+                      type="button"
+                      aria-label={`Ubah skor ${label}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[12px] font-bold text-text-secondary bg-surface hover:bg-paper hover:text-primary border border-border transition-colors duration-150 cursor-pointer ml-auto"
+                      onClick={() => open({ kind: 'score', score })}
+                    >
+                      <Icon name="pencil" size={12} />
+                      Ubah
+                    </button>
+                  </span>
                 </span>
               </dd>
             </div>
@@ -146,14 +260,17 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
           <p><Icon name="flag" size={12} />Perlu verifikasi · {severityWord[item.severity] ?? item.severity}</p>
           <h2>{flagWord[item.flag_type] ?? item.flag_type}</h2>
           <FlagEvidence evidence={item.evidence} turnIndex={item.turn_index} createdAt={item.created_at} />
-          <p className={styles.hint}>Catatan ini petunjuk, bukan tuduhan. Anda yang menilai.</p>
+          <p className={styles.hint}><Icon name="info" size={14} className="shrink-0 mt-0.5" />Catatan ini petunjuk, bukan tuduhan. Anda yang menilai.</p>
           {item.status === 'open'
             ? <div className={styles.flagActions}>{(['cleared', 'concern_confirmed'] as FlagDecision[]).map((decision) => <Button key={decision} tone="secondary" disabled={pending} onClick={() => { void run((signal) => service.reviewFlag(item.id, decision, null, signal)) }}>{decision === 'cleared' ? 'Tidak ada masalah' : 'Perlu dibahas'}</Button>)}</div>
             : <p className={styles.decision}>Ditinjau: {decisionWord[item.status] ?? item.status}.</p>}
         </section>)}
 
         <section className={styles.card} aria-labelledby="concept-title">
-          <h2 id="concept-title">Hasil konsep</h2>
+          <div className={styles.cardHead}>
+            <h2 id="concept-title">Hasil konsep</h2>
+            <span>{report.concept_results.length} konsep</span>
+          </div>
           {report.concept_results.length === 0 ? <p className={styles.muted}>Belum tersedia sampai evaluasi selesai.</p> : <ul className={styles.concepts}>{report.concept_results.map((result) => <li key={`${result.concept_id}-${result.misconception_id ?? ''}`} data-result={result.outcome}>
             <span><b>{conceptName(result.concept_id)}</b>{result.misconception_id && misconception(result.misconception_id) && <small>“{misconception(result.misconception_id)}”{result.resolved_in_session && ' · berubah selama sesi'}</small>}</span>
             <em>{outcomeWord[result.outcome] ?? result.outcome}</em>
@@ -162,19 +279,62 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
       </div>
 
       <section className={styles.panel} aria-labelledby="dialog-title">
-        <div className={styles.cardHead}><h2 id="dialog-title">Dialog</h2><span>{report.turns.length > 0 ? `Masalah pembuka + ${report.turns.length - 1} pertanyaan` : ''}{minutes(report.session.started_at, report.session.ended_at) ? ` · ${minutes(report.session.started_at, report.session.ended_at)}` : ''}</span></div>
+        <div className={styles.cardHead}>
+          <h2 id="dialog-title">Dialog</h2>
+          <span>{report.turns.length > 0 ? `Masalah pembuka + ${report.turns.length - 1} pertanyaan` : ''}{minutes(report.session.started_at, report.session.ended_at) ? ` · ${minutes(report.session.started_at, report.session.ended_at)}` : ''}</span>
+        </div>
         {!evaluated && <p className={styles.muted}>Kutipan bukti muncul setelah evaluasi selesai.</p>}
         <ol className={styles.turns}>{report.turns.map((turn) => {
-          const reasonText = turn.reason ?? fallbackReason(turn.move_source)
           return (
-            <li key={turn.turn_id} data-selected={quote?.turn === turn.turn_id}>
+            <li
+              key={turn.turn_id}
+              id={`turn-${turn.turn_id}`}
+              data-selected={quote?.turn === turn.turn_id}
+            >
               <span className={styles.turnNumber} aria-hidden="true">{turn.turn_index}</span>
               <div>
-                <div className={styles.turnHead}><b>{turn.turn_index === 0 ? 'Soal pembuka' : `Giliran ${turn.turn_index}`}</b>{turn.move && <span>{moveWord[turn.move] ?? turn.move}</span>}{turn.safety_paused && <small>Sesi dijeda di sini</small>}</div>
-                {turn.turn_index !== 0 && reasonText && <p className={styles.reason}>Mengapa pertanyaan ini: {reasonText}</p>}
+                <div className={styles.turnHead}>
+                  <b>{turn.turn_index === 0 ? 'Soal pembuka' : `Giliran ${turn.turn_index}`}</b>
+                  <div className="flex items-center gap-1.5">
+                    {turn.move && (
+                      <span>
+                        <Icon name="target" size={11} className="inline mr-1" />
+                        {moveWord[turn.move] ?? turn.move}
+                      </span>
+                    )}
+                    {turn.safety_paused && (
+                      <small>
+                        <Icon name="alert" size={11} className="inline mr-1" />
+                        Sesi dijeda di sini
+                      </small>
+                    )}
+                  </div>
+                </div>
+                {turnReason(turn) && (
+                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-info-bg/50 border border-primary/20 text-[13px] leading-relaxed text-text-secondary">
+                    <Icon name="idea" size={16} className="text-primary shrink-0 mt-0.5" />
+                    <p className={styles.reason}>
+                      <b>Alasan pertanyaan ini:</b> {turnReason(turn)}
+                    </p>
+                  </div>
+                )}
                 <p className={styles.question}>{turn.prompt}</p>
-                <p className={styles.answer}><span className={styles.hidden}>Jawaban siswa: </span>{turn.answer === null ? <i>Belum dijawab</i> : marked(turn.answer, quote?.turn === turn.turn_id ? quote.text : null)}</p>
-                {activityLine(turn.activity) && <p className={styles.meta}>{activityLine(turn.activity)}</p>}
+                <div className={styles.answer}>
+                  <div className="text-[12px] font-bold text-text-muted flex items-center gap-1.5 mb-1.5">
+                    <Icon name="message" size={12} />
+                    <span>Jawaban {report.student.name}:</span>
+                  </div>
+                  <p className="m-0 wrap-anywhere">
+                    <span className={styles.hidden}>Jawaban siswa: </span>
+                    {turn.answer === null ? <i>Belum dijawab</i> : marked(turn.answer, quote?.turn === turn.turn_id ? quote.text : null)}
+                  </p>
+                </div>
+                {activityLine(turn.activity) && (
+                  <p className={styles.meta}>
+                    <Icon name="clock" size={12} className="inline mr-1" />
+                    {activityLine(turn.activity)}
+                  </p>
+                )}
               </div>
             </li>
           )
