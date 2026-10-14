@@ -16,7 +16,7 @@ describe('flag evidence', () => {
   it('formats each evidence kind', () => {
     const kinds: [ReportFlagEvidence, RegExp][] = [
       [{ kind: 'large_paste', paste_chars: 300, answer_chars: 340 }, /300 karakter, dari jawaban 340/],
-      [{ kind: 'tab_switching', turn_indices: [1], away_events: 3, away_seconds_by_turn: [{ turn_index: 1, seconds: 95 }] }, /Pertanyaan 1: 1 menit 35 detik/],
+      [{ kind: 'tab_switching', turn_indices: [1], away_events: 3, away_seconds_by_turn: [{ turn_index: 1, seconds: 95 }] }, /^1 menit 35 detik$/],
       [{ kind: 'inconsistency_gap', quality_levels: [3, 1, 4] }, /3 → 1 → 4/],
       [{ kind: 'disconnect_pattern', quality_jump: 2, disconnect_count: 4 }, /terputus 4 kali; kualitas jawaban naik 2 tingkat/],
       [{ kind: 'cross_student_similarity', similarity_score: 0.876 }, /88%/],

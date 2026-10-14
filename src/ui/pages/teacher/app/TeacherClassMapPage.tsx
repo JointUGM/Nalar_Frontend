@@ -47,7 +47,7 @@ function Names({ students, to }: { students: readonly { session_id: string; name
 }
 
 // The first sentence is the takeaway; every number is marked so the counts can be read at a glance.
-function Reading({ text }: { text: string }) {
+export function Reading({ text }: { text: string }) {
   const [lead, ...rest] = text.split(/(?<=[.!?])\s+/)
   const marked = (part: string) => part.split(/(\d+(?:[.,]\d+)?%?)/).map((piece, index) => index % 2 ? <b key={index} className={styles.figure}>{piece}</b> : piece)
   return <>
