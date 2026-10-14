@@ -47,3 +47,11 @@ export const problemWord = (code: string) => problems[code] ?? `Bank pertanyaan 
 export const revisionComponentWord: Record<MissionRevisionFeedback['component'], string> = {
   anchor_problem: 'Soal pembuka', reference_reasoning: 'Jawaban acuan', rubric: 'Rubrik', bank: 'Bank pertanyaan',
 }
+
+export const fallbackReason = (moveSource: string | null): string | null => {
+  if (moveSource === 'fallback_error' || moveSource === 'fallback_invalid') {
+    return 'Pertanyaan cadangan yang disetujui guru dipakai karena AI tidak menjawab tepat waktu.'
+  }
+  return null
+}
+

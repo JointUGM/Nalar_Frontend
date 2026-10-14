@@ -202,7 +202,7 @@ export class HttpTeacherService implements TeacherService {
       flags: list(value.flags).map(reportFlag),
       turns: list(value.turns).map((entry) => {
         const turn = record(entry)
-        return { turn_id: text(turn.turn_id), turn_index: count(turn.turn_index), kind: text(turn.kind), prompt: text(turn.prompt), answer: nullable(turn.answer, text), move: nullable(turn.move, text), safety_paused: flag(turn.safety_paused),
+        return { turn_id: text(turn.turn_id), turn_index: count(turn.turn_index), kind: text(turn.kind), prompt: text(turn.prompt), answer: nullable(turn.answer, text), move: nullable(turn.move, text), move_source: nullable(turn.move_source, text), reason_code: nullable(turn.reason_code, text), reason: nullable(turn.reason, text), safety_paused: flag(turn.safety_paused),
           activity: (() => { const activity = record(turn.activity); return { paste_chars: count(activity.paste_chars), away_seconds: seconds(activity.away_seconds), typing_ms: count(activity.typing_ms) } })() }
       }),
     }

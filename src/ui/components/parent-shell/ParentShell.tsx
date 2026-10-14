@@ -22,6 +22,7 @@ export function ParentShell({ title, user, nav, home, children, bell }: { title:
   const { linkedChildren, child, selectChild } = useParentContext()
   const [collapsed, setCollapsed] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [confirmSignOut, setConfirmSignOut] = useState(false)
   const location = useLocation()
   const contentRef = useRef<HTMLElement>(null)
   const focusContent = location.state?.focusPlatformContent === true
@@ -52,7 +53,23 @@ export function ParentShell({ title, user, nav, home, children, bell }: { title:
   </>
 
   // On a phone the sidebar is hidden, so signing out has to live in the drawer too.
-  const signOut = <nav className={shell.nav} aria-label="Akun"><Link to="/login" state={{ signOut: true }} aria-label="Keluar" className={shell.navItem} onClick={close}><Icon name="logout" /><span className={shell.label}>Keluar</span></Link></nav>
+  const signOut = (
+    <nav className={shell.nav} aria-label="Akun">
+      <Link
+        to="#logout"
+        aria-label="Keluar"
+        className={shell.navItem}
+        onClick={(event) => {
+          event.preventDefault()
+          close()
+          setConfirmSignOut(true)
+        }}
+      >
+        <Icon name="logout" />
+        <span className={shell.label}>Keluar</span>
+      </Link>
+    </nav>
+  )
   // Parents mostly open this on a phone, so the three places live in a thumb-reach bar there; the drawer keeps the child picker and sign-out.
   const tabs = <nav className="fixed inset-x-0 bottom-0 z-1 hidden grid-cols-3 border-t border-role-border bg-surface px-2 pt-1.5 pb-[calc(6px+env(safe-area-inset-bottom))] max-md:grid print:hidden" aria-label="Menu utama">{nav.filter((entry) => entry.to).map((entry) => <Link key={entry.label} to={entry.to ?? home} state={{ focusPlatformContent: true }} aria-current={entry.to === active ? 'page' : undefined} className="group/tab flex min-h-14 flex-col items-center gap-0.5 py-1 text-xs leading-4 font-semibold text-text-secondary no-underline aria-[current=page]:text-primary-hover"><span className="grid h-8 w-14 place-items-center rounded-pill transition-[background-color,transform] duration-160 ease-[cubic-bezier(.23,1,.32,1)] group-active/tab:scale-92 group-aria-[current=page]/tab:bg-info-bg motion-reduce:transition-none motion-reduce:group-active/tab:scale-100"><Icon name={entry.icon} size={22} /></span>{entry.label}</Link>)}</nav>
   return <div className={cn(shell.root, !collapsed && shell.expanded, 'bg-paper print:block')}>
@@ -71,7 +88,17 @@ export function ParentShell({ title, user, nav, home, children, bell }: { title:
       <div className={shell.user}>
         <span className={cn(shell.avatar, 'bg-warning-bg text-warning-text')} aria-hidden="true">{initials}</span>
         <span className={shell.who}><strong>{user}</strong><small>Orang tua</small></span>
-        <Link to="/login" state={{ signOut: true }} className={shell.exit} aria-label="Keluar"><Icon name="logout" size={16} /></Link>
+        <Link
+          to="#logout"
+          className={shell.exit}
+          aria-label="Keluar"
+          onClick={(event) => {
+            event.preventDefault()
+            setConfirmSignOut(true)
+          }}
+        >
+          <Icon name="logout" size={16} />
+        </Link>
       </div>
     </aside>
     <div className={shell.workspace}>
@@ -87,5 +114,42 @@ export function ParentShell({ title, user, nav, home, children, bell }: { title:
     </div>
     {tabs}
     <Dialog open={drawerOpen} onClose={close} title="Menu orang tua" description={`${user} · ${child ? child.name : 'belum ada anak tertaut'}`} presentation="drawer"><div className={shell.drawerNav}>{menu}{signOut}</div></Dialog>
+
+    <Dialog
+      open={confirmSignOut}
+      onClose={() => setConfirmSignOut(false)}
+      title="Konfirmasi keluar"
+      description="Apakah Anda yakin ingin keluar dari akun ini? Sesi kerja Anda saat ini akan diakhiri."
+      icon="logout"
+      tone="danger"
+      className="w-[min(460px,calc(100vw-32px))]"
+    >
+      <div className="flex flex-col gap-4.5 pt-1">
+        <div className="flex items-start gap-3 rounded-2xl border border-[color-mix(in_srgb,var(--color-danger-text)_18%,transparent)] bg-[color-mix(in_srgb,var(--color-danger-bg)_45%,var(--color-surface))] p-3.5 text-[12.5px] leading-[19px] text-text-secondary">
+          <span className="mt-1.5 size-2 rounded-full bg-danger-text shrink-0" />
+          <span>Pastikan seluruh aktivitas Anda telah selesai. Anda dapat masuk kembali ke akun kapan saja.</span>
+        </div>
+
+        <div className="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            className="px-5 py-2 min-h-10 inline-flex items-center justify-center font-semibold text-[13.5px] rounded-pill border border-control-border bg-surface text-ink hover:bg-surface-muted hover:border-text-muted transition-all duration-150 active:scale-[0.98] cursor-pointer shadow-2xs"
+            onClick={() => setConfirmSignOut(false)}
+          >
+            Batal
+          </button>
+          <Link
+            to="/login"
+            state={{ signOut: true }}
+            aria-label="Ya, keluar"
+            className="px-5 py-2 min-h-10 inline-flex items-center justify-center gap-2 font-bold text-[13.5px] rounded-pill bg-danger-hover text-white [box-shadow:0_2px_8px_rgb(220_38_38_/_28%)] hover:bg-red-700 hover:[box-shadow:0_4px_14px_rgb(220_38_38_/_38%)] hover:[transform:translateY(-1px)] transition-all duration-150 active:scale-[0.98] no-underline"
+            onClick={() => setConfirmSignOut(false)}
+          >
+            <Icon name="logout" size={15} />
+            <span>Ya, keluar</span>
+          </Link>
+        </div>
+      </div>
+    </Dialog>
   </div>
 }

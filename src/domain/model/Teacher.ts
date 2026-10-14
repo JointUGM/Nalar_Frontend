@@ -76,7 +76,7 @@ export type MissionVersionDraft = Omit<MissionVersion, 'id' | 'version_number' |
 // One student's session as the teacher sees it. Scores are AI levels 0-4 that the teacher may change, never the student's view.
 export interface ReportScore { score_id: string; dimension: string; ai_level: number; final_level: number; rationale: string | null; evidence: { turn_id: string; quote: string }[]; overrides: { previous_level: number; new_level: number; reason: string; created_at: string }[] }
 // Activity is counted, never recorded: pasted characters, seconds away from the tab and typing time.
-export interface ReportTurn { turn_id: string; turn_index: number; kind: string; prompt: string; answer: string | null; move: string | null; safety_paused: boolean; activity: { paste_chars: number; away_seconds: number; typing_ms: number } }
+export interface ReportTurn { turn_id: string; turn_index: number; kind: string; prompt: string; answer: string | null; move: string | null; move_source: string | null; reason_code: string | null; reason: string | null; safety_paused: boolean; activity: { paste_chars: number; away_seconds: number; typing_ms: number } }
 export type ReportFlagEvidence =
   | { kind: 'large_paste'; paste_chars: number; answer_chars: number }
   | { kind: 'tab_switching'; turn_indices: number[]; away_events: number; away_seconds_by_turn: { turn_index: number; seconds: number }[] }

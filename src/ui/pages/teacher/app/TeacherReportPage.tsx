@@ -13,7 +13,7 @@ import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResour
 import { CsvDownload } from '@/ui/components/csv-download/CsvDownload'
 import styles from '@/ui/pages/teacher/TeacherReport.styles'
 import dialogStyles from '@/ui/pages/teacher/ReportDialogs.styles'
-import { moveWord, rubricWord } from './missionText'
+import { fallbackReason, moveWord, rubricWord } from './missionText'
 import { FlagEvidence } from './FlagEvidence'
 import { Loading } from '@/ui/components/loading/Loading'
 
@@ -164,15 +164,21 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
       <section className={styles.panel} aria-labelledby="dialog-title">
         <div className={styles.cardHead}><h2 id="dialog-title">Dialog</h2><span>{report.turns.length > 0 ? `Masalah pembuka + ${report.turns.length - 1} pertanyaan` : ''}{minutes(report.session.started_at, report.session.ended_at) ? ` · ${minutes(report.session.started_at, report.session.ended_at)}` : ''}</span></div>
         {!evaluated && <p className={styles.muted}>Kutipan bukti muncul setelah evaluasi selesai.</p>}
-        <ol className={styles.turns}>{report.turns.map((turn) => <li key={turn.turn_id} data-selected={quote?.turn === turn.turn_id}>
-          <span className={styles.turnNumber} aria-hidden="true">{turn.turn_index}</span>
-          <div>
-            <div className={styles.turnHead}><b>{turn.turn_index === 0 ? 'Soal pembuka' : `Giliran ${turn.turn_index}`}</b>{turn.move && <span>{moveWord[turn.move] ?? turn.move}</span>}{turn.safety_paused && <small>Sesi dijeda di sini</small>}</div>
-            <p className={styles.question}>{turn.prompt}</p>
-            <p className={styles.answer}><span className={styles.hidden}>Jawaban siswa: </span>{turn.answer === null ? <i>Belum dijawab</i> : marked(turn.answer, quote?.turn === turn.turn_id ? quote.text : null)}</p>
-            {activityLine(turn.activity) && <p className={styles.meta}>{activityLine(turn.activity)}</p>}
-          </div>
-        </li>)}</ol>
+        <ol className={styles.turns}>{report.turns.map((turn) => {
+          const reasonText = turn.reason ?? fallbackReason(turn.move_source)
+          return (
+            <li key={turn.turn_id} data-selected={quote?.turn === turn.turn_id}>
+              <span className={styles.turnNumber} aria-hidden="true">{turn.turn_index}</span>
+              <div>
+                <div className={styles.turnHead}><b>{turn.turn_index === 0 ? 'Soal pembuka' : `Giliran ${turn.turn_index}`}</b>{turn.move && <span>{moveWord[turn.move] ?? turn.move}</span>}{turn.safety_paused && <small>Sesi dijeda di sini</small>}</div>
+                {turn.turn_index !== 0 && reasonText && <p className={styles.reason}>Mengapa pertanyaan ini: {reasonText}</p>}
+                <p className={styles.question}>{turn.prompt}</p>
+                <p className={styles.answer}><span className={styles.hidden}>Jawaban siswa: </span>{turn.answer === null ? <i>Belum dijawab</i> : marked(turn.answer, quote?.turn === turn.turn_id ? quote.text : null)}</p>
+                {activityLine(turn.activity) && <p className={styles.meta}>{activityLine(turn.activity)}</p>}
+              </div>
+            </li>
+          )
+        })}</ol>
       </section>
     </div>
 
