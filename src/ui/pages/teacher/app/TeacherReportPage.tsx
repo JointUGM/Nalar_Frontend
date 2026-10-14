@@ -139,10 +139,7 @@ export function TeacherReportPage({ service, base }: { service: TeacherService; 
       </div>
     </div>
     {granted && <Feedback tone="success" title="Kesempatan lagi diberikan" announce>Siswa melihatnya sebagai misi baru di Misi saya. Hasil percobaan ini tetap tersimpan.</Feedback>}
-<<<<<<< HEAD
-=======
     <p className={styles.note}>Hanya untuk guru · tidak ditampilkan kepada siswa.</p>
->>>>>>> 7cce056de6a0ab3d8e689da92c038e6bd1804e0c
     {said && !dialog && <Feedback tone="warning" title={said} announce />}
     {report.session.status === 'paused_safety' && <Feedback tone="warning" title="Sesi siswa ini dijeda karena keselamatan" announce>
       Temui siswa lebih dulu. Lanjutkan sesi bila siswa siap, atau akhiri sesi.
