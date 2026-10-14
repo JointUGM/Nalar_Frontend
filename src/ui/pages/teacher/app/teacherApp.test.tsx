@@ -86,6 +86,8 @@ const kbId = '00000000-0000-4000-8000-000000000012'
 const job = '00000000-0000-4000-8000-000000000013'
 const section = '00000000-0000-4000-8000-000000000014'
 const kbPath = `${base}/knowledge-base/${kbId}`
+// The map opens first; a concept's topic and misconceptions appear once it is clicked.
+const openConcept = async () => { fireEvent.click(await screen.findByRole('button', { name: /^Tekanan hidrostatis/ })) }
 const kbDetail = (conceptStatus = 'pending', can_edit = true) => ({
   id: kbId, topic_title: 'Tekanan Zat', owner_teacher_id: identity.userId, can_edit, prerequisites: [],
   materials: [{ id: school, title: 'IPA Kelas 8.pdf', page_count: 42, pages_without_text: [], archived_at: null }],
@@ -457,6 +459,7 @@ describe('signed-in teacher pages', () => {
       [`POST /concepts/${concept}/review`]: () => { status = 'approved'; return Response.json({ id: concept, review_status: status, reviewed_at: '2026-10-02T04:00:00+00:00' }) },
     })
     open(kbPath, request)
+    await openConcept()
     await screen.findByRole('region', { name: 'Konsep: Tekanan hidrostatis' })
     const approve = screen.getByRole('button', { name: 'Setujui konsep' })
     const misconceptionCard = within(screen.getByRole('region', { name: /^Miskonsepsi:/ }))
@@ -472,6 +475,7 @@ describe('signed-in teacher pages', () => {
   it('saves an edited misconception with one cue per line and blank lines dropped', async () => {
     const request = backend({ [`PATCH /misconceptions/${misconception}`]: () => Response.json({}) })
     open(kbPath, request)
+    await openConcept()
     expect(await screen.findByText('Sumber: hlm. 3–5, 12')).toBeInTheDocument()
     const card = within(await screen.findByRole('region', { name: /^Miskonsepsi:/ }))
     fireEvent.click(card.getByRole('button', { name: 'Edit' }))
@@ -504,6 +508,7 @@ describe('signed-in teacher pages', () => {
   it('adds a misconception to the chosen concept with one cue per line, and gives a colleague no way to add', async () => {
     const request = backend({ [`POST /knowledge-bases/${kbId}/concepts/${concept}/misconceptions`]: () => Response.json({ id: misconception }, { status: 201 }) })
     const { unmount } = open(kbPath, request)
+    await openConcept()
     fireEvent.click(await screen.findByRole('button', { name: 'Tambah miskonsepsi' }))
     const form = within(screen.getByRole('form', { name: 'Miskonsepsi baru' }))
     fireEvent.change(form.getByLabelText(/Pernyataan keliru/), { target: { value: 'Air makin banyak, tekanan makin besar' } })
@@ -517,6 +522,7 @@ describe('signed-in teacher pages', () => {
     unmount()
     open(kbPath, backend({ [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail('pending', false)) }))
     await screen.findByText(/milik rekan guru/)
+    await openConcept()
     expect(screen.queryByRole('button', { name: 'Tambah konsep' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Tambah miskonsepsi' })).not.toBeInTheDocument()
   })
@@ -551,6 +557,7 @@ describe('signed-in teacher pages', () => {
 
     it('keeps the concepts it has but shows no count until the chapter is built', async () => {
       open(kbPath, backend(at('building')))
+    await openConcept()
       expect(await screen.findByRole('heading', { name: 'Tekanan hidrostatis' })).toBeInTheDocument()
       expect(screen.getAllByText('Sedang disusun')).toHaveLength(3)
       expect(screen.queryByText('1 konsep')).not.toBeInTheDocument()
@@ -570,6 +577,7 @@ describe('signed-in teacher pages', () => {
       vi.useFakeTimers({ shouldAdvanceTime: true })
       try {
         open(kbPath, backend(at('building')))
+    await openConcept()
         await screen.findByRole('heading', { name: 'Tekanan hidrostatis' })
         expect(screen.queryByText(/belum selesai disusun/)).not.toBeInTheDocument()
         await act(async () => {}) // let the page arm its timer before the clock jumps
@@ -585,6 +593,7 @@ describe('signed-in teacher pages', () => {
   it('shows a colleague’s knowledge base without any way to change it', async () => {
     open(kbPath, backend({ [`GET /knowledge-bases/${kbId}`]: () => Response.json(kbDetail('pending', false)) }))
     await screen.findByText(/milik rekan guru/)
+    await openConcept()
     for (const name of ['Setujui', 'Tolak', 'Edit', 'Susun Bab 1 Tekanan', 'Arsipkan topik', 'Arsipkan konsep', 'Hapus']) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
     expect(screen.queryByLabelText(/Tambah materi/)).not.toBeInTheDocument()
   })
