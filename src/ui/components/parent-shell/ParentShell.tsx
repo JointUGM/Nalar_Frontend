@@ -110,7 +110,7 @@ export function ParentShell({ title, user, nav, home, children, bell }: { title:
         {child && linkedChildren.length > 1 && <button type="button" className={cn(chipClass, 'm-0 hidden min-h-11 cursor-pointer bg-surface py-0 text-ink hover:bg-nav-hover max-md:inline-flex')} aria-label={`Anak: ${child.name}. Ganti anak`} aria-haspopup="dialog" onClick={() => setDrawerOpen(true)}><span><NalaAvatar seed={child.name} size={28} /></span>{chip}<Icon name="chevronDown" size={14} /></button>}
         {bell && <button type="button" className={cn(shell.iconButton, 'relative max-md:hidden')} aria-haspopup="dialog" aria-label={bell.unread > 0 ? `Notifikasi, ${bell.unread} belum dibaca` : 'Notifikasi'} onClick={bell.onOpen}><Icon name="bell" size={16} />{bell.unread > 0 && <span className="absolute -top-1 -right-1 h-5 min-w-5 rounded-pill bg-primary px-[5px] text-center text-[11px] leading-5 font-bold text-surface" aria-hidden="true">{bell.unread > 9 ? '9+' : bell.unread}</span>}</button>}
       </header>
-      <main ref={contentRef} className={cn(shell.main, 'px-8 pt-6 pb-16 max-md:px-4 max-md:pb-[calc(96px+env(safe-area-inset-bottom))] print:p-0')} id="parent-content" tabIndex={-1}>{children}</main>
+      <main ref={contentRef} className={cn(shell.main, 'px-8 pt-6 pb-16 short:pt-5 short:pb-10 max-md:px-4 max-md:pb-[calc(96px+env(safe-area-inset-bottom))] print:p-0')} id="parent-content" tabIndex={-1}>{children}</main>
     </div>
     {tabs}
     <Dialog open={drawerOpen} onClose={close} title="Menu orang tua" description={`${user} · ${child ? child.name : 'belum ada anak tertaut'}`} presentation="drawer"><div className={shell.drawerNav}>{menu}{signOut}</div></Dialog>

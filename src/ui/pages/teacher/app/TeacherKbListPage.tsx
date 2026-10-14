@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router'
 import type { KbSummary } from '@/domain/model/KnowledgeBase'
 import type { KnowledgeBaseService } from '@/domain/services/KnowledgeBaseService'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
+import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
 import { Loading } from '@/ui/components/loading/Loading'
 import { NalaEmpty } from '@/ui/components/nala/NalaState'
@@ -14,7 +15,8 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherKbLibrary.styles'
 import { ConfirmAction } from './ConfirmAction'
-import { kbRefusal } from './kbText'
+import { kbRefusal, kbRestoreRefusal } from './kbText'
+import { RestoreAction } from './RestoreAction'
 import { LibraryStatusFilter } from './LibraryStatusFilter'
 
 type TopicState = 'review' | 'approved' | 'empty'
@@ -31,6 +33,7 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
   const read = useCallback(async (signal: AbortSignal) => ({ status, items: await kb.list(schoolId, signal, status) }), [kb, schoolId, status])
   const { data: loaded, error, online, refresh } = useLiveResource(read, noPollMs)
   const data = loaded?.status === status ? loaded.items : null
+  const [restored, setRestored] = useState('')
   const [query, setQuery] = useState(''), [filter, setFilter] = useState<'all' | TopicState>('all')
   const [ownership, setOwnership] = useState('all'), [sort, setSort] = useState('original')
   const [page, setPage] = useState(0), [perPage, setPerPage] = useState('10')
@@ -51,6 +54,7 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
     <TeacherPageHead title="Basis pengetahuan" subtitle={status === 'archived' ? 'Baca kembali materi yang diarsipkan. Arsip menyimpan riwayat dan tidak dapat diubah.' : data && data.length > 0 ? `${number.format(data.length)} topik${waiting > 0 ? `, ${number.format(waiting)} menunggu tinjauan` : ''}. Hanya konsep yang Anda setujui dipakai untuk misi.` : 'Unggah materi ajar, tinjau konsepnya, lalu gunakan yang disetujui untuk misi.'} />
     <LibraryStatusFilter value={status} onChange={(value) => { const next = new URLSearchParams(params); if (value === 'archived') next.set('status', value); else next.delete('status'); setPage(0); setParams(next) }} />
     <LiveFeedback error={error} online={online} refresh={refresh} />
+    {restored && <div className="transition-[opacity,transform] duration-200 ease-out starting:translate-y-1 starting:opacity-0 motion-reduce:transition-none"><Feedback tone="success" title={`Topik “${restored}” dipulihkan`} announce>Topik kembali ke pustaka dan bisa dipakai lagi. <Link to={`${base}/knowledge-base`}>Buka di daftar Aktif</Link>.</Feedback></div>}
     {!data && !error && <section className={styles.panel}><div className={styles.state}><Loading label="Memuat basis pengetahuan…" /></div></section>}
     {!data && error && <section className={styles.panel}><NalaEmpty mood="oops" title="Basis pengetahuan belum dapat ditampilkan">Coba muat ulang melalui pilihan di atas.</NalaEmpty></section>}
     {data && data.length === 0 && <section className={styles.panel}><NalaEmpty mood={status === 'archived' ? 'read' : 'ask'} title={status === 'archived' ? 'Belum ada topik diarsipkan' : 'Belum ada basis pengetahuan'} action={status === 'active' ? <ButtonLink tone="secondary" className={styles.buttonCentered} to={`${base}/knowledge-base/upload`}><Icon name="upload" size={16} />Unggah materi pertama</ButtonLink> : undefined}>
@@ -82,6 +86,7 @@ export function TeacherKbListPage({ kb, base, schoolId }: { kb: KnowledgeBaseSer
               <td data-extra className={styles.owner}>{topic.can_edit ? 'Milik Anda' : topic.owner_name ?? (status === 'archived' ? 'Pemilik tidak tersedia' : 'Rekan guru')}</td>
               <td><div className={topic.archived_at ? styles.archiveActions : styles.actions}>
                 <Link to={path}>{topic.can_edit && topic.pending_count > 0 ? 'Tinjau' : 'Lihat isi'}</Link>
+                {topic.archived_at && <RestoreAction action={(signal) => kb.restore(topic.id, signal)} onDone={() => { setRestored(topic.topic_title); refresh() }} refusal={kbRestoreRefusal} />}
                 {topic.can_edit && <Link to={`${path}?tab=materials`}>Tambah bab</Link>}
                 {topic.can_edit && <span className={styles.remove}><ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan</>} title="Arsipkan topik ini?" description={`${topic.topic_title}. Topik tidak dipakai untuk misi baru. Materi, misi, dan laporan sebelumnya tetap tersimpan dan dapat dibaca dari Diarsipkan.`} confirm="Arsipkan topik" pendingLabel="Mengarsipkan…" action={(signal) => kb.archive(topic.id, signal)} onDone={refresh} refusal={kbRefusal} /></span>}
               </div></td>

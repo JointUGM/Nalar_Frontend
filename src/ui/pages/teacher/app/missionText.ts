@@ -29,6 +29,8 @@ const refusals: Readonly<Record<string, string>> = {
 }
 // A refusal the teacher can act on; anything else falls back to the status message.
 export const missionRefusal = (error: ApiError) => refusals[error.code] ?? null
+// Restoring needs its topic back first, which the archive-time message does not say.
+export const missionRestoreRefusal = (error: ApiError) => error.code === 'KNOWLEDGE_BASE_ARCHIVED' ? 'Topik misi ini masih diarsipkan. Pulihkan topiknya dulu di Basis pengetahuan.' : error.status === 403 || error.status === 404 ? 'Hanya pembuat misi yang bisa memulihkannya.' : missionRefusal(error)
 
 const problems: Readonly<Record<string, string>> = {
   ITEM_NOT_APPROVED: 'Ada konsep atau miskonsepsi yang belum disetujui di basis pengetahuan.',

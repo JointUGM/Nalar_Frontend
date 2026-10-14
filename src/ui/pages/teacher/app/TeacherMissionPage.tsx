@@ -2,6 +2,7 @@ import { MissionRevisionForm } from './MissionRevisionForm'
 import { MissionVersionComparison } from './MissionVersionComparison'
 import type { MissionRevisionFeedback, MissionRevisionInput, MissionRevisionRequest } from '@/domain/model/Teacher'
 import { ConfirmAction } from './ConfirmAction'
+import { RestoreAction } from './RestoreAction'
 import { TeacherPageHead } from '@/ui/components/teacher-shell/TeacherPageHead'
 import { useCallback, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
@@ -20,7 +21,7 @@ import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { noPollMs, useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
 import styles from '@/ui/pages/teacher/TeacherMissionReview.styles'
 import { JobNotice } from './JobNotice'
-import { missionRefusal, moveWord, problemWord, rubricWord, versionWord } from './missionText'
+import { missionRefusal, missionRestoreRefusal, moveWord, problemWord, rubricWord, versionWord } from './missionText'
 import { Loading } from '@/ui/components/loading/Loading'
 
 interface Loaded { mission: MissionSummary; version: MissionVersion | null; detail: KbDetail | null; history: VersionHistory[]; comparisonBase: MissionVersion | null; revisionRequest: MissionRevisionRequest | null }
@@ -131,10 +132,11 @@ export function TeacherMissionPage({ service, kb, base, schoolId }: { service: T
           : <Button tone="secondary" pending={pending === 'generate'} pendingLabel="Meminta draf…" disabled={pending !== '' || draft !== null || jobBusy} onClick={() => { void run('generate', (signal) => service.generateMission(mission.id, signal), (queued) => { setJobId(queued.job_id); setJobBusy(true); navigate(`${path}?job=${queued.job_id}`, { replace: true }) }) }}><Icon name="sparkle" size={14} />{version ? 'Buat ulang dengan AI' : 'Buat draf dengan AI'}</Button>)}
         {canEditVersion && version.status === 'draft' && <Button pending={pending === 'review'} pendingLabel="Memeriksa…" disabled={pending !== '' || draft !== null} onClick={() => { void run('review', (signal) => service.reviewMissionVersion(mission.id, version.version_number, signal)) }}><Icon name="check" size={14} />Tandai sudah ditinjau</Button>}
         {isLatest && archivedAt === null && publishable(mission) && <Link className={styles.publish} to={`${path}/publish`}><Icon name="send" size={14} />Terbitkan ke kelas</Link>}
+        {mission.archived_at && <RestoreAction blocked={detail?.archived_at != null} action={(signal) => service.restoreMission(mission.id, signal)} onDone={() => navigate(path, { replace: true })} refusal={missionRestoreRefusal} />}
         {canEditMission && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan</>} title="Arsipkan misi ini?" description={`${mission.title}. Misi tidak dapat diterbitkan lagi. Versi, sesi, dan hasil sebelumnya tetap tersimpan dan dapat dibaca dari Diarsipkan.`} confirm="Arsipkan misi" pendingLabel="Mengarsipkan…" disabled={pending !== ''} action={(signal) => service.archiveMission(mission.id, signal)} onDone={() => navigate(`${base}/missions?status=archived`)} refusal={missionRefusal} />}
       </div>
     </div>
-    {archivedAt ? <Feedback title="Misi diarsipkan">Diarsipkan {formatDayTime(archivedAt)}. Versi dan riwayat tetap dapat dibaca. Arsip tidak dapat diubah atau diterbitkan.</Feedback> : !mission.can_edit && <p className={styles.note}>Misi ini dibuat rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
+    {archivedAt ? <Feedback title="Misi diarsipkan">Diarsipkan {formatDayTime(archivedAt)}. Versi dan riwayat tetap dapat dibaca. Arsip tidak dapat diubah atau diterbitkan.{mission.archived_at && (detail?.archived_at ? <> Untuk memulihkannya, pulihkan dulu <Link to={`${base}/knowledge-base/${mission.knowledge_base_id}?status=archived`}>topiknya</Link>.</> : ' Pulihkan misi ini agar bisa diubah dan diterbitkan lagi.')}</Feedback> : !mission.can_edit && <p className={styles.note}>Misi ini dibuat rekan guru. Anda bisa membacanya, tetapi tidak mengubahnya.</p>}
     {version && latest && !isLatest && <p className={styles.note}>Anda melihat versi {version.version_number}. <Link to={path}>Buka versi terbaru (v{latest.version_number})</Link></p>}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     {jobId && <JobNotice key={jobId} kb={kb} jobId={jobId} onDone={jobDone} />}

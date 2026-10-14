@@ -18,14 +18,14 @@ const styles = {
   count: 'sr-only',
 
   scroll: 'relative overflow-x-auto',
-  archiveActions: 'flex justify-end text-[14px] font-bold whitespace-nowrap [&_a]:text-primary [&_a]:no-underline [&_a:hover]:text-primary-hover',
+  archiveActions: 'flex flex-wrap items-center justify-end gap-3 text-[14px] font-bold whitespace-nowrap [&_a]:text-primary [&_a]:no-underline [&_a:hover]:text-primary-hover',
   table: 'w-full min-w-[620px] border-collapse text-left text-[14px] leading-5 max-md:min-w-[520px] [&_thead]:bg-paper/70 [&_th]:px-4 [&_th]:py-2.5 [&_th]:text-[11px] [&_th]:font-bold [&_th]:tracking-[.06em] [&_th]:whitespace-nowrap [&_th]:text-text-muted [&_th]:uppercase [&_td]:border-t [&_td]:border-paper [&_td]:px-4 [&_td]:py-3.5 [&_td]:align-middle [&_tbody_tr]:transition-colors [&_tbody_tr]:duration-150 [&_tbody_tr:hover]:bg-paper/50 max-md:[&_[data-extra]]:hidden',
   topic: 'grid min-w-0 gap-0.5 [&_a]:w-fit [&_a]:text-[15px] [&_a]:font-bold [&_a]:text-ink [&_a]:no-underline [&_a:hover]:text-primary-hover [&_small]:text-[12px] [&_small]:leading-4 [&_small]:text-text-muted',
   status: 'inline-flex rounded-pill bg-paper px-2.5 py-0.5 text-[12px] leading-4 font-bold whitespace-nowrap text-text-secondary data-[status=approved]:bg-success-bg data-[status=approved]:text-success-strong data-[status=review]:bg-info-bg data-[status=review]:text-primary',
   coverage: 'grid min-w-40 gap-1.5 text-[13px] tabular-nums text-text-secondary [&_b]:font-bold [&_b]:text-primary',
   bar: 'flex h-1.5 w-full max-w-44 overflow-hidden rounded-pill bg-[#F3F1EC] [&>span]:min-w-0 [&>span:first-child]:bg-[#3C9A6E] [&>span:last-child]:bg-[#9FB2F0]',
   owner: 'text-text-secondary',
-  actions: 'ms-auto grid w-max grid-cols-[4.5rem_6rem_4.5rem] items-center justify-items-start gap-2 [&_a]:text-[14px] [&_a]:font-bold [&_a]:whitespace-nowrap [&_a]:text-primary [&_a]:no-underline [&_a:hover]:text-primary-hover',
+  actions: 'ms-auto grid w-max grid-cols-[4.5rem_6rem_5.5rem] items-center justify-items-start gap-2 [&_a]:text-[14px] [&_a]:font-bold [&_a]:whitespace-nowrap [&_a]:text-primary [&_a]:no-underline [&_a:hover]:text-primary-hover',
   remove: 'whitespace-nowrap [&_button]:min-h-9 [&_button]:gap-1 [&_button]:px-2 [&_button]:py-1 [&_button]:text-[13px] [&_button]:font-semibold [&_button]:whitespace-nowrap [&_button]:text-text-secondary [&_button:hover]:text-danger-text',
 
   foot: 'flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-paper px-4 py-3 text-[13px] text-text-secondary [&>div]:flex [&>div]:items-center [&>div]:gap-2',

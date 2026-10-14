@@ -2,6 +2,8 @@ import { ApiError } from '@/domain/model/ApiError'
 
 const invalid = () => new ApiError(502, 'INVALID_RESPONSE')
 
+// Tag check, not `instanceof Blob`: a Response's Blob and the page's global Blob are different classes under jsdom on some Node versions.
+export const isBlob = (value: unknown): value is Blob => Object.prototype.toString.call(value) === '[object Blob]'
 export function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw invalid()
   return value as Record<string, unknown>

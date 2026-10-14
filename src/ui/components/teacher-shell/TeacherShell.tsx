@@ -88,7 +88,7 @@ export function TeacherShell({ title, user, nav, home, actions, onChangePassword
     </aside>
     <div className={cn(shell.workspace, 'bg-paper')}>
       {/* The design's header: the page's own title (portalled in by TeacherPageHead), then search and the global actions. */}
-      <header className={cn(shell.topbar, 'static min-h-20 gap-4 border-b-0 bg-transparent px-8 pt-4 pb-0 max-md:px-4 max-md:pt-3')}>
+      <header className={cn(shell.topbar, 'static min-h-20 short:min-h-16 gap-4 border-b-0 bg-transparent px-8 pt-4 short:pt-3 pb-0 max-md:px-4 max-md:pt-3')}>
         <button type="button" className={cn(shell.iconButton, shell.menuButton)} aria-label="Buka navigasi" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}><Icon name="menu" /></button>
         <div className="min-w-0 flex-1 max-md:order-last max-md:basis-full [&:has(>div>*)>span]:hidden">
           <span className="text-[24px] leading-[1.2] font-extrabold tracking-[-.02em] text-ink">{title}</span>
@@ -114,7 +114,7 @@ export function TeacherShell({ title, user, nav, home, actions, onChangePassword
         {actions}
         <ThemeToggle dark={dark} onChange={setTheme} />
       </header>
-      <main ref={contentRef} className={cn(shell.main, 'px-8 pt-4 pb-16 max-md:px-4 max-md:pb-12')} id="teacher-content" tabIndex={-1}><PageHeadSlot.Provider value={headSlot}>{children}</PageHeadSlot.Provider></main>
+      <main ref={contentRef} className={cn(shell.main, 'px-8 pt-4 pb-16 short:pb-10 max-md:px-4 max-md:pb-12')} id="teacher-content" tabIndex={-1}><PageHeadSlot.Provider value={headSlot}>{children}</PageHeadSlot.Provider></main>
     </div>
     <Dialog open={drawerOpen} onClose={close} title="Ruang kerja guru" description={`${user} · ${school}`} presentation="drawer"><div className={shell.drawerNav}>{navigation}{signOut}</div></Dialog>
 

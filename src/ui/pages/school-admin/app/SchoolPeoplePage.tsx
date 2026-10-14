@@ -17,6 +17,8 @@ import { Select } from '@/ui/components/select/Select'
 import { Loading } from '@/ui/components/loading/Loading'
 import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
 import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
+import { cn } from '@/ui/cn'
+import { resolveActiveYear } from './academicYearState'
 
 const roles: readonly [PeopleRole, string][] = [['student', 'Siswa'], ['teacher', 'Guru'], ['parent', 'Orang tua'], ['school_admin', 'Admin sekolah']]
 const stateWord: Readonly<Record<string, string>> = { active: 'Aktif', inactive: 'Nonaktif', pending_activation: 'Menunggu aktivasi' }
@@ -49,10 +51,10 @@ export function SchoolPeoplePage({ service, schoolId }: { service: SchoolAdminUs
       : null
 
   return <div className={styles.content}>
-    <div className={styles.heading}>
-      <div>
-        <h1>Orang</h1>
-        <p className={styles.subtitle}>Kelola akun guru, siswa, orang tua, dan admin sekolah.</p>
+    <div className={styles.head}>
+      <div className={styles.headText}>
+        <h1 className={styles.title}>Orang</h1>
+        <p className={styles.lead}>Kelola akun guru, siswa, orang tua, dan admin sekolah.</p>
       </div>
       {note && <NalaNote mood={note[0]} text={note[1]} />}
       <Button className={styles.addButton} onClick={() => { setMessage(''); setAdding(true) }}><Icon name="plus" size={16} />Tambah orang</Button>
@@ -78,23 +80,32 @@ export function SchoolPeoplePage({ service, schoolId }: { service: SchoolAdminUs
         )}
       </div>
     </div>
-    <p className={styles.note}>Satu akun baru bisa ditambah di sini; banyak akun sekaligus lewat Impor data. Nama dan kelas bisa diubah, dan akun bisa dinonaktifkan atau diaktifkan lagi; riwayatnya tetap tersimpan.</p>
+    {/* <div className={styles.note}>
+      <Icon name="info" size={16} />
+      <span>Satu akun baru bisa ditambah di sini; banyak akun sekaligus lewat Impor data. Nama dan kelas bisa diubah, dan akun bisa dinonaktifkan atau diaktifkan lagi; riwayatnya tetap tersimpan.</span>
+    </div> */}
     {message && <Feedback tone="success" title={message} announce />}
     <LiveFeedback error={error} online={online} refresh={refresh} />
     <section id="people-panel" role="tabpanel" aria-label={label} tabIndex={0}>
       {!data && !error && <Loading label="Memuat daftar…" />}
-      {data && (data.items.length ? <div className={styles.card}><table className={styles.table}>
+      {data && (data.items.length ? <div className={styles.card}><table className={cn(styles.table, role === 'student' ? styles.tableStudent : styles.tableOther)}>
         <caption className={styles.hidden}>Daftar {label.toLocaleLowerCase('id-ID')}</caption>
-        <thead><tr><th scope="col">Nama</th><th scope="col">{role === 'student' ? 'NISN' : 'Email'}</th><th scope="col">Kelas</th><th scope="col">Status</th><th scope="col"><span className={styles.hidden}>Tindakan</span></th></tr></thead>
+        <thead><tr>
+          <th scope="col">Nama</th>
+          <th scope="col">{role === 'student' ? 'NISN' : 'Email'}</th>
+          {role === 'student' && <th scope="col">Kelas</th>}
+          <th scope="col">Status</th>
+          <th scope="col"><span className={styles.hidden}>Tindakan</span></th>
+        </tr></thead>
         <tbody>{data.items.map((person) => <tr key={person.user_id}>
-          <td className={styles.name}>
+          <td>
             <div className={styles.personCell}>
-              <span className={styles.avatar}><NalaAvatar seed={person.full_name} size={36} /></span>
+              <span className={styles.avatar}><NalaAvatar seed={person.full_name} size={34} /></span>
               <span className={styles.personName}>{person.full_name}</span>
             </div>
           </td>
           <td className={styles.identifier}>{(role === 'student' ? person.nisn : person.email) ?? '—'}</td>
-          <td className={styles.classroom}>{person.class_name ?? '—'}</td>
+          {role === 'student' && <td className={styles.classroom}>{person.class_name ?? '—'}</td>}
           <td><StatusBadge tone={person.account_state === 'active' ? 'success' : person.account_state === 'inactive' ? 'neutral' : 'warning'}>{stateWord[person.account_state] ?? person.account_state}</StatusBadge></td>
           <td><Button tone="ghost" className={styles.more} aria-label={`Kelola ${person.full_name}`} onClick={() => { setMessage(''); setOpen(person) }}><Icon name="more" /></Button></td>
         </tr>)}</tbody>
@@ -114,7 +125,8 @@ function PersonDrawer({ service, schoolId, person, onClose }: { service: SchoolA
   // A student moves between the classes of the current year only.
   const readClasses = useCallback(async (signal: AbortSignal) => {
     if (!student) return []
-    const year = (await service.academicYears(schoolId, signal)).find((item) => item.is_current)
+    const years = await service.academicYears(schoolId, signal)
+    const year = resolveActiveYear(schoolId, years)
     return year ? service.classes(schoolId, year.id, signal) : []
   }, [service, schoolId, student])
   const classes = useLiveResource(readClasses, noPollMs).data ?? []

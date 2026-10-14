@@ -73,6 +73,10 @@ export class HttpKnowledgeBaseService implements KnowledgeBaseService {
     return queued((await this.api.request(`${kb(kbId)}/materials`, { method: 'POST', form: upload(file), idempotent: true, signal })).data)
   }
 
+  async restore(kbId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${kb(kbId)}/restore`, { method: 'POST', signal })
+  }
+
   async archive(kbId: string, signal?: AbortSignal): Promise<void> {
     await this.api.request(`${kb(kbId)}/archive`, { method: 'POST', signal })
   }

@@ -2,7 +2,7 @@ import type { MissionRevisionInput, MissionRevisionRequest, MissionRevisionFeedb
 import type { StudentHistoryPage, AttemptGrantInput, AttentionItem, AttentionPage, ClassMap, ClassStudent, FlagDecision, TeacherDashboard, VersionHistory, MissionInput, SafetyAction, SessionReport, MissionSummary, MissionVersion, MissionVersionDraft, PublicationWindow, Published, PublishInput, Released, ReleasePreview, TeacherAssignment, TeacherPublication } from '@/domain/model/Teacher'
 import { ApiError } from '@/domain/model/ApiError'
 import type { TeacherService } from '@/domain/services/TeacherService'
-import { allItems, count, flag, instant, list, nullable, record, text } from './HttpApi'
+import { allItems, count, flag, instant, isBlob, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
 import { reportFlag } from './integrity'
@@ -11,7 +11,7 @@ type Schemas = components['schemas']
 const publication = (id: string) => `/publications/${encodeURIComponent(id)}`
 const mission = (id: string) => `/missions/${encodeURIComponent(id)}`
 const texts = (value: unknown) => list(value).map((entry) => text(entry))
-const csv = (data: unknown) => { if (!(data instanceof Blob)) throw new ApiError(502, 'INVALID_RESPONSE'); return data }
+const csv = (data: unknown) => { if (!isBlob(data)) throw new ApiError(502, 'INVALID_RESPONSE'); return data }
 const seconds = (value: unknown) => { if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new ApiError(502, 'INVALID_RESPONSE'); return value }
 
 export class HttpTeacherService implements TeacherService {
@@ -100,6 +100,10 @@ export class HttpTeacherService implements TeacherService {
 
   async exportReport(sessionId: string, signal?: AbortSignal): Promise<Blob> {
     return csv((await this.api.request(`/sessions/${encodeURIComponent(sessionId)}/report/export?format=csv`, { raw: true, signal })).data)
+  }
+
+  async restoreMission(missionId: string, signal?: AbortSignal): Promise<void> {
+    await this.api.request(`${mission(missionId)}/restore`, { method: 'POST', signal })
   }
 
   async archiveMission(missionId: string, signal?: AbortSignal): Promise<void> {

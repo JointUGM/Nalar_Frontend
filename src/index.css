@@ -3,6 +3,12 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "./ui/page-keyframes.css";
 
+/* Viewport tiers for laptops (docs/design.md, "Laptop and short screens"). Both start at 768px: phones have their own layouts.
+   `laptop:` is 768-1599px wide or under 900px tall (the rule the student live pages hard-code). `short:` is under 701px tall,
+   such as a 1280x720 screen at 150% scaling with browser chrome (1280x585 viewport). */
+@custom-variant laptop (@media (min-width: 768px) and (max-width: 1599px), (min-width: 768px) and (max-height: 899px));
+@custom-variant short (@media (min-width: 768px) and (max-height: 700px));
+
 @font-face {
   font-family: "Plus Jakarta Sans";
   font-style: normal;
@@ -86,7 +92,7 @@
   --animate-nala-jump: nala-jump 720ms cubic-bezier(.33, 1, .68, 1) 380ms both;
   --animate-nala-wave: nala-wave 560ms ease-in-out 380ms 2 both;
   --animate-nala-blink: nala-blink 220ms ease-in-out 1500ms both;
-  --animate-note-in: note-in 260ms cubic-bezier(.23, 1, .32, 1) 260ms both;
+  --animate-note-in: note-in 240ms cubic-bezier(.23, 1, .32, 1) 120ms both;
   --animate-file-in: file-in 260ms cubic-bezier(.23, 1, .32, 1) both;
   --animate-loader-appear: loader-appear 240ms cubic-bezier(.23, 1, .32, 1) 200ms forwards;
   --animate-loader-draw: loader-draw 1400ms cubic-bezier(.77, 0, .175, 1) infinite;
@@ -118,7 +124,7 @@
   @keyframes nala-blink { 50% { transform: scaleY(.1); } }
   /* The live badge dot on the teacher monitor: a calm beat while the run is open; off under reduced motion. */
   @keyframes teachermonitor-pulse { 50% { opacity: .35; transform: scale(.7); } }
-  @keyframes note-in { from { opacity: 0; transform: translateX(6px) scale(.96); } }
+  @keyframes note-in { from { opacity: 0; transform: translateX(6px) scale(.96); } to { opacity: 1; transform: translateX(0) scale(1); } }
   @keyframes file-in { from { opacity: 0; transform: translateY(8px) scale(.97); } }
   @keyframes loader-appear { to { opacity: 1; } }
   /* Draw the arch in, hold, then release it from the start so the loop never snaps. */

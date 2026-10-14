@@ -18,6 +18,8 @@ import { NalaEmpty, NalaNote } from '@/ui/components/nala/NalaState'
 import { CpOutcomes } from './CpOutcomes'
 import { DeleteSubjectDialog } from './DeleteSubjectDialog'
 import { NewSubjectDialog } from './NewSubjectDialog'
+import { useAcademicYears } from './useAcademicYears'
+import { YearSelect } from './YearSelect'
 
 const refusals: Readonly<Record<string, string>> = {
   CURRICULUM_SUBJECT_REQUIRED: 'Pilih mata pelajaran CP yang sesuai.',
@@ -27,13 +29,15 @@ const refusals: Readonly<Record<string, string>> = {
 type Editing = { kind: 'new' } | { kind: 'delete'; subject: SchoolSubject } | { kind: 'cp'; subject: SchoolSubject } | { kind: 'owner'; subject: SchoolSubject; kb: SubjectKnowledgeBase }
 
 export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdminUseCases; schoolId: string }) {
+  const years = useAcademicYears(service, schoolId)
   const read = useCallback(async (signal: AbortSignal) => {
-    const [subjects, versions, years] = await Promise.all([service.subjects(schoolId, signal), service.curriculumVersions(schoolId, signal), service.academicYears(schoolId, signal)])
-    // A new owner must teach the subject, so the candidates are this year's teachers of it.
-    const year = years.find((item) => item.is_current)
-    const assignments = year ? await service.assignments(schoolId, year.id, signal) : []
+    const [subjects, versions, assignments] = await Promise.all([
+      service.subjects(schoolId, signal),
+      service.curriculumVersions(schoolId, signal),
+      years.yearId ? service.assignments(schoolId, years.yearId, signal).catch(() => []) : Promise.resolve([]),
+    ])
     return { subjects, versions, assignments }
-  }, [service, schoolId])
+  }, [service, schoolId, years.yearId])
   const { data, error, online, refresh } = useLiveResource(read, noPollMs)
   const [editing, setEditing] = useState<Editing | null>(null)
   const [message, setMessage] = useState('')
@@ -55,18 +59,23 @@ export function SchoolSubjectsPage({ service, schoolId }: { service: SchoolAdmin
     : null
 
   return <div className={styles.content}>
-    <div className={styles.heading}>
-      <div>
-        <h1 className="m-0 text-[32px] leading-[40px] font-bold tracking-[-0.04em] text-ink">Mata pelajaran</h1>
-        <p className={styles.lead}>Setiap mata pelajaran sekolah dipetakan ke Capaian Pembelajaran nasional. Hanya pemilik basis pengetahuan yang bisa menyetujui dan mengubahnya.</p>
-        {data && <Button className={styles.add} disabled={!data.versions.length} onClick={() => { setMessage(''); setEditing({ kind: 'new' }) }}><Icon name="plus" size={16} />Tambah mata pelajaran</Button>}
+    <div className={styles.head}>
+      <div className={styles.headText}>
+        <h1 className={styles.title}>Mata pelajaran</h1>
+        <p className={styles.lead}>Setiap mata pelajaran sekolah dipetakan ke Capaian Pembelajaran nasional. Pemilik basis pengetahuan dapat menyetujui materi pembelajaran.</p>
         {data && !data.versions.length && <p className={styles.note}>Belum ada versi CP yang terbit. Minta admin platform menerbitkannya dulu.</p>}
       </div>
       {note && <NalaNote mood={note[0]} text={note[1]} />}
+      {data && <Button className={styles.add} disabled={!data.versions.length} onClick={() => { setMessage(''); setEditing({ kind: 'new' }) }}><Icon name="plus" size={16} />Tambah mata pelajaran</Button>}
     </div>
+    <div className={styles.context}>
+      <YearSelect years={years} />
+      {data && <p className="m-0 text-[13.5px] leading-5 text-text-secondary">{data.subjects.length} mata pelajaran terdaftar</p>}
+    </div>
+
     {message && <Feedback tone="success" title={message} announce />}
-    <LiveFeedback error={error} online={online} refresh={refresh} />
-    {!data && !error && <Loading label="Memuat mata pelajaran…" />}
+    <LiveFeedback error={years.error ?? error} online={online} refresh={() => { years.refresh(); refresh() }} />
+    {((!years.loaded && !years.error) || (!data && !error)) && <Loading label="Memuat mata pelajaran…" />}
     {data && (data.subjects.length === 0 ? (
       <div className={styles.emptyCard}>
         <NalaEmpty mood="hello" title="Belum ada mata pelajaran">

@@ -3,7 +3,7 @@ import type { AuditPage } from '@/domain/model/Audit'
 import type { AdminSetup, AiUsageRow, CurriculumDetail, CurriculumVersion, NewSchool, PlatformSchool, SchoolDetails, SchoolsPage } from '@/domain/model/PlatformAdmin'
 import { auditPage } from './audit'
 import type { PlatformAdminService } from '@/domain/services/PlatformAdminService'
-import { count, flag, instant, list, nullable, record, text } from './HttpApi'
+import { count, flag, instant, isBlob, list, nullable, record, text } from './HttpApi'
 import type { HttpApi } from './HttpApi'
 import type { components } from './contracts/backend'
 import type { DraftReceipt, NationalReference, ReferenceDetail, ReferenceReceipt, ReferenceReview, ReferenceUpload } from '@/domain/model/NationalReference'
@@ -34,7 +34,7 @@ export class HttpPlatformAdminService implements PlatformAdminService {
   }
   async referenceFile(id: string, signal?: AbortSignal): Promise<Blob> {
     const { data } = await this.api.request(`/platform/references/${encodeURIComponent(id)}/file`, { raw: true, signal })
-    if (!(data instanceof Blob)) throw new ApiError(502, 'INVALID_RESPONSE')
+    if (!isBlob(data)) throw new ApiError(502, 'INVALID_RESPONSE')
     return data
   }
   async uploadReference(input: ReferenceUpload, key: string, signal?: AbortSignal): Promise<ReferenceReceipt> {
