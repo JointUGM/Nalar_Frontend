@@ -51,6 +51,8 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const busy = useRef(false)
   const [jobId, setJobId] = useState(params.get('job'))
   const [selectedId, setSelectedId] = useState('')
+  // The detail panel opens on arrival; closing it gives the map the full width.
+  const [panelOpen, setPanelOpen] = useState(true)
   const [activeTab, setActiveTab] = useState(params.get('tab') === 'materials' ? 'materials' : 'review')
   const [page, setPage] = useState(0)
   const [draft, setDraft] = useState<Draft | null>(null)
@@ -77,7 +79,13 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   // Counts are only real once no chapter is being built; until then they would be partial.
   const loading = generating && !stuck
   const retryable = (section: KbSection) => section.build_status === 'failed' || (stuck && building(section))
-  const selected =detail.concepts.find((item) => item.id === selectedId) ?? detail.concepts[0]
+  // A concept still needs work while it or one of its misconceptions waits for review.
+  const needsReview = (id: string) => detail.concepts.some((item) => item.id === id && item.review_status === 'pending') || detail.misconceptions.some((item) => item.concept_id === id && item.review_status === 'pending')
+  const selected = detail.concepts.find((item) => item.id === selectedId) ?? detail.concepts.find((item) => needsReview(item.id)) ?? detail.concepts[0]
+  // The first pick is kept, so approving its last pending item does not move the panel to another concept.
+  if (selected && selectedId === '') setSelectedId(selected.id)
+  const at = selected ?detail.concepts.indexOf(selected) : -1
+  const nextPending = [...detail.concepts.slice(at + 1), ...detail.concepts.slice(0, Math.max(at, 0))].find((item) => needsReview(item.id))
   const done = detail.concepts.filter((item) => item.review_status === 'approved').length + detail.misconceptions.filter((item) => item.review_status === 'approved').length
   const rejected = detail.concepts.filter((item) => item.review_status === 'rejected').length + detail.misconceptions.filter((item) => item.review_status === 'rejected').length
   const total = detail.concepts.length + detail.misconceptions.length
@@ -86,7 +94,13 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   const related = detail.misconceptions.filter(item => item.concept_id === selected?.id)
   const pageCount = Math.max(1, Math.ceil(related.length / misPerPage)), misPage = Math.min(page, pageCount - 1)
   const shown = related.slice(misPage * misPerPage, (misPage + 1) * misPerPage)
-  function chooseConcept(id: string) { setPage(0); setSelectedId(id); setDraft(null); setAdding(null) }
+  function chooseConcept(id: string) { setPage(0); setSelectedId(id); setDraft(null); setAdding(null); setPanelOpen(true) }
+  // Focus goes back to the concept the panel described, so the keyboard keeps its place on the map.
+  function closePanel() {
+    if (!selected) return
+    setPanelOpen(false); setDraft(null); setAdding(null)
+    requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-concept-id="${selected.id}"]`)?.focus())
+  }
 
   // One command at a time. The page is reread after a refusal too, because a refusal usually means it was stale.
   async function run<T>(action: (signal?: AbortSignal) => Promise<T>, done?: (result: T) => void) {
@@ -190,7 +204,7 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
   return <div className={styles.content}>
     <TeacherPageHead crumb={<><Link to={libraryPath}>Basis pengetahuan</Link><Icon name="chevronRight" size={14} /></>} title={detail.topic_title} tag={<>{detail.archived_at ? <span className={styles.tag}>Diarsipkan</span> : detail.concepts.length > 0 && !loading && <span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span>}</>} subtitle={loading ? 'Konsep dan miskonsepsi sedang disusun.' : waiting > 0 ?`${queue.pending_concepts} konsep dan ${queue.pending_misconceptions} miskonsepsi menunggu tinjauan` : `${detail.concepts.length} konsep · ${detail.misconceptions.length} miskonsepsi`} />
     <div className={styles.header}>
-      {detail.concepts.length > 0 && !loading && <div className={styles.progress}><span className={[styles.tag, waiting > 0 ? styles.review : styles.approved].join(' ')}>{waiting > 0 ? 'Perlu tinjauan' : 'Semua sudah ditinjau'}</span><span className={styles.bar} role="progressbar" aria-label="Item disetujui" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done}><span style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></span><span>{done} dari {total} item disetujui{rejected > 0 && ` · ${rejected} ditolak`}</span></div>}
+      {detail.concepts.length > 0 && !loading && <div className={styles.progress}><span className={styles.bar} role="progressbar" aria-label="Item disetujui" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done}><span style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></span><span>{done} dari {total} item disetujui{rejected > 0 && ` · ${rejected} ditolak`}</span></div>}
       <div className={styles.jumpLinks}>
         {detail.archived_at && <RestoreAction action={(signal) => kb.restore(detail.id, signal)} onDone={() => navigate(`${base}/knowledge-base/${detail.id}`, { replace: true })} refusal={kbRestoreRefusal} />}
         {canEdit && <ConfirmAction label={<><Icon name="archive" size={14} />Arsipkan topik</>} title="Arsipkan topik ini?" description={`${detail.topic_title}. Topik tidak dipakai untuk misi baru. Materi, misi, dan sesi sebelumnya tetap tersimpan dan dapat dibaca dari Diarsipkan.`} confirm="Arsipkan topik" pendingLabel="Mengarsipkan…" disabled={pending} action={(signal) => kb.archive(detail.id, signal)} onDone={() => navigate(`${base}/knowledge-base?status=archived`)} refusal={kbRefusal} />}
@@ -212,19 +226,19 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
       </Tabs.List>
       <Tabs.Panel value="review" keepMounted className={styles.tabPanel}>
         {generatingPanel}
-        {!generatingPanel && <div id="kb-review" className={styles.grid} data-empty={!selected}>
-          <div className={styles.mapColumn}>
-            <section className={styles.card} aria-labelledby="kb-concepts">
+        {!generatingPanel && <section id="kb-review" className={styles.workspace} aria-labelledby="kb-concepts">
               <div className={styles.sectionHead}><h2 id="kb-concepts">Peta konsep</h2><span>{loading ? 'Sedang disusun' : 'Panah: dipelajari lebih dulu · klik untuk meninjau, seret untuk memindah'}</span>
                 {canEdit && adding !== 'concept' && <Button tone="secondary" className={styles.add} disabled={pending} onClick={() => { setDraft(null); setAdding('concept') }}><Icon name="plus" size={14} />Tambah konsep</Button>}</div>
               {canEdit && adding === 'concept' && <KbNewItem kind="concept" pending={pending} onCancel={() => setAdding(null)} onSubmit={(value, key) => { void run((signal) => kb.addConcept(detail.id, value, key, signal), (created) => { setAdding(null); setSelectedId(created.id) }) }} />}
               {!selected ? <p className={styles.note}>Belum ada konsep. Susun satu bab untuk membuat drafnya.</p> : <>
-                <div className={styles.map}>{activeTab === 'review' && <KbConceptMap concepts={detail.concepts} prerequisites={detail.prerequisites} selectedId={selected.id} count={(id) => detail.misconceptions.filter((item) => item.concept_id === id).length} onSelect={chooseConcept} />}</div>
-                <p className={styles.legend}><span data-status="approved">Disetujui</span><span>Menunggu</span><span data-status="rejected">Ditolak</span><span data-status="count">Jumlah miskonsepsi</span></p>
-              </>}
-            </section>
-          </div>
-          {selected && <div className={styles.railColumn}>
+                {/* Esc closes the panel, but not from a dialog it opened (those portal out of the stage) or over an unsaved edit. */}
+                <div className={styles.stage} onKeyDown={(event) => { if (event.key === 'Escape' && panelOpen && !draft && !adding && event.currentTarget.contains(event.target as Node)) closePanel() }}>
+                  <div className={styles.map}>{activeTab === 'review' && <KbConceptMap concepts={detail.concepts} prerequisites={detail.prerequisites} selectedId={panelOpen ? selected.id : ''} count={(id) => detail.misconceptions.filter((item) => item.concept_id === id).length} onSelect={chooseConcept} />}</div>
+                  {panelOpen && <aside className={styles.inspector} aria-label="Rincian konsep">
+                    <div className={styles.inspectorBar}>
+                      {nextPending && <Button tone="ghost" disabled={pending} onClick={() => chooseConcept(nextPending.id)}>Tinjau berikutnya<Icon name="chevronRight" size={14} /></Button>}
+                      <Button tone="ghost" aria-label="Tutup rincian konsep" onClick={closePanel}><Icon name="x" size={16} /></Button>
+                    </div>
             <section className={styles.card} aria-label={`Konsep: ${selected.name}`}>
               <div className={styles.misHead}><span className={styles.contentType}><NalaIcon name="idea" />Konsep</span>{tag(selected.review_status)}</div>
               {editableDraft?.kind === 'concept' && editableDraft.id === selected.id ? <>
@@ -280,8 +294,11 @@ export function TeacherKbDetailPage({ kb, base }: { kb: KnowledgeBaseService; ba
               </nav>}
               {related.length === 0 && !loading && <p className={styles.note}>Tidak ada miskonsepsi untuk konsep ini.</p>}
             </div>
-          </div>}
-        </div>}
+                  </aside>}
+                </div>
+                <p className={styles.legend}><span data-status="approved">Disetujui</span><span>Menunggu</span><span data-status="rejected">Ditolak</span><span data-status="count">Jumlah miskonsepsi</span></p>
+              </>}
+        </section>}
       </Tabs.Panel>
       <Tabs.Panel value="materials" keepMounted className={styles.tabPanel}>{sources}</Tabs.Panel>
     </Tabs.Root>

@@ -59,8 +59,11 @@ export function KbConceptMap({ concepts, prerequisites, selectedId, count, onSel
       }))
     }
     measure()
+    // The box narrows when the detail panel opens beside it, not only when the window resizes.
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
+    if (box.current) observer?.observe(box.current)
     window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
+    return () => { observer?.disconnect(); window.removeEventListener('resize', measure) }
   }, [concepts, prerequisites, moved, zoom])
 
   return <div ref={box} className="relative flex flex-1 flex-col overflow-auto rounded-xl bg-paper px-4 [background-image:radial-gradient(var(--color-role-border)_1px,transparent_1px)] [background-size:18px_18px]">
@@ -75,7 +78,7 @@ export function KbConceptMap({ concepts, prerequisites, selectedId, count, onSel
       {lines.map((line) => <line key={line.key} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke="currentColor" strokeWidth="1.5" markerEnd="url(#kb-arrow)" />)}
     </svg>
     <div className="flex flex-1 origin-top-left flex-col justify-evenly gap-14 px-4 pt-12 pb-8" style={{ width: `${100 / zoom}%`, scale: zoom }}>
-    {rows.map((row, index) => <div key={index} className="relative flex flex-wrap justify-center gap-x-8 gap-y-6">{row.map((concept) => <button key={concept.id} ref={(element) => { if (element) nodes.current.set(concept.id, element); else nodes.current.delete(concept.id) }} type="button" className={[node, moved[concept.id] ? 'z-10' : ''].join(' ')} style={moved[concept.id] ? { translate: `${moved[concept.id].x}px ${moved[concept.id].y}px` } : undefined} onPointerDown={(event) => down(concept.id, event)} onPointerMove={move} onPointerUp={up} onPointerCancel={up} data-status={concept.review_status} aria-pressed={concept.id === selectedId} onClick={() => { if (!dragged.current) onSelect(concept.id) }}>
+    {rows.map((row, index) => <div key={index} className="relative flex flex-wrap justify-center gap-x-8 gap-y-6">{row.map((concept) => <button key={concept.id} ref={(element) => { if (element) nodes.current.set(concept.id, element); else nodes.current.delete(concept.id) }} type="button" data-concept-id={concept.id} className={[node, moved[concept.id] ? 'z-10' : ''].join(' ')} style={moved[concept.id] ? { translate: `${moved[concept.id].x}px ${moved[concept.id].y}px` } : undefined} onPointerDown={(event) => down(concept.id, event)} onPointerMove={move} onPointerUp={up} onPointerCancel={up} data-status={concept.review_status} aria-pressed={concept.id === selectedId} onClick={() => { if (!dragged.current) onSelect(concept.id) }}>
       {concept.review_status === 'approved' && <Icon name="check" size={14} />}{concept.name}
       {count(concept.id) > 0 && <span className="grid size-5 place-items-center rounded-pill bg-accent text-[11px] font-extrabold text-ink tabular-nums" title="Jumlah miskonsepsi">{count(concept.id)}</span>}
     </button>)}</div>)}
