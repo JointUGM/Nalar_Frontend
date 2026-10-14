@@ -20,12 +20,16 @@ const styles = {
   approved: 'teacherkbreview-approved bg-success-bg text-success-strong',
   review: 'teacherkbreview-review bg-warning-bg text-warning-text',
 
-  grid: 'grid scroll-mt-20 items-start gap-4 xl:grid-cols-12 xl:data-[empty=false]:items-stretch',
-  mapColumn: 'grid min-w-0 gap-4 [&>section]:flex [&>section]:flex-col xl:col-span-8 xl:in-data-[empty=true]:col-span-12',
-  railColumn: 'grid min-w-0 gap-4 xl:col-span-4',
+  // One card holds the map and, beside it, the detail panel. From lg the pair takes about a screen of height and each
+  // side scrolls on its own; the panel sits beside the map (not over it), so no concept hides behind it.
+  workspace: `${card} flex scroll-mt-20 flex-col [&_h2]:m-0 [&_h2]:text-[16px] [&_h2]:leading-6 [&_h2]:font-bold`,
+  stage: 'mt-3 flex flex-col gap-3 lg:h-[clamp(420px,calc(100dvh-8rem),860px)] lg:flex-row',
+  // Opening slides in once; picking another concept swaps the content without replaying it.
+  inspector: 'grid min-w-0 content-start gap-3 rounded-xl bg-paper p-3 transition-[opacity,translate] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-x-4 starting:opacity-0 motion-reduce:transition-opacity lg:w-[min(420px,44%)] lg:flex-none lg:overflow-y-auto lg:overscroll-contain',
+  inspectorBar: 'flex items-center justify-end gap-1 [&_button]:min-h-9 [&_button]:gap-1 [&_button]:rounded-[8px] [&_button]:px-2.5 [&_button]:text-[13px] [&_button]:font-bold max-md:[&_button]:min-h-11',
   progress: 'flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-text-secondary',
   bar: 'block h-1.5 w-44 max-w-full overflow-hidden rounded-pill bg-paper [&>span]:block [&>span]:h-full [&>span]:bg-success-text',
-  map: 'mt-3 flex min-h-[420px] short:min-h-[min(420px,70dvh)] flex-1 flex-col',
+  map: 'flex min-h-[420px] min-w-0 flex-1 flex-col short:min-h-[min(420px,70dvh)] lg:min-h-0',
   pager: 'flex items-center justify-between gap-2 text-[13px] text-text-muted [&_button]:min-h-9 [&_button]:gap-1 [&_button]:rounded-[8px] [&_button]:px-3 [&_button]:text-[13px] [&_button]:font-bold',
   legend: "m-0 mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-text-secondary [&>span]:inline-flex [&>span]:items-center [&>span]:gap-2 [&>span]:before:size-3.5 [&>span]:before:rounded-[4px] [&>span]:before:border [&>span]:before:border-role-border [&>span]:before:bg-surface [&>span]:before:content-[''] [&>[data-status=approved]]:before:border-transparent [&>[data-status=approved]]:before:bg-success-bg [&>[data-status=rejected]]:before:border-dashed [&>[data-status=count]]:before:rounded-pill [&>[data-status=count]]:before:border-0 [&>[data-status=count]]:before:bg-accent",
   card: `${card} [&_h2]:m-0 [&_h2]:text-[16px] [&_h2]:leading-6 [&_h2]:font-bold`,
