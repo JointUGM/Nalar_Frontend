@@ -14,6 +14,7 @@ test-results/
 
 # Local documentation and plans
 *.md
+docs/
 
 # Local agent tooling (skills, hooks, agents)
 .agents/

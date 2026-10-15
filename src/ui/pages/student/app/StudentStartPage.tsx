@@ -6,11 +6,13 @@ import { Button } from '@/ui/components/button/Button'
 import { ButtonLink } from '@/ui/components/button/ButtonLink'
 import { Feedback } from '@/ui/components/feedback/Feedback'
 import { Icon } from '@/ui/components/icon/Icon'
-import { NalaIcon } from '@/ui/components/nala/NalaIcon'
+import type { IconName } from '@/ui/components/icon/Icon'
 import { Nala } from '@/ui/components/nala/Nala'
-import { formatDayTime } from '@/ui/formatInstant'
+import type { NalaMood } from '@/ui/components/nala/Nala'
+import { formatDayTime, formatRelative } from '@/ui/formatInstant'
 import { LiveFeedback } from '@/ui/pages/live/LiveFrame'
 import { useCommandSignal, useLiveResource } from '@/ui/pages/live/useLiveResource'
+import home from '@/ui/pages/student/StudentHome.styles'
 import styles from '@/ui/pages/student/StudentIntro.styles'
 import { Loading } from '@/ui/components/loading/Loading'
 
@@ -19,7 +21,6 @@ const steps = [
   ['NALAR bertanya tentang alasanmu', 'Beberapa pertanyaan lanjutan, satu per satu.'],
   ['Kamu dapat refleksi', 'Tentang cara kamu berpikir hari ini.'],
 ] as const
-const notes = ['Tidak ada jawaban yang dinilai benar atau salah di sini. Yang penting alasanmu.', 'Boleh berubah pikiran. Itu tanda kamu sedang berpikir.', 'Tetap di halaman ini sampai selesai, ya.'] as const
 const startPollMs = () => 15_000
 
 // The backend decides; these are the student-facing words for its answer (screens.md state table).
@@ -58,6 +59,20 @@ export function StudentStartPage({ service, base }: { service: StudentService; b
   const ready = !live && !used && (open || resume)
   const said = failure && refusal(failure)
 
+  // What Nala says in the spotlight: encouragement when the student can begin, otherwise the reason they cannot.
+  const state: { mood: NalaMood; title?: string; line: string } = said ? { mood: 'calm', title: said, line: 'Misi lain menunggumu di halaman Misi saya.' }
+    : live ? { mood: 'hello', title: 'Misi ini dikerjakan bersama di kelas', line: open ? 'Masukkan kode yang ditampilkan gurumu untuk bergabung.' : 'Tunggu gurumu membuka sesi, lalu gabung dengan kode.' }
+    : used ? { mood: 'calm', title: 'Kamu sudah mengerjakan misi ini.', line: 'Setiap misi hanya bisa dikerjakan satu kali.' }
+    : !ready && find(data.upcoming) ? { mood: 'calm', title: 'Misi ini belum dibuka', line: mission.opens_at ? `Dibuka ${formatDayTime(mission.opens_at)}. Kamu bisa kembali saat itu.` : 'Kamu bisa kembali setelah gurumu membukanya.' }
+    : !ready ? { mood: 'calm', title: 'Waktu mengerjakan sudah lewat', line: 'Kalau kamu belum sempat, tanyakan gurumu.' }
+    : resume ? { mood: 'think', line: 'Alasanmu masih punya cerita. Ayo lanjutkan dari tempat kamu berhenti.' }
+    : { mood: 'ask', line: 'Satu soal, beberapa pertanyaan. Kamu tidak harus langsung yakin; ceritakan alasanmu dengan kata-katamu sendiri.' }
+  const notes: [IconName, string, string][] = [
+    ['lock', 'Tanpa nilai', 'Tidak ada jawaban yang dinilai benar atau salah. Yang penting alasanmu.'],
+    ['refresh', 'Boleh berubah pikiran', 'Itu tanda kamu sedang berpikir.'],
+    ['clock', `Maksimal ${mission.max_duration_minutes} menit`, 'Tetap di halaman ini sampai selesai, ya.'],
+  ]
+
   async function start() {
     // One attempt per publication, so a second press while the first is going on does nothing.
     if (busy.current) return
@@ -73,37 +88,35 @@ export function StudentStartPage({ service, base }: { service: StudentService; b
 
   return <div className={styles.content}>
     {back}
-    <div className={styles.header}>
-      <div>
-        <div className={styles.titleRow}><h1>{mission.mission_title}</h1><span>{mission.subject_name}</span></div>
-        <p>{mission.closes_at ? `Ditutup ${formatDayTime(mission.closes_at)} · ` : ''}{mission.is_granted_attempt ? `Kesempatan ke-${mission.attempt_number}` : '1 kesempatan'}</p>
+    <article className={home.spotlight} aria-labelledby="intro-title">
+      <div className={home.spotlightCopy}>
+        <p className={home.chips}>
+          <span><Icon name={live ? 'users' : 'book'} size={14} />{mission.subject_name}</span>
+          {live ? <span>Sesi kelas</span> : mission.is_granted_attempt && <span>Kesempatan ke-{mission.attempt_number}</span>}
+        </p>
+        <h1 id="intro-title">{mission.mission_title}</h1>
+        <p className={home.line} role={state.title ? 'status' : undefined}>{state.title && <strong className={styles.state}>{state.title}</strong>}{state.line}</p>
+        <div className={home.spotlightFoot}>
+          {ready && !said && <Button className={home.cta} pending={pending} pendingLabel="Membuka sesi…" onClick={() => { void start() }}>{resume ? 'Lanjutkan sesi' : 'Aku siap'}<Icon name="chevronRight" size={16} /></Button>}
+          {live && open && <ButtonLink className={home.cta} to={`${base}/join`}>Gabung dengan kode</ButtonLink>}
+          {!live && <span className={home.facts}>
+            <span>± {mission.target_duration_minutes} menit</span>
+            {ready && mission.closes_at && <time dateTime={mission.closes_at} title={`Ditutup ${formatDayTime(mission.closes_at)}`} className={home.due}><Icon name="clock" size={14} />Tutup {formatRelative(mission.closes_at)}</time>}
+          </span>}
+        </div>
       </div>
-      {ready && !said && <Button pending={pending} pendingLabel="Membuka sesi…" onClick={() => { void start() }}>{resume ? 'Lanjutkan sesi' : 'Aku siap'}<Icon name="chevronRight" size={13} /></Button>}
-      {live && open && <ButtonLink to={`${base}/join`}>Gabung dengan kode</ButtonLink>}
-    </div>
+      <div className={home.mascot}><Nala mood={state.mood} size={148} animate={ready && !said} /></div>
+    </article>
+    {failure && !said && <div className={styles.failure}><LiveFeedback error={failure} online={online} refresh={() => { void start() }} /></div>}
 
-    {said && <Feedback tone="warning" title={said} announce><Link to={base}>Kembali ke Misi saya</Link></Feedback>}
-    {failure && !said && <LiveFeedback error={failure} online={online} refresh={() => { void start() }} />}
-    {live && <Feedback title="Misi ini dikerjakan bersama di kelas" announce>{open ? 'Masukkan kode yang ditampilkan gurumu untuk bergabung.' : 'Tunggu gurumu membuka sesi, lalu gabung dengan kode.'}</Feedback>}
-    {!live && used && <Feedback title="Kamu sudah mengerjakan misi ini." announce>Setiap misi hanya bisa dikerjakan satu kali.</Feedback>}
-    {!live && !used && !ready && (find(data.upcoming)
-      ? <Feedback title="Misi ini belum dibuka" announce>{mission.opens_at ? `Dibuka ${formatDayTime(mission.opens_at)}. Kamu bisa kembali saat itu.` : 'Kamu bisa kembali setelah gurumu membukanya.'}</Feedback>
-      : <Feedback title="Waktu mengerjakan sudah lewat" announce>Kalau kamu belum sempat, tanyakan gurumu.</Feedback>)}
-
-    <section className={styles.welcome} aria-labelledby="intro-welcome"><div><h2 id="intro-welcome">Mulai dari rasa ingin tahu.</h2><p>Kamu tidak harus langsung yakin. Ceritakan apa yang kamu pikirkan, lalu jelajahi alasanmu bersama Nala.</p></div><Nala mood="ask" size={156} /></section>
-    <ul className={styles.stats} aria-label="Tentang misi ini">
-      <li><NalaIcon name="message" size={32} /><strong>1 soal + pertanyaan lanjutan</strong><small>Tentang alasanmu</small></li>
-      <li><NalaIcon name="time" size={32} /><strong>± {mission.target_duration_minutes} menit</strong><small>Maksimal {mission.max_duration_minutes} menit</small></li>
-      <li><NalaIcon name="lock" size={32} /><strong>Tanpa nilai</strong><small>Tidak ada benar atau salah</small></li>
-    </ul>
     <div className={styles.grid}>
-      <section className={styles.card} aria-labelledby="intro-steps">
+      <section className={home.panel} aria-labelledby="intro-steps">
         <h2 id="intro-steps">Cara kerjanya</h2>
-        <ol>{steps.map(([title, caption], index) => <li key={title}><span aria-hidden="true">{index + 1}</span><div><strong>{title}</strong><small>{caption}</small></div></li>)}</ol>
+        <ol className={styles.steps}>{steps.map(([title, caption], index) => <li key={title}><span aria-hidden="true">{index + 1}</span><div><strong>{title}</strong><small>{caption}</small></div></li>)}</ol>
       </section>
-      <section className={styles.notes} aria-labelledby="intro-notes">
-        <div className={styles.notesHead}><NalaIcon name="care" size={36} /><h2 id="intro-notes">Yang perlu kamu tahu<small>Pesan dari Nala</small></h2></div>
-        <ul>{notes.map((note) => <li key={note}>{note}</li>)}</ul>
+      <section className={home.panel} aria-labelledby="intro-notes">
+        <h2 id="intro-notes">Yang perlu kamu tahu</h2>
+        <ul className={styles.notes}>{notes.map(([icon, title, caption]) => <li key={icon}><Icon name={icon} size={18} /><div><strong>{title}</strong><small>{caption}</small></div></li>)}</ul>
       </section>
     </div>
   </div>

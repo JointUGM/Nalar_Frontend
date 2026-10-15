@@ -70,22 +70,27 @@ const posts = (request: ReturnType<typeof backend>) => request.mock.calls.filter
 const startPath = (publication: string) => `${base}/missions/${publication}/start`
 
 describe('signed-in student pages', () => {
-  it('lists past reflections, each opening its finished session, without any score', async () => {
-    open(`${base}/reflections`, backend({ 'GET /student/reflections?limit=100': () => Response.json({ items: [{ session_id: session, mission_title: 'Kenapa kelereng berhenti?', completed_at: '2026-10-01T04:00:00Z', content: 'Kamu mengubah pendapatmu setelah melihat contoh lantai licin.', score: 3 }], next_cursor: null }) }))
-    expect(await screen.findByRole('link', { name: /Kenapa kelereng berhenti\?/ })).toHaveAttribute('href', `${base}/sessions/${session}`)
+  it('lists past reflections, newest first, each opening its finished session, without any score', async () => {
+    const older = { session_id: doneMission, mission_title: 'Tarik tambang', subject_name: 'IPA', completed_at: '2026-09-20T04:00:00Z', content: 'Kamu membandingkan dua tim dengan gaya yang sama.', score: 3 }
+    open(`${base}/reflections`, backend({ 'GET /student/reflections?limit=100': () => Response.json({ items: [older, { session_id: session, mission_title: 'Kenapa kelereng berhenti?', completed_at: '2026-10-01T04:00:00Z', content: 'Kamu mengubah pendapatmu setelah melihat contoh lantai licin.', score: 3 }], next_cursor: null }) }))
+    const latest = within(await screen.findByRole('article', { name: 'Kenapa kelereng berhenti?' }))
+    expect(latest.getByRole('link', { name: /Baca refleksi lengkap/ })).toHaveAttribute('href', `${base}/sessions/${session}`)
+    expect(screen.getByRole('link', { name: /Tarik tambang/ })).toHaveAttribute('href', `${base}/sessions/${doneMission}`)
     expect(screen.queryByText('3')).not.toBeInTheDocument()
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Cari refleksi' }), { target: { value: 'pesawat' } })
+    fireEvent.click(await screen.findByRole('button', { name: 'Tampilkan semua refleksi' }))
+    expect(screen.getByRole('link', { name: /Tarik tambang/ })).toBeInTheDocument()
   })
 
-  it('lists real missions: a window mission to start, a live one to join by code, and the other tabs', async () => {
+  it('lists real missions: a window mission to start, a live one to join by code, the schedule and past missions', async () => {
     open(base, backend())
     await screen.findByRole('heading', { name: 'Halo, Raka' })
     const window = within(await screen.findByRole('article', { name: 'Kenapa kelereng berhenti?' }))
     expect(window.getByRole('link', { name: 'Mulai' })).toHaveAttribute('href', startPath(windowMission))
     const live = within(screen.getByRole('article', { name: 'Tekanan Zat' }))
     expect(live.getByRole('link', { name: 'Gabung dengan kode' })).toHaveAttribute('href', `${base}/join`)
-    expect(screen.getByRole('rowheader', { name: 'Mendorong lemari' })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Selesai' }))
-    expect(screen.getByRole('rowheader', { name: 'Tarik tambang' })).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: 'Jadwal' })).getByText('Mendorong lemari')).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: 'Sudah lewat' })).getByText('Tarik tambang')).toBeInTheDocument()
     expect(screen.queryByText('Pratinjau · data contoh')).not.toBeInTheDocument()
   })
 
