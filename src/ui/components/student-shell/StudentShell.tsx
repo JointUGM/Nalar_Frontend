@@ -8,7 +8,6 @@ import { Icon } from '@/ui/components/icon/Icon'
 import { activeNavTarget } from '@/ui/components/navigation/activeNav'
 import { shell } from '@/ui/components/navigation/shellClasses'
 import type { IconName } from '@/ui/components/icon/Icon'
-import { Nala } from '@/ui/components/nala/Nala'
 import { NalaAvatar } from '@/ui/components/nala/NalaIcon'
 
 interface NavItem { label: string; icon: IconName; to?: string; badge?: string }
@@ -61,11 +60,6 @@ export function StudentShell({ title, user, detail, nav = items, home = '/review
       <p className={shell.group}>Belajar</p>
       {navigation}
       <div className="flex-1" />
-      <div className="flex-none rounded-2xl bg-warning-bg px-4 pt-2 pb-4 in-data-[collapsed=true]:sr-only md:max-lg:sr-only [&>svg]:mx-auto" role="note" aria-label="Pengingat">
-        <Nala mood="think" size={76} />
-        <p className="m-0 mb-2 text-[13px] leading-[19px] font-bold text-ink">Alasanmu punya ruang.</p>
-        <p className="m-0 text-xs leading-[19px] text-warning-text">Nala bertanya supaya kamu bisa menemukan alasanmu sendiri.</p>
-      </div>
       <div className={shell.user}>
         <span className="grid size-[34px] shrink-0 place-items-center"><NalaAvatar seed={user} size={34} /></span>
         <span className={shell.who}><strong>{user}</strong><small>{detail}</small></span>

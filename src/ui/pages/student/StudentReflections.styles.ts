@@ -1,16 +1,18 @@
-// Tailwind classes for StudentReflectionsPage.tsx.
+// Tailwind classes for StudentReflectionsPage.tsx. The header, spotlight and row list come from StudentHome.styles.
 const styles = {
-  content: 'mx-auto max-w-275',
-  header: 'px-8 py-7 gap-6 border border-role-border bg-surface [background:radial-gradient(120%_120%_at_90%_10%,color-mix(in_srgb,var(--color-primary)_6%,transparent)_0%,color-mix(in_srgb,var(--color-accent)_4%,transparent)_45%,transparent_75%),var(--color-surface)] [box-shadow:0_1px_2px_rgb(21_33_59_/_4%),0_8px_24px_rgb(21_33_59_/_5%)] flex items-center justify-between rounded-student-card [&_h1]:m-0 [&_h1]:text-ink [&_h1]:text-[clamp(28px,3vw,36px)] [&_h1]:leading-[1.25] [&_h1]:tracking-[-.03em] [&_p]:mx-0 [&_p]:mt-3 [&_p]:mb-0 [&_p]:max-w-[36ch] [&_p]:font-reading [&_p]:text-[18px] [&_p]:leading-[1.5] [&_p]:text-text-secondary [@media(max-width:700px)]:p-6 [@media(max-width:700px)]:gap-0 [@media(max-width:700px)]:flex-wrap [@media(max-width:700px)]:[&_svg]:ml-auto [@media(max-width:700px)]:[&_svg]:w-27 [@media(max-width:700px)]:[&_svg]:h-auto [@media(max-width:700px)]:[&_p]:text-[16px]',
-  toolbar: 'mt-7 mb-5 gap-4 flex flex-wrap items-center justify-between [&_p]:m-0 [&_p]:text-[14px] [&_p]:font-semibold [&_p]:text-text-secondary [@media(max-width:700px)]:mt-6',
-  search: 'px-3.5 gap-2 w-[min(100%,320px)] min-h-11.5 border-solid border border-control-border bg-surface flex items-center rounded-[12px] text-text-secondary focus-within:[outline:3px_solid_var(--color-primary)] focus-within:outline-offset-[3px] [&_input]:px-0 [&_input]:py-2.5 [&_input]:min-w-0 [&_input]:flex-1 [&_input]:border-none [&_input]:border-0 [&_input]:border-current [&_input]:bg-transparent [&_input]:[font-style:inherit] [&_input]:outline-none [&_input]:[outline-width:0] [&_input]:[font-variant:inherit] [&_input]:[font-weight:inherit] [&_input]:[font-stretch:inherit] [&_input]:text-[14px] [&_input]:[line-height:inherit] [&_input]:[font-family:inherit] [&_input]:text-ink [&_input]:caret-primary [&_input::placeholder]:text-text-muted [&_input::placeholder]:opacity-100 [@media(max-width:700px)]:w-full',
-  hidden: 'm-0 p-0 w-px h-px overflow-hidden absolute [clip-path:inset(50%)]',
-  loading: 'mx-0 mt-6 mb-0 text-[14px] text-primary-hover',
-  empty: 'mt-6 gap-4 grid justify-items-start [&>:first-child]:w-full',
-  list: 'm-0 p-0 gap-5 grid list-none grid-cols-2 [&_a]:p-6.5 [&_a]:gap-4 [&_a]:h-full [&_a]:border [&_a]:border-border [&_a]:bg-surface [&_a]:flex [&_a]:flex-col [&_a]:no-underline [&_a]:rounded-student-card [&_a]:text-ink [&_a]:[box-shadow:0_2px_8px_rgb(21_33_59_/_4%)] [&_a]:[transition:border-color_140ms_ease,box-shadow_140ms_ease,transform_140ms_ease] [&_a:hover]:border-primary [&_a:hover]:[box-shadow:0_6px_20px_rgb(21_33_59_/_8%)] [&_a:hover]:[transform:translateY(-2px)] [&_a>strong]:text-balance [&_a>strong]:text-[20px] [&_a>strong]:leading-[1.4] [&_a>strong]:tracking-[-.025em] [@media(max-width:700px)]:grid-cols-[minmax(0,1fr)] [@media(max-width:700px)]:[&_a]:p-6 motion-reduce:[&_a]:[transition:none]',
-  meta: 'gap-y-2 gap-x-3 flex flex-wrap justify-between text-[12px] text-text-muted [&_span:first-child]:font-bold [&_span:first-child]:text-primary',
-  excerpt: 'font-reading text-[17px] leading-[1.6] text-text-secondary',
-  read: 'mt-auto pt-4 gap-2 border-t border-t-role-border flex items-center justify-between text-[13px] font-bold text-primary hover:text-primary-hover',
+  content: 'mx-auto max-w-240',
+  quote: 'mx-0 mt-2.5 mb-0 max-w-[52ch] border-l-3 border-l-[color-mix(in_srgb,var(--color-accent)_70%,transparent)] pl-4 font-reading text-[17px] leading-[1.55] text-ink max-[600px]:text-[16px]',
+  earlier: 'mt-7 short:mt-5',
+  toolbar: 'mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 [&_h2]:m-0',
+  search: 'flex min-h-11 w-[min(100%,300px)] items-center gap-2 rounded-[12px] border border-control-border bg-surface px-3.5 text-text-secondary focus-within:[outline:3px_solid_var(--color-primary)] focus-within:outline-offset-[3px] max-[600px]:w-full [&_input]:min-w-0 [&_input]:flex-1 [&_input]:border-0 [&_input]:bg-transparent [&_input]:py-2.5 [&_input]:text-[14px] [&_input]:text-ink [&_input]:caret-primary [&_input]:outline-none [&_input::placeholder]:text-text-muted [&_input::placeholder]:opacity-100',
+  hidden: 'absolute m-0 h-px w-px overflow-hidden p-0 [clip-path:inset(50%)]',
+  empty: 'grid justify-items-start gap-4 [&>:first-child]:w-full',
+  row: 'grid grid-cols-[44px_minmax(0,1fr)_auto] items-start gap-x-4 px-5 py-4 text-ink no-underline [transition:background-color_140ms_ease] pointer-fine:hover:bg-nav-hover focus-visible:[outline:3px_solid_var(--color-primary)] focus-visible:outline-offset-[-3px] max-[420px]:grid-cols-[44px_minmax(0,1fr)] max-[420px]:px-4 motion-reduce:[transition:none]',
+  date: 'grid h-11 w-11 place-items-center content-center rounded-[12px] bg-paper text-[11px] leading-none font-semibold text-text-secondary [&_strong]:mb-0.5 [&_strong]:block [&_strong]:text-[17px] [&_strong]:text-ink [&_strong]:tabular-nums',
+  body: 'grid min-w-0 gap-1 [&>strong]:text-[16px] [&>strong]:leading-[1.35] [&>strong]:tracking-[-.015em] [&>strong]:[overflow-wrap:anywhere]',
+  meta: 'text-[13px] text-text-secondary',
+  excerpt: 'mt-1 line-clamp-2 font-reading text-[15px] leading-[1.55] text-text-secondary',
+  chevron: 'mt-3 text-text-muted max-[420px]:hidden',
 } satisfies Record<string, string>
 
 export default styles
